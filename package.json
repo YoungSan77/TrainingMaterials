@@ -1,0 +1,14 @@
+{
+  "name": "training-materials",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LLM 기반 교재 데이터 생성 + PPTX 렌더링 파이프라인",
+  "scripts": {
+    "build":       "node engine/master_render.js",
+    "check":       "node engine/verify.js",
+    "snap":        "node test/snapshot.js",
+    "snap:update": "node test/snapshot.js --update",
+    "corpus":      "node test/corpus.js",
+    "test":        "npm run snap && npm run corpus"
+  }
+}

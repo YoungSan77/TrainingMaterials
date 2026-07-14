@@ -1,0 +1,17 @@
+# 산출물 — 재생성 가능하므로 버전관리 대상이 아니다
+out/
+*.pptx
+
+# 골든 스냅샷의 임시 렌더 산출물(스냅샷 JSON 자체는 커밋한다)
+test/tmp/
+
+# Node
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# OS / 편집기
+.DS_Store
+*.swp
+.vscode/
+.idea/
