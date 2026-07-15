@@ -267,7 +267,7 @@ module.exports = {
     get toc() { return this.slides.map((s, i) => [String(i + 1).padStart(2, '0'), s.head || s.title]); }
   },
   meta: {
-    quotes: './QM_교육_커리큘럼_v4_2.md',
+    quotes: '../course/QM_교육_커리큘럼_v4_2.md',
     visualTriggers: {
       loop: ['악순환', '선순환', '되먹임', '상시 준수', '재유입'],
       pipeline: ['게이트', '되돌림', '파이프라인'],
