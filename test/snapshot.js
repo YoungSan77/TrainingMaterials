@@ -22,7 +22,7 @@ const { execFileSync } = require('child_process');
 
 const ROOT     = path.resolve(__dirname, '..');
 const ENGINE   = path.join(ROOT, 'engine', 'master_render.js');
-const DECKS_DIR = path.join(ROOT, 'decks');
+const DECKS_DIR = path.join(ROOT, 'courses/qm/decks');
 const GOLDEN   = path.join(__dirname, '__snapshots__', 'geometry.json');
 const EMU = 914400;
 

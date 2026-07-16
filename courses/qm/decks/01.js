@@ -1,4 +1,4 @@
-const G = require('../course/global_config.js');
+const G = require('../global_config.js');
 
 const slides = [
   {
