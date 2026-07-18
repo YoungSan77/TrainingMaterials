@@ -22,6 +22,7 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 
 const ENGINE_DIR = __dirname;
+const ROOT = path.resolve(__dirname, '..');
 const VERIFY = path.join(ENGINE_DIR, 'verify.js');
 const RENDER = path.join(ENGINE_DIR, 'master_render.js');
 
@@ -30,10 +31,54 @@ const flags = rest.filter(a => a.startsWith('--'));
 const args = rest.filter(a => !a.startsWith('--'));
 const deck = args[0];
 
+// 설치 무결성 점검 — 파일 목록을 하드코딩하지 않는다(목록도 드리프트한다).
+// 엔진 소스가 실제로 require하는 상대 경로를 긁어 해석되는지 본다.
+// 계기: layout.js 하나가 빠진 채 배포돼 verify가 로직에 닿기도 전에 MODULE_NOT_FOUND로 죽었다.
+// 데이터는 verify가 검사하는데 '설치 상태'는 아무도 검사하지 않았다 — 그래서 등급 메시지가 아니라 스택이 나왔다.
+function doctor() {
+    const roots = [ENGINE_DIR, path.join(ENGINE_DIR, 'render')];
+    const files = [];
+    roots.forEach(d => { if (fs.existsSync(d)) fs.readdirSync(d).filter(f => f.endsWith('.js')).forEach(f => files.push(path.join(d, f))); });
+    const miss = [], seen = new Set();
+    let nRef = 0;
+    files.forEach(f => {
+        const src = fs.readFileSync(f, 'utf8');
+        const re = /require\(\s*['"](\.[^'"]+)['"]\s*\)/g;
+        let m;
+        while ((m = re.exec(src))) {
+            const rel = m[1], abs = path.resolve(path.dirname(f), rel);
+            const hit = [abs, abs + '.js', path.join(abs, 'index.js')].some(p2 => fs.existsSync(p2));
+            const key = `${f}→${rel}`;
+            nRef++;
+            if (!hit && !seen.has(key)) { seen.add(key); miss.push(`${path.relative(ROOT, f)} → ${rel}`); }
+        }
+    });
+    // 의존성은 '경로 존재'가 아니라 Node의 해석 규칙으로 확인한다.
+    // node_modules는 상위 디렉터리(홈 등)에 있을 수 있고, 그래도 정상 동작한다.
+    // 경로를 직접 뒤지면 해석 알고리즘을 재구현하는 셈이고, 재구현은 반드시 어긋난다.
+    let dep = null;
+    try { dep = require.resolve('pptxgenjs', { paths: [ROOT, ENGINE_DIR] }); } catch (e) { dep = null; }
+    const golden = fs.existsSync(path.join(ROOT, 'test', '__snapshots__', 'geometry.json'));
+    console.log(`── DOCTOR: 엔진 파일 ${files.length}개 · 내부 참조 ${nRef}건 점검 ──`);
+    miss.forEach(m2 => console.log(`  ✗ 모듈 없음: ${m2}`));
+    if (!dep) console.log(`  ✗ pptxgenjs를 해석할 수 없다 — npm install`);
+    else if (!dep.startsWith(path.join(ROOT, 'node_modules'))) {
+        const home = dep.split('node_modules')[0];
+        console.log(`  · pptxgenjs가 프로젝트 밖에서 해석된다: ${home}node_modules (동작하지만, 그 폴더가 바뀌면 이 저장소가 함께 깨진다)`);
+    }
+    if (!golden) console.log(`  · 골든 스냅샷 없음 — npm run snap:update로 현재 동작을 박제한다(경고 아님)`);
+    if (miss.length || !dep) {
+        console.error(`\n[중단] 설치가 불완전하다. 위 파일을 채운 뒤 다시 실행한다.`);
+        process.exit(1);
+    }
+    console.log('설치 이상 없음.');
+}
+
 function usage(code = 1) {
     console.log(`사용법:
   node engine/cli.js new course <name>          새 과정 골격(global_config + 커리큘럼 스텁 + decks/)
   node engine/cli.js new deck   <deck.js>       새 순수 데이터 덱 골격(verify 통과)
+  node engine/cli.js doctor                     설치 무결성 점검(모듈 누락·의존성)
   node engine/cli.js check <deck.js> [--log]    verify 실행 (--log: ②지표 1행 기록)
   node engine/cli.js build <deck.js> [--draft]  verify 게이트 통과 시 렌더
 
@@ -218,6 +263,7 @@ module.exports = { session: {
 
 // ── dispatch ─────────────────────────────────────────────────────────────────
 if (!cmd || cmd === '-h' || cmd === '--help') usage(0);
+if (cmd === 'doctor') { doctor(); process.exit(0); }
 if (cmd !== 'new' && !deck) { console.error(`[중단] 덱 경로가 필요하다.`); usage(1); }
 
 if (cmd === 'new') {

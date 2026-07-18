@@ -4,6 +4,7 @@
   "private": true,
   "description": "LLM 기반 교재 데이터 생성 + PPTX 렌더링 파이프라인",
   "scripts": {
+    "doctor": "node engine/cli.js doctor",
     "new": "node engine/cli.js new",
     "check": "node engine/cli.js check",
     "build": "node engine/cli.js build",

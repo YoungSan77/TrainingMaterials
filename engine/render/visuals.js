@@ -1,7 +1,9 @@
 'use strict';
 // 자동 생성(build_split.js). 원본 master_render.js에서 본문을 그대로 옮겼다.
 // 손으로 고치지 말 것 — 규칙은 원본과 골든이 정본이다.
+const makeLayout = require('../layout.js');            // 기하 측정 단일 소스(verify와 공유)
 module.exports = (ctx) => {
+  const LO = makeLayout(ctx);
   const {
     pres, DECK, ASSETS, noteTail, band, DRAFT, C, FF,
     LM, CW, Y_START, Y_LINE, Y_BOT, CTX_TOP, VB, F_BODY,
@@ -50,17 +52,16 @@ module.exports = (ctx) => {
 
 
     const renderAutoBoxes = (s, y, boxes) => {
-        const n = boxes.length, gap = 0.20, w = (CW - gap * (n - 1)) / n;
-        const need = Math.max(...boxes.map(b => textH(b.body.reduce((a, t) => a + lines(t, w), 0), b.body.length)));
-        const h = Math.min(band.VH, 0.42 + need + SLACK);
+        const g = LO.item('boxes', boxes, band.VH);                      // 치수는 layout.js가 잰다
+        const { n, gap, w, h } = g;
         const top = y === 'auto' ? band.VT + (band.VH - h) / 2 : y;      // 밴드 수직 중앙
         boxes.forEach((b, i) => {
             const x = LM + i * (w + gap);
             s.addShape(pres.shapes.RECTANGLE, { x, y: top, w, h, fill: { color: C.white }, line: { color: C.navy, width: 1.25 } });
             // 제목 — box에 내장 (12 bold)
-            s.addText(b.title, { x, y: top, w, h: 0.42, fill: { color: C.navy }, color: C.white, bold: true, fontSize: F_HEAD, fontFace: FF, align: 'center', valign: 'middle', margin: [MG, MG, MG, MG] });
+            s.addText(b.title, { x, y: top, w, h: g.head, fill: { color: C.navy }, color: C.white, bold: true, fontSize: F_HEAD, fontFace: FF, align: 'center', valign: 'middle', margin: [MG, MG, MG, MG] });
             // 본문 — box에 내장 (12), 문장 간 전후 3pt
-            s.addText(b.body.map((t, k) => ({ text: t, options: { fontSize: F_IN, fontFace: FF, color: C.dark, bullet: { indent: 10 }, breakLine: k < b.body.length - 1, paraSpaceBefore: SP, paraSpaceAfter: SP } })), { x, y: top + 0.42, w, h: h - 0.42, valign: 'top', margin: [MG, MG, MG, MG] });
+            s.addText(b.body.map((t, k) => ({ text: t, options: { fontSize: F_IN, fontFace: FF, color: C.dark, bullet: { indent: g.bullet }, breakLine: k < b.body.length - 1, paraSpaceBefore: SP, paraSpaceAfter: SP } })), { x, y: top + g.head, w, h: g.alloc, valign: 'top', margin: [MG, MG, MG, MG] });
         });
     };
 
@@ -307,19 +308,18 @@ module.exports = (ctx) => {
     // ===== 프론트매터 모듈 (도메인 독립: 세션1 커버/전체목차/세션목차, 세션2+ 세션목차) =====
 
     const renderSteps = (s, items) => {
-        const n = items.length, gap = n > 4 ? 0.10 : 0.16, w = (CW - gap * (n - 1)) / n;
         // 높이: 제목 1줄 + 본문 줄 수 (0.2cm 여백 포함). 밴드를 넘으면 밴드에 맞춰 자른다.
-        const need = 0.42 + Math.max(...items.map(it => textH(it.body.reduce((a, t) => a + lines(t, w), 0), it.body.length))) + SLACK;
-        const h = Math.min(band.VH, need);
+        const g = LO.item('steps', items, band.VH);                  // 치수는 layout.js가 잰다
+        const { n, gap, w, h } = g;
         const top = band.VT + (band.VH - h) / 2;                     // 밴드 수직 중앙
         const fT = F_HEAD, fB = F_IN;
         items.forEach((it, i) => {
             const x = LM + i * (w + gap);
             s.addShape(pres.shapes.RECTANGLE, { x, y: top, w, h, fill: { color: C.white }, line: { color: C.navy, width: 1.25 } });
             // 제목 헤더 — box에 내장(12 bold)
-            s.addText(`${i + 1}. ${it.title}`, { x, y: top, w, h: 0.42, fill: { color: C.navy }, color: C.white, bold: true, fontSize: fT, fontFace: FF, align: 'center', valign: 'middle', margin: [MG, MG, MG, MG] });
+            s.addText(`${i + 1}. ${it.title}`, { x, y: top, w, h: g.head, fill: { color: C.navy }, color: C.white, bold: true, fontSize: fT, fontFace: FF, align: 'center', valign: 'middle', margin: [MG, MG, MG, MG] });
             // 본문 — box에 내장(12), 문장 간 전후 3pt
-            s.addText(it.body.map((t, k) => ({ text: t, options: { fontSize: fB, fontFace: FF, color: C.dark, bullet: { indent: 10 }, breakLine: k < it.body.length - 1, paraSpaceBefore: SP, paraSpaceAfter: SP } })), { x, y: top + 0.42, w, h: h - 0.42, valign: 'top', margin: [MG, MG, MG, MG] });
+            s.addText(it.body.map((t, k) => ({ text: t, options: { fontSize: fB, fontFace: FF, color: C.dark, bullet: { indent: g.bullet }, breakLine: k < it.body.length - 1, paraSpaceBefore: SP, paraSpaceAfter: SP } })), { x, y: top + g.head, w, h: g.alloc, valign: 'top', margin: [MG, MG, MG, MG] });
         });
         // 진행 화살표는 그리지 않는다 — 순서는 제목의 번호(1. 2. 3. …)로만 표기한다.
     };
@@ -327,17 +327,17 @@ module.exports = (ctx) => {
     // versus: 2열 대비 (좌=대비 대상, 우=지향 대상)
 
     const renderVersus = (s, data) => {
-        const cols = data, n = cols.length, gap = 0.30, w = (CW - gap * (n - 1)) / n;
-        const need = Math.max(...cols.map(c => textH(c.body.reduce((a, t) => a + lines(t, w, 12), 0), c.body.length)));
-        const h = Math.min(band.VH, 0.44 + need + SLACK);
+        const cols = data;
+        const g = LO.item('versus', cols, band.VH);                   // 치수는 layout.js가 잰다
+        const { n, gap, w, h } = g;
         const top = band.VT + (band.VH - h) / 2;
         cols.forEach((c, i) => {
             const x = LM + i * (w + gap);
             const neg = c.negative !== undefined ? c.negative : (i === 0 && n === 2);   // 기본: 2열일 때 좌=대비
             const bar = neg ? C.failT : C.teal;
             s.addShape(pres.shapes.RECTANGLE, { x, y: top, w, h, fill: { color: C.white }, line: { color: bar, width: 1.25 } });
-            s.addText(c.title, { x, y: top, w, h: 0.44, fill: { color: bar }, color: C.white, bold: true, fontSize: F_HEAD, fontFace: FF, align: 'center', valign: 'middle', margin: [MG, MG, MG, MG] });
-            s.addText(c.body.map((t, k) => ({ text: t, options: { fontSize: F_IN, fontFace: FF, color: C.dark, bullet: { indent: 12 }, breakLine: k < c.body.length - 1, paraSpaceBefore: SP, paraSpaceAfter: SP } })), { x, y: top + 0.44, w, h: h - 0.44, valign: 'top', margin: [MG, MG, MG, MG] });
+            s.addText(c.title, { x, y: top, w, h: g.head, fill: { color: bar }, color: C.white, bold: true, fontSize: F_HEAD, fontFace: FF, align: 'center', valign: 'middle', margin: [MG, MG, MG, MG] });
+            s.addText(c.body.map((t, k) => ({ text: t, options: { fontSize: F_IN, fontFace: FF, color: C.dark, bullet: { indent: g.bullet }, breakLine: k < c.body.length - 1, paraSpaceBefore: SP, paraSpaceAfter: SP } })), { x, y: top + g.head, w, h: g.alloc, valign: 'top', margin: [MG, MG, MG, MG] });
         });
     };
 
@@ -382,16 +382,15 @@ module.exports = (ctx) => {
     // takeaways: 세션 요약 번호 리스트 (요약 슬라이드 전용)
 
     const renderTakeaways = (s, items) => {
-        const n = items.length, gap = n >= 5 ? 0.08 : 0.12;
-        const hRaw = Math.max(...items.map(it => textH(lines(it.body, CW - 3.2, false), 1))) + SLACK;
-        const h = Math.min((band.VH - gap * (n - 1)) / n, Math.max(0.52, hRaw));
-        const blockH = h * n + gap * (n - 1);
+        const g = LO.takeaways(items, band.VH);                        // 치수는 layout.js가 잰다
+        const { n, gap, h, blockH } = g;
         const top = band.VT + (band.VH - blockH) / 2;
         items.forEach((it, i) => {
             const y = top + i * (h + gap);
             s.addShape(pres.shapes.RECTANGLE, { x: LM, y, w: CW, h, fill: { color: C.white }, line: { color: C.lineL, width: 0.75 } });
-            s.addText(`${i + 1}. ${it.title}`, { x: LM, y, w: 2.85, h, fill: { color: C.navyLight }, fontSize: F_HEAD, fontFace: FF, color: C.navy, bold: true, align: 'left', valign: 'middle', margin: [MG, MG, MG, MG] });
-            s.addText(it.body, { x: LM + 2.85, y, w: CW - 2.85, h, fontSize: F_IN, fontFace: FF, color: C.dark, align: 'left', valign: 'middle', margin: [MG, MG, MG, MG] });
+            s.addText(`${i + 1}. ${it.title}`, { x: LM, y, w: g.titleW, h, fill: { color: C.navyLight }, fontSize: F_HEAD, fontFace: FF, color: C.navy, bold: true, align: 'left', valign: 'middle', margin: [MG, MG, MG, MG] });
+            s.addText(it.body.map((t, k) => ({ text: t, options: { fontSize: F_IN, fontFace: FF, color: C.dark, breakLine: k < it.body.length - 1, paraSpaceBefore: SP, paraSpaceAfter: SP } })),
+                { x: LM + g.titleW, y, w: CW - g.titleW, h, align: 'left', valign: 'middle', margin: [MG, MG, MG, MG] });
         });
     };
 

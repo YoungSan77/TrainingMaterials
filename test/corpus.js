@@ -22,6 +22,8 @@ const { execFileSync } = require('child_process');
 
 const ROOT   = path.resolve(__dirname, '..');
 const VERIFY = path.join(ROOT, 'engine', 'verify.js');
+const RENDER = path.join(ROOT, 'engine', 'master_render.js');
+const OUT_TMP = fs.mkdtempSync(path.join(require('os').tmpdir(), 'corpus-'));   // 엔진 케이스의 산출 격리
 const DIR    = path.join(__dirname, 'corpus');
 const ASSET  = path.join(DIR, 'quotes.corpus.md');
 const ASSET_ID = 'Q_ALPHA';
@@ -37,12 +39,21 @@ const CASES = [
   { file: '7-quote-paraphrase.js',      name: '인용 의역',               expect: '자산과 다르다', asset: true },
   { file: '8-curriculum-day-missing.js', name: 'curriculum.day 누락',     expect: '.day 없음' },
   { file: '9-caption-attribution.js',   name: 'caption에 저자·출처',      expect: 'caption에 저자·출처', asset: true },
+  // 형태(shape) 계열 — 2026-07 크래시 2건의 회귀 방어.
+  //   verify가 죽거나(스택), verify가 통과시킨 것을 렌더러가 거부하면 이 셋이 잡는다.
+  { file: '10-shape-body-string.js',    name: '항목 body 문자열(보정)',   expect: 'body가 문자열이다' },
+  { file: '11-shape-item-not-object.js', name: '항목이 객체가 아님',       expect: '객체가 아니다' },
+  { file: '12-shape-render-gate.js',    name: '엔진 형태 게이트',         expect: '형태가 어긋났다', runner: 'engine' },
 ];
 
-// verify를 돌려 표준출력을 통째로 돌려준다(오류 시 exit 1로 throw → e.stdout에서 회수).
-function runVerify(deckAbs) {
+// 검사기를 돌려 표준출력을 통째로 돌려준다(오류 시 exit≠0로 throw → e.stdout에서 회수).
+//   기본은 verify. runner:'engine'인 케이스는 엔진을 돌린다 — 렌더 앞단 게이트는 verify로 잴 수 없다.
+//   (게이트가 검사 뒤에 있어 'verify 초록 + 렌더러 사망'이 났던 사고의 회귀 방어)
+function runCheck(deckAbs, runner) {
+    const bin = runner === 'engine' ? RENDER : VERIFY;
+    const args = runner === 'engine' ? [bin, deckAbs, '--out', OUT_TMP] : [bin, deckAbs];
     try {
-        return execFileSync('node', [VERIFY, deckAbs], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+        return execFileSync('node', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
     } catch (e) {
         return (e.stdout || '') + (e.stderr || '');
     }
@@ -76,7 +87,7 @@ function fail(msg) { console.error('[중단] ' + msg); process.exit(1); }
     let missed = 0;
     console.log(`── CORPUS: ${CASES.length}개 결함 · 검증기 탐지 확인 ──\n`);
     for (const c of CASES) {
-        const out = runVerify(path.join(DIR, c.file));
+        const out = runCheck(path.join(DIR, c.file), c.runner);
         const hit = out.includes(c.expect);
         if (!hit) missed++;
         console.log(`[${hit ? '✓' : '✗'}] ${c.name.padEnd(20)} 기대 진단 ${hit ? '나옴' : '안 나옴'}: "${c.expect}"`);
@@ -87,5 +98,6 @@ function fail(msg) { console.error('[중단] ' + msg); process.exit(1); }
     }
     console.log(`\n요약: 탐지 ${CASES.length - missed}/${CASES.length}`);
     if (missed) { console.error(`[실패] ${missed}개 결함을 검증기가 놓쳤다.`); process.exit(1); }
+    fs.rmSync(OUT_TMP, { recursive: true, force: true });
     console.log('[통과] 모든 결함을 검증기가 잡았다.');
 })();

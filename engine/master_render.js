@@ -134,13 +134,17 @@
  *       "표로도 되는데"는 표를 고를 이유가 되지 못한다. 위 규칙에 해당하면 해당 타입을 쓴다.
  *
  *   [항목 계열]
- *   · boxes    : 병렬 2~3요소(국면별 증상, 주체별 역할)   [ {title, body:[...]} ]
- *   · table    : 비교·매핑 표(대비 표, 판단 기준 표)       [ [헤더...], [행...] ]
- *   · steps    : 번호 단계 전개(절차·국면의 순차 진행)     [ {title, body:[...]} ]
+ *   ★ body는 전부 문자열 배열(string[])이다 — 원소 하나가 한 문단이다. 타입마다 다르지 않다.
+ *     형태의 단일 소스는 shape.js다. 문자열로 써도 엔진이 감싸 보정하고 [형태 보정]으로 알리지만,
+ *     보정에 기대지 않는다 — 보정은 사고 기록이지 허용이 아니다.
+ *   · boxes    : 병렬 2~3요소(국면별 증상, 주체별 역할)   [ {title, body:['한 줄','한 줄']} ]
+ *   · table    : 비교·매핑 표(대비 표, 판단 기준 표)       [ [헤더...], [행...] ]  모든 행의 칸 수가 같아야 한다
+ *   · steps    : 번호 단계 전개(절차·국면의 순차 진행)     [ {title, body:['한 줄','한 줄']} ]
  *                권장 3~4단계(본문 2줄까지). 5단계부터 열이 좁아지니 본문을 1줄로 줄인다.
  *   · versus   : 열 대비. 2열이 기본(좌=대비/적색, 우=지향/청록).
- *                [ {title, body:[...]}, ... ]  negative:false로 적색 해제(3주체처럼 대비가 아닐 때)
- *   · takeaways: 세션 요약 번호 리스트                     [ {title, body} ]
+ *                [ {title, body:['한 줄','한 줄']}, ... ]
+ *                negative:false로 적색 해제(3주체처럼 대비가 아닐 때)
+ *   · takeaways: 세션 요약 번호 리스트                     [ {title, body:['한 문장']} ]
  *
  *   [단문]  — 골격 예외. 이 타입만 question/lead/foot을 쓰지 않는다.
  *   · statement: 한 문장만 보여주는 슬라이드.
@@ -203,14 +207,15 @@
  *   session.title, session.toc : [ [번호, 제목], ... ]  // 본문 전 슬라이드를 순서대로. slides에서 파생시킨다.
  *                                 toc: slides.map((s,i)=>[String(i+1).padStart(2,'0'), s.head||s.title])
  *   session.slides[] = {
- *     kind              : '학습 목표'|'현상'|'원인'|'원칙'|'적용'|'타협'|'인용'
+ *     kind              : '학습 목표'|'현상'|'원인'|'원칙'|'적용'|'타협'|'요약'
+ *                         분류 요건을 세는 것은 현상·원인·원칙·적용·타협 다섯뿐이다.
  *                         데이터에만 남는 분류. 헤더에 출력하지 않으며 lint 점검에만 쓰인다.
  *     title             : 헤더 제목(연번은 엔진이 자동으로 앞에 붙인다 → 'NN. 제목')
  *     head              : (선택) title 대신 쓰는 헤더 제목. 연번은 동일하게 붙는다.
  *     sub               : 슬라이드 명제 한 줄
  *     question          : 핵심 질문 한 줄(물음표로 끝난다)
  *     lead              : { label, text }
- *     visual            : { type, data, caption? }
+ *     visual            : { type, data, caption? }   // data의 형태는 shape.js가 정한다(엔진·verify 공유)
  *                         type ∈ boxes|table|steps|versus|takeaways             (항목 계열)
  *                              | statement                                      (단문 — 골격 예외)
  *                              | flow|pipeline|loop                             (관계 계열)
@@ -277,6 +282,7 @@ const pptxgen = require('pptxgenjs');
 const measure = require('./measure.js');                          // 폭 모델 단일 소스
 const QA = require('./quotes.js');                                // 인용 자산 파서(verify와 공유)
 const skeleton = require('./skeleton.js');                        // 골격 규칙 단일 소스(verify와 공유)
+const shape = require('./shape.js');                              // visual.data 형태 단일 소스(verify와 공유)
 const makeCtx        = require('./render/context.js');
 const makePrimitives = require('./render/primitives.js');
 const makeVisuals    = require('./render/visuals.js');
@@ -305,6 +311,19 @@ async function buildDeck(DECK) {
     })();
 
     const DRAFT = process.argv.includes('--draft');
+
+    // ── 형태 게이트: 그리기 전에 visual.data의 형태를 맞춘다 ──
+    //   이 게이트가 없던 동안, 형태가 어긋난 데이터는 pptxgenjs 내부에서 TypeError로 죽었다
+    //   (verify는 통과시켰다 — 게이트가 검사보다 뒤에 있었다). 스택 트레이스는 검증 결과가 아니다.
+    const frontMatter = DECK.session.no === 1 ? 3 : 1;
+    const sh = shape.conformDeck(DECK.session.slides, (i) => `p${frontMatter + i + 1}`);
+    sh.fixes.forEach(m => console.log(`[형태 보정] ${m}`));
+    if (sh.errors.length) {
+        console.error(`\n[중단] visual.data의 형태가 어긋났다 — 그리면 렌더러가 죽는다.`);
+        sh.errors.forEach(m => console.error(`  ✗ ${m}`));
+        console.error(`\n형태 규약은 shape.js와 엔진 헤더 [항목 계열]에 있다.`);
+        process.exit(1);
+    }
 
     // ── ctx 조립: context가 substrate(상수·헬퍼·band)를 만들고, 각 층을 순서대로 얹는다.
     //    primitives → visuals → pages 순(하위 층이 상위 산출을 ctx에서 받는다).

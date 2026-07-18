@@ -29,6 +29,7 @@ const { IN, textW, avail, lineCount } = require('./measure.js');
 const QA = require('./quotes.js');
 const { norm } = QA;                                  // 인용 자산 파서(엔진과 공유 — 두 벌이면 어긋난다)
 const { isFree, requiredFields } = require('./skeleton.js');   // 골격 규칙 단일 소스(엔진과 공유)
+const shape = require('./shape.js');                           // visual.data 형태 단일 소스(엔진과 공유)
 
 // ── 엔진 레이아웃 상수를 엔진 소스에서 읽는다(복제하지 않는다) ──
 //   분할 후 상수는 render/context.js, TYPES는 render/lint.js에 있다. master_render.js(선두 형식 헤더)와
@@ -63,6 +64,9 @@ const CAP_MAX = grab(/\bCAP_MAX\s*=\s*(\d+)/, 'CAP_MAX');
 // 엔진이 지원하는 타입 목록도 소스에서 읽는다 — 타입을 추가하고 검증기를 안 고치는 사고를 막는다.
 const TYPES = (SRC.match(/const TYPES = \[([\s\S]*?)\];/) || [, ''])[1].match(/'([a-z]+)'/g)?.map(s => s.replace(/'/g, '')) || [];
 if (!TYPES.length) { console.error('[중단] 엔진에서 TYPES 목록을 읽지 못했다.'); process.exit(2); }
+// 타입을 늘리고 형태를 등록하지 않으면, 그 타입은 형태 검사 없이 렌더러까지 간다 → 크래시로만 알게 된다.
+const noShape = TYPES.filter(t => !shape.SHAPES[t]);
+if (noShape.length) { console.error(`[중단] 엔진 타입 ${noShape.join('·')}의 형태가 shape.js에 없다 — 형태 검사를 건너뛴 채 렌더러로 간다.`); process.exit(2); }
 const NUMERIC = ['share', 'magnitude'];
 if (/charCodeAt\(0\)\s*>\s*255/.test(SRC))
     console.log('[주의] master_render.js에 자체 문자폭 계산이 남아 있다 — measure.js로 일원화해야 한다.\n');
@@ -79,20 +83,17 @@ const DOC = (SRC.match(/^\/\*[\s\S]*?\*\//) || [''])[0];
         console.log(`[계약 경고] 문서 블록에 폐기된 타입 '${t}'가 남아 있다 — 계약만 읽는 생성기가 이 함정에 빠진다.\n`);
 });
 
-// ── 엔진과 동일한 기하 계산 ──
-const BULLET = { boxes: 10, steps: 10, versus: 12, quotes: 16 };
-const colWidth = (type, n) => {
-    if (type === 'boxes')  return (CW - 0.20 * (n - 1)) / n;
-    if (type === 'steps')  return (CW - (n > 4 ? 0.10 : 0.16) * (n - 1)) / n;
-    if (type === 'versus') return (CW - 0.30 * (n - 1)) / n;
-    return CW;
-};
+// ── 기하 계산 ──
+// '엔진과 동일한 식'을 여기 다시 쓰지 않는다. layout.js가 재고, 여기서는 판정만 한다.
+// (같은 식을 두 곳에 두면 언젠가 갈라진다 — 폭에서 한 번, 형태에서 한 번 겪었다)
 const L = (t, w, bullet = 10, fs = F_IN) =>
     String(t).split('\n').reduce((n, p) => n + lineCount(p, bullet === false ? w - PAD * 2 : avail(w, bullet), fs), 0);
 const budget = (w, bullet = 10, fs = F_IN) => Math.floor((bullet === false ? w - PAD * 2 : avail(w, bullet)) / (IN(fs) * 1.05));
 const lineH = (fs) => IN(fs * 1.2);
 const textH = (lines, paras, fs = F_IN) => lines * lineH(fs) + paras * (2 * SP / 72) + PAD * 2;
 const SLACK = 0.06;
+// 엔진과 같은 측정 함수를 넘긴다 → 엔진이 그리는 치수 = 여기서 재는 치수.
+const LO = require('./layout.js')({ CW, PAD, SP, F_IN, lines: L, textH, SLACK });
 
 const quoteH = (q) => Math.max(0.78,
     L(`\u201C${q.ko}\u201D`, CW, false, F_QKO) * 0.24 + L(`${q.en} — ${q.author}`, CW, false, F_QEN) * 0.18 + PAD * 2);
@@ -204,24 +205,29 @@ S.forEach((sl, i) => {
     if (NUMERIC.includes(v.type) && !v.caption)
         warn.push(`${tag} ${v.type}에 caption이 없다 — 숫자를 명제로 올렸으면 출처·한계를 밝힌다`);
 
+    // 4.5) 형태 검사 — 측정 '앞'이다.
+    //   이 검사가 없던 동안 형태가 어긋난 data는 아래 측정식에서 TypeError로 검증기를 죽였다.
+    //   (문자열에 .reduce를 걸었다) 검증기가 죽으면 생성기는 무엇을 고쳐야 하는지 알 수 없다.
+    //   보정 가능한 차이는 엔진도 보정하므로 경고다(엔진이 고치는 것을 막아 세우지 않는다 — stripNo 선례).
+    const conf = shape.conform(v);
+    conf.fixes.forEach(m => warn.push(`${tag} ${m}`));
+    conf.errors.forEach(m => err.push(`${tag} ${m}`));
+    if (conf.errors.length) return;                   // 형태가 깨진 데이터는 재지 않는다
+
     let need = null;
 
     // 5) 시각화별 필요 높이 + 규격 점검
-    if (['boxes', 'steps', 'versus'].includes(v.type)) {
-        const n = v.data.length, w = colWidth(v.type, n), b = BULLET[v.type];
-        const budg = budget(w, b), head = v.type === 'versus' ? 0.44 : 0.42;
-        const needMax = Math.max(...v.data.map(x => textH((x.body || []).reduce((a, t) => a + L(t, w, b), 0), (x.body || []).length)));
-        need = head + needMax + SLACK;
-        const alloc = Math.min(VH, need) - head;
-        v.data.forEach(box => {
-            const body = box.body || [];
-            const lns = body.reduce((a, t) => a + L(t, w, b), 0);
-            const real = textH(lns, body.length);
-            if (real > alloc + 1e-6)
-                err.push(`${tag} ${v.type} "${box.title}" 박스에서 글자가 넘친다(필요 ${real.toFixed(2)}in > 배정 ${alloc.toFixed(2)}in) — 문장을 한글 ${budg}자로 줄이거나 항목을 뺀다`);
+    if (LO.isItem(v.type)) {
+        const g = LO.item(v.type, v.data, VH);            // 치수는 엔진과 같은 소스에서 받는다
+        const budg = budget(g.w, g.bullet);
+        need = g.need;
+        v.data.forEach((box, k) => {
+            const p = g.per[k], body = box.body || [];
+            if (p.real > g.alloc + 1e-6)
+                err.push(`${tag} ${v.type} "${box.title}" 박스에서 글자가 넘친다(필요 ${p.real.toFixed(2)}in > 배정 ${g.alloc.toFixed(2)}in) — 문장을 한글 ${budg}자로 줄이거나 항목을 뺀다`);
             body.forEach(t => {
-                const l = L(t, w, b);
-                if (l >= 3) warn.push(`${tag} ${v.type} ${n}열 ${l}줄: "${String(t).slice(0, 20)}…" — 밀도 과다 (1줄 = 한글 ${budg}자)`);
+                const l = L(t, g.w, g.bullet);
+                if (l >= 3) warn.push(`${tag} ${v.type} ${g.n}열 ${l}줄: "${String(t).slice(0, 20)}…" — 밀도 과다 (1줄 = 한글 ${budg}자)`);
             });
         });
     } else if (v.type === 'table') {
@@ -258,13 +264,11 @@ S.forEach((sl, i) => {
                 warn.push(`${tag} caption에 저자·출처가 들어 있다 — 원문·저자·출처는 문장 아래 10pt 줄이 자동으로 붙인다. caption은 한계 전용이다`);
         }
     } else if (v.type === 'takeaways') {
-        const n = v.data.length, gap = n >= 5 ? 0.08 : 0.12;
-        const hRaw = Math.max(...v.data.map(it => textH(L(it.body, CW - 3.2, false), 1))) + SLACK;
-        const alloc = Math.min((VH - gap * (n - 1)) / n, Math.max(0.52, hRaw));
-        v.data.forEach(it => {
-            const l = L(it.body, CW - 3.2, false), real = textH(l, 1);
-            if (real > alloc + 1e-6) err.push(`${tag} takeaways 항목이 행을 넘는다(${l}줄, 필요 ${real.toFixed(2)}in > 배정 ${alloc.toFixed(2)}in): "${String(it.body).slice(0, 20)}…"`);
-            else if (l > 2) warn.push(`${tag} takeaways 본문 ${l}줄: "${String(it.body).slice(0, 20)}…" — 밀도 과다`);
+        const g = LO.takeaways(v.data, VH);               // 치수는 엔진과 같은 소스에서 받는다
+        v.data.forEach((it, k) => {
+            const p = g.per[k], head = String((it.body || [])[0] || '');
+            if (p.real > g.h + 1e-6) err.push(`${tag} takeaways 항목이 행을 넘는다(${p.ln}줄, 필요 ${p.real.toFixed(2)}in > 배정 ${g.h.toFixed(2)}in): "${head.slice(0, 20)}…"`);
+            else if (p.ln > 2) warn.push(`${tag} takeaways 본문 ${p.ln}줄: "${head.slice(0, 20)}…" — 밀도 과다`);
         });
         need = null;
     }
@@ -454,6 +458,14 @@ const arg = (sl) => !isFree(sl);                      // statement는 논증이 
 });
 if (!S.some(s => s.head)) warn.push(`세션 요약 슬라이드(head 지정) 없음`);
 if (S.length < 12 || S.length > 17) warn.push(`본문 ${S.length}장 — 권장 12~17장`);
+// 시각이 없는 본문 장 — 금지가 아니라 '의도였는가'를 묻는다.
+//   계약의 본문 슬라이드 모형은 질문·리드·시각·결론이다. 시각이 빠지면 한 축이 비고,
+//   그 장은 다른 장의 절반 밀도로 렌더된다(측정: 9~12도형 대 17~22도형).
+//   금지하면 쿼터가 되고 쿼터는 장식 그림을 부른다 → 경고 + visualNote로 사유를 남기면 꺼진다.
+S.forEach((sl, i) => {
+    if (sl.visual || sl.visualNote) return;
+    warn.push(`슬라이드 ${i + 1} (${sl.head || sl.title}): 시각 자료가 없다 — 이 장은 글만 남아 다른 장의 절반 밀도로 그려진다 (의도라면 visualNote에 사유를 남긴다)`);
+});
 // 회피 감지: 타입은 늘었는데 여전히 표·박스로만 그리고 있으면 계약이 아니라 습관이 이긴 것이다.
 const nStmt = S.filter(isFree).length;
 if (nStmt > 3) warn.push(`statement(단문) ${nStmt}장 — 2~3장이 적정하다. 인용 하나에 단문 한 장씩 만들고 있는지 점검한다 (인용의 기본 자리는 논증 슬라이드의 quote 오버레이다)`);
@@ -469,5 +481,19 @@ if (DETAIL) { console.log(`\n[상세]`); detail.forEach(d => console.log('  ' + 
 if (err.length)  { console.log(`\n[오류 ${err.length}]`);  err.forEach(e => console.log('  ✗ ' + e)); }
 if (warn.length) { console.log(`\n[경고 ${warn.length}]`); warn.forEach(w => console.log('  · ' + w)); }
 if (!err.length && !warn.length) console.log('이상 없음');
+// ── 밀도 보고 ── 합격/불합격이 아니라 기록이다.
+//   verify가 보장하는 것은 바닥(구조·형식·인용 진위)이고 논증의 두께는 보장하지 않는다.
+//   그래서 최소한 '얼마나 실었는가'를 눈에 보이게 남긴다 — 재지 않으면 조용히 얇아진다.
+{
+    const nVis = S.filter(sl => sl.visual && !isFree(sl)).length;
+    const nFree = S.filter(sl => isFree(sl)).length;
+    const nBare = S.filter(sl => !sl.visual).length;
+    const kinds = {};
+    S.forEach(sl => { if (sl.visual) kinds[sl.visual.type] = (kinds[sl.visual.type] || 0) + 1; });
+    const chars = S.reduce((a, sl) => a + JSON.stringify(sl).length, 0);
+    const notes = S.reduce((a, sl) => a + String(sl.notes || '').length, 0);
+    console.log(`\n밀도: 시각 ${nVis}장 · 단문 ${nFree}장 · 시각 없음 ${nBare}장 | 본문 데이터 ${chars}자 · 강사 노트 ${notes}자`);
+    console.log(`      시각 분포: ${Object.entries(kinds).map(([k, v]) => k + v).join(' ') || '없음'}`);
+}
 console.log(`\n요약: 오류 ${err.length} / 경고 ${warn.length}`);
 process.exit(err.length ? 1 : 0);
