@@ -28,7 +28,7 @@ const path = require('path');
 const { IN, textW, avail, lineCount } = require('./measure.js');
 const QA = require('./quotes.js');
 const { norm } = QA;                                  // 인용 자산 파서(엔진과 공유 — 두 벌이면 어긋난다)
-const { isFree, requiredFields } = require('./skeleton.js');   // 골격 규칙 단일 소스(엔진과 공유)
+const { isFree, requiredFields, hint } = require('./skeleton.js');   // 골격 규칙 단일 소스(엔진과 공유)
 const shape = require('./shape.js');                           // visual.data 형태 단일 소스(엔진과 공유)
 
 // ── 엔진 레이아웃 상수를 엔진 소스에서 읽는다(복제하지 않는다) ──
@@ -136,7 +136,7 @@ S.forEach((sl, i) => {
 
     // 1) 필수 필드 — skeleton.js가 정한다(엔진과 같은 소스). statement는 골격 예외라 빈 목록.
     const free = isFree(sl);
-    requiredFields(sl).forEach(f => { if (!sl[f]) err.push(`${tag} 필수 필드 누락: ${f}`); });
+    requiredFields(sl).forEach(f => { if (!sl[f]) err.push(`${tag} 필수 필드 누락: ${f}${hint(f)}`); });
     if (!free && sl.question && !/[?？]\s*$/.test(sl.question)) warn.push(`${tag} question이 물음표로 끝나지 않는다`);
     if (!sl.notes) warn.push(`${tag} notes(강사 노트)가 없다 — 던질 질문·흔한 반론·시간 배분을 남긴다`);
 
@@ -419,14 +419,8 @@ const arg = (sl) => !isFree(sl);                      // statement는 논증이 
 });
 if (!S.some(s => s.head)) warn.push(`세션 요약 슬라이드(head 지정) 없음`);
 if (S.length < 12 || S.length > 17) warn.push(`본문 ${S.length}장 — 권장 12~17장`);
-// 시각이 없는 본문 장 — 금지가 아니라 '의도였는가'를 묻는다.
-//   계약의 본문 슬라이드 모형은 질문·리드·시각·결론이다. 시각이 빠지면 한 축이 비고,
-//   그 장은 다른 장의 절반 밀도로 렌더된다(측정: 9~12도형 대 17~22도형).
-//   금지하면 쿼터가 되고 쿼터는 장식 그림을 부른다 → 경고 + visualNote로 사유를 남기면 꺼진다.
-S.forEach((sl, i) => {
-    if (sl.visual || sl.visualNote) return;
-    warn.push(`슬라이드 ${i + 1} (${sl.head || sl.title}): 시각 자료가 없다 — 이 장은 글만 남아 다른 장의 절반 밀도로 그려진다 (의도라면 visualNote에 사유를 남긴다)`);
-});
+// 시각 없는 본문 장은 이제 골격 누락(오류)으로 잡는다 — skeleton.js가 정본이다.
+// 경고로 두던 때에는 03에서 세 장이 그 상태로 남았고, 경고는 읽히지 않았다.
 // 회피 감지: 타입은 늘었는데 여전히 표·박스로만 그리고 있으면 계약이 아니라 습관이 이긴 것이다.
 const nStmt = S.filter(isFree).length;
 if (nStmt > 3) warn.push(`statement(단문) ${nStmt}장 — 2~3장이 적정하다. 인용 하나에 단문 한 장씩 만들고 있는지 점검한다 (인용의 기본 자리는 논증 슬라이드의 quote 오버레이다)`);

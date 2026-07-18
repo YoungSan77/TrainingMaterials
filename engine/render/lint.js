@@ -2,6 +2,7 @@
 // lint.js — 빌드 자가 점검(계약 위반 탐지). pptx도 밴드도 쓰지 않는다. DECK+skeleton+DRAFT만.
 module.exports = (ctx) => {
   const { DECK, DRAFT, FREE, isFree, requiredFields } = ctx;
+  const { hint } = require('../skeleton.js');
 
     const TYPES = ['boxes', 'table', 'steps', 'versus', 'takeaways', 'statement',
                    'flow', 'pipeline', 'loop', 'share', 'magnitude', 'pyramid', 'quadrant'];
@@ -21,7 +22,7 @@ module.exports = (ctx) => {
             const id = sl.head || `${sl.kind} — ${sl.title}`, tag = `슬라이드 ${i + 1} (${id})`;
             const free = isFree(sl);
             // 골격 필수 필드는 skeleton.js가 정한다(verify와 같은 소스) — statement는 빈 목록.
-            requiredFields(sl).forEach(f => { if (!sl[f]) fatal.push(`${tag}: ${f} 누락`); });
+            requiredFields(sl).forEach(f => { if (!sl[f]) fatal.push(`${tag}: ${f} 누락${hint(f)}`); });
             if (free && !(sl.visual.text || (sl.visual.quote && sl.visual.quote.ko)))
                 fatal.push(`${tag}: statement에 text도 quote도 없다 — 보여줄 문장이 없다`);
             // 강사 노트는 모든 본문 슬라이드에 쓴다. 슬라이드에 넣지 않은 것(질문·반론·시간 배분)이 여기 남는다.

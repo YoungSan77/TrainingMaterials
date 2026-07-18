@@ -44,6 +44,8 @@ const CASES = [
   { file: '10-shape-body-string.js',    name: '항목 body 문자열(보정)',   expect: 'body가 문자열이다' },
   { file: '11-shape-item-not-object.js', name: '항목이 객체가 아님',       expect: '객체가 아니다' },
   { file: '12-shape-render-gate.js',    name: '엔진 형태 게이트',         expect: '형태가 어긋났다', runner: 'engine' },
+  // 골격 계열 — 본문 슬라이드의 가운데가 비는 퇴행(2026-07)의 회귀 방어.
+  { file: '13-bare-body-slide.js',      name: '시각 없는 본문 장',        expect: '가운데가 빈 채로 렌더된다' },
 ];
 
 // 검사기를 돌려 표준출력을 통째로 돌려준다(오류 시 exit≠0로 throw → e.stdout에서 회수).

@@ -17,6 +17,14 @@ module.exports = {
           label: '목적 재정의',
           text: 'QMS의 목적은 감사 통과가 아니라, 언제 만들어도 결과가 예측 가능해지는 것이다.',
         },
+        visual: {
+          type: 'boxes',
+          data: [
+            { title: '목적 재정의', body: ['인증이 아니라', '결과의 예측 가능성'] },
+            { title: '개선 루프', body: ['문서 목록이 아니라', '도는 PDCA'] },
+            { title: '증거 자동화', body: ['따로 만들지 않고', '작업에서 파생시킨다'] },
+          ],
+        },
         foot: {
           kw: '기준선',
           color: 'navy',
@@ -98,6 +106,14 @@ module.exports = {
         lead: {
           label: '검사의 한계',
           text: '표준을 마지막 검사로 쓰면 결과를 확인만 할 뿐, 만드는 과정에는 손대지 못한다.',
+        },
+        visual: {
+          type: 'steps',
+          data: [
+            { title: '만든다', body: ['이 구간에서', '품질이 정해진다'] },
+            { title: '끝에서 검사', body: ['좋고 나쁨을', '확인만 한다'] },
+            { title: '통과·반려', body: ['결과가 갈릴 뿐', '과정은 그대로'] },
+          ],
         },
         quote: {
           id: 'Q-DEMING-TOOLATE',
@@ -259,6 +275,13 @@ module.exports = {
         lead: {
           label: '위험 기반',
           text: '위험이 큰 흐름에는 촘촘한 증거를, 낮은 흐름에는 최소한의 증거를 남겨 무게를 위험에 맞춘다.',
+        },
+        visual: {
+          type: 'versus',
+          data: [
+            { title: '위험이 큰 흐름', body: ['단계마다 증거를 남기고', '검증을 촘촘히 건다'], negative: false },
+            { title: '위험이 낮은 흐름', body: ['최소한의 증거만 남기고', '속도를 지킨다'], negative: false },
+          ],
         },
         foot: {
           kw: '차등 적용',
