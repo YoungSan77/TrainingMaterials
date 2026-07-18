@@ -1,7 +1,9 @@
 'use strict';
 // 자동 생성(build_split.js). 원본 master_render.js에서 본문을 그대로 옮겼다.
 // 손으로 고치지 말 것 — 규칙은 원본과 골든이 정본이다.
+const makeLayout = require('../layout.js');            // 기하 측정 단일 소스(verify와 공유)
 module.exports = (ctx) => {
+  const LO = makeLayout(ctx);
   const {
     pres, DECK, ASSETS, noteTail, band, DRAFT, C, FF,
     LM, CW, Y_START, Y_LINE, Y_BOT, CTX_TOP, VB, F_BODY,
@@ -141,11 +143,11 @@ module.exports = (ctx) => {
         const ctxBottom = (free ? CTX_TOP : (addContext(s, slide.question, slide.lead) || CTX_TOP));
         if (slide.intro) s.addText(buildIntro(slide.intro), { x: LM, y: Y_START, w: CW, h: 1.0, valign: 'top', margin: 0 });
         // 시각화 밴드 = 문맥 밴드 마지막 라인 아래 ~ 하단 수평선 위. 인용이 있으면 그만큼 위로 줄인다.
-        const QH = slide.quote ? quoteH(slide.quote.ko, slide.quote.en, slide.quote.author) + 0.04 : 0;
-        band.VT = free ? (ctxBottom + 0.10) : (ctxBottom + 0.16);
-        band.VH = Math.max(0.8, ((free ? Y_LINE - 0.20 : VB) - QH) - band.VT);   // statement는 하단 결론이 없으니 밴드를 더 쓴다
+        // 밴드는 layout.js가 잰다(verify와 같은 소스). statement는 하단 결론이 없으니 밴드를 더 쓰고,
         // caption(출처·한계)은 밴드에서 자기 몫을 먼저 가져간다 → 시각화가 caption을 덮지 않는다.
-        if (v && v.caption) band.VH = Math.max(0.8, band.VH - capH(v.caption));
+        const QH = slide.quote ? quoteH(slide.quote.ko, slide.quote.en, slide.quote.author) + 0.04 : 0;
+        const B = LO.band({ free, question: slide.question, lead: slide.lead, QH, caption: v && v.caption });
+        band.VT = B.VT; band.VH = B.VH;
         if (v) {
             if (v.type === 'boxes') renderAutoBoxes(s, 'auto', v.data);
             else if (v.type === 'table') autoTable(s, 'auto', toTable(v.data));

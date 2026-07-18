@@ -61,6 +61,10 @@ const F_STMT  = grab(/\bF_STMT\s*=\s*(\d+)/, 'F_STMT');
 const F_ELAB  = grab(/\bF_ELAB\s*=\s*(\d+)/, 'F_ELAB');
 const CAP_LH  = grab(/\bCAP_LH\s*=\s*([\d.]+)/, 'CAP_LH');
 const CAP_MAX = grab(/\bCAP_MAX\s*=\s*(\d+)/, 'CAP_MAX');
+const LM      = grab(/\bLM\s*=\s*([\d.]+)/, 'LM');
+const Y_LINE  = grab(/\bY_LINE\s*=\s*([\d.]+)/, 'Y_LINE');
+const F_SRC   = grab(/\bF_SRC\s*=\s*(\d+)/, 'F_SRC');
+const LOOP_IN = grab(/\bLOOP_IN\s*=\s*([\d.]+)/, 'LOOP_IN');
 // 엔진이 지원하는 타입 목록도 소스에서 읽는다 — 타입을 추가하고 검증기를 안 고치는 사고를 막는다.
 const TYPES = (SRC.match(/const TYPES = \[([\s\S]*?)\];/) || [, ''])[1].match(/'([a-z]+)'/g)?.map(s => s.replace(/'/g, '')) || [];
 if (!TYPES.length) { console.error('[중단] 엔진에서 TYPES 목록을 읽지 못했다.'); process.exit(2); }
@@ -93,24 +97,12 @@ const lineH = (fs) => IN(fs * 1.2);
 const textH = (lines, paras, fs = F_IN) => lines * lineH(fs) + paras * (2 * SP / 72) + PAD * 2;
 const SLACK = 0.06;
 // 엔진과 같은 측정 함수를 넘긴다 → 엔진이 그리는 치수 = 여기서 재는 치수.
-const LO = require('./layout.js')({ CW, PAD, SP, F_IN, lines: L, textH, SLACK });
+const LO = require('./layout.js')({ CW, LM, PAD, SP, SLACK, CTX_TOP, VB, Y_LINE, LOOP_IN,
+    F_IN, F_HEAD, F_BODY, F_ELAB, F_STMT, F_SRC, F_CAP, CAP_LH, CAP_MAX,
+    lines: L, textH, textW, lineCount, IN });
 
 const quoteH = (q) => Math.max(0.78,
     L(`\u201C${q.ko}\u201D`, CW, false, F_QKO) * 0.24 + L(`${q.en} — ${q.author}`, CW, false, F_QEN) * 0.18 + PAD * 2);
-
-const tableGeom = (rows) => {
-    const cell = (c) => (typeof c === 'object' && c !== null && c.text !== undefined) ? String(c.text) : String(c ?? '');
-    const maxW = new Array(rows[0].length).fill(0);
-    rows.forEach(r => r.forEach((c, i) => { maxW[i] = Math.max(maxW[i], textW(cell(c), F_IN)); }));
-    const sum = maxW.reduce((a, b) => a + b, 0);
-    const tableW = Math.min(CW - 0.70, 8.6);
-    let colW = sum === 0 ? maxW.map(() => tableW / maxW.length) : maxW.map(w => Math.max((w / sum) * tableW, 1.6));
-    const tot = colW.reduce((a, b) => a + b, 0);
-    if (tot > tableW) colW = colW.map(w => w * tableW / tot);
-    const lns = rows.map(r => r.map((c, i) => lineCount(cell(c), colW[i] - PAD * 2, F_IN)));
-    const rowH = lns.map(r => Math.max(0.45, Math.max(...r) * 0.28 + PAD * 2));
-    return { colW, lns, rowH, h: rowH.reduce((a, b) => a + b, 0), cell };
-};
 
 // ── 덱 로드 ──
 const deckPath = process.argv[2] || './01.js';
@@ -172,14 +164,14 @@ S.forEach((sl, i) => {
             detail.push(`${tag} 인용 '${q.id}'는 WIDELY-CITED(원전 미확인)다 — 한계 표기를 검토한다`);
     });
 
-    // 3) 밴드 계산 — 엔진과 동일
-    const ln = (sl.question ? L(sl.question, CW, false, F_BODY) : 0)
-             + (sl.lead ? L(`${sl.lead.label}: ${sl.lead.text}`, CW, false, F_BODY) : 0);
-    const ctxH = Math.max(0.52, ln * 0.28 + PAD * 2 + 0.10);
-    const VT = free ? (CTX_TOP + 0.10) : (CTX_TOP + ctxH + 0.16);
-    const QH = (!free && sl.quote && sl.quote.ko) ? quoteH(sl.quote) + 0.04 : 0;
-    let VH = Math.max(0.8, ((free ? VB + 0.90 - 0.20 : VB) - QH) - VT);   // statement는 하단 결론이 없어 밴드를 더 쓴다
-    if (v && v.caption) {                                     // caption이 밴드에서 먼저 가져간다
+    // 3) 밴드 — layout.js가 잰다(엔진과 같은 소스).
+    //    예전에는 여기서 다시 구현했고, statement의 밴드 하한을 VB+0.90으로 잡아 엔진(Y_LINE)보다
+    //    0.86in 넓게 알고 있었다. 아무도 그 어긋남을 재지 않았다.
+    const QH = (sl.quote && sl.quote.ko) ? quoteH(sl.quote) + 0.04 : 0;
+    const B = LO.band({ free, question: sl.question, lead: sl.lead, QH, caption: v && v.caption });
+    const VT = B.VT;
+    let VH = B.VH;
+    if (v && v.caption) {                                     // caption 내용 점검(밴드 몫은 layout이 이미 뺐다)
         // caption에 인용 원문을 밀어넣으면 그림이 주가 되고 말이 종이 된다(8pt 각주에 명제가 파묻힌다).
         // 원문·출처·URL은 엔진이 강사 노트에 자동으로 붙인다 → caption은 근거·한계만.
         const cap = String(v.caption);
@@ -187,7 +179,6 @@ S.forEach((sl, i) => {
             warn.push(`${tag} caption에 인용 원문(영문)이 들어 있다 — caption은 근거·한계 전용(8pt)이다. 원문은 강사 노트(자동)나 quote 오버레이로 보낸다`);
         const cl = lineCount(cap, CW - PAD * 2, F_CAP);
         if (cl > CAP_MAX) err.push(`${tag} caption이 ${cl}줄이다(최대 ${CAP_MAX}줄) — 핵심만 남기고 '…'로 줄인다`);
-        VH = Math.max(0.8, VH - (Math.min(cl, CAP_MAX) * CAP_LH + 0.06));
     }
 
     // 4) 트리거 — 명제 자리에 신호가 있는데 시각화가 그것을 그리지 않는다(경고, visualNote로 억제)
@@ -218,7 +209,7 @@ S.forEach((sl, i) => {
 
     // 5) 시각화별 필요 높이 + 규격 점검
     if (LO.isItem(v.type)) {
-        const g = LO.item(v.type, v.data, VH);            // 치수는 엔진과 같은 소스에서 받는다
+        const g = LO.item(v.type, v.data, { VT, VH });            // 치수는 엔진과 같은 소스에서 받는다
         const budg = budget(g.w, g.bullet);
         need = g.need;
         v.data.forEach((box, k) => {
@@ -231,28 +222,26 @@ S.forEach((sl, i) => {
             });
         });
     } else if (v.type === 'table') {
-        const g = tableGeom(v.data);
-        need = g.h;
+        const g = LO.table(v.data, { VT, VH });
+        need = g.need;
         v.data.forEach((row, r) => row.forEach((c, ci) => {
-            const txt = g.cell(c);
+            const txt = g.cellText(c);
             if (/^\[.*\]$/.test(txt.trim())) err.push(`${tag} 표 셀에 대괄호: ${txt}`);
             if (g.lns[r][ci] >= 3) warn.push(`${tag} 표 셀 ${g.lns[r][ci]}줄: "${txt.slice(0, 20)}…" (열폭 ${g.colW[ci].toFixed(2)}in = 한글 ${budget(g.colW[ci], false)}자)`);
         }));
     } else if (v.type === 'statement') {
-        const av = CW - 1.20;
+        // 엔진은 text를 우선해 그린다. 예전 verify는 인용 ko를 먼저 쟀다 — 둘 다 있으면 다른 것을 재고 있었다.
         const isQ = !!(v.quote && v.quote.ko);
-        const text = isQ ? `\u201C${v.quote.ko}\u201D` : String(v.text || '');
-        const tl = lineCount(text, av, F_STMT);
+        const aQ = isQ && ASSETS ? ASSETS.get(v.quote.id) : null;
+        const g = LO.statement(v, { VT, VH }, aQ && aQ.src ? aQ.src.split(/[(—]/)[0].trim() : '');
+        const av = g.av, tl = g.tl, nl2 = g.nl;
         if (tl > 2) err.push(`${tag} statement 문장이 ${tl}줄이다 — 20pt에서 2줄(한글 약 ${Math.floor(av / (IN(F_STMT) * 1.05)) * 2}자)을 넘으면 문장이 아니라 문단이다`);
-        const srcTxt = isQ ? `${v.quote.en}\n— ${v.quote.author}` : (v.source || '');
-        const sl2 = srcTxt ? srcTxt.split('\n').reduce((a, p) => a + lineCount(p, av, F_QEN), 0) : 0;
-        const nl2 = v.note ? lineCount(String(v.note), av, F_BODY) : 0;
         if (nl2 > 2) warn.push(`${tag} statement note가 ${nl2}줄이다 — 해설도 한두 문장이다`);
         // caption은 근거·한계 전용이다. 해설을 8pt에 넣으면 슬라이드의 논지가 각주로 강등된다.
         if (!v.note && v.caption && !/원전|귀속|추정|편차|출처|미확인|WIDELY|통용|기반/.test(String(v.caption)))
             warn.push(`${tag} statement에 note가 없고 caption만 있다 — 해설이라면 note(14pt)로 올린다. caption(8pt)은 근거·한계 전용이다`);
         if (v.figure) err.push(`${tag} statement에 figure는 없다 — 단문에는 그림을 넣지 않는다(넣으려면 논증 슬라이드로 만든다)`);
-        need = tl * 0.34 + (sl2 ? sl2 * 0.20 + 0.16 : 0) + (nl2 ? nl2 * 0.26 + 0.24 : 0);
+        need = g.need;
         // WIDELY-CITED 인용을 단정하지 않으려면 한계 표기가 필요하다.
         if (isQ && ASSETS) {
             const a = ASSETS.get(v.quote.id);
@@ -264,7 +253,7 @@ S.forEach((sl, i) => {
                 warn.push(`${tag} caption에 저자·출처가 들어 있다 — 원문·저자·출처는 문장 아래 10pt 줄이 자동으로 붙인다. caption은 한계 전용이다`);
         }
     } else if (v.type === 'takeaways') {
-        const g = LO.takeaways(v.data, VH);               // 치수는 엔진과 같은 소스에서 받는다
+        const g = LO.takeaways(v.data, { VT, VH });               // 치수는 엔진과 같은 소스에서 받는다
         v.data.forEach((it, k) => {
             const p = g.per[k], head = String((it.body || [])[0] || '');
             if (p.real > g.h + 1e-6) err.push(`${tag} takeaways 항목이 행을 넘는다(${p.ln}줄, 필요 ${p.real.toFixed(2)}in > 배정 ${g.h.toFixed(2)}in): "${head.slice(0, 20)}…"`);
@@ -273,7 +262,7 @@ S.forEach((sl, i) => {
         need = null;
     }
 
-    // ── 관계 계열: 노드·간선을 잰다(엔진 renderChain / renderLoop과 같은 식) ──
+    // ── 관계 계열: 노드·간선 검증. 치수는 layout.js가 재고 여기서는 판정만 한다 ──
     else if (v.type === 'flow' || v.type === 'pipeline') {
         const d = v.data || {}, ns = d.nodes || [];
         const n = ns.length;
@@ -285,27 +274,13 @@ S.forEach((sl, i) => {
             if (!(e.to in idx)) err.push(`${tag} ${v.type} 간선의 to '${e.to}'가 노드에 없다`);
         });
         if (n >= 2 && !err.some(e => e.startsWith(`${tag} ${v.type} 간선`))) {
-            const edges = (d.edges && d.edges.length) ? d.edges : ns.slice(1).map((x, k) => ({ from: ns[k].id, to: x.id }));
-            const H = String(d.dir || 'LR').toUpperCase() !== 'TD';
-            const fwd = edges.filter(e => idx[e.to] > idx[e.from]);
-            const col = {}; ns.forEach(x => col[x.id] = 0);
-            for (let k = 0; k < n; k++) fwd.forEach(e => { if (col[e.to] < col[e.from] + 1) col[e.to] = col[e.from] + 1; });
-            const levels = []; ns.forEach(x => { (levels[col[x.id]] = levels[col[x.id]] || []).push(x.id); });
-            const lv = levels.length, hasBack = edges.length > fwd.length;
-            const chanH = hasBack ? 0.45 : 0.0;
-            const widest = Math.max(...levels.map(l => l.length));
-            const mainSpan = H ? (CW - 0.20) : (VH - chanH), mainStep = mainSpan / lv;
-            // 간선 라벨 실폭에 맞춘 간격(엔진과 동일 식)
-            const labW = Math.max(0, ...edges.filter(e => e.label).map(e => textW(String(e.label), F_ELAB) * 1.05 + 0.20));
-            const eGap = labW ? Math.min(1.70, Math.max(1.05, labW + 0.30)) : 0.55;
-            const nodeW = H ? Math.min(2.25, Math.max(1.10, mainStep - eGap)) : Math.min(2.40, (CW - 0.20) / widest - 0.30);
-            const nl = (t) => String(t).replace(/\\n/g, '\n').split('\n').reduce((a, p) => a + lineCount(p, nodeW - PAD * 2, F_HEAD), 0);
-            const maxLines = Math.max(1, ...ns.map(x => nl(x.label)));
-            const nodeH = Math.min(1.50, Math.max(0.60, 0.34 + maxLines * 0.26));
+            // 레벨 배치·노드 치수는 layout.js가 잰다(엔진과 같은 소스).
             // 세로(TD)도 반드시 잰다. 가로만 재면, 가로에서 밴드를 넘은 생성기가 세로로 돌려 오류를 지운다
             // (실제로 그런 일이 있었다 — 검증되지 않는 선택지는 탈출구가 된다).
-            need = H ? (widest * nodeH + (widest - 1) * 0.34 + chanH)
-                     : (lv * nodeH + (lv - 1) * 0.24 + chanH);
+            const g = LO.chain(d, { VT, VH });
+            const { H, nodeW, levels, edges } = g, lv = levels.length, nl = g.nLines;
+            const maxLines = Math.max(1, ...ns.map(x => nl(x.label)));
+            need = g.need;
             if (!H) warn.push(`${tag} flow가 세로(TD)다 — 기본은 가로(LR)다. 좌우가 단계의 방향이라면 dir을 LR로 되돌린다`);
             // 간선 라벨은 노드 사이 간격(최대 1.70in) 안에 한 줄로 들어가야 한다 — 넘으면 접힌다.
             const ELAB_MAX = Math.floor((1.70 - 0.20) / (IN(F_ELAB) * 1.05));
@@ -330,14 +305,9 @@ S.forEach((sl, i) => {
         });
         if (n >= 3) {
             // 타원 노드다 — 내접 사각형은 폭의 70%뿐이다. 사각형 기준으로 재면 글자가 타원 밖으로 나간다.
-            const LOOP_IN = 0.70;
-            const nodeW = Math.min(2.40, Math.max(1.60, CW / (n <= 3 ? 3.2 : 3.9)));
-            const inW = nodeW * LOOP_IN;
-            const nl = (t) => String(t).replace(/\\n/g, '\n').split('\n').reduce((a, p) => a + lineCount(p, inW, F_ELAB), 0);
-            const maxLines = Math.max(1, ...ns.map(x => nl(x.label)));
-            const nodeH = Math.min(1.30, Math.max(0.80, 0.42 + maxLines * 0.24));
-            need = 2 * Math.max(0.55, (VH - nodeH) / 2 - 0.06) + nodeH;
-            const budg = Math.floor(inW / (IN(F_ELAB) * 1.05));
+            const g = LO.loop(d, { VT, VH });
+            const nl = g.nLines, budg = g.labelBudget;
+            need = g.need;
             ns.forEach(x => {
                 const l = nl(x.label);
                 if (l > 1) err.push(`${tag} loop 노드 "${String(x.label).slice(0, 14)}…"가 타원에 안 들어간다(${l}줄) — 한글 ${budg}자 안으로. 넘으면 라벨을 잘못 뽑은 것이다(명제가 아니라 문장을 넣고 있다)`);
@@ -352,26 +322,23 @@ S.forEach((sl, i) => {
         if (Math.abs(tot - 100) > 0.5) err.push(`${tag} share 합계가 ${tot}이다 — 구성비는 100이어야 한다(합이 100이 아니면 share가 아니다)`);
         if (n < 2) err.push(`${tag} share 항목이 ${n}개다 — 구성비는 최소 2개`);
         if (n > 4) warn.push(`${tag} share 항목 ${n}개 — 4개를 넘으면 조각이 읽히지 않는다`);
-        const barW = CW * 0.80;
-        items.forEach(it => {
-            const w = barW * (Number(it.value) / (tot || 100));
+        const g = LO.share(items, { VT, VH });
+        items.forEach((it, k) => {
+            const w = g.seg[k].w;
             const txt = `${it.value}%`;
             if (textW(txt, F_IN) + 0.04 > w)
                 detail.push(`${tag} share "${it.label}"(${it.value}%) 조각 폭 ${w.toFixed(2)}in — 숫자가 바에 안 들어가 범례에서만 읽힌다`);
         });
-        const barH = Math.min(0.95, Math.max(0.70, VH * 0.30));
-        const legLn = items.reduce((a, it) => a + L(`■ ${it.value}% ${it.label}${it.note ? ' — ' + it.note : ''}`, CW - 0.60, false), 0);
-        need = barH + 0.14 + legLn * 0.26 + PAD;
+        need = g.need;
     } else if (v.type === 'magnitude') {
         const items = v.data || [], n = items.length;
         if (n < 2) err.push(`${tag} magnitude 항목이 ${n}개다 — 격차를 보이려면 최소 2개`);
         if (n > 5) warn.push(`${tag} magnitude 항목 ${n}개 — 5개를 넘으면 행이 눌린다`);
-        const labW = Math.min(3.00, Math.max(1.60, Math.max(...items.map(it => textW(it.label, F_IN))) + PAD * 2 + 0.10));
-        const gapY = 0.16;
-        const rowH = Math.min(0.70, Math.max(0.46, (VH - gapY * (n - 1)) / n));
-        need = rowH * n + gapY * (n - 1);
-        items.forEach(it => {
-            const l = lineCount(it.label, labW - PAD * 2, F_IN);
+        const g = LO.magnitude(items, { VT, VH });
+        const { labW, rowH } = g;
+        need = g.need;
+        items.forEach((it, k) => {
+            const l = g.rows[k].ln;
             if (textH(l, 1) > rowH + 1e-6)
                 err.push(`${tag} magnitude 라벨이 행을 넘는다(${l}줄): "${String(it.label).slice(0, 20)}…" — 한글 ${budget(labW, false)}자 안으로 줄인다`);
             if (it.value === undefined || it.value === null || it.value === '')
@@ -381,13 +348,11 @@ S.forEach((sl, i) => {
         const items = v.data || [], n = items.length;
         if (n < 2) err.push(`${tag} pyramid 층이 ${n}개다 — 계층은 최소 2층`);
         if (n > 5) warn.push(`${tag} pyramid 층 ${n}개 — 5층을 넘으면 폭 차이가 사라진다`);
-        const gapY = 0.10;
-        const rowH = Math.min(0.92, Math.max(0.46, (VH - gapY * (n - 1)) / n));
-        need = rowH * n + gapY * (n - 1);
-        const wMin = CW * 0.26, wMax = CW * 0.66;
+        const g = LO.pyramid(items, { VT, VH });
+        const rowH = g.rowH;
+        need = g.need;
         items.forEach((it, k) => {
-            const w = n === 1 ? wMax : wMin + (wMax - wMin) * (k / (n - 1));
-            const l = lineCount(it.label, w - PAD * 2, F_HEAD);
+            const { w, ln: l } = g.rows[k];
             if (textH(l, 1, F_HEAD) > rowH + 1e-6)
                 err.push(`${tag} pyramid ${k + 1}층 라벨이 층을 넘는다(${l}줄, 층 폭 ${w.toFixed(2)}in = 한글 ${budget(w, false, F_HEAD)}자): "${String(it.label).slice(0, 20)}…"`);
         });
@@ -398,15 +363,11 @@ S.forEach((sl, i) => {
         at.forEach((p, k) => { if (at.indexOf(p) !== k) err.push(`${tag} quadrant 사분면 '${p}'이 중복이다`); });
         if (!d.x || !d.x.low || !d.x.high) err.push(`${tag} quadrant x축(low/high)이 없다 — 축이 없으면 사분면이 아니라 4개의 상자다`);
         if (!d.y || !d.y.low || !d.y.high) err.push(`${tag} quadrant y축(low/high)이 없다`);
-        const gh = Math.min(VH - 0.30 - 0.06, 4.30);
-        const cw = (CW - 0.42 - 0.06 - 0.10) / 2, ch = (gh - 0.10) / 2;
-        need = gh + 0.30;
-        cells.forEach(c => {
-            const body = Array.isArray(c.body) ? c.body : (c.body ? [c.body] : []);
-            const lns = body.reduce((a, t) => a + L(t, cw, 10), 0);
-            const real = textH(lns, body.length);
-            if (real > ch - 0.40 + 1e-6)
-                err.push(`${tag} quadrant "${c.title}" 칸에서 글자가 넘친다(필요 ${real.toFixed(2)}in > 배정 ${(ch - 0.40).toFixed(2)}in) — 한글 ${budget(cw, 10)}자 기준으로 줄인다`);
+        const g = LO.quadrant(d, { VT, VH });
+        need = g.need;
+        g.cells.forEach(c => {
+            if (c.real > g.alloc + 1e-6)
+                err.push(`${tag} quadrant "${c.title}" 칸에서 글자가 넘친다(필요 ${c.real.toFixed(2)}in > 배정 ${g.alloc.toFixed(2)}in) — 한글 ${budget(g.cw, 10)}자 기준으로 줄인다`);
         });
     }
 
