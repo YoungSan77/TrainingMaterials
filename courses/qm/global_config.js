@@ -8,7 +8,7 @@ module.exports = {
     { day: 'Day 2 — 지속적 검증과 엔지니어링', items: ['현대적 테스트 전략 — 피라미드와 자동화', '지속적 품질 파이프라인 — DevOps와 CI/CD', '개발자 경험(DX)과 아키텍처 (Team Topologies)', '방어적 품질 지표 설계 — DORA 매트릭스', '시스템 미비와 보상 체계의 재설계', '품질의 미래 — AI 시대의 QA', 'QM Operating Model (통합 운영 모델)', '워크숍 2 — 품질 파이프라인 액션 플랜'] }
   ],
   meta: {
-    quotes: '../QM_커리큘럼.md',
+    quotes: 'QM_커리큘럼.md',
     visualTriggers: {
       loop: ['악순환', '선순환', '되먹임', '상시 준수', '재유입'],
       pipeline: ['게이트', '되돌림', '파이프라인'],

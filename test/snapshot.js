@@ -109,7 +109,7 @@ function extractDeck(pptxBuf) {
 function renderDeck(deckAbs) {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'snap-'));
     try {
-        execFileSync('node', [ENGINE, deckAbs], { cwd: tmp, stdio: ['ignore', 'ignore', 'pipe'] });
+        execFileSync('node', [ENGINE, deckAbs, '--out', tmp], { cwd: tmp, stdio: ['ignore', 'ignore', 'pipe'] });
         const out = fs.readdirSync(tmp).find((f) => /^Course_Session.*\.pptx$/.test(f));
         if (!out) throw new Error('엔진이 pptx를 만들지 않았다');
         return fs.readFileSync(path.join(tmp, out));

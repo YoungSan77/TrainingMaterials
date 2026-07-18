@@ -28,13 +28,21 @@ const path = require('path');
 const { IN, textW, avail, lineCount } = require('./measure.js');
 const QA = require('./quotes.js');
 const { norm } = QA;                                  // 인용 자산 파서(엔진과 공유 — 두 벌이면 어긋난다)
+const { isFree, requiredFields } = require('./skeleton.js');   // 골격 규칙 단일 소스(엔진과 공유)
 
-// ── 엔진 레이아웃 상수를 master_render.js 소스에서 읽는다(복제하지 않는다) ──
+// ── 엔진 레이아웃 상수를 엔진 소스에서 읽는다(복제하지 않는다) ──
+//   분할 후 상수는 render/context.js, TYPES는 render/lint.js에 있다. master_render.js(선두 형식 헤더)와
+//   render/*.js 전부를 이어 붙여 파싱한다 — 단일 소스가 어느 파일로 옮겨가도 여기 한 곳만 따라간다.
+//   master_render.js를 맨 앞에 둔다(DOC의 ^ 앵커가 선두 형식 헤더를 잡도록).
 const ENGINE = path.join(__dirname, 'master_render.js');
-const SRC = fs.readFileSync(ENGINE, 'utf8');
+const RENDER_DIR = path.join(__dirname, 'render');
+const SRC_FILES = [ENGINE].concat(
+    fs.existsSync(RENDER_DIR) ? fs.readdirSync(RENDER_DIR).filter(f => f.endsWith('.js')).sort().map(f => path.join(RENDER_DIR, f)) : []
+);
+const SRC = SRC_FILES.map(f => fs.readFileSync(f, 'utf8')).join('\n');
 const grab = (re, name) => {
     const m = SRC.match(re);
-    if (!m) { console.error(`[중단] master_render.js에서 ${name}를 찾지 못했다 — 검증기의 레이아웃 가정이 엔진과 어긋났다.`); process.exit(2); }
+    if (!m) { console.error(`[중단] 엔진 소스에서 ${name}를 찾지 못했다 — 검증기의 레이아웃 가정이 엔진과 어긋났다.`); process.exit(2); }
     return parseFloat(m[1]);
 };
 const CW      = grab(/\bCW\s*=\s*([\d.]+)/, 'CW');
@@ -106,7 +114,7 @@ const tableGeom = (rows) => {
 // ── 덱 로드 ──
 const deckPath = process.argv[2] || './01.js';
 const DETAIL = process.argv.includes('--detail');
-const DECK = require(path.resolve(deckPath));
+const DECK = require('./load_deck.js')(deckPath);    // 순수 덱 + config 병합 + meta.quotes 절대경로화
 const S = DECK.session.slides;
 const NO = DECK.session.no;
 const frontMatter = NO === 1 ? 3 : 1;
@@ -118,7 +126,7 @@ const err = [], warn = [], detail = [];
 let ASSETS = null;
 const qPath = DECK.meta && DECK.meta.quotes;
 if (qPath) {
-    const abs = path.resolve(path.dirname(path.resolve(deckPath)), qPath);
+    const abs = path.resolve(qPath);                 // loadDeck이 선언 파일 기준 절대경로로 이미 고정했다
     if (!fs.existsSync(abs)) err.push(`meta.quotes 경로에 파일이 없다: ${qPath}`);
     else { const r = QA.parse(abs); ASSETS = r.assets; r.bad.forEach(b => err.push(b)); }
 }
@@ -133,9 +141,9 @@ S.forEach((sl, i) => {
     const tag = `p${P(i)}`;
     const v = sl.visual;
 
-    // 1) 필수 필드 — statement(단문)는 5단 골격 예외다(question/lead/foot 없음)
-    const free = v && v.type === 'statement';
-    (free ? ['sub'] : ['sub', 'question', 'lead', 'foot']).forEach(f => { if (!sl[f]) err.push(`${tag} 필수 필드 누락: ${f}`); });
+    // 1) 필수 필드 — skeleton.js가 정한다(엔진과 같은 소스). statement는 골격 예외라 빈 목록.
+    const free = isFree(sl);
+    requiredFields(sl).forEach(f => { if (!sl[f]) err.push(`${tag} 필수 필드 누락: ${f}`); });
     if (!free && sl.question && !/[?？]\s*$/.test(sl.question)) warn.push(`${tag} question이 물음표로 끝나지 않는다`);
     if (!sl.notes) warn.push(`${tag} notes(강사 노트)가 없다 — 던질 질문·흔한 반론·시간 배분을 남긴다`);
 
@@ -440,16 +448,16 @@ if (!DECK.meta || !DECK.meta.quotes) warn.push(`meta.quotes 없음 — 인용 �
 // ── 덱 전체 규칙 ──
 // 인용 개수는 세지 않는다. 자산에 맞는 인용이 없으면 0장이 정답이다.
 if (!S.some(s => s.kind === '학습 목표')) err.push(`학습 목표 슬라이드 없음`);
-const arg = (sl) => !(sl.visual && sl.visual.type === 'statement');   // statement는 논증이 아니다
+const arg = (sl) => !isFree(sl);                      // statement는 논증이 아니다(skeleton.js와 같은 소스)
 ['현상', '원인', '원칙', '적용', '타협'].forEach(k => {
     if (!S.some(s => s.kind === k && arg(s))) err.push(`분류 '${k}'의 논증 슬라이드 없음 — statement(단문)로는 분류 요건을 채울 수 없다`);
 });
 if (!S.some(s => s.head)) warn.push(`세션 요약 슬라이드(head 지정) 없음`);
 if (S.length < 12 || S.length > 17) warn.push(`본문 ${S.length}장 — 권장 12~17장`);
 // 회피 감지: 타입은 늘었는데 여전히 표·박스로만 그리고 있으면 계약이 아니라 습관이 이긴 것이다.
-const nStmt = S.filter(s => s.visual && s.visual.type === 'statement').length;
+const nStmt = S.filter(isFree).length;
 if (nStmt > 3) warn.push(`statement(단문) ${nStmt}장 — 2~3장이 적정하다. 인용 하나에 단문 한 장씩 만들고 있는지 점검한다 (인용의 기본 자리는 논증 슬라이드의 quote 오버레이다)`);
-const nAll = S.filter(s => s.visual && s.visual.type !== 'statement').length;
+const nAll = S.filter(s => s.visual && !isFree(s)).length;
 const nTB = S.filter(s => s.visual && ['table', 'boxes'].includes(s.visual.type)).length;
 if (nAll && nTB / nAll > 0.6) warn.push(`시각화의 ${Math.round(nTB / nAll * 100)}%가 table/boxes다 (${nTB}/${nAll}) — 관계·수치 타입을 회피하고 있는지 점검한다`);
 
