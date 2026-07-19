@@ -30,6 +30,11 @@ const SHAPES = {
     steps:     { data: 'list', min: 2, item: { title: 'text', body: 'lines' } },
     versus:    { data: 'list', min: 2, item: { title: 'text', body: 'lines' } },
     takeaways: { data: 'list', min: 2, item: { title: 'text', body: 'lines' } },
+    // 거버닝 메시지를 받치는 근거 나열. 메시지 자체는 골격의 lead에 있으므로 여기엔 본문만 둔다.
+    //   head는 선택 — 이름이 붙는 항목이면 head, 그냥 근거면 text만.
+    //   boxes와의 구분은 커리큘럼의 '시각 지정'이 정한다(기계는 '명확한 앞머리'를 못 잰다).
+    //   2줄 미만은 목록이 아니고(한 줄이면 lead나 statement가 맡는다), 6줄 초과는 슬라이드가 아니라 문서다.
+    bullets:   { data: 'list', min: 2, max: 6, item: { text: 'text' }, opt: { head: 'text' } },
     table:     { data: 'rows' },
     // 단문 — data가 없다(text 또는 quote가 내용이다)
     statement: { data: 'none' },
@@ -94,10 +99,13 @@ function conformList(v, spec, out) {
     }
     if (spec.min && v.data.length < spec.min)
         out.errors.push(`data 항목이 ${v.data.length}개다 — ${v.type}은 최소 ${spec.min}개`);
+    if (spec.max && v.data.length > spec.max)
+        out.errors.push(`data 항목이 ${v.data.length}개다 — ${v.type}은 최대 ${spec.max}개. 넘으면 두 장으로 나누거나 table을 쓴다`);
     v.data.forEach((it, i) => {
         const where = `data[${i}]`;
         if (!isObj(it)) { out.errors.push(`${where}가 객체가 아니다(${Array.isArray(it) ? '배열' : typeof it}) — { ${Object.keys(spec.item).join(', ')} } 형태여야 한다`); return; }
         Object.entries(spec.item).forEach(([k, kind]) => conformField(it, k, kind, where, out));
+        Object.entries(spec.opt || {}).forEach(([k, kind]) => conformField(it, k, kind, where, out));   // 선택 필드는 있을 때만 맞춘다
         // 필수 필드: 이 표에 적힌 것은 있어야 한다(빈 문자열도 없는 것으로 본다)
         Object.keys(spec.item).forEach(k => {
             const val = it[k];

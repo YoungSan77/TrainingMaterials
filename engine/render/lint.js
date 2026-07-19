@@ -3,8 +3,9 @@
 module.exports = (ctx) => {
   const { DECK, DRAFT, FREE, isFree, requiredFields } = ctx;
   const { hint } = require('../skeleton.js');
+  const ST = require('../session_types.js');          // 세션 유형 요건 단일 소스(verify와 공유)
 
-    const TYPES = ['boxes', 'table', 'steps', 'versus', 'takeaways', 'statement',
+    const TYPES = ['boxes', 'table', 'steps', 'versus', 'takeaways', 'bullets', 'statement',
                    'flow', 'pipeline', 'loop', 'share', 'magnitude', 'pyramid', 'quadrant'];
     const NUMERIC = ['share', 'magnitude'];
     const lint = () => {
@@ -56,15 +57,26 @@ module.exports = (ctx) => {
                 });
             }
         });
-        if (!S.some(sl => sl.kind === '학습 목표')) fatal.push(`학습 목표 슬라이드(kind:'학습 목표')가 없다`);
+        // 세션 유형이 요건을 정한다. 미선언이면 설명형.
+        const sType = DECK.session.type || ST.DEFAULT;
+        const sSpec = ST.spec(sType);
+        if (!sSpec) fatal.push(`알 수 없는 세션 유형 '${sType}' — ${ST.names().join(' | ')} 중 하나`);
+        const OK = sSpec ? ST.kinds(sType) : [];
+        if (sSpec) S.forEach((sl, i) => {
+            if (!OK.includes(sl.kind)) fatal.push(`슬라이드 ${i + 1}: kind '${sl.kind}'는 ${sType}에 없다 — ${OK.join(' | ')}`);
+        });
+        if (sSpec) sSpec.fixed.forEach(k => {
+            if (!S.some(sl => sl.kind === k)) fatal.push(`${sType}의 고정 장 '${k}'가 없다`);
+        });
         // 분류별 최소 1장 — 단, '인용'은 뺀다. 인용은 자산이 있을 때만 성립하며 개수를 강제하지 않는다.
         // statement로는 분류 요건을 채울 수 없다. 명제만 던지고 논증이 없는 장으로 분류를 때우면 교재가 빈다.
         const arg = (sl) => !(sl.visual && FREE.includes(sl.visual.type));
-        ['현상', '원인', '원칙', '적용', '타협'].forEach(k => {
+        (sSpec ? sSpec.required : []).forEach(k => {
             if (!S.some(sl => sl.kind === k && arg(sl))) fatal.push(`분류 '${k}'의 논증 슬라이드가 없다 — statement(단문)는 분류 요건을 채우지 못한다`);
         });
         // 아래는 경고 — 산출물은 성립하지만 정본 규격에서 벗어난다.
-        if (S.length < 12 || S.length > 17) warn.push(`본문 ${S.length}장 — 권장 12~17장을 벗어났다`);
+        // 장수 범위 검사는 없다. 장수는 커리큘럼 명제 수에서 파생되고(verify가 대조),
+        // 범위를 두면 하한이 목표가 된다 — 실제로 다섯 덱이 전부 하한 12장에 붙었다.
         const nStmt = S.filter(sl => sl.visual && FREE.includes(sl.visual.type)).length;
         if (nStmt > 3) warn.push(`statement(단문) ${nStmt}장 — 2~3장이 적정하다. 인용 하나에 단문 한 장씩 만들고 있는지 점검한다(인용의 기본 자리는 논증 슬라이드의 quote 오버레이다)`);
         const nVis = S.filter(sl => sl.visual && ['table', 'boxes'].includes(sl.visual.type)).length;

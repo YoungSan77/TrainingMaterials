@@ -46,6 +46,10 @@ const CASES = [
   { file: '12-shape-render-gate.js',    name: '엔진 형태 게이트',         expect: '형태가 어긋났다', runner: 'engine' },
   // 골격 계열 — 본문 슬라이드의 가운데가 비는 퇴행(2026-07)의 회귀 방어.
   { file: '13-bare-body-slide.js',      name: '시각 없는 본문 장',        expect: '가운데가 빈 채로 렌더된다' },
+  // 커리큘럼 연결 계열 — 덱이 커리큘럼 명제를 실제로 맡고 있는지.
+  { file: '14-claim-unknown.js',        name: '명제 id 불일치',          expect: '명제 목록에 없다', asset: true },
+  { file: '15-bullets-overflow.js',     name: 'bullets 상한 초과',       expect: '최대 6개' },
+  { file: '16-session-type.js',         name: '유형에 없는 kind',        expect: '설명형에 없다' },
 ];
 
 // 검사기를 돌려 표준출력을 통째로 돌려준다(오류 시 exit≠0로 throw → e.stdout에서 회수).

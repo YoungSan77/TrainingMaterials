@@ -15,7 +15,7 @@ module.exports = (ctx) => {
     sub, ftr, dL, addQuote, sec, tocT, K, hC,
     td, seg, eLab, nodeBox, addCaption, autoTable, renderAutoBoxes, renderChain,
     renderLoop, renderShare, renderMagnitude, renderPyramid, renderQuadrant, renderSteps, renderVersus, renderStatement,
-    renderTakeaways,
+    renderTakeaways, renderBullets,
   } = ctx;
 
     const addCover = () => {
@@ -82,11 +82,42 @@ module.exports = (ctx) => {
     };
 
 
+    // 세션 목차. 슬라이드에 part가 있으면 그 라벨로 묶어 그린다.
+    //   부 구분 슬라이드는 만들지 않는다 — 한 장을 넘기는 비용에 비해 얻는 게 적고,
+    //   목차의 그룹 헤더와 각 장의 헤더 연번으로 위치는 충분히 전달된다.
+    //   그룹 헤더 서식은 과정 목차(addFullToc)의 일자 그룹과 같다.
     const addSessionToc = (pg) => {
         const s = pres.addSlide(); s.background = { color: C.white };
         hdr(s, `${RN}. ${DECK.session.title} 목차`); ftr(s, pg, SF);   // 세션 번호(1.) vs 슬라이드 연번(01.)
-        const B = listBlock((DECK.session.toc || []).map(([n, t]) => `${n}. ${t}`), F_BODY);
-        s.addText(tocT(DECK.session.toc), { x: B.x, y: 1.12, w: B.w, h: 5.62, align: 'left', valign: 'top', margin: 0 });
+        const toc = DECK.session.toc || [];
+        const parts = (DECK.session.slides || []).map(sl => sl.part || null);
+        const hasPart = parts.some(Boolean);
+        if (!hasPart) {
+            const B0 = listBlock(toc.map(([n, t]) => `${n}. ${t}`), F_BODY);
+            s.addText(tocT(toc), { x: B0.x, y: 1.12, w: B0.w, h: 5.62, align: 'left', valign: 'top', margin: 0 });
+            return;
+        }
+        const rows = [];                                  // {group} | {no, title}
+        let cur = null;
+        toc.forEach(([n, t], i) => {
+            const pt = parts[i];
+            if (pt && pt !== cur) { rows.push({ group: pt }); cur = pt; }
+            rows.push({ no: n, title: t });
+        });
+        const B = listBlock(rows.map(r => r.group ? r.group : `${r.no}. ${r.title}`), F_BODY);
+        const parts2 = [];
+        rows.forEach((r, i) => {
+            const last = i === rows.length - 1;
+            if (r.group) parts2.push({ text: r.group, options: { bold: true, fontSize: F_BODY, fontFace: FF, color: C.navy,
+                breakLine: !last, paraSpaceBefore: SP, paraSpaceAfter: SP } });
+            else {
+                parts2.push({ text: `${r.no}. `, options: { bold: true, fontSize: F_BODY, fontFace: FF, color: C.navy,
+                    paraSpaceBefore: SP, paraSpaceAfter: SP } });
+                parts2.push({ text: r.title, options: { fontSize: F_BODY, fontFace: FF, color: C.dark, breakLine: !last,
+                    paraSpaceBefore: SP, paraSpaceAfter: SP } });
+            }
+        });
+        s.addText(parts2, { x: B.x, y: 1.12, w: B.w, h: 5.62, align: 'left', valign: 'top', margin: 0 });
     };
     // 세션 번호로 분기 렌더링 후, 소비한 페이지 수(본문 시작 오프셋)를 반환한다.
 
@@ -154,6 +185,7 @@ module.exports = (ctx) => {
             else if (v.type === 'steps') renderSteps(s, v.data);
             else if (v.type === 'versus') renderVersus(s, v.data);
             else if (v.type === 'takeaways') renderTakeaways(s, v.data);
+            else if (v.type === 'bullets') renderBullets(s, v.data);
             else if (v.type === 'statement') renderStatement(s, v);
             else if (v.type === 'flow' || v.type === 'pipeline') renderChain(s, v.data);
             else if (v.type === 'loop') renderLoop(s, v.data);

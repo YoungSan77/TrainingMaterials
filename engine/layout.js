@@ -64,6 +64,24 @@ module.exports = function makeLayout(env) {
                  top: band.VT + (band.VH - blockH) / 2 };
     };
 
+    // ── bullets ── 거버닝 메시지(lead)를 받치는 근거 나열.
+    //   전폭을 쓰고 불릿 들여쓰기만 준다. 줄 사이 간격은 전 슬라이드 공통 SP.
+    //   head가 있으면 'head — text' 한 문단으로 붙인다(줄을 따로 잡지 않는다).
+    const BUL = { bullet: 14, lineH: 0.30, pad: 0.30 };
+    const bullets = (items, band) => {
+        const w = CW - BUL.pad * 2;
+        const per = items.map((it) => {
+            const t = it.head ? `${it.head} — ${it.text}` : String(it.text);
+            return { text: t, ln: lines(t, w, BUL.bullet, F_BODY) };
+        });
+        const ln = per.reduce((a, p) => a + p.ln, 0);
+        const need = ln * BUL.lineH + items.length * (2 * SP / 72) + PAD * 2;
+        const h = Math.min(band.VH, need);
+        return { n: items.length, w, x: LM + BUL.pad, bullet: BUL.bullet, per, ln, need, h,
+                 top: band.VT + (band.VH - h) / 2,
+                 budget: Math.floor((w - IN(BUL.bullet)) / (IN(F_BODY) * 1.05)) };
+    };
+
     // ── table ── 열폭은 실제 텍스트 폭 비율로, 행 높이는 실제 줄 수로.
     const TBL = { maxW: 8.6, colMin: 1.60, rowMin: 0.45, lineH: 0.28 };
     const cellText = (c) => (typeof c === 'object' && c !== null && c.text !== undefined) ? String(c.text) : String(c ?? '');
@@ -274,8 +292,8 @@ module.exports = function makeLayout(env) {
         return { VT, VH, ctxH };
     };
 
-    return { ITEM, isItem, colWidth, item, takeaways, table, statement,
+    return { ITEM, isItem, colWidth, item, takeaways, bullets, table, statement,
              chain, loop, share, magnitude, pyramid, quadrant,
              nodesOf, chainEdges, loopEdges, cellText, capLines, capH, contextH, band,
-             CHAIN, LOOP, SHARE, MAG, PYR, QUAD, STMT, TBL, TAKE, BAND };
+             CHAIN, LOOP, SHARE, MAG, PYR, QUAD, STMT, TBL, TAKE, BUL, BAND };
 };

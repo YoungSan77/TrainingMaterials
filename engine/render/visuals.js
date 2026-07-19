@@ -295,6 +295,20 @@ module.exports = (ctx) => {
 
     // takeaways: 세션 요약 번호 리스트 (요약 슬라이드 전용)
 
+    // 근거 나열. 거버닝 메시지는 이미 lead에 있으므로 여기엔 본문만 그린다.
+    const renderBullets = (s, items) => {
+        const g = LO.bullets(items, band);
+        const parts = [];
+        items.forEach((it, i) => {
+            const last = i === items.length - 1;
+            if (it.head) parts.push({ text: `${it.head} — `, options: { bold: true, color: C.navy, fontSize: F_BODY, fontFace: FF,
+                bullet: { indent: g.bullet }, paraSpaceBefore: SP, paraSpaceAfter: SP } });
+            parts.push({ text: String(it.text), options: { color: C.dark, fontSize: F_BODY, fontFace: FF,
+                bullet: it.head ? undefined : { indent: g.bullet }, breakLine: !last, paraSpaceBefore: SP, paraSpaceAfter: SP } });
+        });
+        s.addText(parts, { x: g.x, y: g.top, w: g.w, h: g.h, align: 'left', valign: 'top', margin: 0 });
+    };
+
     const renderTakeaways = (s, items) => {
         const g = LO.takeaways(items, band);                        // 치수는 layout.js가 잰다
         const { n, gap, h, blockH } = g;
@@ -309,5 +323,5 @@ module.exports = (ctx) => {
     };
 
 
-  return { autoTable, renderAutoBoxes, renderChain, renderLoop, renderShare, renderMagnitude, renderPyramid, renderQuadrant, renderSteps, renderVersus, renderStatement, renderTakeaways };
+  return { renderBullets, autoTable, renderAutoBoxes, renderChain, renderLoop, renderShare, renderMagnitude, renderPyramid, renderQuadrant, renderSteps, renderVersus, renderStatement, renderTakeaways };
 };

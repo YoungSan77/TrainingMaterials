@@ -30,6 +30,7 @@ const QA = require('./quotes.js');
 const { norm } = QA;                                  // 인용 자산 파서(엔진과 공유 — 두 벌이면 어긋난다)
 const { isFree, requiredFields, hint } = require('./skeleton.js');   // 골격 규칙 단일 소스(엔진과 공유)
 const shape = require('./shape.js');                           // visual.data 형태 단일 소스(엔진과 공유)
+const ST = require('./session_types.js');                      // 세션 유형 요건 단일 소스(엔진과 공유)
 
 // ── 엔진 레이아웃 상수를 엔진 소스에서 읽는다(복제하지 않는다) ──
 //   분할 후 상수는 render/context.js, TYPES는 render/lint.js에 있다. master_render.js(선두 형식 헤더)와
@@ -110,18 +111,24 @@ const DETAIL = process.argv.includes('--detail');
 const DECK = require('./load_deck.js')(deckPath);    // 순수 덱 + config 병합 + meta.quotes 절대경로화
 const S = DECK.session.slides;
 const NO = DECK.session.no;
+const SESSION_TYPE = DECK.session.type || ST.DEFAULT;
 const frontMatter = NO === 1 ? 3 : 1;
 const P = (i) => frontMatter + i + 1;
 
 const err = [], warn = [], detail = [];
 
 // 인용 자산 — 경로는 데이터가 선언한다(검증기가 특정 교재를 알지 않는다).
-let ASSETS = null;
+let ASSETS = null, CLAIMS = null, NODE = null;
 const qPath = DECK.meta && DECK.meta.quotes;
 if (qPath) {
     const abs = path.resolve(qPath);                 // loadDeck이 선언 파일 기준 절대경로로 이미 고정했다
     if (!fs.existsSync(abs)) err.push(`meta.quotes 경로에 파일이 없다: ${qPath}`);
-    else { const r = QA.parse(abs); ASSETS = r.assets; r.bad.forEach(b => err.push(b)); }
+    else {
+        const r = QA.parse(abs); ASSETS = r.assets; r.bad.forEach(b => err.push(b));
+        // 커리큘럼 세션 노드의 '명제' 목록. 없으면 null — 구 형식 세션은 검사를 건너뛴다.
+        CLAIMS = QA.parseClaims(abs, NO);
+        NODE = QA.parseSessionMeta(abs, NO);
+    }
 }
 
 // ── 슬라이드 검사 ──
@@ -129,10 +136,46 @@ const VTRIG = (DECK.meta && DECK.meta.visualTriggers) || {};
 const claim = (sl) => [sl.sub, sl.question, sl.lead && sl.lead.text, sl.foot && sl.foot.body].filter(Boolean).join(' ');
 const hasRatio = (t) => /\d+\s*:\s*\d+/.test(t) || (t.match(/\d+\s*%/g) || []).length >= 2;
 const used = new Map();
+const claimHit = new Map();          // 명제 id → 그 명제를 맡은 슬라이드 번호들
+// 시각 데이터에 실제로 들어간 글자 수. 타입에 중립적이다 —
+// 도형 수는 타입마다 배율이 달라(boxes 3개=9~12도형, bullets 5줄=2도형) 대리 지표로 쓸 수 없다.
+const visualChars = (v) => {
+    if (!v) return 0;
+    let n = 0;
+    const walk = (x) => {
+        if (x == null) return;
+        if (typeof x === 'string') { n += x.length; return; }
+        if (typeof x === 'number') { n += String(x).length; return; }
+        if (Array.isArray(x)) { x.forEach(walk); return; }
+        if (typeof x === 'object') Object.entries(x).forEach(([k, y]) => { if (!['id', 'type', 'at'].includes(k)) walk(y); });
+    };
+    walk(v.text); walk(v.note); walk(v.data);
+    return n;
+};
+const fillOf = new Map();            // 슬라이드 → 시각이 밴드를 차지한 비율
 
 S.forEach((sl, i) => {
     const tag = `p${P(i)}`;
     const v = sl.visual;
+
+    // 0) 명제 대조 — 커리큘럼이 정한 주장을 이 장이 실제로 맡고 있는가.
+    //    커리큘럼이 '무엇을 말할지'를 정하고 덱이 '어떻게 말할지'를 정한다. 그 연결이 데이터로 남아야
+    //    누가 만들어도 같은 뼈대가 나온다 — 연결을 재지 않으면 생성기가 조용히 다른 교재를 만든다.
+    if (CLAIMS) {
+        const ARG = !ST.isFixed(SESSION_TYPE, sl.kind);   // 고정 장(회수·예고)은 명제를 갖지 않는다
+        if (sl.claim) {
+            const c = CLAIMS.get(sl.claim);
+            if (!c) err.push(`${tag} claim '${sl.claim}'이 커리큘럼 S${String(NO).padStart(2, '0')} 명제 목록에 없다`);
+            else {
+                if (c.kind !== sl.kind) err.push(`${tag} claim '${sl.claim}'의 분류는 '${c.kind}'인데 이 장의 kind는 '${sl.kind}'이다`);
+                const prevC = claimHit.get(sl.claim);
+                if (prevC) err.push(`${tag} 명제 '${sl.claim}'을 슬라이드 ${prevC[0]}에서도 맡는다 — 명제 하나가 한 장이다. 두 장이 필요하면 커리큘럼에서 명제를 둘로 쪼갠다`);
+                claimHit.set(sl.claim, [...(prevC || []), i + 1]);
+            }
+        } else if (ARG) {
+            warn.push(`${tag} claim이 없다 — 이 장이 커리큘럼의 어느 명제를 맡는지 밝힌다`);
+        }
+    }
 
     // 1) 필수 필드 — skeleton.js가 정한다(엔진과 같은 소스). statement는 골격 예외라 빈 목록.
     const free = isFree(sl);
@@ -220,6 +263,12 @@ S.forEach((sl, i) => {
                 const l = L(t, g.w, g.bullet);
                 if (l >= 3) warn.push(`${tag} ${v.type} ${g.n}열 ${l}줄: "${String(t).slice(0, 20)}…" — 밀도 과다 (1줄 = 한글 ${budg}자)`);
             });
+        });
+    } else if (v.type === 'bullets') {
+        const g = LO.bullets(v.data, { VT, VH });
+        need = g.need;
+        g.per.forEach((p2, k) => {
+            if (p2.ln >= 3) warn.push(`${tag} bullets ${k + 1}번이 ${p2.ln}줄이다: "${p2.text.slice(0, 20)}…" — 한 줄에 한 근거가 읽힌다 (1줄 = 한글 ${g.budget}자)`);
         });
     } else if (v.type === 'table') {
         const g = LO.table(v.data, { VT, VH });
@@ -376,6 +425,7 @@ S.forEach((sl, i) => {
     // 이들은 하한(행 높이·반지름 최소값)에 걸릴 때만 밴드를 넘는다 → 초과만 본다. 근접 경고는 오탐이다.
     const FILL = ['loop', 'magnitude', 'pyramid', 'quadrant'];
     if (need != null) {
+        fillOf.set(sl, Math.min(1, need / VH));
         const slack = VH - need;
         detail.push(`${tag} ${String(v.type).padEnd(9)} VH=${VH.toFixed(2)} 필요=${need.toFixed(2)} 여유=${slack.toFixed(2)}${sl.quote ? '  [quote]' : ''}${v.caption ? '  [caption]' : ''}`);
         if (slack < -1e-6) err.push(`${tag} ${v.type}가 밴드를 넘는다(필요 ${need.toFixed(2)}in > 밴드 ${VH.toFixed(2)}in) — 하단이 잘린다. 항목·행을 줄이거나 문장을 축약한다`);
@@ -412,13 +462,59 @@ if (!DECK.meta || !DECK.meta.quotes) warn.push(`meta.quotes 없음 — 인용 �
 
 // ── 덱 전체 규칙 ──
 // 인용 개수는 세지 않는다. 자산에 맞는 인용이 없으면 0장이 정답이다.
-if (!S.some(s => s.kind === '학습 목표')) err.push(`학습 목표 슬라이드 없음`);
+// ── 세션 유형 ── 요건도 장수도 유형이 정한다.
+const SESSION_SPEC = ST.spec(SESSION_TYPE);
+if (!SESSION_SPEC) err.push(`알 수 없는 세션 유형 '${SESSION_TYPE}' — ${ST.names().join(' | ')} 중 하나`);
+else {
+    const OK = ST.kinds(SESSION_TYPE);
+    S.forEach((s2, i) => { if (!OK.includes(s2.kind)) err.push(`슬라이드 ${i + 1}: kind '${s2.kind}'는 ${SESSION_TYPE}에 없다 — ${OK.join(' | ')}`); });
+    SESSION_SPEC.fixed.forEach(k => { if (!S.some(s2 => s2.kind === k)) err.push(`${SESSION_TYPE}의 고정 장 '${k}'가 없다`); });
+    // 장수는 파생값이다: 명제 수 + 고정 장. 범위 검사를 두면 하한이 목표가 된다.
+    if (CLAIMS && CLAIMS.size) {
+        const want = ST.slideCount(SESSION_TYPE, CLAIMS.size);
+        if (S.length !== want)
+            err.push(`본문 ${S.length}장인데 커리큘럼 명제 ${CLAIMS.size}개 + 고정 ${SESSION_SPEC.fixed.length}장 = ${want}장이어야 한다 — 장수는 커리큘럼이 정한다`);
+    }
+}
 const arg = (sl) => !isFree(sl);                      // statement는 논증이 아니다(skeleton.js와 같은 소스)
-['현상', '원인', '원칙', '적용', '타협'].forEach(k => {
+(SESSION_SPEC ? SESSION_SPEC.required : []).forEach(k => {
     if (!S.some(s => s.kind === k && arg(s))) err.push(`분류 '${k}'의 논증 슬라이드 없음 — statement(단문)로는 분류 요건을 채울 수 없다`);
 });
-if (!S.some(s => s.head)) warn.push(`세션 요약 슬라이드(head 지정) 없음`);
-if (S.length < 12 || S.length > 17) warn.push(`본문 ${S.length}장 — 권장 12~17장`);
+// 커리큘럼 노드가 유형·분량을 선언하면 덱과 대조한다. 커리큘럼이 정본이다.
+if (NODE) {
+    if (NODE.type && NODE.type !== SESSION_TYPE)
+        err.push(`세션 유형이 커리큘럼과 다르다 — 노드는 '${NODE.type}', 덱은 '${SESSION_TYPE}'`);
+    if (NODE.minutes && SESSION_SPEC) {
+        // 분량과 명제 수는 서로를 견제한다: 80분이라 써놓고 명제가 다섯이면 그 자리에서 어긋남이 드러난다.
+        const want = Math.round(NODE.minutes / SESSION_SPEC.minPerSlide);
+        if (Math.abs(S.length - want) > Math.max(2, want * 0.3))
+            warn.push(`분량 ${NODE.minutes}분에 본문 ${S.length}장 — ${SESSION_TYPE}은 장당 약 ${SESSION_SPEC.minPerSlide}분이라 ${want}장 안팎이 맞다. 분량이나 명제 수를 조정한다`);
+    }
+}
+
+// 부(part)는 연속이어야 한다 — 흩어지면 목차 그룹이 같은 라벨을 두 번 그린다.
+// 부는 요건이 걸리는 단위를 바꾸는 장치이지 장식이 아니다.
+{
+    const seq = S.map(s2 => s2.part || null).filter(Boolean);
+    const seen = new Set(); let prev = null;
+    S.forEach((s2, i) => {
+        const pt = s2.part || null;
+        if (pt && pt !== prev) {
+            if (seen.has(pt)) err.push(`슬라이드 ${i + 1}: 부 '${pt}'가 떨어져서 다시 나온다 — 같은 부의 장은 붙어 있어야 한다`);
+            seen.add(pt);
+        }
+        prev = pt;
+    });
+    if (seq.length && seen.size < 2) warn.push(`부가 '${[...seen][0]}' 하나뿐이다 — 부는 둘 이상으로 나눌 때 쓴다`);
+}
+
+// 요약 장은 유형이 정한다 — 워크숍형의 마지막 장은 '디브리프'이지 '요약'이 아니다.
+if (ST.isFixed(SESSION_TYPE, '요약') && !S.some(s => s.head))
+    warn.push(`세션 요약 슬라이드(head 지정) 없음`);
+// 명제 목록이 없으면 장수를 파생할 수 없다. 참고 범위는 설명형에만 의미가 있다
+// (워크숍형은 네댓 장이 정상이고, 종합형도 다르다).
+if (!CLAIMS && SESSION_TYPE === ST.DEFAULT && (S.length < 12 || S.length > 17))
+    warn.push(`본문 ${S.length}장 — 커리큘럼에 명제 목록이 없어 장수를 파생하지 못한다(구 형식). 참고 범위 12~17장`);
 // 시각 없는 본문 장은 이제 골격 누락(오류)으로 잡는다 — skeleton.js가 정본이다.
 // 경고로 두던 때에는 03에서 세 장이 그 상태로 남았고, 경고는 읽히지 않았다.
 // 회피 감지: 타입은 늘었는데 여전히 표·박스로만 그리고 있으면 계약이 아니라 습관이 이긴 것이다.
@@ -429,7 +525,7 @@ const nTB = S.filter(s => s.visual && ['table', 'boxes'].includes(s.visual.type)
 if (nAll && nTB / nAll > 0.6) warn.push(`시각화의 ${Math.round(nTB / nAll * 100)}%가 table/boxes다 (${nTB}/${nAll}) — 관계·수치 타입을 회피하고 있는지 점검한다`);
 
 // ── 리포트 ──
-console.log(`── VERIFY: ${path.basename(deckPath)} | 세션 ${NO} | 본문 ${S.length}장 (총 ${frontMatter + S.length}p) ──`);
+console.log(`── VERIFY: ${path.basename(deckPath)} | 세션 ${NO} | ${SESSION_TYPE} | 본문 ${S.length}장 (총 ${frontMatter + S.length}p) ──`);
 if (ASSETS) console.log(`   인용 자산: ${path.basename(qPath)} (${ASSETS.size}개) | 이 덱에서 사용: ${used.size}개`);
 else if (used.size) console.log(`   인용 자산: 선언 없음 (meta.quotes)`);
 if (DETAIL) { console.log(`\n[상세]`); detail.forEach(d => console.log('  ' + d)); }
@@ -439,7 +535,14 @@ if (!err.length && !warn.length) console.log('이상 없음');
 // ── 밀도 보고 ── 합격/불합격이 아니라 기록이다.
 //   verify가 보장하는 것은 바닥(구조·형식·인용 진위)이고 논증의 두께는 보장하지 않는다.
 //   그래서 최소한 '얼마나 실었는가'를 눈에 보이게 남긴다 — 재지 않으면 조용히 얇아진다.
+if (CLAIMS && CLAIMS.size) {
+    const miss = [...CLAIMS.keys()].filter(k => !claimHit.has(k));
+    miss.forEach(k => warn.push(`커리큘럼 명제 '${k}'(${CLAIMS.get(k).kind})를 맡은 장이 없다: "${CLAIMS.get(k).text.slice(0, 30)}…"`));
+}
 {
+    // 밀도는 판정이 아니라 기록이다. 임계를 두지 않는다 —
+    // 타입마다 정상값이 달라(flow 4노드 16자 vs bullets 5줄 200자) 절대 기준은 반드시 하나를 오측정한다.
+    // 편차는 임계가 아니라 전 덱 비교로 드러낸다.
     const nVis = S.filter(sl => sl.visual && !isFree(sl)).length;
     const nFree = S.filter(sl => isFree(sl)).length;
     const nBare = S.filter(sl => !sl.visual).length;
@@ -447,8 +550,12 @@ if (!err.length && !warn.length) console.log('이상 없음');
     S.forEach(sl => { if (sl.visual) kinds[sl.visual.type] = (kinds[sl.visual.type] || 0) + 1; });
     const chars = S.reduce((a, sl) => a + JSON.stringify(sl).length, 0);
     const notes = S.reduce((a, sl) => a + String(sl.notes || '').length, 0);
-    console.log(`\n밀도: 시각 ${nVis}장 · 단문 ${nFree}장 · 시각 없음 ${nBare}장 | 본문 데이터 ${chars}자 · 강사 노트 ${notes}자`);
+    const vChars = S.reduce((a, sl) => a + visualChars(sl.visual), 0);
+    const fl = S.map(sl => fillOf.get(sl)).filter(x => typeof x === 'number');
+    const fill = fl.length ? Math.round(fl.reduce((a, b) => a + b, 0) / fl.length * 100) : 0;
+    console.log(`\n밀도: 시각 ${nVis}장 · 단문 ${nFree}장 · 시각 없음 ${nBare}장 | 시각 내용 ${vChars}자 · 밴드 점유 ${fill}% | 본문 ${chars}자 · 노트 ${notes}자`);
     console.log(`      시각 분포: ${Object.entries(kinds).map(([k, v]) => k + v).join(' ') || '없음'}`);
+    if (CLAIMS) console.log(`      커리큘럼 명제: ${claimHit.size}/${CLAIMS.size} 반영`);
 }
 console.log(`\n요약: 오류 ${err.length} / 경고 ${warn.length}`);
 process.exit(err.length ? 1 : 0);

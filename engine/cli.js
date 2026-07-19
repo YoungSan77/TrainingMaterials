@@ -79,6 +79,7 @@ function usage(code = 1) {
   node engine/cli.js new course <name>          새 과정 골격(global_config + 커리큘럼 스텁 + decks/)
   node engine/cli.js new deck   <deck.js>       새 순수 데이터 덱 골격(verify 통과)
   node engine/cli.js doctor                     설치 무결성 점검(모듈 누락·의존성)
+  node engine/cli.js course <과정폴더>          과정 단위 검사(전 덱 비교표 · 시간 예산)
   node engine/cli.js check <deck.js> [--log]    verify 실행 (--log: ②지표 1행 기록)
   node engine/cli.js build <deck.js> [--draft]  verify 게이트 통과 시 렌더
 
@@ -264,7 +265,13 @@ module.exports = { session: {
 // ── dispatch ─────────────────────────────────────────────────────────────────
 if (!cmd || cmd === '-h' || cmd === '--help') usage(0);
 if (cmd === 'doctor') { doctor(); process.exit(0); }
-if (cmd !== 'new' && !deck) { console.error(`[중단] 덱 경로가 필요하다.`); usage(1); }
+if (cmd === 'course') {
+    // 과정 단위 검사기도 자식 프로세스로 부른다 — CLI는 검사 로직을 복제하지 않는다.
+    try { execFileSync('node', [path.join(ENGINE_DIR, 'course.js'), args[0] || 'courses/qm'], { stdio: 'inherit' }); }
+    catch (e) { process.exit(e.status || 1); }
+    process.exit(0);
+}
+if (cmd !== 'new' && cmd !== 'course' && !deck) { console.error(`[중단] 덱 경로가 필요하다.`); usage(1); }
 
 if (cmd === 'new') {
     const sub = args[0], target = args[1];
