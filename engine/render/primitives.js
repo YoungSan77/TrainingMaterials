@@ -17,7 +17,15 @@ module.exports = (ctx) => {
 
     const hdr = (s, t) => { s.addText(t, { x: LM, y: 0.20, w: CW, h: 0.50, fontSize: hdrFS(t), fontFace: FF, color: C.navy, bold: true, align: 'left', valign: 'middle', margin: 0 }); s.addShape(pres.shapes.LINE, { x: LM, y: 0.80, w: CW, h: 0, line: { color: C.navy, width: 1.5 } }); };
 
-    const sub = (s, t) => { s.addText(t, { x: LM, y: 0.95, w: CW, h: 0.30, fontSize: 14, fontFace: FF, color: C.dark, bold: true, align: 'center', margin: 0 }); s.addShape(pres.shapes.LINE, { x: LM, y: 1.35, w: CW, h: 0, line: { color: C.lineL, width: 0.5 } }); };
+    // sub — 명제의 주장 한 문장. 분류가 있으면 '[원인] ' 형태로 앞에 붙인다(흐린 색·보통 굵기로 명제와 구분).
+    //   문단 속성은 어느 런에도 주지 않는다 — 한 문단에 <a:pPr>이 둘이면 뷰어가 문단 분리로 읽는다.
+    const SUB_KINDS = ['현상', '원인', '원칙', '적용', '타협', '연결', '준비', '진행', '산출'];
+    const sub = (s, t, kind) => { const body = { x: LM, y: 0.95, w: CW, h: 0.30, fontSize: 14, fontFace: FF, color: C.dark, bold: true, align: 'center', margin: 0 };
+        const parts = SUB_KINDS.includes(kind)
+            ? [{ text: `[${kind}] `, options: { fontSize: 14, fontFace: FF, color: C.muted, bold: false } },
+               { text: t,            options: { fontSize: 14, fontFace: FF, color: C.dark,  bold: true  } }]
+            : t;
+        s.addText(parts, body); s.addShape(pres.shapes.LINE, { x: LM, y: 1.35, w: CW, h: 0, line: { color: C.lineL, width: 0.5 } }); };
     // title에 ''를 넘기면 좌측 세션 표기를 생략한다(과정 목차처럼 세션에 귀속되지 않는 페이지).
 
     const ftr = (s, pg, title) => { s.addShape(pres.shapes.LINE, { x: LM, y: 7.10, w: CW, h: 0, line: { color: C.lineL, width: 0.5 } }); s.addText(title ?? SF, { x: LM, y: 7.15, w: 4.0, h: 0.20, fontSize: 8, fontFace: FF, color: C.muted, margin: 0 }); s.addText(`${pg}`, { x: 4.5, y: 7.15, w: 1.0, h: 0.20, fontSize: 8, fontFace: FF, color: C.muted, align: 'center', margin: 0 }); s.addText(AT, { x: 5.0, y: 7.15, w: 4.65, h: 0.20, fontSize: 8, fontFace: FF, color: C.muted, align: 'right', margin: 0 }); };

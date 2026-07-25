@@ -28,7 +28,8 @@ const DIR    = path.join(__dirname, 'corpus');
 const ASSET  = path.join(DIR, 'quotes.corpus.md');
 const ASSET_ID = 'Q_ALPHA';
 
-// 결함 → 기대 진단(부분 문자열). 문자열은 verify.js의 메시지에서 그대로 가져온다.
+// 케이스 → 기대 진단(부분 문자열). 대부분은 '결함을 잡는가'이고, 17번만 '정상 경로가 살아 있는가'다.
+//  문자열은 verify.js의 메시지에서 그대로 가져온다.
 const CASES = [
   { file: '1-deprecated-type.js',       name: '폐기 타입 사용',          expect: "알 수 없는 visual.type 'quotes'" },
   { file: '2-flow-overflow.js',         name: 'flow 밴드 초과',          expect: 'flow가 밴드를 넘는다' },
@@ -50,6 +51,13 @@ const CASES = [
   { file: '14-claim-unknown.js',        name: '명제 id 불일치',          expect: '명제 목록에 없다', asset: true },
   { file: '15-bullets-overflow.js',     name: 'bullets 상한 초과',       expect: '최대 6개' },
   { file: '16-session-type.js',         name: '유형에 없는 kind',        expect: '설명형에 없다' },
+  // 정상 경로 케이스 — 결함이 아니라 '살아 있어야 하는 것'을 지킨다.
+  //   계약이 선언한 시각 타입 중 어느 덱도 쓰지 않는 것이 있으면 그 렌더 경로는 아무도 검사하지 않는다.
+  //   실제로 share·quadrant 렌더러에 미정의 식별자가 남아 있었고(모듈 분리 때 지역 변수가 사라진 자리),
+  //   verify·골든·코퍼스 어디에도 걸리지 않다가 새 과정이 그 타입을 쓰자 렌더가 죽었다.
+  { file: '17-all-visual-types.js',     name: '전 시각 타입 렌더',       expect: '[성공]', runner: 'engine' },
+  // 골격 계열 — 명제가 길어 sub 박스를 넘고 아래 구분선을 침범하는 결함(2026-07).
+  { file: '18-sub-overflow.js',         name: 'sub 오버플로',           expect: 'sub(명제)가' },
 ];
 
 // 검사기를 돌려 표준출력을 통째로 돌려준다(오류 시 exit≠0로 throw → e.stdout에서 회수).
@@ -91,7 +99,7 @@ function fail(msg) { console.error('[중단] ' + msg); process.exit(1); }
     preflightAsset();
 
     let missed = 0;
-    console.log(`── CORPUS: ${CASES.length}개 결함 · 검증기 탐지 확인 ──\n`);
+    console.log(`── CORPUS: ${CASES.length}개 케이스 · 검증기 탐지 확인 ──\n`);
     for (const c of CASES) {
         const out = runCheck(path.join(DIR, c.file), c.runner);
         const hit = out.includes(c.expect);
@@ -105,5 +113,5 @@ function fail(msg) { console.error('[중단] ' + msg); process.exit(1); }
     console.log(`\n요약: 탐지 ${CASES.length - missed}/${CASES.length}`);
     if (missed) { console.error(`[실패] ${missed}개 결함을 검증기가 놓쳤다.`); process.exit(1); }
     fs.rmSync(OUT_TMP, { recursive: true, force: true });
-    console.log('[통과] 모든 결함을 검증기가 잡았다.');
+    console.log('[통과] 모든 케이스가 기대대로 나왔다.');
 })();

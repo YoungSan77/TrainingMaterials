@@ -66,6 +66,13 @@ const LM      = grab(/\bLM\s*=\s*([\d.]+)/, 'LM');
 const Y_LINE  = grab(/\bY_LINE\s*=\s*([\d.]+)/, 'Y_LINE');
 const F_SRC   = grab(/\bF_SRC\s*=\s*(\d+)/, 'F_SRC');
 const LOOP_IN = grab(/\bLOOP_IN\s*=\s*([\d.]+)/, 'LOOP_IN');
+// sub(명제) 규격 — primitives.js의 sub 정의에서 직접 읽는다. 상수 이름이 없으므로 리터럴을 잡는다.
+//   sub는 한 줄 높이 박스이고 바로 아래에 구분선이 있다 → 두 줄이 되면 선을 침범한다.
+const F_SUB   = grab(/const sub\s*=[\s\S]{0,300}?fontSize:\s*(\d+)/, 'sub fontSize');
+const SUB_KINDS = (SRC.match(/SUB_KINDS\s*=\s*\[([^\]]*)\]/) || [,''])[1]
+    .split(',').map(x => x.trim().replace(/^['\"]|['\"]$/g, '')).filter(Boolean);
+const SUB_MAX = (() => { let n = 0; for (let i = 1; i <= 200; i++) {
+    if (lineCount('\uAC00'.repeat(i), CW - PAD * 2, F_SUB) === 1) n = i; else break; } return n; })();
 // 엔진이 지원하는 타입 목록도 소스에서 읽는다 — 타입을 추가하고 검증기를 안 고치는 사고를 막는다.
 const TYPES = (SRC.match(/const TYPES = \[([\s\S]*?)\];/) || [, ''])[1].match(/'([a-z]+)'/g)?.map(s => s.replace(/'/g, '')) || [];
 if (!TYPES.length) { console.error('[중단] 엔진에서 TYPES 목록을 읽지 못했다.'); process.exit(2); }
@@ -180,6 +187,14 @@ S.forEach((sl, i) => {
     // 1) 필수 필드 — skeleton.js가 정한다(엔진과 같은 소스). statement는 골격 예외라 빈 목록.
     const free = isFree(sl);
     requiredFields(sl).forEach(f => { if (!sl[f]) err.push(`${tag} 필수 필드 누락: ${f}${hint(f)}`); });
+    // sub 오버플로 — 명제가 두 줄이 되면 아래 구분선을 침범한다.
+    //   렌더해서 눈으로 봐야만 보이던 결함이라 저자가 못 본다. 여기서 잰다.
+    if (!free && sl.sub) {
+        // 렌더되는 실제 문자열로 잰다 — 분류가 있으면 '[원인] '이 앞에 붙는다.
+        const shown = SUB_KINDS.includes(sl.kind) ? `[${sl.kind}] ${sl.sub}` : sl.sub;
+        const sn = lineCount(shown, CW - PAD * 2, F_SUB);
+        if (sn > 1) err.push(`${tag} sub(명제)가 ${sn}줄이다 — 아래 구분선을 침범한다. 한글 ${SUB_MAX}자 이내로 줄이거나 뒷문장을 lead로 내린다`);
+    }
     if (!free && sl.question && !/[?？]\s*$/.test(sl.question)) warn.push(`${tag} question이 물음표로 끝나지 않는다`);
     if (!sl.notes) warn.push(`${tag} notes(강사 노트)가 없다 — 던질 질문·흔한 반론·시간 배분을 남긴다`);
 

@@ -34,7 +34,11 @@ module.exports = (ctx) => {
         .replace(/^\s*(?:Session|세션)\s*\d+\s*[.):-]?\s*/i, '')
         .replace(/^\s*(?:[IVXLC]+|\d+)\s*[.)]\s*/i, '');
 
-    const stripDay = (t) => String(t).replace(/^\s*Day\s*\d+\s*[—\-:.]?\s*/i, '').trim();
+    // 'Day 1 — ' / '1일차 — ' / '1일 차 - ' 모두 벗긴다. 영어 라벨만 벗기면 한글 과정에서 접두어가 그대로 남는다.
+    const stripDay = (t) => String(t)
+        .replace(/^\s*Day\s*\d+\s*[—\-:.]?\s*/i, '')
+        .replace(/^\s*\d+\s*일\s*차\s*[—\-:.]?\s*/, '')
+        .trim();
     // 목록 블록은 내용 폭에 맞춰 잡고 가운데(살짝 왼쪽)에 놓는다. 글자는 왼쪽 정렬 — 그래야 번호가 세로로 선다.
 
     const listBlock = (rows, fs) => {
@@ -72,10 +76,12 @@ module.exports = (ctx) => {
             if (r.group) parts.push({ text: r.group, options: { bold: true, fontSize: fs, fontFace: FF, color: C.navy,
                 breakLine: !last, paraSpaceBefore: SP, paraSpaceAfter: SP } });
             else {
+                // 문단 속성은 문단을 '여는' 런(번호)에만 준다. pptxgenjs는 문단 속성을 가진 런마다
+                // 그 런 앞에 <a:pPr>를 쓴다. 한 문단에 <a:pPr>가 둘이면 뷰어는 앞의 것만 읽는다
+                // — 닫는 런(제목)에 주면 그 <a:pPr>가 두 번째가 되어 버려지고 3pt 간격이 사라진다.
                 parts.push({ text: `${r.no}. `, options: { bold: true, fontSize: fs, fontFace: FF, color: C.navy,
                     paraSpaceBefore: SP, paraSpaceAfter: SP } });
-                parts.push({ text: r.title, options: { fontSize: fs, fontFace: FF, color: C.dark, breakLine: !last,
-                    paraSpaceBefore: SP, paraSpaceAfter: SP } });
+                parts.push({ text: r.title, options: { fontSize: fs, fontFace: FF, color: C.dark, breakLine: !last } });
             }
         });
         s.addText(parts, { x: B.x, y: y0, w: B.w, h: BAND, align: 'left', valign: 'top', margin: 0 });
@@ -111,10 +117,10 @@ module.exports = (ctx) => {
             if (r.group) parts2.push({ text: r.group, options: { bold: true, fontSize: F_BODY, fontFace: FF, color: C.navy,
                 breakLine: !last, paraSpaceBefore: SP, paraSpaceAfter: SP } });
             else {
+                // 과정 목차(addFullToc)와 같은 규칙 — 문단 속성은 여는 런에만.
                 parts2.push({ text: `${r.no}. `, options: { bold: true, fontSize: F_BODY, fontFace: FF, color: C.navy,
                     paraSpaceBefore: SP, paraSpaceAfter: SP } });
-                parts2.push({ text: r.title, options: { fontSize: F_BODY, fontFace: FF, color: C.dark, breakLine: !last,
-                    paraSpaceBefore: SP, paraSpaceAfter: SP } });
+                parts2.push({ text: r.title, options: { fontSize: F_BODY, fontFace: FF, color: C.dark, breakLine: !last } });
             }
         });
         s.addText(parts2, { x: B.x, y: 1.12, w: B.w, h: 5.62, align: 'left', valign: 'top', margin: 0 });
@@ -169,7 +175,7 @@ module.exports = (ctx) => {
         hdr(s, head); ftr(s, pg, SF);
         const v = slide.visual;
         const free = v && FREE.includes(v.type);            // statement — 5단 골격을 쓰지 않는다
-        if (slide.sub && !free) sub(s, slide.sub);   // statement는 헤더 아래 한 줄을 두지 않는다(한 문장이 전부다)
+        if (slide.sub && !free) sub(s, slide.sub, slide.kind);   // statement는 헤더 아래 한 줄을 두지 않는다(한 문장이 전부다)
         // 질문/리드 밴드를 그리고 그 하단 y를 받는다.
         const ctxBottom = (free ? CTX_TOP : (addContext(s, slide.question, slide.lead) || CTX_TOP));
         if (slide.intro) s.addText(buildIntro(slide.intro), { x: LM, y: Y_START, w: CW, h: 1.0, valign: 'top', margin: 0 });

@@ -1,3 +1,4 @@
 node_modules/
 courses/*/out/
 .DS_Store
+courses/swqm/output/

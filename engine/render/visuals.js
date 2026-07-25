@@ -149,7 +149,7 @@ module.exports = (ctx) => {
         // 범례는 '블록을 가운데, 글자는 왼쪽'이다. 여러 줄을 가운데 정렬하면 좌측이 들쭉날쭉해 읽기 어렵다.
         const legW = Math.min(CW, Math.max(...items.map(it =>
             textW(`■ ${it.value}% ${it.label}${it.note ? ' — ' + it.note : ''}`, F_IN))) + 0.20);
-        s.addText(parts, { x: LM + (CW - legW) / 2, y: top + barH + 0.10, w: legW, h: h - barH - 0.10,
+        s.addText(parts, { x: LM + (CW - legW) / 2, y: top + barH + 0.10, w: legW, h: legH,
                            align: 'left', valign: 'top', margin: 0 });
     };
 
@@ -203,7 +203,7 @@ module.exports = (ctx) => {
         // 격자·칸 좌표는 layout.js가 잰다(verify와 같은 소스).
         // 밴드를 최대한 쓴다 — 칸이 좁으면 문장이 명사구로 깎인다.
         const g = LO.quadrant(d, band);
-        const { axX, gw, gh, top, left, cw, ch } = g;
+        const { axX, axY, gap, gw, gh, top, left, cw, ch } = g;
         (d.cells || []).forEach((c, ci) => {
             const { x, y } = g.cells[ci];
             s.addShape(pres.shapes.RECTANGLE, { x, y, w: cw, h: ch, fill: { color: C.white }, line: { color: C.navy, width: 1.25 } });
