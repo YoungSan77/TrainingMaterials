@@ -76,16 +76,11 @@ const CASES = [
   { file: '26-lint-kind-not-allowed.js',            name: '[lint] 유형 밖 kind',          expect: "kind '유령분류'는",              runner: 'engine', exitCode: 1 },
   { file: '27-lint-fixed-missing.js',               name: '[lint] 고정 장 누락',          expect: "고정 장 '학습 목표'가 없다",     runner: 'engine', exitCode: 1 },
   { file: '28-lint-required-kind-statement-only.js', name: '[lint] 필수 분류 statement뿐', expect: "분류 '현상'의 논증 슬라이드 없음",  runner: 'engine', exitCode: 1 },
-  // ── 알려진 gap 계열(gap:true) ────────────────────────────────────────────
-  //   결함 탐지가 아니라 '아직 못 잡는다'는 사실 자체를 고정한다. gap:true 케이스는
-  //   expect 문자열이 출력에 없어야 통과다(뒤집힌 판정) — 이 문자열이 나타나기 시작하면
-  //   그 gap이 해소된 것이므로 케이스를 갱신(승격)해야 한다는 신호로 실패한다.
-  //   foot(하단 결론) 박스는 layout.js 기하 검증을 받는 유일한 예외 밴드다 — 다른 모든
-  //   시각화는 band 초과를 verify가 잡지만(§6 밴드 초과=오류), foot는 높이가 1.0in 고정
-  //   리터럴이고 verify에 대응하는 검사가 없다. 실측: foot 텍스트는 14pt·폭 9.30in 기준
-  //   한 줄에 한글 약 45자, 1.0in 박스엔 4줄까지 들어간다(ftr 구분선까지 여유 포함해도 5줄).
-  //   300자(7줄, 필요 1.63in)는 그 두 배를 넘겨 확실히 흘러넘치는데도 지금은 아무 진단도 안 뜬다.
-  { file: '29-foot-overflow-gap.js', name: '[gap] foot 오버플로 미검출', expect: 'foot가 박스를 넘는다', runner: 'engine', gap: true },
+  // foot(+next) 오버플로 — 원래 gap:true(미검출을 기록하는 케이스)였다. verify.js에 foot(+next)
+  // 길이 경고를 추가하면서(§2 PoC 구현 2단계) 해소돼 정상 탐지 케이스로 승격했다. gap:true 메커니즘
+  // 자체(뒤집힌 판정)는 test/corpus.js의 main 루프에 남겨 둔다 — 다음에 같은 종류의 사각지대를
+  // 발견하면 재사용한다.
+  { file: '29-foot-overflow-gap.js', name: 'foot 오버플로(+next 합산)', expect: 'foot가 박스를 넘는다' },
 ];
 
 // 검사기를 돌려 { out, code }를 돌려준다(오류 시 exit≠0로 throw → e.stdout/e.status에서 회수).

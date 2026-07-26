@@ -212,6 +212,18 @@ function verifyDeck(DECK) {
         }
         if (!free && sl.question && !/[?？]\s*$/.test(sl.question)) warn.push(`${tag} question이 물음표로 끝나지 않는다`);
         if (!sl.notes) warn.push(`${tag} notes(강사 노트)가 없다 — 던질 질문·흔한 반론·시간 배분을 남긴다`);
+        // foot(+next) 오버플로 — foot는 layout.js 기하 검증을 안 받는 유일한 밴드다(박스 h가
+        //   render/pages.js에 리터럴 1.0으로 고정돼 있다). ftr 구분선(render/primitives.js의
+        //   y=7.10 — 이름 없는 리터럴이라 다른 상수처럼 소스에서 못 긁는다)까지 Y_BOT(5.90)에서
+        //   남는 여유를 실측하면 1.20in. slide.next(다음 연결 예고)가 foot과 같은 박스를 나눠
+        //   쓰므로 둘을 합쳐서 잰다. 처음 도입하는 검사라 오류가 아니라 경고로 둔다.
+        if (!free && sl.foot) {
+            const FOOT_BAND = 1.20;
+            const footLines = lineCount(sl.foot.body, CW - PAD * 2, F_BODY) + (sl.next ? lineCount(`다음: ${sl.next}`, CW - PAD * 2, F_BODY) : 0);
+            const footH = footLines * lineH(F_BODY);
+            if (footH > FOOT_BAND)
+                warn.push(`${tag} foot가 박스를 넘는다(${footLines}줄, 약 ${footH.toFixed(2)}in > 여유 ${FOOT_BAND}in) — 하단 페이지 표기와 겹칠 수 있다. foot.body나 next를 줄인다`);
+        }
 
         // 2) 인용 — 개수를 세지 않고 출처를 대조한다
         const qs = [sl.quote, v && v.quote].filter(Boolean);
