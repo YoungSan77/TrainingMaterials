@@ -35,6 +35,7 @@ const TYPES = {
         fixed: ['학습 목표', '요약'],          // 명제를 갖지 않는 장(회수·예고)
         required: ['현상', '원칙', '적용'],     // 각 최소 1장, statement는 채우지 못한다
         optional: ['원인', '타협'],
+        unclaimed: ['선언'],                   // 명제도, 고정 회수·예고도 아닌 장(manifesto). 세션당 최대 1개.
         minPerSlide: 4,                        // 분/장 — 분량↔명제 수 정합 검사용
     },
     // 활동을 하는 세션. 논증이 아니므로 어휘가 통째로 다르고, 네댓 장도 정상이다.
@@ -61,7 +62,7 @@ const spec = (t) => TYPES[t || DEFAULT] || null;
 // 이 세션에서 쓸 수 있는 kind 전체
 const kinds = (t) => {
     const s = spec(t);
-    return s ? [...s.fixed, ...s.required, ...s.optional] : [];
+    return s ? [...s.fixed, ...s.required, ...s.optional, ...(s.unclaimed || [])] : [];
 };
 
 // 명제를 갖지 않는 장인가(고정 장)
@@ -70,10 +71,17 @@ const isFixed = (t, kind) => {
     return !!(s && s.fixed.includes(kind));
 };
 
+// 명제도, 고정 장(회수·예고)도 아닌 장인가(선언 등). slideCount()의 파생값 계산에선 빠진다 —
+// 명제 수만큼 나오는 것도, 세션마다 정확히 하나 있는 것도 아니라서(0개 또는 1개, 세션당 상한만 있다).
+const isUnclaimed = (t, kind) => {
+    const s = spec(t);
+    return !!(s && (s.unclaimed || []).includes(kind));
+};
+
 // 명제 수 → 본문 장수. 명제 하나가 한 장이고, 거기에 고정 장이 붙는다.
 const slideCount = (t, nClaims) => {
     const s = spec(t);
     return s ? nClaims + s.fixed.length : null;
 };
 
-module.exports = { TYPES, DEFAULT, names, spec, kinds, isFixed, slideCount };
+module.exports = { TYPES, DEFAULT, names, spec, kinds, isFixed, isUnclaimed, slideCount };
