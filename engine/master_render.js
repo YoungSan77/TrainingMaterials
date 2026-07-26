@@ -43,7 +43,7 @@
  *   세션 목차 헤더 = '{세션번호}. {세션 제목} 목차', 푸터 세션 표기 = '{세션번호}. {세션 제목}'.
  *   title 안에 부제를 붙일 때는 '—'를 쓴다(연번 구분자와 겹치지 않는다). 따옴표는 쓰지 않는다.
  *   장수 배분 원칙: 한 슬라이드 = 한 명제. 장수를 채우려고 명제를 쪼개거나 합치지 않는다.
- *   분류별 범위는 권장이고, 총량(본문 12~17장)이 강제다(lint가 검사한다).
+ *   분류별 범위는 권장이고, 총량(본문 12~17장)이 강제다(verify.js가 검사한다).
  *   범위 상한을 모두 쓰면 총량을 넘는다 — 충돌하면 총량이 이긴다.
  *   각 분류는 최소 1장을 유지한다(분류를 통째로 비우지 않는다).
  *   · 학습 목표   1장   kind:'학습 목표'  → 연번 01. visual: table(대비 3행)
@@ -71,7 +71,10 @@
  * [필수 산출 체크리스트]  ★ 세션 생성 후 반드시 이 목록으로 자가 점검한다 ★
  *   기능이 "사라지는" 유일한 원인은 데이터가 그 필드를 넘기지 않는 것이다.
  *   엔진은 필드가 없으면 조용히 건너뛴다. 따라서 아래를 매 세션 확인한다.
- *   lint가 [치명]으로 잡으면 pptx를 만들지 않고 중단한다(exit 1). [경고]는 출력하고 진행한다.
+ *   verify.js가 [치명]으로 잡으면 pptx를 만들지 않고 중단한다(exit 1). [경고]는 출력하고 진행한다.
+ *   이 검사는 node 01.js·node master_render.js 직접 실행에도 그대로 걸린다(렌더 경로가
+ *   verify.js의 verifyDeck()을 직접 부른다 — 별도로 node engine/verify.js를 먼저 돌릴 필요는
+ *   없다. cli.js build도 내부적으로 같은 검사를 두 번 도는 셈이라 결과는 같다).
  *   작업 중 초안만 보려면 --draft 를 붙인다 → 치명이 경고로 강등되고 파일명에 _DRAFT가 붙는다.
  *     예: node 03.js --draft
  *   [치명] sub/question/lead/foot 누락(statement는 없음 — 골격 예외) · 인용 4필드(id/ko/en/author) 누락 ·
@@ -223,7 +226,7 @@
  *     claim             : 커리큘럼 세션 노드의 명제 id. 명제 하나가 한 장이다(1:1).
  *                         본문 장수 = 명제 수 + 고정 장. 장수 범위 검사는 없다 —
  *                         범위를 두면 하한이 목표가 된다(실제로 다섯 덱이 전부 하한 12장에 붙었다).
- *                         데이터에만 남는 분류. 헤더에 출력하지 않으며 lint 점검에만 쓰인다.
+ *                         데이터에만 남는 분류. 헤더에 출력하지 않으며 verify.js 점검에만 쓰인다.
  *     title             : 헤더 제목(연번은 엔진이 자동으로 앞에 붙인다 → 'NN. 제목')
  *     head              : (선택) title 대신 쓰는 헤더 제목. 연번은 동일하게 붙는다.
  *     sub               : 슬라이드 명제의 주장 한 문장(두 줄이 되면 구분선 침범 — verify 오류)
@@ -289,7 +292,8 @@
  *   //   인용이 아닌 핵심 메시지는 quote 대신 text를 쓴다 → visual:{ type:'statement', text:'{한 문장}' }
  * ============================================================================ */
 
-// ── 아래는 오케스트레이터(얇은 배선). 실제 렌더 로직은 engine/render/{context,primitives,visuals,pages,lint}.js. ──
+// ── 아래는 오케스트레이터(얇은 배선). 실제 렌더 로직은 engine/render/{context,primitives,visuals,pages}.js.
+//    검사(구 render/lint.js)는 verify.js로 통합했다 — 아래 buildDeck()이 verifyDeck()을 직접 부른다. ──
 const fs = require('fs');
 const path = require('path');
 const pptxgen = require('pptxgenjs');
@@ -301,7 +305,7 @@ const makeCtx        = require('./render/context.js');
 const makePrimitives = require('./render/primitives.js');
 const makeVisuals    = require('./render/visuals.js');
 const makePages      = require('./render/pages.js');
-const makeLint       = require('./render/lint.js');
+const verifyDeck      = require('./verify.js');                   // 검사 단일 소스(verify.js) — 렌더 경로도 이걸 받는다
 
 async function buildDeck(DECK) {
     console.log('[가동] 렌더 엔진 시작...');
@@ -346,10 +350,26 @@ async function buildDeck(DECK) {
     Object.assign(ctx, makePrimitives(ctx));
     Object.assign(ctx, makeVisuals(ctx));
     Object.assign(ctx, makePages(ctx));
-    const { lint } = makeLint(ctx);
     const { NN, addFrontMatter, renderBody } = ctx;
 
-    lint();
+    // ── 검사: verify.js 전체를 그대로 받는다 ──
+    //   예전엔 render/lint.js가 이 자리에서 verify.js와 겹치는 12종을 따로(더 좁게) 검사했다.
+    //   verify.js가 정본이 되며 lint.js는 삭제했다 — 엔진 직접 실행 경로(node NN.js /
+    //   node master_render.js)도 이제 verify.js의 커리큘럼 claim 대조·인용 원문 대조·기하(밴드 초과)
+    //   검사를 전부 받는다(예전 lint()는 이 중 무엇도 하지 않았다 — 안전성 공백이었다).
+    //   DECK.meta.quotes가 없는 덱(자립 덱·구 형식)은 그 검사들이 조용히 건너뛰어진다(verifyDeck
+    //   내부에서 CLAIMS/ASSETS가 null로 남는다) — 오류로 막지 않는다.
+    const { err, warn } = verifyDeck(DECK);
+    if (warn.length) { console.log('[경고] 진행하되 확인이 필요하다:'); warn.forEach(w => console.log('   - ' + w)); }
+    if (err.length) {
+        console.log(DRAFT ? '[치명→강등] --draft 이므로 진행한다:' : '[치명] 계약 위반:');
+        err.forEach(e => console.log('   - ' + e));
+        if (!DRAFT) {
+            console.error(`[중단] 치명 ${err.length}건 — pptx를 생성하지 않는다. 수정 후 다시 실행한다. (초안 확인만 필요하면 --draft)`);
+            process.exit(1);
+        }
+    }
+    if (!err.length && !warn.length) console.log('[점검] 필수 항목 이상 없음');
 
     // ===== 실행: 프론트매터 → 본문 순차 렌더 (페이지는 러닝 카운터로 자동 보정) =====
     let pg = addFrontMatter();

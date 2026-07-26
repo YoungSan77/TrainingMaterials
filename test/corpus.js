@@ -58,18 +58,37 @@ const CASES = [
   { file: '17-all-visual-types.js',     name: '전 시각 타입 렌더',       expect: '[성공]', runner: 'engine' },
   // 골격 계열 — 명제가 길어 sub 박스를 넘고 아래 구분선을 침범하는 결함(2026-07).
   { file: '18-sub-overflow.js',         name: 'sub 오버플로',           expect: 'sub(명제)가' },
+  // ── engine 직접 실행 경로 특성화 계열 ────────────────────────────────────
+  //   원래 이 10건은 render/lint.js 자신의 fatal 문구를 고정하려고 만들었다(engine 직접 실행
+  //   경로, node NN.js / node engine/master_render.js는 그때 verify.js를 거치지 않고 lint()만
+  //   거쳤다). lint.js는 verify.js와 검사가 대부분 중복이라 verify.js로 통합하고 삭제했다 —
+  //   지금은 이 경로도 verify.js의 verifyDeck()을 그대로 받는다. 그래서 문구는 verify.js
+  //   기준으로 갱신했다(예: 필드별 개별 메시지처럼 verify 쪽이 더 정밀한 경우가 있었다).
+  //   케이스 자체는 남겨 둔다 — "engine 직접 실행 경로가 이 결함들을 여전히 fatal로 잡는가"는
+  //   lint.js가 사라진 지금도 유효한 회귀 방어다.
+  { file: '19-lint-required-field.js',              name: '[lint] 필수 필드 누락',        expect: '필수 필드 누락: foot',           runner: 'engine', exitCode: 1 },
+  { file: '20-lint-statement-empty.js',             name: '[lint] 빈 statement(전용)',    expect: 'statement에 text도 quote도 없다', runner: 'engine', exitCode: 1 },
+  { file: '21-lint-quote-fields.js',                name: '[lint] 인용 필드 누락',        expect: '인용 1번 author 누락',          runner: 'engine', exitCode: 1 },
+  { file: '22-lint-quote-dup-slide.js',             name: '[lint] 인용 슬라이드 내 중복', expect: '같은 슬라이드에서 두 번 쓴다',   runner: 'engine', exitCode: 1 },
+  { file: '23-lint-quote-dup-session.js',           name: '[lint] 인용 세션 내 중복',     expect: '이미 쓰였다 — 같은 세션 내 중복 금지', runner: 'engine', exitCode: 1 },
+  { file: '24-lint-unknown-type.js',                name: '[lint] 미등록 visual.type',    expect: "알 수 없는 visual.type 'ghosttype'", runner: 'engine', exitCode: 1 },
+  { file: '25-lint-unknown-session-type.js',        name: '[lint] 미등록 세션 유형',      expect: "알 수 없는 세션 유형 '유령형'",  runner: 'engine', exitCode: 1 },
+  { file: '26-lint-kind-not-allowed.js',            name: '[lint] 유형 밖 kind',          expect: "kind '유령분류'는",              runner: 'engine', exitCode: 1 },
+  { file: '27-lint-fixed-missing.js',               name: '[lint] 고정 장 누락',          expect: "고정 장 '학습 목표'가 없다",     runner: 'engine', exitCode: 1 },
+  { file: '28-lint-required-kind-statement-only.js', name: '[lint] 필수 분류 statement뿐', expect: "분류 '현상'의 논증 슬라이드 없음",  runner: 'engine', exitCode: 1 },
 ];
 
-// 검사기를 돌려 표준출력을 통째로 돌려준다(오류 시 exit≠0로 throw → e.stdout에서 회수).
+// 검사기를 돌려 { out, code }를 돌려준다(오류 시 exit≠0로 throw → e.stdout/e.status에서 회수).
 //   기본은 verify. runner:'engine'인 케이스는 엔진을 돌린다 — 렌더 앞단 게이트는 verify로 잴 수 없다.
 //   (게이트가 검사 뒤에 있어 'verify 초록 + 렌더러 사망'이 났던 사고의 회귀 방어)
 function runCheck(deckAbs, runner) {
     const bin = runner === 'engine' ? RENDER : VERIFY;
     const args = runner === 'engine' ? [bin, deckAbs, '--out', OUT_TMP] : [bin, deckAbs];
     try {
-        return execFileSync('node', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+        const out = execFileSync('node', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+        return { out, code: 0 };
     } catch (e) {
-        return (e.stdout || '') + (e.stderr || '');
+        return { out: (e.stdout || '') + (e.stderr || ''), code: e.status };
     }
 }
 
@@ -101,11 +120,15 @@ function fail(msg) { console.error('[중단] ' + msg); process.exit(1); }
     let missed = 0;
     console.log(`── CORPUS: ${CASES.length}개 케이스 · 검증기 탐지 확인 ──\n`);
     for (const c of CASES) {
-        const out = runCheck(path.join(DIR, c.file), c.runner);
+        const { out, code } = runCheck(path.join(DIR, c.file), c.runner);
         const hit = out.includes(c.expect);
-        if (!hit) missed++;
-        console.log(`[${hit ? '✓' : '✗'}] ${c.name.padEnd(20)} 기대 진단 ${hit ? '나옴' : '안 나옴'}: "${c.expect}"`);
-        if (!hit) {
+        // exitCode를 지정한 케이스만 코드까지 본다(기존 케이스는 그대로 문구만 검사 — 하위 호환).
+        const codeOk = c.exitCode === undefined || code === c.exitCode;
+        const ok = hit && codeOk;
+        if (!ok) missed++;
+        const why = !hit ? '기대 진단 안 나옴' : !codeOk ? `exit 코드 ${code} ≠ ${c.exitCode}` : '기대 진단 나옴';
+        console.log(`[${ok ? '✓' : '✗'}] ${c.name.padEnd(24)} ${why}: "${c.expect}"`);
+        if (!ok) {
             const lines = out.split('\n').filter(l => /[✗·]/.test(l)).slice(0, 8);
             lines.forEach(l => console.log('        실제│ ' + l.trim()));
         }
