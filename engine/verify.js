@@ -327,7 +327,11 @@ function verifyDeck(DECK) {
             const aQ = isQ && ASSETS ? ASSETS.get(v.quote.id) : null;
             const g = LO.statement(v, { VT, VH }, aQ && aQ.src ? aQ.src.split(/[(—]/)[0].trim() : '');
             const av = g.av, tl = g.tl, nl2 = g.nl;
-            if (tl > 2) err.push(`${tag} statement 문장이 ${tl}줄이다 — 20pt에서 2줄(한글 약 ${Math.floor(av / (IN(F_STMT) * 1.05)) * 2}자)을 넘으면 문장이 아니라 문단이다`);
+            // 선언(kind '선언')은 이 상한을 면제한다 — 한 문장이 아니라 여러 문장으로 된 단언문이
+            // 그 형식이다. 밴드 기하 자체(need/VH, 아래 469행)는 면제하지 않는다 — 길어도 슬라이드
+            // 밖으로 넘치면 그건 잡아야 한다. 여기서만 '문장이 아니라 문단이다'라는 판단을 뺀다.
+            if (tl > 2 && !ST.isUnclaimed(SESSION_TYPE, sl.kind))
+                err.push(`${tag} statement 문장이 ${tl}줄이다 — 20pt에서 2줄(한글 약 ${Math.floor(av / (IN(F_STMT) * 1.05)) * 2}자)을 넘으면 문장이 아니라 문단이다`);
             if (nl2 > 2) warn.push(`${tag} statement note가 ${nl2}줄이다 — 해설도 한두 문장이다`);
             // caption은 근거·한계 전용이다. 해설을 8pt에 넣으면 슬라이드의 논지가 각주로 강등된다.
             if (!v.note && v.caption && !/원전|귀속|추정|편차|출처|미확인|WIDELY|통용|기반/.test(String(v.caption)))

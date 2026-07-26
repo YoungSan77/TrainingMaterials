@@ -87,10 +87,10 @@ const CASES = [
   //   ②는 사실 항상 참인 회귀 가드지만 '문자열 부재' 판정에 gap 메커니즘을 그대로 쓴다.
   //   ⑤(b)는 gap이 아니다 — 지금도 구현 후에도 계속 참이어야 하는 대조 가드다.
   { file: '30-declare-clean.js',              name: '[선언①] 정상 덱 exit 0',        expect: '오류 0' },
-  { file: '31-declare-skeleton-exempt.js',    name: '[선언②] 골격 면제 회귀 가드',     expect: '필수 필드 누락', gap: true },
+  { file: '31-declare-skeleton-exempt.js',    name: '[선언②] 골격 면제 회귀 가드',     expect: '필수 필드 누락', gap: true },  // 항상 참인 회귀 가드(부재 판정만 gap 재사용)
   { file: '32-declare-duplicate.js',          name: '[선언③] 세션 내 선언 2장',       expect: '세션당 최대 1개' },
   { file: '33-course-declare-dup',            name: '[선언④] 과정 전체 선언 2개',     expect: '과정당 최대 1개', runner: 'course' },
-  { file: '34-declare-long-text-exempt.js',   name: '[선언⑤a] 선언문 길이 면제',      expect: '오류 0', gap: true },
+  { file: '34-declare-long-text-exempt.js',   name: '[선언⑤a] 선언문 길이 면제',      expect: '오류 0' },
   { file: '35-declare-long-text-contrast.js', name: '[선언⑤b] 일반 statement 대조',   expect: 'statement 문장이' },
 ];
 
