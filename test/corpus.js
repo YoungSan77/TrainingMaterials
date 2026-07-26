@@ -58,22 +58,24 @@ const CASES = [
   { file: '17-all-visual-types.js',     name: '전 시각 타입 렌더',       expect: '[성공]', runner: 'engine' },
   // 골격 계열 — 명제가 길어 sub 박스를 넘고 아래 구분선을 침범하는 결함(2026-07).
   { file: '18-sub-overflow.js',         name: 'sub 오버플로',           expect: 'sub(명제)가' },
-  // ── lint.js 특성화 계열 ──────────────────────────────────────────────────
-  //   engine 직접 실행 경로(node NN.js / node engine/master_render.js)는 verify.js를 거치지
-  //   않고 render/lint.js의 lint()만 거친다. 이 경로가 verify.js 못지않게 안전한지는 지금까지
-  //   특성화돼 있지 않았다 — lint.js의 fatal 10종 각각을 engine 경로로 재현해 문구·exit 코드를
-  //   고정한다. runner:'engine'이라 verify.js는 아예 실행되지 않는다(다른 케이스와 겹치는
-  //   결함이라도 이 그룹은 항상 lint.js 자신의 출력을 겨눈다).
-  { file: '19-lint-required-field.js',              name: '[lint] 필수 필드 누락',        expect: 'foot 누락',                    runner: 'engine', exitCode: 1 },
+  // ── engine 직접 실행 경로 특성화 계열 ────────────────────────────────────
+  //   원래 이 10건은 render/lint.js 자신의 fatal 문구를 고정하려고 만들었다(engine 직접 실행
+  //   경로, node NN.js / node engine/master_render.js는 그때 verify.js를 거치지 않고 lint()만
+  //   거쳤다). lint.js는 verify.js와 검사가 대부분 중복이라 verify.js로 통합하고 삭제했다 —
+  //   지금은 이 경로도 verify.js의 verifyDeck()을 그대로 받는다. 그래서 문구는 verify.js
+  //   기준으로 갱신했다(예: 필드별 개별 메시지처럼 verify 쪽이 더 정밀한 경우가 있었다).
+  //   케이스 자체는 남겨 둔다 — "engine 직접 실행 경로가 이 결함들을 여전히 fatal로 잡는가"는
+  //   lint.js가 사라진 지금도 유효한 회귀 방어다.
+  { file: '19-lint-required-field.js',              name: '[lint] 필수 필드 누락',        expect: '필수 필드 누락: foot',           runner: 'engine', exitCode: 1 },
   { file: '20-lint-statement-empty.js',             name: '[lint] 빈 statement(전용)',    expect: 'statement에 text도 quote도 없다', runner: 'engine', exitCode: 1 },
-  { file: '21-lint-quote-fields.js',                name: '[lint] 인용 필드 누락',        expect: '인용 1번에 id/ko/en/author 중 누락', runner: 'engine', exitCode: 1 },
+  { file: '21-lint-quote-fields.js',                name: '[lint] 인용 필드 누락',        expect: '인용 1번 author 누락',          runner: 'engine', exitCode: 1 },
   { file: '22-lint-quote-dup-slide.js',             name: '[lint] 인용 슬라이드 내 중복', expect: '같은 슬라이드에서 두 번 쓴다',   runner: 'engine', exitCode: 1 },
   { file: '23-lint-quote-dup-session.js',           name: '[lint] 인용 세션 내 중복',     expect: '이미 쓰였다 — 같은 세션 내 중복 금지', runner: 'engine', exitCode: 1 },
   { file: '24-lint-unknown-type.js',                name: '[lint] 미등록 visual.type',    expect: "알 수 없는 visual.type 'ghosttype'", runner: 'engine', exitCode: 1 },
   { file: '25-lint-unknown-session-type.js',        name: '[lint] 미등록 세션 유형',      expect: "알 수 없는 세션 유형 '유령형'",  runner: 'engine', exitCode: 1 },
   { file: '26-lint-kind-not-allowed.js',            name: '[lint] 유형 밖 kind',          expect: "kind '유령분류'는",              runner: 'engine', exitCode: 1 },
   { file: '27-lint-fixed-missing.js',               name: '[lint] 고정 장 누락',          expect: "고정 장 '학습 목표'가 없다",     runner: 'engine', exitCode: 1 },
-  { file: '28-lint-required-kind-statement-only.js', name: '[lint] 필수 분류 statement뿐', expect: "분류 '현상'의 논증 슬라이드가 없다", runner: 'engine', exitCode: 1 },
+  { file: '28-lint-required-kind-statement-only.js', name: '[lint] 필수 분류 statement뿐', expect: "분류 '현상'의 논증 슬라이드 없음",  runner: 'engine', exitCode: 1 },
 ];
 
 // 검사기를 돌려 { out, code }를 돌려준다(오류 시 exit≠0로 throw → e.stdout/e.status에서 회수).

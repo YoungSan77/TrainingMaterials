@@ -301,7 +301,7 @@ const makeCtx        = require('./render/context.js');
 const makePrimitives = require('./render/primitives.js');
 const makeVisuals    = require('./render/visuals.js');
 const makePages      = require('./render/pages.js');
-const makeLint       = require('./render/lint.js');
+const verifyDeck      = require('./verify.js');                   // 검사 단일 소스(verify.js) — 렌더 경로도 이걸 받는다
 
 async function buildDeck(DECK) {
     console.log('[가동] 렌더 엔진 시작...');
@@ -346,10 +346,26 @@ async function buildDeck(DECK) {
     Object.assign(ctx, makePrimitives(ctx));
     Object.assign(ctx, makeVisuals(ctx));
     Object.assign(ctx, makePages(ctx));
-    const { lint } = makeLint(ctx);
     const { NN, addFrontMatter, renderBody } = ctx;
 
-    lint();
+    // ── 검사: verify.js 전체를 그대로 받는다 ──
+    //   예전엔 render/lint.js가 이 자리에서 verify.js와 겹치는 12종을 따로(더 좁게) 검사했다.
+    //   verify.js가 정본이 되며 lint.js는 삭제했다 — 엔진 직접 실행 경로(node NN.js /
+    //   node master_render.js)도 이제 verify.js의 커리큘럼 claim 대조·인용 원문 대조·기하(밴드 초과)
+    //   검사를 전부 받는다(예전 lint()는 이 중 무엇도 하지 않았다 — 안전성 공백이었다).
+    //   DECK.meta.quotes가 없는 덱(자립 덱·구 형식)은 그 검사들이 조용히 건너뛰어진다(verifyDeck
+    //   내부에서 CLAIMS/ASSETS가 null로 남는다) — 오류로 막지 않는다.
+    const { err, warn } = verifyDeck(DECK);
+    if (warn.length) { console.log('[경고] 진행하되 확인이 필요하다:'); warn.forEach(w => console.log('   - ' + w)); }
+    if (err.length) {
+        console.log(DRAFT ? '[치명→강등] --draft 이므로 진행한다:' : '[치명] 계약 위반:');
+        err.forEach(e => console.log('   - ' + e));
+        if (!DRAFT) {
+            console.error(`[중단] 치명 ${err.length}건 — pptx를 생성하지 않는다. 수정 후 다시 실행한다. (초안 확인만 필요하면 --draft)`);
+            process.exit(1);
+        }
+    }
+    if (!err.length && !warn.length) console.log('[점검] 필수 항목 이상 없음');
 
     // ===== 실행: 프론트매터 → 본문 순차 렌더 (페이지는 러닝 카운터로 자동 보정) =====
     let pg = addFrontMatter();

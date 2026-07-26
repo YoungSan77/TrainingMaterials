@@ -1,8 +1,7 @@
 // 결함: 골격 필수 필드(foot) 누락.
-// verify.js도 같은 결함을 잡지만(skeleton.js 공유), 이 케이스는 그 검사를 verify가 아니라
-// '엔진 직접 실행 경로'(master_render.js → lint())에서도 동일하게 잡는지 고정한다.
-// node NN.js / node engine/master_render.js 경로는 verify를 거치지 않으므로, lint 자신의
-// fatal 문구·exit 코드가 별도로 특성화돼 있어야 한다.
+// '엔진 직접 실행 경로'(node NN.js / node engine/master_render.js)가 이 결함을 fatal로
+// 잡는지 고정한다. lint.js 통합 이전엔 이 경로가 render/lint.js만 거쳐 verify.js를
+// 건너뛰었다 — 지금은 master_render.js가 verify.js의 verifyDeck()을 그대로 받는다.
 module.exports = {
   curriculum: [{ day: 'Day 1 — 유형', items: ['제목'] }],
   session: { no: 90, title: '코퍼스', toc: [['01', '필드 누락']], slides: [
