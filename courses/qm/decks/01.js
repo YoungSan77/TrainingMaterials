@@ -1,10 +1,20 @@
 // 01.js — 세션 01 덱 데이터 (순수 session 데이터 — 경로·병합·실행 로직 없음)
 // 계약: 교재_작성_지침.md / 내용: QM_커리큘럼.md S01 노드
-// 본문 12장: 학습목표1 · 현상2 · 원인3(statement 1) · 원칙2 · 적용2(statement 1) · 타협1 · 요약1
+// 본문 13장: 선언1(과정 첫 세션이라 여기서 연다) · 학습목표1 · 현상2 · 원인3(statement 1) ·
+//           원칙2 · 적용2(statement 1) · 타협1 · 요약1
 // 인용 4건: Q-DEMING-BADSYS · Q-DEMING-TOOLATE · Q-CROSBY-FREE · Q-DEMING-94-6 (모두 S01 태그, 세션 내 중복 없음)
 // book·curriculum·meta는 courses/qm/global_config.js가 소유한다 — 로더가 병합한다. 덱은 경로를 모른다.
 
 const slides = [
+
+  // 00. 선언 — 과정 전체를 여는 단언(기능 1 PoC). 명제가 아니라 manifesto라 claim이 없다.
+  {
+    kind: '선언',
+    title: '선언',
+    visual: { type: 'statement',
+      text: '품질 문제는 시스템에서 주로 발생한다. 결함 예방이 우선이고, 발생하면 바로 찾아 고친다. 시스템은 조직 영역이지만, 개선은 각자의 자리에서 시작한다.' },
+    notes: '과정 전체의 입장을 먼저 선언한다 — 이후 모든 세션의 논증은 이 세 문장을 각도만 바꿔 증명한다. 배분 2분.'
+  },
 
   // 01. 학습 목표
   {
