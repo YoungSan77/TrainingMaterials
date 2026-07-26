@@ -23,6 +23,7 @@ const { execFileSync } = require('child_process');
 const ROOT   = path.resolve(__dirname, '..');
 const VERIFY = path.join(ROOT, 'engine', 'verify.js');
 const RENDER = path.join(ROOT, 'engine', 'master_render.js');
+const COURSE = path.join(ROOT, 'engine', 'course.js');
 const OUT_TMP = fs.mkdtempSync(path.join(require('os').tmpdir(), 'corpus-'));   // 엔진 케이스의 산출 격리
 const DIR    = path.join(__dirname, 'corpus');
 const ASSET  = path.join(DIR, 'quotes.corpus.md');
@@ -81,13 +82,23 @@ const CASES = [
   // 자체(뒤집힌 판정)는 test/corpus.js의 main 루프에 남겨 둔다 — 다음에 같은 종류의 사각지대를
   // 발견하면 재사용한다.
   { file: '29-foot-overflow-gap.js', name: 'foot 오버플로(+next 합산)', expect: 'foot가 박스를 넘는다' },
+  // ── 기능 1(선언 장) 특성화 — engine 무변경 상태에서 먼저 고정한다. ──
+  //   kind '선언'이 아직 없으므로 ①②③⑤(a)는 전부 gap:true다(구현되면 뒤집혀 승격된다).
+  //   ②는 사실 항상 참인 회귀 가드지만 '문자열 부재' 판정에 gap 메커니즘을 그대로 쓴다.
+  //   ⑤(b)는 gap이 아니다 — 지금도 구현 후에도 계속 참이어야 하는 대조 가드다.
+  { file: '30-declare-clean.js',              name: '[선언①] 정상 덱 exit 0',        expect: '오류 0', gap: true },
+  { file: '31-declare-skeleton-exempt.js',    name: '[선언②] 골격 면제 회귀 가드',     expect: '필수 필드 누락', gap: true },
+  { file: '32-declare-duplicate.js',          name: '[선언③] 세션 내 선언 2장',       expect: '세션당 최대 1개', gap: true },
+  { file: '33-course-declare-dup',            name: '[선언④] 과정 전체 선언 2개',     expect: '과정당 최대 1개', gap: true, runner: 'course' },
+  { file: '34-declare-long-text-exempt.js',   name: '[선언⑤a] 선언문 길이 면제',      expect: '오류 0', gap: true },
+  { file: '35-declare-long-text-contrast.js', name: '[선언⑤b] 일반 statement 대조',   expect: 'statement 문장이' },
 ];
 
 // 검사기를 돌려 { out, code }를 돌려준다(오류 시 exit≠0로 throw → e.stdout/e.status에서 회수).
 //   기본은 verify. runner:'engine'인 케이스는 엔진을 돌린다 — 렌더 앞단 게이트는 verify로 잴 수 없다.
 //   (게이트가 검사 뒤에 있어 'verify 초록 + 렌더러 사망'이 났던 사고의 회귀 방어)
 function runCheck(deckAbs, runner) {
-    const bin = runner === 'engine' ? RENDER : VERIFY;
+    const bin = runner === 'engine' ? RENDER : runner === 'course' ? COURSE : VERIFY;
     const args = runner === 'engine' ? [bin, deckAbs, '--out', OUT_TMP] : [bin, deckAbs];
     try {
         const out = execFileSync('node', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
