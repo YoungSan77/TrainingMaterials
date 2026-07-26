@@ -179,7 +179,8 @@ function verifyDeck(DECK) {
         //    커리큘럼이 '무엇을 말할지'를 정하고 덱이 '어떻게 말할지'를 정한다. 그 연결이 데이터로 남아야
         //    누가 만들어도 같은 뼈대가 나온다 — 연결을 재지 않으면 생성기가 조용히 다른 교재를 만든다.
         if (CLAIMS) {
-            const ARG = !ST.isFixed(SESSION_TYPE, sl.kind);   // 고정 장(회수·예고)은 명제를 갖지 않는다
+            // 고정 장(회수·예고)과 선언(manifesto)은 명제를 갖지 않는다
+            const ARG = !ST.isFixed(SESSION_TYPE, sl.kind) && !ST.isUnclaimed(SESSION_TYPE, sl.kind);
             if (sl.claim) {
                 const c = CLAIMS.get(sl.claim);
                 if (!c) err.push(`${tag} claim '${sl.claim}'이 커리큘럼 S${String(NO).padStart(2, '0')} 명제 목록에 없다`);
@@ -511,11 +512,16 @@ function verifyDeck(DECK) {
         const OK = ST.kinds(SESSION_TYPE);
         S.forEach((s2, i) => { if (!OK.includes(s2.kind)) err.push(`슬라이드 ${i + 1}: kind '${s2.kind}'는 ${SESSION_TYPE}에 없다 — ${OK.join(' | ')}`); });
         SESSION_SPEC.fixed.forEach(k => { if (!S.some(s2 => s2.kind === k)) err.push(`${SESSION_TYPE}의 고정 장 '${k}'가 없다`); });
-        // 장수는 파생값이다: 명제 수 + 고정 장. 범위 검사를 두면 하한이 목표가 된다.
+        // 선언(unclaimed) — 명제도 고정 장도 아니라 파생값 계산엔 안 들어가지만, 세션당 상한은 잰다.
+        //   왜 세션당 1개인가: 선언은 이 세션 전체를 여는 단언이다. 둘이면 어느 쪽이 진짜 선언인지
+        //   흐려진다 — 필요하면 하나로 합치거나 lead/foot로 눌러 담는다.
+        const nDecl = S.filter(s2 => ST.isUnclaimed(SESSION_TYPE, s2.kind)).length;
+        if (nDecl > 1) err.push(`선언 장이 세션 안에 ${nDecl}개다 — 세션당 최대 1개`);
+        // 장수는 파생값이다: 명제 수 + 고정 장(+선언, 있으면). 범위 검사를 두면 하한이 목표가 된다.
         if (CLAIMS && CLAIMS.size) {
-            const want = ST.slideCount(SESSION_TYPE, CLAIMS.size);
+            const want = ST.slideCount(SESSION_TYPE, CLAIMS.size) + nDecl;
             if (S.length !== want)
-                err.push(`본문 ${S.length}장인데 커리큘럼 명제 ${CLAIMS.size}개 + 고정 ${SESSION_SPEC.fixed.length}장 = ${want}장이어야 한다 — 장수는 커리큘럼이 정한다`);
+                err.push(`본문 ${S.length}장인데 커리큘럼 명제 ${CLAIMS.size}개 + 고정 ${SESSION_SPEC.fixed.length}장${nDecl ? ` + 선언 ${nDecl}장` : ''} = ${want}장이어야 한다 — 장수는 커리큘럼이 정한다`);
         }
     }
     const arg = (sl) => !isFree(sl);                      // statement는 논증이 아니다(skeleton.js와 같은 소스)
