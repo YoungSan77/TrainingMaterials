@@ -5,9 +5,14 @@
 //   좌표(x,y,w,h)·폰트 크기·텍스트 줄 수만 뽑아 정규화 JSON으로 박제한다.
 //   내용(인용 원문 대조 등)은 verify 소관이다 — 여기서는 기하만 본다.
 //
-//   node test/snapshot.js            기존 골든과 diff. 바뀐 슬라이드·도형만 출력, 차이 있으면 exit 1
-//   node test/snapshot.js --update   골든을 현재 렌더 결과로 갱신
-//   node test/snapshot.js --deck 03  특정 덱만 (반복 가능)
+//   node test/snapshot.js              기존 골든과 diff. 바뀐 슬라이드·도형만 출력, 차이 있으면 exit 1
+//   node test/snapshot.js --update     골든을 현재 렌더 결과로 갱신
+//   node test/snapshot.js --deck 03    특정 덱 번호만 (반복 가능, 과정 무관하게 매칭)
+//   node test/snapshot.js --course qm  특정 과정만 (반복 가능)
+//
+//   courses/*/decks/ 아래 모든 과정을 훑는다(예전엔 courses/qm/decks/만 봤다 — 실제 운영 덱이
+//   qm 5개·swqm 11개로 늘었는데 swqm은 기하 회귀망 밖에 있었다). 골든 키는 '과정/파일명'이라
+//   같은 파일명(01.js 등)이 과정마다 있어도 겹치지 않는다.
 //
 //   의존성: Node 내장만(zlib로 pptx=zip 해제, 정규식으로 XML 파싱). pptx 렌더는
 //   기존 엔진(pptxgenjs)이 담당한다 — 이 파일은 엔진을 자식 프로세스로 호출만 한다.
@@ -22,7 +27,7 @@ const { execFileSync } = require('child_process');
 
 const ROOT     = path.resolve(__dirname, '..');
 const ENGINE   = path.join(ROOT, 'engine', 'master_render.js');
-const DECKS_DIR = path.join(ROOT, 'courses/qm/decks');
+const COURSES_DIR = path.join(ROOT, 'courses');
 const GOLDEN   = path.join(__dirname, '__snapshots__', 'geometry.json');
 const EMU = 914400;
 
@@ -30,6 +35,8 @@ const args = process.argv.slice(2);
 const UPDATE = args.includes('--update');
 const only = [];
 for (let i = 0; i < args.length; i++) if (args[i] === '--deck' && args[i + 1]) only.push(args[++i].replace(/\.js$/, ''));
+const onlyCourse = [];
+for (let i = 0; i < args.length; i++) if (args[i] === '--course' && args[i + 1]) onlyCourse.push(args[++i]);
 
 // ── 최소 ZIP 리더 (중앙 디렉터리 → 로컬 헤더 → zlib.inflateRaw) ───────────────
 function unzipEntries(buf, want /* (name)=>bool */) {
@@ -122,11 +129,21 @@ function renderDeck(deckAbs) {
 }
 
 function listDecks() {
-    if (!fs.existsSync(DECKS_DIR)) return [];
-    return fs.readdirSync(DECKS_DIR)
-        .filter((f) => /^\d{2}\.js$/.test(f))
-        .filter((f) => !only.length || only.includes(f.replace(/\.js$/, '')))
+    if (!fs.existsSync(COURSES_DIR)) return [];
+    const courses = fs.readdirSync(COURSES_DIR)
+        .filter((c) => fs.existsSync(path.join(COURSES_DIR, c, 'decks')))
+        .filter((c) => !onlyCourse.length || onlyCourse.includes(c))
         .sort();
+    const out = [];
+    courses.forEach((course) => {
+        const dir = path.join(COURSES_DIR, course, 'decks');
+        fs.readdirSync(dir)
+            .filter((f) => /^\d{2}\.js$/.test(f))
+            .filter((f) => !only.length || only.includes(f.replace(/\.js$/, '')))
+            .sort()
+            .forEach((f) => out.push({ course, file: f, abs: path.join(dir, f), key: `${course}/${f}` }));
+    });
+    return out;
 }
 
 // ── diff ─────────────────────────────────────────────────────────────────────
@@ -165,17 +182,17 @@ function diffDecks(oldSnap, curSnap) {
 // ── main ─────────────────────────────────────────────────────────────────────
 (function main() {
     const decks = listDecks();
-    if (!decks.length) { console.error(`[중단] decks/에서 대상 덱(NN.js)을 찾지 못했다: ${DECKS_DIR}`); process.exit(2); }
+    if (!decks.length) { console.error(`[중단] courses/*/decks/에서 대상 덱(NN.js)을 찾지 못했다: ${COURSES_DIR}`); process.exit(2); }
 
     const cur = {};
     let failed = 0;
-    for (const f of decks) {
+    for (const d of decks) {
         try {
-            cur[f] = extractDeck(renderDeck(path.join(DECKS_DIR, f)));
-            const nSl = Object.keys(cur[f]).length;
-            const nSh = Object.values(cur[f]).reduce((a, s) => a + s.length, 0);
-            console.log(`  렌더 ${f}: 슬라이드 ${nSl} · 도형 ${nSh}`);
-        } catch (e) { console.error(`  ✗ ${f}: ${e.message}`); failed++; }
+            cur[d.key] = extractDeck(renderDeck(d.abs));
+            const nSl = Object.keys(cur[d.key]).length;
+            const nSh = Object.values(cur[d.key]).reduce((a, s) => a + s.length, 0);
+            console.log(`  렌더 ${d.key}: 슬라이드 ${nSl} · 도형 ${nSh}`);
+        } catch (e) { console.error(`  ✗ ${d.key}: ${e.message}`); failed++; }
     }
     if (failed) { console.error(`[중단] ${failed}개 덱 렌더 실패 — 스냅샷을 신뢰할 수 없다.`); process.exit(1); }
 

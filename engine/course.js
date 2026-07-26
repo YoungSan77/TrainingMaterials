@@ -68,15 +68,29 @@ const rows = files.map((f) => {
     }, 0);
     const used = new Set(S.map(sl => sl.claim).filter(Boolean));
     const parts = [...new Set(S.map(sl => sl.part).filter(Boolean))];
+    const nDecl = S.filter(sl => ST.isUnclaimed(type, sl.kind)).length;
     return { file: f, no: D.session.no, title: D.session.title, type, n: S.length,
              minutes: node && node.minutes, claims: claims ? claims.size : null, hit: used.size,
-             chars, kinds, parts: parts.length };
+             chars, kinds, parts: parts.length, nDecl };
 }).filter(Boolean);
 
 // ── 세션 번호 충돌 ──
 const byNo = new Map();
 rows.forEach(r => { byNo.set(r.no, [...(byNo.get(r.no) || []), r.file]); });
 byNo.forEach((fs2, no) => { if (fs2.length > 1) err.push(`세션 번호 ${no}가 겹친다: ${fs2.join(', ')}`); });
+
+// ── 선언(manifesto) 장 — 과정 전체 상한과 위치 ──
+//   덱 하나만 봐서는 "과정 전체에 선언이 몇 개인가"가 안 보인다(verify는 세션당 상한만 잰다).
+//   상한은 판정(오류)하고, 위치(첫 세션인가)는 판정하지 않는다 — course.js의 다른 규칙과 같은
+//   원칙이다: 산술로 확정되는 것만 오류, 관례로 보이는 것은 경고로 눈에만 띄게 한다. 프로그램을
+//   재구성하며 특정 세션을 의도적으로 여는 경우가 있을 수 있어 강제하지 않는다.
+{
+    const declRows = rows.filter(r => r.nDecl > 0);
+    const totalDecl = declRows.reduce((a, r) => a + r.nDecl, 0);
+    if (totalDecl > 1) err.push(`선언 장이 과정 전체에서 ${totalDecl}개다(${declRows.map(r => r.file).join(', ')}) — 과정당 최대 1개(보통 첫 세션에서 연다)`);
+    const firstNo = rows.length ? Math.min(...rows.map(r => r.no)) : null;
+    declRows.forEach(r => { if (r.no !== firstNo) warn.push(`선언 장이 ${r.file}(세션 ${r.no})에 있다 — 과정 첫 세션(세션 ${firstNo})에서 여는 관례다`); });
+}
 
 // ── 시간 예산 ──
 // course: { hours, days, breakMin, bufferPct } — 선언이 없으면 검사를 건너뛴다(구 형식).

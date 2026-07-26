@@ -204,7 +204,16 @@ module.exports = (ctx) => {
         if (slide.quote && !free) addQuote(s, slide.quote.ko, slide.quote.en, slide.quote.author);
         if (!free) {
             dL(s, Y_LINE);
-            s.addText([...K(slide.foot.kw, C[slide.foot.color] || C.navy, slide.foot.body)], { x: LM, y: Y_BOT, w: CW, h: 1.0, valign: 'top', margin: 0 });
+            // slide.next(선택) — 커리큘럼 노드의 '다음 연결'을 저작 시점에 그대로 옮긴 문장.
+            // 요약 장에서만 의미가 있지만 필드 자체는 kind를 가리지 않는다(스키마 강제 안 함).
+            // foot과 같은 박스 안 새 문단으로 붙인다 — 별도 박스를 만들면 ftr(7.10)까지 남는
+            // 0.20in 안에 욱여넣어야 해서 더 좁다. 이 박스는 layout.js 기하 검증을 받지 않으므로
+            // (foot는 유일한 예외 밴드) 길이가 길면 verify.js의 별도 경고(§2 구현 2단계)가 잡는다.
+            const nextRun = slide.next ? [
+                { text: '다음: ', options: { bold: true, fontSize: F_BODY, fontFace: FF, color: C.teal, paraSpaceBefore: SP } },
+                { text: slide.next, options: { fontSize: F_BODY, fontFace: FF, color: C.dark, breakLine: true, paraSpaceBefore: SP, paraSpaceAfter: SP } },
+            ] : [];
+            s.addText([...K(slide.foot.kw, C[slide.foot.color] || C.navy, slide.foot.body), ...nextRun], { x: LM, y: Y_BOT, w: CW, h: 1.0, valign: 'top', margin: 0 });
         }
         addNotes(s, slide);
     };
