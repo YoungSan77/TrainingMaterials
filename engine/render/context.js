@@ -14,6 +14,7 @@ module.exports = function makeCtx(DECK, deps) {
 
     const C = { navy: '1B3A6B', navyLight: 'EBF1F8', white: 'FFFFFF', dark: '2D3748', muted: '6B7280', line: '1B3A6B', lineL: 'CBD5E1', fail: 'FEE2E2', failL: 'DC2626', failT: '991B1B', teal: '007965' };
     const FF = '맑은 고딕';
+    const FF_MONO = 'Consolas';        // codepair 전용 — 코드는 고정폭이어야 들여쓰기가 보존된다
     const LM = 0.35, CW = 9.30, Y_START = 1.60, Y_LINE = 5.70, Y_BOT = 5.90;
     // 시각화 밴드: 질문/리드 밴드(1.45~2.23) 아래 ~ 하단 구분선 위
     const CTX_TOP = 1.45;              // 질문/리드 밴드 시작
@@ -74,7 +75,7 @@ module.exports = function makeCtx(DECK, deps) {
 
   return {
     pres, DECK, ASSETS, noteTail, band,
-    C, FF, LM, CW, Y_START, Y_LINE, Y_BOT, CTX_TOP, VB,
+    C, FF, FF_MONO, LM, CW, Y_START, Y_LINE, Y_BOT, CTX_TOP, VB,
     F_BODY, F_IN, F_HEAD, F_QKO, F_QEN, PAD, MG, SP, LH, SLACK,
     F_CAP, F_ELAB, F_STMT, F_SRC, F_NUM, CAP_LH, CAP_MAX, LOOP_IN, PAL,
     NN, RN, SF, AT,

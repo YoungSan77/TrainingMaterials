@@ -15,7 +15,7 @@ module.exports = (ctx) => {
     sub, ftr, dL, addQuote, sec, tocT, K, hC,
     td, seg, eLab, nodeBox, addCaption, autoTable, renderAutoBoxes, renderChain,
     renderLoop, renderShare, renderMagnitude, renderPyramid, renderQuadrant, renderSteps, renderVersus, renderStatement,
-    renderTakeaways, renderBullets,
+    renderTakeaways, renderBullets, renderCodePair,
   } = ctx;
 
     const addCover = () => {
@@ -135,7 +135,7 @@ module.exports = (ctx) => {
     // ===== 본문 렌더러 (도메인 독립: 슬라이드 스펙 → 시각화) =====
     // 스펙: { head|kind, sub?, question?, lead?{label,text}, intro?, visual?, quote?, foot }
     // visual.type ∈ TYPES (항목: boxes|table|steps|versus|takeaways · 단문: statement
-    //                  · 관계: flow|pipeline|loop · 수치: share|magnitude|pyramid|quadrant)
+    //                  · 관계: flow|pipeline|loop · 수치: share|magnitude|pyramid|quadrant · 코드: codepair)
 
     const buildIntro = (intro) => sec(intro.title, C.navy, intro.items.map(([label, text]) => [
         { text: label + ': ', options: { bold: true, color: C.dark } },
@@ -199,6 +199,7 @@ module.exports = (ctx) => {
             else if (v.type === 'magnitude') renderMagnitude(s, v.data);
             else if (v.type === 'pyramid') renderPyramid(s, v.data);
             else if (v.type === 'quadrant') renderQuadrant(s, v.data);
+            else if (v.type === 'codepair') renderCodePair(s, v.data);
             if (v.caption) addCaption(s, v.caption);
         }
         if (slide.quote && !free) addQuote(s, slide.quote.ko, slide.quote.en, slide.quote.author);

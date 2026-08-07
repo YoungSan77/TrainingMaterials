@@ -269,6 +269,51 @@ module.exports = function makeLayout(env) {
                  budget: Math.floor((cw - PAD * 2 - IN(10)) / (IN(F_IN) * 1.05)) };
     };
 
+    // ── codepair ── N벌(2~3) 코드 대조. monospace, 줄바꿈 재배치 없이 원문 그대로(들여쓰기 보존).
+    //   기본은 가로 열. 한 줄이 열 폭에 안 들어가면 폰트를 fMin까지 낮춘다. 그래도 안 들어가거나
+    //   세로로 넘치면 세로 스택(벌마다 전폭)으로 바꾼다 — 폭 압박이 사라지니 폰트를 다시 최대로
+    //   본다. 스택도 넘치면(need > VH) 여기서 더 줄이지 않는다 — 가독이 미관보다 먼저다.
+    //   초과는 verify의 공통 밴드 초과 검사(§6)가 잡는다.
+    const CODE = { fMax: 11, fMin: 9, midF: 10, lineH: 1.18, pad: 0.08, headH: 0.28,
+                   colGap: 0.20, stackGap: 0.12, charW: 0.58, promptH: 0.26, promptGap: 0.10 };
+    const codeLineW = (nChars, fs) => IN(fs) * CODE.charW * nChars;         // monospace 고정폭 근사
+    const codeBlockH = (nLines, fs) => nLines * IN(fs * CODE.lineH) + CODE.pad * 2 + CODE.headH;
+    const codepair = (d, band) => {
+        const versions = (d.versions || []).map((v) => ({ ...v, lines: String(v.code || '').split('\n') }));
+        const n = versions.length;
+        const maxChars = Math.max(1, ...versions.flatMap((v) => v.lines.map((l) => l.length)));
+        const maxLines = Math.max(1, ...versions.map((v) => v.lines.length));
+        const promptH = d.prompt ? (CODE.promptH + CODE.promptGap) : 0;
+        const fitsW = (w, fs) => codeLineW(maxChars, fs) + CODE.pad * 2 <= w;
+        const pickFont = (w) => [CODE.fMax, CODE.midF, CODE.fMin].find((f) => fitsW(w, f)) || CODE.fMin;
+
+        // 가로 열 시도
+        const colW = (CW - CODE.colGap * (n - 1)) / n;
+        const rowFs = pickFont(colW);
+        const rowH = codeBlockH(maxLines, rowFs);
+        if (fitsW(colW, rowFs) && rowH + promptH <= band.VH) {
+            const cols = versions.map((v, i) => ({ ...v, x: LM + i * (colW + CODE.colGap), w: colW }));
+            return { mode: 'row', n, fs: rowFs, colW, rowH, cols, promptH,
+                     lineH: IN(rowFs * CODE.lineH), need: rowH + promptH,
+                     top: band.VT + (band.VH - (rowH + promptH)) / 2 };
+        }
+
+        // 세로 스택 — 전폭(CW)을 쓰니 폭 압박이 없다. 폰트를 다시 최대치부터 본다.
+        const stackFs = pickFont(CW);
+        const perH = versions.map((v) => codeBlockH(v.lines.length, stackFs));
+        const stackH = perH.reduce((a, b) => a + b, 0) + CODE.stackGap * (n - 1);
+        let y = 0;
+        const rows = versions.map((v, i) => {
+            const r = { ...v, w: CW, h: perH[i], yOff: y };
+            y += perH[i] + CODE.stackGap;
+            return r;
+        });
+        return { mode: 'stack', n, fs: stackFs, perH, rows, promptH, maxChars,
+                 lineH: IN(stackFs * CODE.lineH), need: stackH + promptH,
+                 tooWide: !fitsW(CW, stackFs),          // 전폭·최소 폰트에서도 안 들어가는 줄이 있다
+                 top: band.VT + (band.VH - Math.min(stackH + promptH, band.VH)) / 2 };
+    };
+
     // ── caption ── 시각화 하단 출처·한계(8pt). 밴드에서 자기 몫을 먼저 가져간다.
     const capLines = (t) => Math.min(CAP_MAX, lineCount(String(t), CW - PAD * 2, F_CAP));
     const capH = (t) => t ? capLines(t) * CAP_LH + 0.06 : 0;
@@ -293,7 +338,7 @@ module.exports = function makeLayout(env) {
     };
 
     return { ITEM, isItem, colWidth, item, takeaways, bullets, table, statement,
-             chain, loop, share, magnitude, pyramid, quadrant,
+             chain, loop, share, magnitude, pyramid, quadrant, codepair,
              nodesOf, chainEdges, loopEdges, cellText, capLines, capH, contextH, band,
-             CHAIN, LOOP, SHARE, MAG, PYR, QUAD, STMT, TBL, TAKE, BUL, BAND };
+             CHAIN, LOOP, SHARE, MAG, PYR, QUAD, STMT, TBL, TAKE, BUL, BAND, CODE };
 };

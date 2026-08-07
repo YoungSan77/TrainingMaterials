@@ -467,6 +467,14 @@ function verifyDeck(DECK) {
             });
         }
 
+        // ── codepair — N벌(2~3) 코드 대조. 배치·폰트는 layout.js가 정한다(엔진과 같은 소스).
+        else if (v.type === 'codepair') {
+            const g = LO.codepair(v.data || {}, { VT, VH });
+            need = g.need;
+            if (g.mode === 'stack' && g.tooWide)
+                warn.push(`${tag} codepair 코드 한 줄이 전폭·최소 폰트(${LO.CODE.fMin}pt)에서도 안 들어간다(최장 ${g.maxChars}자) — 그 줄을 줄이거나 두 벌로 나눈다`);
+        }
+
         // 6) 밴드 초과 = 잘림 = 오류
         // 단, 밴드에 맞춰 스스로 줄어드는 타입(loop·magnitude·pyramid·quadrant)은 '여유 0'이 정상이다.
         // 이들은 하한(행 높이·반지름 최소값)에 걸릴 때만 밴드를 넘는다 → 초과만 본다. 근접 경고는 오탐이다.

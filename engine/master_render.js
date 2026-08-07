@@ -182,6 +182,13 @@
  *   · loop     : 순환·되먹임      { nodes:[{id,label}], edges?:[...] }
  *                노드를 원형으로 배치하고 고리로 잇는다. 권장 3~5노드. 악순환/선순환에 쓴다.
  *
+ *   [코드 대조]  — 명제가 아니라 코드 자체(구조·규칙 위치)가 내용일 때만 쓴다. 드물다.
+ *   · codepair : N벌(2~3) 코드 스니펫 대조   { versions:[{label, code, marks?, blanks?}], prompt? }
+ *                code는 monospace로 줄바꿈 없이 원문 그대로 그린다(들여쓰기 보존). 가로 열이 기본이고,
+ *                안 들어가면 세로 스택으로 바뀐다(자동, 데이터에 표시 안 함).
+ *                marks: R# 등 규칙 짚기 — [{line, tag}] (line은 1-based). blanks: 코더 빈칸 줄 번호 배열.
+ *                긴 설명("짚기")은 caption이나 notes로 보낸다(이 타입도 caption·quote·notes를 그대로 쓴다).
+ *
  *   [수치 계열]  — 숫자가 명제일 때만 쓴다. caption(출처·한계) 필수.
  *   · share    : 구성비(합 100)   [ {label, value, note?} ]        예: 94 / 6
  *                100% 스택 바. 비례가 곧 메시지다. 2~4항목.
