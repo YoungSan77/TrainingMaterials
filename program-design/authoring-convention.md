@@ -1,5 +1,7 @@
 # 6과정 공통 저작 규약
-> 버전: v0.3 (§4 canon-stance.md 참조 규약 신설 + 6과정 자세 드리프트 통일)
+> 버전: v0.5 (§6을 결정만 남기고 미해결은 open-issues.md로 분리)
+
+> **이 문서는 결정만 담는다. 미결정은 결함 목록으로(`open-issues.md`).**
 
 > 이 문서는 OOAD·SW 아키텍처·DDD·MSA·AI-assisted·Agentic 여섯 과정이 공통으로 따르는 저작 계약이다.
 > 개별 과정의 목차·실습은 `*-curriculum.md`·`*-lab-design.md`가 갖고, 여긴 **여섯 과정을 관통하는 것만** 정한다.
@@ -17,6 +19,7 @@ QM 교재 지침의 "무엇을 누가 정하는가"(§0)와 같은 자리다. �
 |---|---|
 | 여섯 과정이 공유하는 개념의 소유·참조·의존 방향 | `concept-ownership-map.md` |
 | 축자 인용 대상인 프로그램 명제·자세의 정본 원문 | `canon-stance.md` |
+| 아직 정하지 못한 것 · 구조적 결함 후보 | `open-issues.md` |
 | 공유 예제 도메인(Order)의 업무 규칙 | `order-domain-definition.md` |
 | 공유 레이어·패키지 구조(Java) | `clean-layer-convention.md` |
 | 공유 실습 환경(오프라인 번들) | `sw-lab-environment-setup.md` |
@@ -36,6 +39,7 @@ program-design/
 ├─ authoring-convention.md      이 문서 — 글쓰기 규약(문서 간 참조·표기법)
 ├─ concept-ownership-map.md     개념 소유·의존 방향의 정본
 ├─ canon-stance.md              프로그램 명제·자세의 축자 인용 정본(§4)
+├─ open-issues.md               미결정·구조적 결함 목록(결정되면 여기서 지운다)
 ├─ order-domain-definition.md   공유 도메인의 정본
 ├─ clean-layer-convention.md    공유 레이어 구조의 정본
 ├─ sw-lab-environment-setup.md  공유 실습 환경의 정본
@@ -100,3 +104,12 @@ QM/SWQM은 6과정 작업과 무관하게 계속 굴러가는 실제 산출물�
 - **실습 3층 형식의 필드 스펙화**: "형식을 복제한다"는 지시를 실제 체크리스트(판단/대면/작성 3층, (a)/(b) 대조, 코더 빈칸이 각각 무엇을 반드시 가져야 하는가)로.
 - **무게 배분의 파생 여부 결정**: 지금처럼 저자 판단으로 둘지, QM처럼 파생 공식과 검사를 둘지.
 - **세션 유형(교시 기반) 신설**: §3에서 "아직 안 함"으로 남긴 것 — `session_types.js`에 새 TYPES 항목(kind 어휘 "강의/실습/강의+실습")을 추가하고, `course.js`에 6과정 전용 검사(무게 배분 합계·forward-ref/재정박 짝·개념 소유 위반)를 얹는다. §3-a 회귀 불변식을 그대로 따른다.
+
+---
+
+## 6. 교시·kind 매핑 규칙
+
+OOAD 부 0(`courses/ooad/decks/01.js`, 교시 1)을 실제로 뽑으며 확정했다. 미해결로 남은 것(canon-stance.md TEXT 길이, 커리큘럼 노드 md 부재)은 규칙이 아니라 `open-issues.md`(OI-1·OI-2)에 있다.
+
+- **교시 = 덱.** `courses/<과정>/decks/NN.js`의 NN은 세션 번호가 아니라 **교시 번호**다. 6과정의 "교시"(50분)는 QM의 "세션"(50~95분)과 같은 크기 단위이지, QM의 "슬라이드(kind 장)"와 같은 단위가 아니다 — 1교시 안에 여러 슬라이드(학습목표·현상·원칙·…·요약)가 들어간다.
+- **선언(`kind:'선언'`) = `proposition.governing` 전용.** canon-stance.md는 자산을 둘로 나눈다 — 명제(하나, 과정 전체를 여는 단언)와 자세(셋, 판단 기준). QM의 선언(세션당·과정당 최대 1개)은 명제 쪽에 배정한다. `stance.*` 세 항목은 선언이 아니라 일반 논증 장(예: `kind:'원칙'`, `visual.type:'bullets'`, 항목마다 `head: id, text: TEXT`)으로 얹는다 — 선언 자리가 하나뿐이라 셋을 다 못 담는다.
