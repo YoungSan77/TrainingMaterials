@@ -1,5 +1,5 @@
 # 6과정 공통 저작 규약
-> 버전: v0.5 (§6을 결정만 남기고 미해결은 open-issues.md로 분리)
+> 버전: v0.6 (§4에 TEXT/SHORT 구분 규약 추가 — OI-1 해결)
 
 > **이 문서는 결정만 담는다. 미결정은 결함 목록으로(`open-issues.md`).**
 
@@ -84,14 +84,19 @@ QM/SWQM은 6과정 작업과 무관하게 계속 굴러가는 실제 산출물�
 
 **왜 필요한가.** 진단(2026-08) 결과 여섯 curriculum.md의 "프로그램 자세" 절이 이미 갈려 있었다 — DDD·MSA는 "예방 중심"으로 줄였고, AI-assisted·Agentic 두 LLM 과정은 이 절 자체가 없었다(자신들의 "과정 명제"만 있었다). `concept-ownership-map.md`는 이 자세가 "전 과정 공통 — 각 과정 1교시 오리엔테이션에서 선언"이라고 명시하는데, 실제로 선언한 것은 넷뿐이었다. §3-a 회귀 불변식이 "코드가 QM과 어긋나지 않았는지 매번 대조"를 요구하듯, 이 절은 "문서가 정본과 어긋나지 않았는지"를 요구한다.
 
-**표기 규약**
+**표기 규약 (design 문서 — `*-curriculum.md`)**
 - curriculum.md의 헤더는 `## 프로그램 자세 (1교시에서 선언 — 정본: canon-stance.md)`로 통일한다(과거의 "소유 지도 인용"은 폐기 — 소유 지도가 아니라 canon-stance.md가 축자 인용 정본이다).
-- 세 항목(`stance.necessary-evil` · `stance.just-enough` · `stance.prevent-repay`)을 항상 이 순서로, id와 TEXT를 함께 적는다: `- \`id\`: TEXT`.
+- 세 항목(`stance.necessary-evil` · `stance.just-enough` · `stance.prevent-repay`)을 항상 이 순서로, id와 **TEXT**(전문)를 함께 적는다: `- \`id\`: TEXT`. design 문서는 슬라이드가 아니라 참고 자료라 밴드 제약이 없다 — 전문을 그대로 쓴다.
 - 과정별 보충 설명(예: "MSA판 Just Enough = 필요 없으면 짓지 마라")은 TEXT를 바꾸는 대신 세 항목 **뒤에 별도 줄**로 붙인다 — canon-stance.md §자산 블록 형식이 정한 규율과 같다.
 - `proposition.governing`(프로그램 명제)은 과정 개요나 오리엔테이션에서 인용할 때 최소 TEXT를, 반론이 나올 자리에서는 REBUTTAL도 함께 인용한다(canon-stance.md §proposition.governing 참조).
-- **canon-stance.md 자체를 고치면 여섯 문서를 전부 다시 대조한다.** 부분 반영은 드리프트를 새로 만드는 것과 같다.
 
-이 절 적용 결과(6과정 자세 통일)는 이번 커밋에 함께 반영했다 — 상세는 각 `*-curriculum.md`의 "프로그램 자세" 절을 본다.
+**TEXT vs SHORT — 어디에 쓰나 (실제 슬라이드 — `courses/<과정>/decks/*.js`, OI-1에서 확정)**
+- **선언 장**(`kind:'선언'`, `proposition.governing` 전용)은 **TEXT 전문**을 싣는다. 과정을 여는 단언이라 한 슬라이드에 하나뿐이고, §6 회귀 불변식(선언은 2줄 상한 면제)이 이미 긴 문장을 전제한다.
+- **그 밖의 반복 인용**(예: `stance.*` 세 항목을 한 슬라이드에 bullets로 나열)은 **SHORT**를 쓴다. 여러 항목이 한 밴드를 나눠 쓰면 TEXT 전문은 밀도 경고나 밴드 여유 소진을 부른다(OOAD 부0에서 실측 — OI-1).
+- TEXT를 쓸 자리에 SHORT를, SHORT를 쓸 자리에 TEXT를 섞어 넣지 않는다 — 어느 쪽이든 canon-stance.md의 문자열을 그대로 옮기고 다시 짓지 않는다.
+- **canon-stance.md 자체를 고치면(TEXT든 SHORT든) 여섯 문서·이미 만든 덱을 전부 다시 대조한다.** 부분 반영은 드리프트를 새로 만드는 것과 같다.
+
+이 절 적용 결과(6과정 자세 통일, TEXT/SHORT 구분)는 커밋에 함께 반영한다 — design 문서 쪽 상세는 각 `*-curriculum.md`의 "프로그램 자세" 절을, 슬라이드 쪽 실례는 `courses/ooad/decks/01.js`를 본다.
 
 ---
 
