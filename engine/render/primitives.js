@@ -30,6 +30,11 @@ module.exports = (ctx) => {
 
     const ftr = (s, pg, title) => { s.addShape(pres.shapes.LINE, { x: LM, y: 7.10, w: CW, h: 0, line: { color: C.lineL, width: 0.5 } }); s.addText(title ?? SF, { x: LM, y: 7.15, w: 4.0, h: 0.20, fontSize: 8, fontFace: FF, color: C.muted, margin: 0 }); s.addText(`${pg}`, { x: 4.5, y: 7.15, w: 1.0, h: 0.20, fontSize: 8, fontFace: FF, color: C.muted, align: 'center', margin: 0 }); s.addText(AT, { x: 5.0, y: 7.15, w: 4.65, h: 0.20, fontSize: 8, fontFace: FF, color: C.muted, align: 'right', margin: 0 }); };
 
+    // origin — 개념 수준(RDD·GRASP·SOLID 등) 원작자·출전 표시. slide.origin이 있을 때만 그린다
+    //   (선택 필드 — QM/SWQM처럼 이 필드를 안 쓰는 덱은 렌더가 전혀 달라지지 않는다).
+    //   위치: 페이지 번호 행(y=7.15) 2줄 위, 9pt, 가로 가운데. ftr()의 7.10 구분선 위 여백에 들어간다.
+    const origin = (s, text) => { if (!text) return; s.addText(text, { x: LM, y: 6.92, w: CW, h: 0.16, fontSize: 9, fontFace: FF, color: C.muted, align: 'center', valign: 'top', margin: 0 }); };
+
     const dL = (s, y) => s.addShape(pres.shapes.LINE, { x: LM, y, w: CW, h: 0, line: { color: C.lineL, width: 0.5 } });
     // 인용 오버레이: 한글 14 / 영문·저자 10. 직각 배경 밴드에 내장(0.2cm 여백, 3pt 간격).
     // 높이는 실제 줄 수로 정한다. 긴 인용이 오면 밴드가 커진다(고정 높이면 글자가 밴드를 넘친다).
@@ -96,5 +101,5 @@ module.exports = (ctx) => {
     // ── 관계 계열 공통: 노드·간선 배치 ────────────────────────────────────────
     // mode: 'flow' | 'pipeline'(게이트 강조 + 되돌림) | 'loop'(원형 배치)
 
-  return { hdr, sub, ftr, dL, addQuote, sec, tocT, K, hC, td, seg, eLab, nodeBox, addCaption };
+  return { hdr, sub, ftr, origin, dL, addQuote, sec, tocT, K, hC, td, seg, eLab, nodeBox, addCaption };
 };
