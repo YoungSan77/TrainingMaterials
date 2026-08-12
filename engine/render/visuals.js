@@ -2,6 +2,7 @@
 // 자동 생성(build_split.js). 원본 master_render.js에서 본문을 그대로 옮겼다.
 // 손으로 고치지 말 것 — 규칙은 원본과 골든이 정본이다.
 const makeLayout = require('../layout.js');            // 기하 측정 단일 소스(verify와 공유)
+const PLANTUML = require('../plantuml/render.js');      // uml 다이어그램 렌더 단일 소스(verify와 공유)
 module.exports = (ctx) => {
   const LO = makeLayout(ctx);
   const {
@@ -343,6 +344,19 @@ module.exports = (ctx) => {
         }
     };
 
+    // uml — PlantUML 다이어그램. 렌더(engine/plantuml/render.js)는 verify.js가 이미 한 번
+    //   호출했을 가능성이 높다(같은 해시 캐시) — 여기 호출은 사실상 캐시 조회일 뿐이다.
+    const renderUml = (s, d) => {
+        const img = PLANTUML.renderDiagram(d);
+        const g = LO.uml(d, band, img);
+        s.addImage({ path: img.path, x: g.x, y: g.y, w: g.w, h: g.h });
+        if (d.prompt) {
+            const bottom = g.top + g.h;
+            s.addText(`물음: ${d.prompt}`, { x: LM, y: bottom + LO.UML.promptGap, w: CW, h: LO.UML.promptH,
+                fontSize: F_IN, fontFace: FF, color: C.muted, italic: true, align: 'center', valign: 'top', margin: 0 });
+        }
+    };
+
     const renderTakeaways = (s, items) => {
         const g = LO.takeaways(items, band);                        // 치수는 layout.js가 잰다
         const { n, gap, h, blockH } = g;
@@ -357,5 +371,5 @@ module.exports = (ctx) => {
     };
 
 
-  return { renderBullets, autoTable, renderAutoBoxes, renderChain, renderLoop, renderShare, renderMagnitude, renderPyramid, renderQuadrant, renderSteps, renderVersus, renderStatement, renderTakeaways, renderCodePair };
+  return { renderBullets, autoTable, renderAutoBoxes, renderChain, renderLoop, renderShare, renderMagnitude, renderPyramid, renderQuadrant, renderSteps, renderVersus, renderStatement, renderTakeaways, renderCodePair, renderUml };
 };

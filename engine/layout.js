@@ -314,6 +314,25 @@ module.exports = function makeLayout(env) {
                  top: band.VT + (band.VH - Math.min(stackH + promptH, band.VH)) / 2 };
     };
 
+    // ── uml ── PlantUML 이미지 배치. codepair와 달리 문자열만으로 치수를 못 잰다 — 실제
+    //   렌더(engine/plantuml/render.js)가 이미 끝난 픽셀 치수(img.wIn/hIn)를 받아 배치만
+    //   계산한다(이 함수는 여전히 순수 — I/O는 호출자가 먼저 끝내고 결과만 넘긴다).
+    //   이미지는 폰트처럼 '더 못 줄이는 하한'이 없다 — 항상 밴드에 맞춰 축소한다. 그래서
+    //   codepair의 tooWide(오류) 같은 개념이 없고, 대신 축소율이 낮으면(작게 찌부러지면)
+    //   경고로만 알린다(verify.js가 scale로 판단).
+    const UML = { minScale: 0.45, promptGap: 0.10, promptH: 0.26 };
+    const uml = (d, band, img) => {
+        const promptH = d.prompt ? (UML.promptH + UML.promptGap) : 0;
+        const availH = band.VH - promptH;
+        const scale = Math.min(1, CW / img.wIn, availH / img.hIn);
+        const w = img.wIn * scale, h = img.hIn * scale;
+        // top = 이미지+물음 블록 전체를 밴드에 세로 중앙 정렬한 시작 y. 이미지는 top에서 바로
+        // 시작한다(y === top) — renderUml이 'bottom = top + h'로 물음 위치를 셈하므로 어긋나면
+        // 안 된다(예전 버전은 y를 availH 기준으로 따로 중앙 정렬해 top과 어긋났었다).
+        const top = band.VT + (band.VH - (h + promptH)) / 2;
+        return { x: LM + (CW - w) / 2, y: top, w, h, scale, promptH, need: h + promptH, top };
+    };
+
     // ── caption ── 시각화 하단 출처·한계(8pt). 밴드에서 자기 몫을 먼저 가져간다.
     const capLines = (t) => Math.min(CAP_MAX, lineCount(String(t), CW - PAD * 2, F_CAP));
     const capH = (t) => t ? capLines(t) * CAP_LH + 0.06 : 0;
@@ -338,7 +357,7 @@ module.exports = function makeLayout(env) {
     };
 
     return { ITEM, isItem, colWidth, item, takeaways, bullets, table, statement,
-             chain, loop, share, magnitude, pyramid, quadrant, codepair,
+             chain, loop, share, magnitude, pyramid, quadrant, codepair, uml,
              nodesOf, chainEdges, loopEdges, cellText, capLines, capH, contextH, band,
-             CHAIN, LOOP, SHARE, MAG, PYR, QUAD, STMT, TBL, TAKE, BUL, BAND, CODE };
+             CHAIN, LOOP, SHARE, MAG, PYR, QUAD, STMT, TBL, TAKE, BUL, BAND, CODE, UML };
 };

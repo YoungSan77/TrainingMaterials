@@ -63,7 +63,9 @@ program-design/
 
 이 결정에 따라 이미 시작된 실제 작업: 여섯 과정의 실습 핵심 장치(스니펫 대조·통짜 대조·코더 빈칸)가 기존 14종 `visual.type` 어디에도 안 맞는다는 것이 사전 조사(엔진·verify 경계 진단)의 결론이었다 — `table`은 monospace가 아니고 셀 줄바꿈이 들여쓰기를 보존 못 한다. 그래서 `shape.js`·`layout.js`·`render/*.js`·`verify.js`에 새 `visual.type: 'codepair'`(N벌 코드 대조, 2~3벌·marks로 R# 짚기·blanks로 코더 빈칸 표시)를 추가했다(커밋 `f98349f`/`a532f32`, `test/corpus/36~40`에 회귀 등록). 기존 14종은 한 줄도 안 건드렸다.
 
-**아직 안 한 것**: 세션 유형("교시" 기반, `session_types.js`에 새 TYPES 항목)과 `course.js`의 6과정 전용 검사(무게 배분 합계, forward-ref/재정박 짝, 개념 소유 위반)는 이번에 손대지 않았다. codepair는 "무엇을 그릴 수 있는가"의 벽을 허문 것이고, "교시 편성을 세션 유형으로 어떻게 담는가"는 다음 장의 몫이다.
+같은 원칙으로 두 번째 추가: `visual.type: 'uml'` — 여섯 과정이 표준 UML 표기(클래스·유스케이스·시퀀스·협업·상태 머신·패키지)를 그려야 하는데 15종 어디에도 다이어그램 렌더 경로가 없었다. `engine/plantuml/{fetch.js, render.js}`를 새로 두어 PlantUML을 JVM 위에서 완전 오프라인으로 렌더한다(`plantuml-mit-light` jar를 1회만 온라인 캐시로 굽고, 이후는 `engine/.cache/plantuml/`만 쓴다 — sw-lab 실습 환경의 "온라인 1회 캐시 굽기" 패턴과 동일). Graphviz 의존은 `!pragma layout smetana`(순수 자바 레이아웃 엔진)로 우회해 해소했다 — 이 우회가 없으면 클래스·유스케이스·상태·패키지·협업 다이어그램은 오류 없이 "Cannot find Graphviz" 자리표시자 이미지를 조용히 내놓는다(시퀀스는 원래 Graphviz가 필요 없어 영향 없음). `layout.js`의 "순수 기하" 원칙은 지켰다 — 다이어그램은 실제로 한 번 그려야 픽셀 치수를 아는 유일한 시각 타입이라, I/O(렌더 호출)는 `verify.js`·`render/visuals.js`가 맡고 `layout.js`의 `uml()`은 이미 렌더된 이미지의 치수(`{wIn, hIn}`)만 받아 순수 함수로 배치를 계산한다. 렌더 결과는 내용 해시로 캐싱해(두 번째 호출부터 1ms) verify·실제 렌더가 같은 소스를 두 번 그리는 비용을 없앴다. `test/corpus/41~47`에 지원 6종 렌더 성공 + 지원 범위 밖 kind 결함 탐지를 회귀 등록했다. 기존 15종(14종 + codepair)은 한 줄도 안 건드렸다.
+
+**아직 안 한 것**: 세션 유형("교시" 기반, `session_types.js`에 새 TYPES 항목)과 `course.js`의 6과정 전용 검사(무게 배분 합계, forward-ref/재정박 짝, 개념 소유 위반)는 이번에 손대지 않았다. codepair·uml은 "무엇을 그릴 수 있는가"의 벽을 허문 것이고, "교시 편성을 세션 유형으로 어떻게 담는가"는 다음 장의 몫이다. 실제 OOAD 등 6과정 덱에 `visual.type:'uml'`을 쓰는 것은 이번에 하지 않았다 — §3-c 경계원칙(내용 판단은 대화, Code 즉석 생성 금지)에 따라 어느 슬라이드에 어떤 다이어그램을 실을지는 소스 저작(대화) 몫이다.
 
 ### 3-a. 회귀 불변식 — 엔진을 건드릴 때마다 지킨다
 

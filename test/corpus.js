@@ -99,6 +99,16 @@ const CASES = [
   { file: '38-codepair-stack-fit.js',  name: '[codepair] 세로 스택 전환 렌더', expect: '[성공]', runner: 'engine' },
   { file: '39-codepair-toowide.js',    name: '[codepair] 전폭도 안 되는 줄',  expect: 'codepair 코드 한 줄이' },
   { file: '40-codepair-overflow.js',   name: '[codepair] 세로 스택도 넘침',   expect: 'codepair가 밴드를 넘는다' },
+  // ── uml(PlantUML 다이어그램) — engine/plantuml/render.js·shape.js·layout.js 신설 시 만든
+  //   스모크 케이스를 정식 코퍼스로 옮긴다. 41~46은 지원 6종 각각의 렌더 성공(엔진 직접 경로),
+  //   47은 지원 범위 밖 kind에 대한 shape 결함 탐지다.
+  { file: '41-uml-class.js',          name: '[uml] class 렌더',        expect: '[성공]', runner: 'engine' },
+  { file: '42-uml-usecase.js',        name: '[uml] usecase 렌더',      expect: '[성공]', runner: 'engine' },
+  { file: '43-uml-sequence.js',       name: '[uml] sequence 렌더',     expect: '[성공]', runner: 'engine' },
+  { file: '44-uml-collaboration.js',  name: '[uml] collaboration 렌더', expect: '[성공]', runner: 'engine' },
+  { file: '45-uml-state.js',          name: '[uml] state 렌더',        expect: '[성공]', runner: 'engine' },
+  { file: '46-uml-package.js',        name: '[uml] package 렌더',      expect: '[성공]', runner: 'engine' },
+  { file: '47-uml-bad-kind.js',       name: '[uml] 지원 범위 밖 kind',  expect: '지원 범위 밖이다' },
 ];
 
 // 검사기를 돌려 { out, code }를 돌려준다(오류 시 exit≠0로 throw → e.stdout/e.status에서 회수).

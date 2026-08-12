@@ -15,7 +15,7 @@ module.exports = (ctx) => {
     sub, ftr, origin, dL, addQuote, sec, tocT, K, hC,
     td, seg, eLab, nodeBox, addCaption, autoTable, renderAutoBoxes, renderChain,
     renderLoop, renderShare, renderMagnitude, renderPyramid, renderQuadrant, renderSteps, renderVersus, renderStatement,
-    renderTakeaways, renderBullets, renderCodePair,
+    renderTakeaways, renderBullets, renderCodePair, renderUml,
   } = ctx;
 
     const addCover = () => {
@@ -200,6 +200,7 @@ module.exports = (ctx) => {
             else if (v.type === 'pyramid') renderPyramid(s, v.data);
             else if (v.type === 'quadrant') renderQuadrant(s, v.data);
             else if (v.type === 'codepair') renderCodePair(s, v.data);
+            else if (v.type === 'uml') renderUml(s, v.data);
             if (v.caption) addCaption(s, v.caption);
         }
         if (slide.quote && !free) addQuote(s, slide.quote.ko, slide.quote.en, slide.quote.author);

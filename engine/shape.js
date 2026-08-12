@@ -51,6 +51,12 @@ const SHAPES = {
     //   marks: R# 등 규칙 짚기(줄 강조) — { line, tag }. blanks: 코더 빈칸 줄 번호 배열.
     //   code는 monospace로 줄바꿈 없이 그대로 그린다(다른 타입의 'lines'처럼 문단으로 재배치하지 않는다).
     codepair:  { data: 'codepair' },
+    // UML 다이어그램(PlantUML 렌더, 표준 표기) — data = { kind, source, caption? }.
+    //   kind ∈ class|usecase|sequence|collaboration|state|package. source는 PlantUML 본문
+    //   (@startuml/@enduml 없이 — engine/plantuml/render.js가 감싼다). 렌더는 이미지 삽입이라
+    //   codepair처럼 문자열만으로 치수를 재지 못한다 — 실제로 한 번 그려 픽셀 치수를 얻는다
+    //   (engine/plantuml/render.js, 결과를 캐싱해 두 번째부터는 즉시 반환).
+    uml:       { data: 'uml' },
 };
 
 const isObj = (x) => x !== null && typeof x === 'object' && !Array.isArray(x);
@@ -177,6 +183,19 @@ function conformCodepair(v, out) {
     });
 }
 
+// uml.source가 실제로 렌더되는지(문법이 유효한지)는 여기서 안 잰다 — 형태 검사는 '그리기
+// 전에 죽지 않을 모양인가'만 본다. 렌더 실패(PlantUML 문법 오류)는 verify.js가 실제로
+// 렌더를 시도할 때 오류로 잡는다(engine/plantuml/render.js가 예외를 던진다).
+function conformUml(v, out) {
+    const d = v.data;
+    if (!isObj(d)) { out.errors.push(`data가 객체가 아니다 — uml의 data는 { kind, source, caption? }이다`); return; }
+    const KINDS = ['class', 'usecase', 'sequence', 'collaboration', 'state', 'package'];
+    if (!d.kind) out.errors.push(`data.kind가 없다 — ${KINDS.join('·')} 중 하나`);
+    else if (!KINDS.includes(d.kind)) out.errors.push(`data.kind "${d.kind}"는 지원 범위 밖이다 — ${KINDS.join('·')} 중 하나`);
+    if (!d.source || !String(d.source).trim()) out.errors.push(`data.source가 없다 — PlantUML 본문(@startuml/@enduml 없이)`);
+    else conformField(d, 'source', 'text', 'data', out);
+}
+
 function conformQuadrant(v, out) {
     const d = v.data;
     if (!isObj(d)) { out.errors.push(`data가 객체가 아니다 — quadrant의 data는 { x, y, cells }이다`); return; }
@@ -205,6 +224,7 @@ function conform(v) {
     else if (spec.data === 'rows')     conformRows(v, out);
     else if (spec.data === 'quadrant') conformQuadrant(v, out);
     else if (spec.data === 'codepair') conformCodepair(v, out);
+    else if (spec.data === 'uml')      conformUml(v, out);
     return out;
 }
 

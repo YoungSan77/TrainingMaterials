@@ -37,6 +37,7 @@ const { isFree, requiredFields, hint } = require('./skeleton.js');   // 골격 �
 const shape = require('./shape.js');                           // visual.data 형태 단일 소스(엔진과 공유)
 const ST = require('./session_types.js');                      // 세션 유형 요건 단일 소스(엔진과 공유)
 const { claimText: claim, hasRatio } = require('./triggers.js');   // 트리거 판정 단일 소스(엔진과 공유)
+const PLANTUML = require('./plantuml/render.js');               // uml 다이어그램 렌더 단일 소스(엔진과 공유)
 
 // ── 엔진 레이아웃 상수를 엔진 소스에서 읽는다(복제하지 않는다) ──
 //   분할 후 상수는 render/context.js에 있다. master_render.js(선두 형식 헤더)와
@@ -473,6 +474,21 @@ function verifyDeck(DECK) {
             need = g.need;
             if (g.mode === 'stack' && g.tooWide)
                 warn.push(`${tag} codepair 코드 한 줄이 전폭·최소 폰트(${LO.CODE.fMin}pt)에서도 안 들어간다(최장 ${g.maxChars}자) — 그 줄을 줄이거나 두 벌로 나눈다`);
+        }
+
+        // ── uml — PlantUML 다이어그램(engine/plantuml/render.js). codepair와 달리 문자열만으론
+        //    치수를 못 재 실제로 한 번 렌더한다(해시 캐시라 재호출은 즉시 반환). 렌더 자체가
+        //    실패하면(문법 오류·jar 없음 등) 오류로 잡는다 — 형태는 맞아도 그릴 수 없는 경우다.
+        else if (v.type === 'uml') {
+            try {
+                const img = PLANTUML.renderDiagram(v.data);
+                const g = LO.uml(v.data, { VT, VH }, img);
+                need = g.need;
+                if (g.scale < LO.UML.minScale)
+                    warn.push(`${tag} uml 다이어그램이 밴드에 비해 커서 ${Math.round(g.scale * 100)}%로 축소된다 — 항목을 줄이거나 더 단순화한다`);
+            } catch (e) {
+                err.push(`${tag} uml 렌더 실패 — ${String(e.message || e).split('\n')[0]}`);
+            }
         }
 
         // 6) 밴드 초과 = 잘림 = 오류
