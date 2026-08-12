@@ -122,10 +122,15 @@ function renderDiagram({ kind, source }) {
             '-tpng', `-density`, String(DENSITY),
             '-charset', 'UTF-8',
             pumlPath, '-o', DIAG_CACHE,
-        ], { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30000 });
+        ], { stdio: ['ignore', 'pipe', 'pipe'], timeout: 60000 });
     } catch (e) {
-        const msg = (e.stderr || e.stdout || e.message || '').toString().slice(0, 2000);
-        throw new Error(`PlantUML 렌더 실패(kind=${kind}) — ${msg}`);
+        // stdout/stderr가 둘 다 빈 경우(예: 느린 콜드스타트 환경에서 timeout에 걸려 SIGTERM으로
+        // 죽으면 아직 아무 출력도 못 낸 채 죽는다)가 있다 — 그러면 메시지가 텅 빈 채로 보였다.
+        // exit code·signal·timeout 여부를 항상 덧붙여 "에러가 비어 있다"를 막는다.
+        const out = (e.stderr || e.stdout || '').toString().trim().slice(0, 2000);
+        const cause = e.signal ? `신호 ${e.signal}로 죽었다(60초 timeout일 수 있다)`
+                    : e.code !== undefined ? `종료 코드 ${e.code}` : String(e.message || e);
+        throw new Error(`PlantUML 렌더 실패(kind=${kind}) — ${cause}${out ? `: ${out}` : ' (출력 없음)'}`);
     } finally {
         fs.rmSync(pumlPath, { force: true });
     }
