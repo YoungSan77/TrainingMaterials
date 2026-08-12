@@ -14,6 +14,13 @@
 //   2. PNG 추출은 Java 9+ 모듈 시스템 때문에 --add-opens 플래그가 필요하다
 //      (java.desktop의 PNG 메타데이터 writer에 리플렉션으로 접근하는 옛 코드 때문).
 //      이 플래그 없이 부르면 IllegalAccessError로 죽는다.
+//   3. 기본 출력은 원본 픽셀이 아주 작다(예: 클래스 박스 하나 ~99x75px) — -density 플래그는
+//      이 작은 원본 해상도에 영향을 주지 않는다(실측 확인, 150이든 600이든 같은 픽셀 수가
+//      나온다). 슬라이드에 배치할 때는 이 작은 원본을 몇 배 더 크게 늘려 그리는데, 그러면
+//      가장 얇은 선(클래스 박스 맨 아래 테두리 등)이 확대 보간에 씻겨 나가 "테두리가
+//      잘렸다"처럼 보인다(2026-08, 실사용 보고로 발견 — 원본 PNG 자체엔 테두리가 있다,
+//      scale 4로 렌더해 확인함). 해법은 소스에 `scale ${SCALE}`을 넣어 원본 픽셀 수 자체를
+//      키우는 것 — 물리적 인치는 그대로고(SCALE로 나눠 되돌린다) 픽셀만 조밀해진다.
 //
 //   [캐시] engine/.cache/plantuml/diagrams/<hash>.png — kind+source+엔진판(pragma 삽입
 //   방식)을 해시해 키로 쓴다. verify.js·render/visuals.js가 같은 다이어그램에 대해
@@ -29,7 +36,8 @@ const { execFileSync } = require('child_process');
 const { JAR_PATH, VERSION } = require('./fetch.js');
 
 const DIAG_CACHE = path.join(__dirname, '..', '.cache', 'plantuml', 'diagrams');
-const DENSITY = 150;                                    // PNG 출력 DPI — px/DENSITY = inch 변환에 쓴다
+const DENSITY = 150;                                    // 원본(scale 1) 기준 px/inch 환산 상수
+const SCALE = 4;                                        // 소스에 주입하는 'scale N' — 원본 픽셀을 N배 조밀하게(테두리 씻김 방지). 인치 환산은 DENSITY*SCALE로 나눠 되돌린다.
 const ADD_OPENS = '--add-opens=java.desktop/com.sun.imageio.plugins.png=ALL-UNNAMED';
 
 // 지원 6종 — 협업(커뮤니케이션)은 PlantUML에 전용 다이어그램 타입이 없어(Larman의 UML1
@@ -46,16 +54,21 @@ function pngSize(buf) {
     return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
 }
 
+// SCALE을 해시에 넣는다 — 렌더 설정(scale·skinparam 등 assemble()의 조립 방식)이 바뀌면
+// 캐시가 조용히 옛 픽셀을 돌려주지 않고 새로 그리게 한다.
 function hashOf(kind, source) {
-    return crypto.createHash('sha1').update(`${VERSION}\n${kind}\n${source}`).digest('hex').slice(0, 16);
+    return crypto.createHash('sha1').update(`${VERSION}\nscale${SCALE}\n${kind}\n${source}`).digest('hex').slice(0, 16);
 }
 
 // PlantUML 완전 소스를 조립한다. smetana pragma는 전 종류에 무조건 넣는다(시퀀스에는
-// 무해한 공회전 — 실측 확인됨). skinparam은 기존 슬라이드 팔레트(navy/teal)와 맞춘다.
+// 무해한 공회전 — 실측 확인됨). scale은 원본 픽셀 밀도만 올린다(물리 크기는 그대로 —
+// renderDiagram이 DENSITY*SCALE로 나눠 인치를 되돌린다). skinparam은 기존 슬라이드
+// 팔레트(navy/teal)와 맞춘다.
 function assemble(source) {
     return [
         '@startuml',
         '!pragma layout smetana',
+        `scale ${SCALE}`,
         'skinparam backgroundColor white',
         'skinparam defaultFontName 맑은 고딕',
         'skinparam defaultFontSize 13',
@@ -87,7 +100,7 @@ function renderDiagram({ kind, source }) {
 
     if (fs.existsSync(pngPath)) {
         const { w, h } = pngSize(fs.readFileSync(pngPath));
-        return { path: pngPath, wIn: w / DENSITY, hIn: h / DENSITY };
+        return { path: pngPath, wIn: w / (DENSITY * SCALE), hIn: h / (DENSITY * SCALE) };
     }
 
     if (!fs.existsSync(JAR_PATH)) {
@@ -120,7 +133,7 @@ function renderDiagram({ kind, source }) {
     if (!fs.existsSync(pngPath)) throw new Error(`PlantUML이 PNG를 만들지 않았다(kind=${kind}) — 소스 문법을 확인한다`);
     const { w, h } = pngSize(fs.readFileSync(pngPath));
     if (!w || !h) throw new Error(`PlantUML 출력이 유효한 PNG가 아니다(kind=${kind}) — Graphviz 에러 이미지일 수 있다, smetana pragma 확인`);
-    return { path: pngPath, wIn: w / DENSITY, hIn: h / DENSITY };
+    return { path: pngPath, wIn: w / (DENSITY * SCALE), hIn: h / (DENSITY * SCALE) };
 }
 
 module.exports = { renderDiagram, KINDS, DIAG_CACHE, DENSITY };
