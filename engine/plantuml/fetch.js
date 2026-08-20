@@ -12,12 +12,18 @@
 //   자바 레이아웃 엔진) 이전 버전이라 못 쓴다. 실제 유지되는 좌표는 plantuml-mit(MIT
 //   재라이선스 이후 메인라인)이다. plantuml-mit-light는 같은 렌더 결과(클래스·유스케이스·
 //   시퀀스·상태·패키지·액티비티 6종 다 확인)를 절반 이하 용량(~7.7MB)으로 내어 이걸 쓴다.
+//
+//   버전 함정(중요, 2026-08 확인): plantuml-mit-light 1.2026.6은 클래스 박스의 빈 연산
+//   칸(맨 아래 칸)을 짧게 렌더해 하단 테두리를 잘라낸다 — scale·밀도·폰트와 무관, 그 버전
+//   자체의 렌더 결함이다(같은 소스를 1.2026.0으로 그리면 테두리가 온전하고 여백 23px가
+//   남는다, 픽셀로 확인함). 그래서 1.2026.x 라인의 최초 빌드인 1.2026.0으로 고정한다 —
+//   더 올릴 때는 반드시 클래스 박스(빈 연산 칸 포함) 하단 테두리를 픽셀로 재확인한다.
 // ============================================================================
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
 
-const VERSION = '1.2026.6';
+const VERSION = '1.2026.0';
 const ARTIFACT = 'plantuml-mit-light';
 const URL = `https://repo1.maven.org/maven2/net/sourceforge/plantuml/${ARTIFACT}/${VERSION}/${ARTIFACT}-${VERSION}.jar`;
 

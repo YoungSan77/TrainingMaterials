@@ -32,12 +32,13 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const zlib = require('zlib');
 const { execFileSync } = require('child_process');
 const { JAR_PATH, VERSION } = require('./fetch.js');
 
 const DIAG_CACHE = path.join(__dirname, '..', '.cache', 'plantuml', 'diagrams');
 const DENSITY = 150;                                    // 원본(scale 1) 기준 px/inch 환산 상수
-const SCALE = 4;                                        // 소스에 주입하는 'scale N' — 원본 픽셀을 N배 조밀하게(테두리 씻김 방지). 인치 환산은 DENSITY*SCALE로 나눠 되돌린다.
+const SCALE = 4;                                        // 소스에 주입하는 'scale N' — 원본 픽셀을 N배 조밀하게(테두리 씻김 방지). 인치 환산은 DENSITY*SCALE로 나눠 되돌린다. 이 jar는 scale을 상한에서 잘라 4를 넘겨도 무효다(scale 4·8 픽셀 동일 — 2026-08 확인) — 8로 올렸다가 되돌렸다. layout.js의 uml 확대 상한 제거(Math.min의 1 제거)는 유지한다 — 그쪽은 이 jar 상한과 무관하다.
 const ADD_OPENS = '--add-opens=java.desktop/com.sun.imageio.plugins.png=ALL-UNNAMED';
 
 // 지원 6종 — 협업(커뮤니케이션)은 PlantUML에 전용 다이어그램 타입이 없어(Larman의 UML1
@@ -52,6 +53,109 @@ function ensureCacheDir() { fs.mkdirSync(DIAG_CACHE, { recursive: true }); }
 function pngSize(buf) {
     if (buf.length < 24 || buf.readUInt32BE(0) !== 0x89504e47) return { w: 0, h: 0 };   // 매직 바이트 불일치 = PNG 아님
     return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
+}
+
+// ── bottomMargin ── Tier 1 게이트(노테이션 무관): PNG 하단에 배경(흰색 근접) 여백이 몇 px인지
+//   실제 픽셀을 읽어 잰다. 슬라이드 좌표(밴드 안에 드는지)로는 "잘림"을 못 잡는다 — 이미지
+//   자체가 하단 테두리를 그리다 만 채로 끝나도 슬라이드 배치 좌표는 멀쩡하기 때문이다
+//   (2026-08, plantuml-mit-light 1.2026.6 결함으로 실제 겪음). 배경은 skinparam
+//   backgroundColor white가 모든 다이어그램에 공통이라(assemble() 참조) 흰색 근접을 배경으로
+//   본다 — 노테이션마다 다시 정의할 필요가 없다.
+//   PNG 청크 파싱 → IDAT zlib 압축 해제 → 스캔라인 언필터(PNG 표준 5종)까지 직접 구현한다
+//   (외부 이미지 라이브러리 없이, IHDR 폭·높이를 읽듯 스펙을 그대로 따른다). 8비트 depth만
+//   지원한다 — PlantUML 출력은 항상 8비트라 실무에서 이 범위를 벗어나지 않는다.
+function parsePngChunks(buf) {
+    const chunks = [];
+    let off = 8;
+    while (off + 8 <= buf.length) {
+        const len = buf.readUInt32BE(off);
+        const type = buf.toString('ascii', off + 4, off + 8);
+        chunks.push({ type, data: buf.slice(off + 8, off + 8 + len) });
+        off += 12 + len;                                   // len필드4 + type4 + data + crc4
+    }
+    return chunks;
+}
+
+function paeth(a, b, c) {
+    const p = a + b - c;
+    const pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c);
+    if (pa <= pb && pa <= pc) return a;
+    return pb <= pc ? b : c;
+}
+
+// 필터 해제(PNG 표준: None/Sub/Up/Average/Paeth) — bpp=색상 채널 바이트 수(8비트 depth 기준).
+function unfilterScanlines(raw, width, height, bpp) {
+    const rowBytes = width * bpp;
+    const out = Buffer.alloc(rowBytes * height);
+    let srcOff = 0;
+    for (let y = 0; y < height; y++) {
+        const filterType = raw[srcOff]; srcOff += 1;
+        const rowStart = y * rowBytes, prevStart = rowStart - rowBytes;
+        for (let x = 0; x < rowBytes; x++) {
+            const rawX = raw[srcOff + x];
+            const a = x >= bpp ? out[rowStart + x - bpp] : 0;
+            const b = y > 0 ? out[prevStart + x] : 0;
+            const c = (y > 0 && x >= bpp) ? out[prevStart + x - bpp] : 0;
+            let v;
+            switch (filterType) {
+                case 1: v = rawX + a; break;
+                case 2: v = rawX + b; break;
+                case 3: v = rawX + ((a + b) >> 1); break;
+                case 4: v = rawX + paeth(a, b, c); break;
+                default: v = rawX;
+            }
+            out[rowStart + x] = v & 0xff;
+        }
+        srcOff += rowBytes;
+    }
+    return out;
+}
+
+// 이미지 하단에서 배경이 아닌(=내용이 있는) 마지막 행까지의 여백을 px로 돌려준다.
+// 지원 못 하는 형식(16비트 depth 등)이면 null — 호출자가 "검사 생략"으로 처리한다(오탐 방지).
+function bottomMargin(buf) {
+    if (buf.length < 8 || buf.readUInt32BE(0) !== 0x89504e47) return null;
+    const chunks = parsePngChunks(buf);
+    const ihdr = chunks.find(c => c.type === 'IHDR');
+    if (!ihdr || ihdr.data.length < 13) return null;
+    const width = ihdr.data.readUInt32BE(0), height = ihdr.data.readUInt32BE(4);
+    const bitDepth = ihdr.data[8], colorType = ihdr.data[9];
+    if (bitDepth !== 8) return null;
+    const CHANNELS = { 0: 1, 2: 3, 3: 1, 4: 2, 6: 4 };      // gray/rgb/indexed/gray+a/rgb+a
+    const bpp = CHANNELS[colorType];
+    if (!bpp) return null;
+    let palette = null;
+    if (colorType === 3) {
+        const plte = chunks.find(c => c.type === 'PLTE');
+        if (!plte) return null;
+        palette = plte.data;
+    }
+    const idat = Buffer.concat(chunks.filter(c => c.type === 'IDAT').map(c => c.data));
+    let raw;
+    try { raw = zlib.inflateSync(idat); } catch (e) { return null; }
+    const pixels = unfilterScanlines(raw, width, height, bpp);
+    const rowBytes = width * bpp;
+    const NEAR_WHITE = 250;
+    const isBackground = (y, x) => {
+        const o = y * rowBytes + x * bpp;
+        if (colorType === 3) {
+            const idx = pixels[o] * 3;
+            return palette[idx] >= NEAR_WHITE && palette[idx + 1] >= NEAR_WHITE && palette[idx + 2] >= NEAR_WHITE;
+        }
+        if (colorType === 0) return pixels[o] >= NEAR_WHITE;
+        if (colorType === 2) return pixels[o] >= NEAR_WHITE && pixels[o + 1] >= NEAR_WHITE && pixels[o + 2] >= NEAR_WHITE;
+        if (colorType === 4) return pixels[o + 1] === 0 || pixels[o] >= NEAR_WHITE;
+        return pixels[o + 3] === 0 || (pixels[o] >= NEAR_WHITE && pixels[o + 1] >= NEAR_WHITE && pixels[o + 2] >= NEAR_WHITE);
+    };
+    let lastContentRow = -1;
+    for (let y = height - 1; y >= 0; y--) {
+        let hasContent = false;
+        for (let x = 0; x < width; x += 2) {                // 2px 간격 샘플 — 충분히 촘촘하고 빠르다
+            if (!isBackground(y, x)) { hasContent = true; break; }
+        }
+        if (hasContent) { lastContentRow = y; break; }
+    }
+    return lastContentRow < 0 ? height : height - 1 - lastContentRow;
 }
 
 // SCALE을 해시에 넣는다 — 렌더 설정(scale·skinparam 등 assemble()의 조립 방식)이 바뀌면
@@ -141,4 +245,4 @@ function renderDiagram({ kind, source }) {
     return { path: pngPath, wIn: w / (DENSITY * SCALE), hIn: h / (DENSITY * SCALE) };
 }
 
-module.exports = { renderDiagram, KINDS, DIAG_CACHE, DENSITY };
+module.exports = { renderDiagram, KINDS, DIAG_CACHE, DENSITY, bottomMargin };

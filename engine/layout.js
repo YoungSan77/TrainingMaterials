@@ -317,14 +317,15 @@ module.exports = function makeLayout(env) {
     // ── uml ── PlantUML 이미지 배치. codepair와 달리 문자열만으로 치수를 못 잰다 — 실제
     //   렌더(engine/plantuml/render.js)가 이미 끝난 픽셀 치수(img.wIn/hIn)를 받아 배치만
     //   계산한다(이 함수는 여전히 순수 — I/O는 호출자가 먼저 끝내고 결과만 넘긴다).
-    //   이미지는 폰트처럼 '더 못 줄이는 하한'이 없다 — 항상 밴드에 맞춰 축소한다. 그래서
-    //   codepair의 tooWide(오류) 같은 개념이 없고, 대신 축소율이 낮으면(작게 찌부러지면)
-    //   경고로만 알린다(verify.js가 scale로 판단).
+    //   이미지는 폰트처럼 '더 못 줄이는 하한'이 없다 — 항상 밴드에 맞춰 축소·확대한다(종횡비
+    //   유지, 밴드를 넘지 않는 한도까지 키운다 — 상한 1을 두지 않는다). 그래서 codepair의
+    //   tooWide(오류) 같은 개념이 없고, 대신 축소율이 낮으면(작게 찌부러지면) 경고로만
+    //   알린다(verify.js가 scale로 판단).
     const UML = { minScale: 0.45, promptGap: 0.10, promptH: 0.26 };
     const uml = (d, band, img) => {
         const promptH = d.prompt ? (UML.promptH + UML.promptGap) : 0;
         const availH = band.VH - promptH;
-        const scale = Math.min(1, CW / img.wIn, availH / img.hIn);
+        const scale = Math.min(CW / img.wIn, availH / img.hIn);
         const w = img.wIn * scale, h = img.hIn * scale;
         // top = 이미지+물음 블록 전체를 밴드에 세로 중앙 정렬한 시작 y. 이미지는 top에서 바로
         // 시작한다(y === top) — renderUml이 'bottom = top + h'로 물음 위치를 셈하므로 어긋나면
