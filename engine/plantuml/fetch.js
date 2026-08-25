@@ -2,10 +2,10 @@
 // ============================================================================
 // fetch.js — PlantUML jar를 오프라인 캐시에 한 번 받아 둔다.
 //
-//   패턴은 sw-lab-environment-setup.md의 "온라인 1회 캐시 굽기 → 이후 오프라인"과 같다.
-//   jar는 저장소에 커밋하지 않는다(program-design/concept-ownership-map.md §R&R —
-//   "산출물은 저장소에 커밋하지 않는다"와 같은 정신: 이 jar도 소스가 아니라 재취득 가능한
-//   빌드 의존성이다). engine/.cache/(.gitignore)에 받아 두고, 있으면 재다운로드하지 않는다.
+//   패턴은 portfolio/lab-environment.md의 "온라인 1회 캐시 굽기 → 이후 오프라인"과 같다.
+//   jar는 저장소에 커밋하지 않는다(guides/교재_작성_지침.md §14 "산출물은 저장소에 커밋하지
+//   않는다"와 같은 정신: 이 jar도 소스가 아니라 재취득 가능한 빌드 의존성이다).
+//   engine/.cache/(.gitignore)에 받아 두고, 있으면 재다운로드하지 않는다.
 //
 //   좌표 함정(중요): net.sourceforge.plantuml:plantuml(이름만 보고 받기 쉬운 좌표)은
 //   Maven Central에서 2017년 빌드(8059)에 멈춰 있다 — Smetana(Graphviz 없이 그리는 순수

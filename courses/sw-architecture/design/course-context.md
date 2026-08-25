@@ -2,7 +2,7 @@
 
 > **Pipeline position:** `Portfolio Design(portfolio/) + 과정 설계 지침(guides/과정_설계_지침.md) + References + Human↔LLM → Course Design(courses/sw-architecture/design/)`
 > **Owns:** 왜 가르치는지의 뼈대(Course Context)만. 세션·시간표·구체적 커리큘럼 구조는 `courses/sw-architecture/curriculum.md`(정본, 실제 16교시 구조)가 소유한다 — 이 문서는 그 커리큘럼을 설명하는 상위 문서로 병행 작성됐고, 이중 SSOT를 피하기 위해 세션 번호를 복제하지 않는다.
-> **Source status:** `context/course-portfolio-unified-v2.6/courses/03_sw-architecture.md`(Unified Baseline)에서 progression/priority/rationale/coverage-intent만 추출했다. Portfolio-wide 정의·용어·개념 소유는 `portfolio/*.md`가 정본이며 이 문서는 그것을 SW Architecture 과정에 구체화한다.
+> **Migration provenance:** legacy context v2.6에서 progression/priority/rationale/coverage-intent만 흡수했다. Portfolio-wide 정의·용어·개념 소유는 `portfolio/*.md`가 정본이며 이 문서는 그것을 SW Architecture 과정에 구체화한다.
 
 ---
 
@@ -19,7 +19,7 @@
 
 ## Learner & Context Fit
 
-> 이 절은 `context/course-portfolio-unified-v2.6/courses/03_sw-architecture.md`의 Learner & Context Fit을 그대로 가져온다(요약·재작성하지 않는다) — 과정 설계 지침 §3.
+> 이 절은 migration 당시 legacy context v2.6의 Learner & Context Fit을 요약·재작성 없이 흡수한 현재 Course Design 내용이다 — 과정 설계 지침 §3.
 
 - **Audience / Work Context:** 시스템 수준의 구조적 결정을 내려야 하는 개발 리더·아키텍트·설계자.
 - **Current Capability / Failure Mode:** pattern/diagram을 architecture로 오해하거나 quality driver 없이 구조를 선택한다.
@@ -29,7 +29,7 @@
 
 ## Foundational Decision Lens Fit
 
-> `context/.../support/04_audit/01_portfolio-integrity-audit-v2.6.md` §4의 판정을 그대로 옮긴다 — 과정 설계 지침 §4.
+> migration 당시 흡수·검증된 판정을 현재 기준선으로 유지한다 — 과정 설계 지침 §4.
 
 - **APPLY:** Systems Thinking (SYS-01 Optimize the Whole / SYS-02 Structure Produces Behavior); Empiricism / Scientific Thinking (EMP-01~05).
 - **Why:** Architecture 판단은 competing quality attribute 사이의 상호작용을 전체로 보아야 하고(Systems), Architecture Decision을 hypothesis로 다루어 evidence/fitness function으로 계속 검증해야 한다(Empiricism).
@@ -143,7 +143,7 @@ DDD Tactical 정의(Entity/Aggregate/Domain Modeling의 정본 설명 — DDD OW
 
 ## 5. Key Distinctions
 
-> `context/.../courses/03_sw-architecture.md` §7 + `portfolio/terminology.md` §D, §H 중 이 과정에 해당하는 쌍.
+> `portfolio/terminology.md` §D, §H 중 이 과정에 해당하는 쌍과 migration 당시 흡수된 course-specific distinction.
 
 - Architecture ≠ Diagram
 - Clean Architecture ≠ Architecture 전체
@@ -188,7 +188,7 @@ Architecture에는 무료 해법이 없다. 선택은 `Context → Options → G
 
 ## 7. Structural Baseline — Clean Architecture (canon-stance.md + clean-layer-convention.md 정규 내용 흡수)
 
-> `program-design/sw-architecture-canon-stance.md`와 `program-design/clean-layer-convention.md`는 portfolio-level에서는 superseded되었으나 SW-Architecture 고유 내용은 여전히 유효하다. 두 문서의 정규 핵심(Clean Architecture를 structural baseline으로, Policy vs Detail 분리, 두 문서가 나열한 실패 조건)을 여기에 흡수한다 — `program-design/`은 이 마이그레이션 게이트 통과 후 삭제될 예정이므로 링크만으로 남기지 않는다. Java package 구조의 상세본은 `references/verified-sources.md`에 원형 보존한다.
+> migration 이전 legacy SW Architecture stance와 clean-layer convention의 유효한 과정 고유 내용은 이 Course Design에 흡수되었다. Clean Architecture를 structural baseline으로 삼는 원칙, Policy vs Detail 분리, 실패 조건은 이 문서가 현재 소유하며, Java package 구조 상세는 `references/verified-sources.md`가 보존한다. legacy 문서는 historical provenance이며 현재 의존성이 아니다.
 
 ### 7.1 Clean Architecture를 사용하는 방식 (canon-stance.md §2.B, 원문)
 
@@ -253,7 +253,7 @@ Architecture는 고정 blueprint가 아니다.
 
 ---
 
-## 8. Trade-offs / Failure Conditions (Course-level, context baseline §9 표 원문)
+## 8. Trade-offs / Failure Conditions (Course-level, migrated baseline 표 원문)
 
 | Principle | Trade-off | Failure Condition |
 |---|---|---|
@@ -263,7 +263,7 @@ Architecture는 고정 blueprint가 아니다.
 | Evaluate Decisions | 초기 비용 증가, 큰 재작업 감소 | Diagram Review만으로 평가 |
 | Guided Evolution | 지속 측정 비용 필요 | Evolution을 무계획 변경으로 사용 |
 
-## 9. Evidence of Learning (context baseline §10, 원문)
+## 9. Evidence of Learning (migrated baseline 원문)
 
 - Architecture Drivers
 - Quality Attribute Scenarios 2개 이상
@@ -274,7 +274,7 @@ Architecture는 고정 blueprint가 아니다.
 - Fitness Function 1개 이상
 - Change Impact/Evolution Decision
 
-## 10. Learning Outcomes (context baseline §8, 원문)
+## 10. Learning Outcomes (migrated baseline 원문)
 
 1. Business/Technical Driver를 Architecture Driver로 정리한다.
 2. QA Scenario를 작성하고 후보 구조를 비교한다.
@@ -290,19 +290,19 @@ Architecture는 고정 blueprint가 아니다.
 
 > 과정 설계 지침 §2-a 규칙에 따라 progression/priority/rationale/coverage-intent만 서술한다. 세션 번호·시간표는 `courses/sw-architecture/curriculum.md`(정본, 실제 16교시 구조)의 몫이며 여기서 복제하지 않는다.
 
-**Progression 의도(context baseline Curriculum Backbone 4-Part 구조의 rationale):**
+**Progression 의도(migrated baseline Curriculum Backbone 4-Part 구조의 rationale):**
 1. **Why/Decide** — Architecture를 Decision으로 정의하고, Driver/Constraint를 거쳐 Quality Attribute를 Scenario로 구체화한 뒤 Trade-off/Tactic/Alternative를 비교하는 순서로 시작한다. 구조 선택보다 판단 근거가 먼저다.
 2. **Structure** — Object Responsibility에서 System Structure로 이어지는 최소 OO 재정박을 거쳐, Policy vs Detail/Dependency Inversion → Clean Architecture/Dependency Rule → Application Boundary/Port/Adapter 순으로 구조를 세운다.
 3. **Evaluate** — Style/Tactic 선택(카탈로그가 아니라 선택 기준으로), Architecture Decision/ADR, Scenario-based Evaluation/ATAM Orientation, 그리고 결정과 평가를 통합하는 Lab으로 이어진다.
 4. **Enforce & Evolve** — Architecture Rule/Conformance/Fitness Function으로 강제력을 만들고, Evolutionary Architecture와 Change Impact Lab을 거쳐 MSA로의 Forward로 마무리한다.
 
-**Topic Priority(무엇이 무거운가):** context baseline은 Quality Attribute & Scenarios, Clean Architecture/Dependency Rule, Scenario-based Evaluation/ATAM Orientation, Architecture Rules/Fitness Functions에 가장 큰 비중을 둔다 — 이 네 topic이 Course Thesis의 세 축(Decision Basis / Structural Baseline / Time Dimension)을 각각 담당하기 때문이다.
+**Topic Priority(무엇이 무거운가):** migration 당시 흡수한 기준선은 Quality Attribute & Scenarios, Clean Architecture/Dependency Rule, Scenario-based Evaluation/ATAM Orientation, Architecture Rules/Fitness Functions에 가장 큰 비중을 둔다 — 이 네 topic이 Course Thesis의 세 축(Decision Basis / Structural Baseline / Time Dimension)을 각각 담당하기 때문이다.
 
-**실제 커리큘럼과의 관계:** `courses/sw-architecture/curriculum.md`(정본)는 이 progression을 Structural Baseline 축에 강하게 배분한다 — 최소 OO 재정박(부1) → Spaghetti 진단(부2) → TS 전환(부2) → Rich Domain 전환 + DIP/Port 도입(부3, "이 과정의 심장") → 캡슐화 게이트(ArchUnit)/도메인 이벤트/반례(부4) → MSA 티저(부5) → 종합(부6)의 순서다. 이는 context baseline의 Part 2(Structure)를 실제 코드 리팩토링 실습으로 심화 구현한 것이며, Decision Basis 축(QA Scenario·대안 비교·ADR)은 Practice Pack(§4 Critical Gap 참조)이 보강한다.
+**실제 커리큘럼과의 관계:** `courses/sw-architecture/curriculum.md`(정본)는 이 progression을 Structural Baseline 축에 강하게 배분한다 — 최소 OO 재정박(부1) → Spaghetti 진단(부2) → TS 전환(부2) → Rich Domain 전환 + DIP/Port 도입(부3, "이 과정의 심장") → 캡슐화 게이트(ArchUnit)/도메인 이벤트/반례(부4) → MSA 티저(부5) → 종합(부6)의 순서다. 이는 migration 당시 흡수한 기준선의 Part 2(Structure)를 실제 코드 리팩토링 실습으로 심화 구현한 것이며, Decision Basis 축(QA Scenario·대안 비교·ADR)은 Practice Pack(§4 Critical Gap 참조)이 보강한다.
 
 **Coverage Intent:** 학습자는 과정을 마칠 때 (1) Driver→QA Scenario→구조 대안 비교의 판단 축, (2) Policy/Detail 분리와 Dependency Rule을 실제 코드에서 식별·적용하는 능력, (3) Fitness Function/ADR로 결정을 검증 가능한 형태로 남기는 습관, 세 가지를 모두 갖추어야 한다. 어느 하나만으로는 Course Thesis를 충족하지 않는다.
 
-**Source Baseline (context baseline §12, 원문):** SEI/CMU Quality Attribute·ATAM 계보, Robert C. Martin의 Dependency Rule/Clean Architecture, Ford/Parsons/Kua의 Evolutionary Architecture를 주요 기준으로 사용한다.
+**Source Baseline (migrated baseline 원문):** SEI/CMU Quality Attribute·ATAM 계보, Robert C. Martin의 Dependency Rule/Clean Architecture, Ford/Parsons/Kua의 Evolutionary Architecture를 주요 기준으로 사용한다.
 
 ---
 
@@ -323,7 +323,7 @@ Architecture는 고정 blueprint가 아니다.
 - **Modern SWQM:** SWA가 Architecture Fitness / Conformance의 기술적 의미를 소유한다. QM은 이러한 evidence/gate가 조직의 quality system에서 지속 실행되는 방식을 다룬다(canon-stance.md §6). Quality Gate는 cross-course mechanism이며 SWA는 그중 "architecture fitness / conformance gate" 부분만 소유한다(concept-ownership.md §14).
 - **Prerequisite Policy(concept-ownership.md §11):** Prerequisite recommended, never assumed. SWA의 Minimum Recap: Cohesion / Coupling / DIP / Domain Model의 최소 의미.
 
-### Portfolio Alignment (context baseline, 원문)
+### Portfolio Alignment (migrated baseline 원문)
 
 - **OWNER:** Architecture drivers, quality-attribute decisions, structural boundaries/dependencies, architecture evaluation/fitness/evolution.
 - **Key Consumers:** MSA, AI-Native, DevOps, DT→AX.
@@ -331,7 +331,7 @@ Architecture는 고정 blueprint가 아니다.
 
 ---
 
-## 13. Course Quality Gate (context baseline §13, 원문 — self-check용, curriculum 승인 전 확인)
+## 13. Course Quality Gate (migrated baseline 원문 — self-check용, curriculum 승인 전 확인)
 
 - Driver가 Structure보다 먼저인가?
 - QA Scenario가 실제 판단에 사용되는가?

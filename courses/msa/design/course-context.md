@@ -79,7 +79,7 @@ Microservice는 목표가 아니라 비용을 지불하고 얻는 autonomy optio
 
 ## 8. Course Ownership — OWNER / APPLY / RECAP / FORWARD / NON-SCOPE
 
-> **정본:** `portfolio/concept-ownership.md` §6 (MSA Ownership). 아래는 그 정본과 `context/course-portfolio-unified-v2.6/courses/04_msa.md` §5의 구체화를 그대로 옮긴 것이며, 어느 쪽도 축소하지 않는다.
+> **정본:** `portfolio/concept-ownership.md` §6 (MSA Ownership). 아래는 그 정본을 MSA 과정에 구체화한 현재 Course Design이며, migration 당시 legacy context v2.6에서 흡수한 범위를 축소하지 않는다.
 
 ### OWNER
 
@@ -130,7 +130,7 @@ MSA가 정의를 바꾸지 않고 자신의 문제(경계 판단)에 가져와 �
 
 ## 10. Key Distinctions
 
-`portfolio/terminology.md` §H·§E, `context/.../courses/04_msa.md` §6에서 이 과정에 해당하는 것만 추출.
+`portfolio/terminology.md` §H·§E 중 이 과정에 해당하는 것과 migration 당시 흡수된 course-specific distinction만 유지한다.
 
 | A | B | 핵심 차이 |
 |---|---|---|
@@ -145,7 +145,7 @@ MSA가 정의를 바꾸지 않고 자신의 문제(경계 판단)에 가져와 �
 
 ## 11. Foundational Decision Lens Fit
 
-`context/.../support/04_audit/01_portfolio-integrity-audit-v2.6.md` §4의 판정과 `portfolio/principles.md` C4 상단이 이미 확정한 값을 그대로 옮긴다 — 5개 Lens 전부를 형식상 채우지 않는다.
+`portfolio/principles.md` C4와 migration 당시 흡수·검증된 판정을 현재 기준선으로 유지한다 — 5개 Lens 전부를 형식상 채우지 않는다.
 
 - **APPLY:** Systems Thinking, Lean Thinking, Theory of Constraints, Empiricism / Scientific Thinking.
 - **Why (baseline 원문):** 전체 delivery/operation flow와 현재 constraint를 보고, 분산가치를 작은 경계 검증과 운영 evidence로 확인한다.
@@ -169,7 +169,7 @@ MSA가 정의를 바꾸지 않고 자신의 문제(경계 판단)에 가져와 �
 
 ## 13. Trade-offs / Failure Conditions (Course-level Table)
 
-`context/.../courses/04_msa.md` §8을 원형대로 옮긴다.
+migration 당시 legacy context v2.6에서 흡수한 Learning Outcomes를 현재 기준선으로 유지한다.
 
 | Principle | Trade-off | Failure Condition |
 |---|---|---|
@@ -192,4 +192,4 @@ MSA가 정의를 바꾸지 않고 자신의 문제(경계 판단)에 가져와 �
 
 ## 15. Source Provenance for This Document
 
-이 문서의 §1–§7, §13은 `context/course-portfolio-unified-v2.6/courses/04_msa.md`(Course Baseline)의 progression/priority/rationale/coverage-intent를 그대로 가져왔다(`guides/과정_설계_지침.md` §2-a 규칙). 세션 번호·시간표·구체적 커리큘럼 구조는 옮기지 않았다 — 그것은 `courses/msa/curriculum.md`가 이미 소유한다. §8–§9, §12는 `portfolio/concept-ownership.md`·`portfolio/principles.md`를 정본으로 옮겼다.
+이 문서의 §1–§7, §13은 migration 당시 legacy context v2.6의 progression/priority/rationale/coverage-intent를 흡수했다. 세션 번호·시간표·구체적 커리큘럼 구조는 옮기지 않았다 — 그것은 `courses/msa/curriculum.md`가 이미 소유한다. §8–§9, §12는 `portfolio/concept-ownership.md`·`portfolio/principles.md`를 정본으로 구체화했다. legacy 문서는 historical provenance이며 현재 의존성이 아니다.

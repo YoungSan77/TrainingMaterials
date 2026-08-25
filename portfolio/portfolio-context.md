@@ -1,6 +1,6 @@
 # Unified Course Portfolio v2.6 — Portfolio Context & Catalog
 
-> **Composition:** `context/course-portfolio-unified-v2.6/00_README.md` + `support/01_governance/10_course-catalog.md`를 합친 것이다. 정본 11개 과정 목록은 이 문서가 최종 snapshot으로 소유한다.
+> **Legacy migration provenance:** legacy context v2.6의 README와 course catalog를 흡수했다. 정본 11개 과정 목록은 이 문서가 최종 snapshot으로 소유하며 legacy 자료는 현재 의존성이 아니다.
 
 ---
 

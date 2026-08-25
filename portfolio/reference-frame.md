@@ -1,7 +1,7 @@
 # 01. Program Reference Frame v3.0
 
 > **Status:** Portfolio Canon
-> **Scope:** 확장 가능한 교육 프로그램 전체. 현재 Portfolio는 별도 `support/01_governance/10_course-catalog.md`가 소유한다.
+> **Scope:** 확장 가능한 교육 프로그램 전체. 현재 Portfolio는 별도 `portfolio/portfolio-context.md` Part B가 소유한다.
 > **Current engineering anchors:** OOAD · DDD · SW Architecture · MSA · AI-Native Software Engineering · Agile · DevOps · SW Project Management · SW Proposal · DT→AX
 > **Cross-cutting course:** Modern SWQM
 > **Bridge:** Ontology / Explicit Semantics
@@ -31,7 +31,7 @@ Learner / Customer Context
 - `Customer-centered ≠ Customer-request-driven`. 요청받은 기술/과정명을 그대로 Curriculum Spine으로 사용하지 않는다.
 - 수준은 단순 Beginner/Intermediate/Advanced보다 **Recognize → Apply → Decide → Govern** 같은 판단능력 수준으로 정의한다.
 - 과정의 난이도와 상세도는 Target Capability에 맞춘다.
-- 이 원칙의 변경 절차는 `09_portfolio-change-and-extension-protocol.md`가 소유한다.
+- 이 원칙의 변경 절차는 `portfolio/governance.md` Part B(Change & Extension Protocol)가 소유한다.
 
 ## 0A. Foundational Decision Lenses
 
@@ -43,7 +43,7 @@ Learner / Customer Context
 4. **Design Thinking** — problem/context first, alternatives, prototype-to-learn
 5. **Empiricism / Scientific Thinking** — fact/hypothesis/experiment/evidence/feedback
 
-상세 원칙은 `02_principles.md`가 소유한다.
+상세 원칙은 `portfolio/principles.md`가 소유한다.
 
 ------------------------------------------------------------------------
 ## 1. 최상위 명제
@@ -100,7 +100,7 @@ Learner / Customer Context
 ```
 
 이 그림은 **강제 선수 순서가 아니라 현재 Engineering Portfolio의 개념 확장 관계**다.
-과정의 추가·분리·통합은 `support/01_governance/10_course-catalog.md`에서 관리하며 이 Reference Frame의 최상위 명제를 재정의하지 않는다.
+과정의 추가·분리·통합은 `portfolio/portfolio-context.md` Part B(course-catalog)에서 관리하며 이 Reference Frame의 최상위 명제를 재정의하지 않는다.
 
 ### Cross-Cutting Professional Course
 
@@ -517,7 +517,7 @@ Curriculum / Source / Deck
 ```
 
 - **Program Governance:** 과정 수와 무관한 철학, 원칙, 용어, ownership 규칙.
-- **Course Portfolio:** 현재 제공하는 과정과 분류. `support/01_governance/10_course-catalog.md`가 소유.
+- **Course Portfolio:** 현재 제공하는 과정과 분류. `portfolio/portfolio-context.md` Part B가 소유.
 - **Course Architecture / Specification:** 개별 과정의 문제, 판단, OWNER/CONSUMER, 범위, 학습 증거.
 - **Course Content:** 세션·심층 source·실습·deck.
 
@@ -546,7 +546,7 @@ DevOps, SW Project Management, SW Proposal, DT→AX는 Admission Gate를 통과�
 ## 15. Evidence & Localization — Canon Pointer
 
 모든 과정의 source/evidence/localization 규칙은
-`07_evidence-source-localization-policy.md`가 authoritative owner로 소유한다.
+`portfolio/evidence-policy.md`가 authoritative owner로 소유한다.
 
 Reference Frame 수준의 비협상 원칙만 유지한다.
 

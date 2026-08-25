@@ -2,7 +2,7 @@
 
 > **Course ID:** ooad
 > **Standard:** `portfolio/practice-standard.md` (필드 상세·운영 규칙의 정본 — 여기서 재정의하지 않는다)
-> **Source:** `context/course-portfolio-unified-v2.6/support/02_course-assets/01_ooad/01_llm-integrated-practice-pack-v1.1.md` (Practice Pack v1.1) — 이 문서는 Pack의 7개 Practice 전체를 `portfolio/practice-standard.md` §6 필드 스키마로 재구성한 것이며, 어떤 Practice도 병합·삭제하지 않았다.
+> **Legacy migration provenance:** context v2.6 Practice Pack v1.1의 7개 Practice 전체를 `portfolio/practice-standard.md` §6 필드 스키마로 재구성했으며, 어떤 Practice도 병합·삭제하지 않았다. 원출처는 Git history에 보존된다.
 > **Complements, does not replace:** `courses/ooad/lab-design.md` — lab-design.md는 실습 대상·코드·스니펫 대조쌍(무엇을 실습 소재로 쓰는가)을 소유하고, 이 문서는 학습자가 LLM과 어떻게 상호작용하는가(운영 흐름·개입·평가)를 소유한다. lab-design.md의 렌즈(책임 이동: 절차 → 객체 협력, Order 공유 도메인)와 이 문서의 Practice는 같은 Order 도메인 사례를 공유하되 서로 다른 층위를 다룬다.
 > **Distribution:** Practice Pack은 Instructor-only asset이다(practice-standard.md §2). 학습자용 자료에는 각 Practice의 `Initial Instruction / Deliverable / Inputs / Timebox`까지만 배포하고, Intervention과 Recommended Prompt는 실습 진행 중 정해진 시점에만 공개한다.
 >

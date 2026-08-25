@@ -2,7 +2,7 @@
 
 > **Course ID:** ooad
 > **파이프라인 자리:** `Portfolio Design(portfolio/) + 과정 설계 지침(guides/과정_설계_지침.md) + References + Human↔LLM → Course Design(courses/ooad/design/)`.
-> **권위 순서:** portfolio/*.md(Portfolio Canon) > `context/course-portfolio-unified-v2.6/courses/01_ooad.md`(Course Baseline) > 이 문서.
+> **권위 순서:** `portfolio/*.md`(Portfolio Canon) > 이 Course Design. legacy context v2.6은 migration provenance이며 현재 권위·입력이 아니다.
 > **경계:** 이 문서는 세션 번호·시간표·구체 커리큘럼 구조를 소유하지 않는다. 그것은 `courses/ooad/ooad-curriculum.md`(실제 정본 커리큘럼)가 소유한다. 이 문서는 Baseline에서 intended progression / topic priority / sequencing rationale / coverage intent만 프로즈로 가져온다.
 
 ---
@@ -219,7 +219,7 @@ OOAD DIP ───────────────────────�
 
 ## 13. Foundational Decision Lens Fit
 
-`portfolio/principles.md` §A 5개 Lens 중 OOAD의 실제 판단을 강화하는 것만 적용한다(Baseline "Foundational Decision Lens Alignment", `context/.../support/04_audit/01_portfolio-integrity-audit-v2.6.md` §4 판정 반영):
+`portfolio/principles.md` §A 5개 Lens 중 OOAD의 실제 판단을 강화하는 것만 적용한다. 아래는 migration 당시 흡수·검증된 판정을 현재 기준선으로 유지한 것이다:
 
 - **APPLY:** Systems Thinking(SYS-01/02) — 객체 하나가 아니라 협력 전체(collaboration)를 본다; Empiricism/Scientific Thinking(EMP 계열) — 모델·계약·테스트 evidence로 설계를 교정한다.
 - **Rule:** 관련 없는 Lens를 형식상 억지로 추가하지 않는다. Lean/ToC/Design Thinking Lens는 이 과정의 핵심 판단을 강화하지 않으므로 적용하지 않는다.

@@ -2,7 +2,7 @@
 
 > **Status:** Portfolio Canon
 > **Purpose:** 특정 과정 수나 이름에 종속되지 않고, 과정 사이에서 공통 개념이 어떻게 재정박·확장되는지 관리한다.
-> **Does not own:** 개별 개념의 정의 자체. 정의 OWNER는 `03_terminology.md`와 `04_concept-ownership-map.md`가 소유한다.
+> **Does not own:** 개별 개념의 정의 자체. 정의 OWNER는 `portfolio/terminology.md`와 `portfolio/concept-ownership.md`가 소유한다.
 
 
 ## 0. Portfolio Design Axes
@@ -166,9 +166,9 @@ QM에서 묻는 질문:
 
 ## 11. New Course Admission
 
-신규 과정의 authoritative 절차는 `09_portfolio-change-and-extension-protocol.md`를 따른다.
+신규 과정의 authoritative 절차는 `portfolio/governance.md` Part B(Change & Extension Protocol)를 따른다.
 
-새 과정은 `06_course-spec-template.md`를 먼저 작성한다.
+새 과정은 `portfolio/course-spec-template.md`를 먼저 작성한다.
 
 필수 판단:
 1. 어떤 독립 문제를 소유하는가?
@@ -183,7 +183,7 @@ QM에서 묻는 질문:
 ## 12. Future Portfolio
 
 DevOps / SW Project Management / SW Proposal / DT→AX는 Course Admission을 통과한 현재 Baseline 과정이다. 이후 신규 과정도 이름만으로 OWNER를 확정하지 않는다.
-Course Admission을 통과한 뒤 `support/01_governance/10_course-catalog.md`에 status와 ownership을 등록한다.
+Course Admission을 통과한 뒤 `portfolio/portfolio-context.md` Part B(course-catalog)에 status와 ownership을 등록한다.
 
 
 ## 13. Architecture Spine
@@ -210,7 +210,7 @@ dimension**, Quality Attribute reasoning은 **decision basis**다. 셋 중 하�
 ## 14. Evidence / Localization Pointer
 
 Global Baseline/source precedence, evidence role, Local/System Constraint와 Contextual Adaptation classification은
-`07_evidence-source-localization-policy.md`가 authoritative owner로 소유한다.
+`portfolio/evidence-policy.md`가 authoritative owner로 소유한다.
 
 Cross-course rule은 하나뿐이다.
 

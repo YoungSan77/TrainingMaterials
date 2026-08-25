@@ -3,7 +3,7 @@
 > **Course ID:** swqm
 > **Stage:** Course Design (Stage 1 of 3) — 이 문서는 `guides/과정_설계_지침.md` §2-a 구조를 따른다.
 > **Authority:** `portfolio/practice-standard.md` · `portfolio/evidence-policy.md` · `portfolio/concept-ownership.md` §15 · `portfolio/cross-course-framework.md` §9 (portfolio-wide 정본).
-> **Baseline source:** `context/course-portfolio-unified-v2.6/courses/06_swqm.md`(progression/priority/rationale/coverage-intent만 추출, 커리큘럼 백본은 옮기지 않음).
+> **Migration provenance:** legacy context v2.6에서 progression/priority/rationale/coverage-intent만 흡수했다. 현재 권위는 위 Portfolio 정본과 이 Course Design에 있다.
 > **Curriculum pointer (read-only, 정본 아님):** 이 과정은 저장소에 이미 `courses/swqm/swqm_커리큘럼.md`(16시간·2일·11세션, S01–S11)로 존재한다. 이 Course Context는 그 Curriculum을 대체하거나 재정의하지 않으며, 세션 번호·시간표·명제 목록을 복제하지 않는다. Curriculum과 이 문서가 다른 시간 단위(baseline 8h vs 실제 16h)를 언급하는 경우, **실제 Curriculum이 우선**하며 이 문서의 baseline 인용은 진행 순서·우선순위·근거·커버리지 의도를 설명하는 배경 자료로만 쓴다.
 
 ---
@@ -63,7 +63,7 @@ QM은 다른 기술과정의 설계법을 다시 정의하지 않는다. Require
 
 ## 9. Foundational Decision Lens Fit
 
-> `portfolio/principles.md` §A의 5개 Lens 중 이 과정에 실제로 강화되는 것만 채택한다. 판정은 `context/.../support/04_audit/01_portfolio-integrity-audit-v2.6.md` §4의 기존 판단을 그대로 옮긴 것이며, 여기서 새로 판정하지 않는다.
+> `portfolio/principles.md` §A의 5개 Lens 중 이 과정에 실제로 강화되는 것만 채택한다. migration 당시 흡수·검증된 판정을 현재 기준선으로 유지한다.
 
 - **APPLY:** Systems Thinking; Lean Thinking; Theory of Constraints; Empiricism / Scientific Thinking.
 - **Why:** 품질을 flow와 system behavior로 보고, 주요 defect source/constraint부터 evidence 기반으로 개선한다.

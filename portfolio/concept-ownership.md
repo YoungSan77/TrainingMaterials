@@ -566,17 +566,17 @@ XP / Kanban / SAFe / LeSS / Nexus / Jira / Story Point mechanics / Burn charts.
 5. 학습자가 과정 후 실제로 내려야 할 decision이 무엇인가?
 6. 그 decision의 Trade-off / Failure Condition / Evidence가 무엇인가?
 7. Vendor/tool이 사라져도 과정 identity가 남는가?
-8. `06_course-spec-template.md`를 채울 수 있는가?
+8. `portfolio/course-spec-template.md`를 채울 수 있는가?
 
 DevOps, SW Project Management, SW Proposal, DT→AX는 이 gate를 통과했다. 이후 신규 과정은 이 gate를 통과한 뒤
-`support/01_governance/10_course-catalog.md`에 등록한다.
+`portfolio/portfolio-context.md` Part B(course-catalog)에 등록한다.
 
 
 ---
 
 ## 17. Evidence / Localization Governance Pointer
 
-Source hierarchy와 Global/Korea precedence는 `07_evidence-source-localization-policy.md`가
+Source hierarchy와 Global/Korea precedence는 `portfolio/evidence-policy.md`가
 단일 authoritative owner가 소유한다.
 
 Concept Ownership 관점의 규칙:

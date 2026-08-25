@@ -3,7 +3,7 @@
 > **Course ID:** ddd
 > **Pipeline stage:** Course Design (Stage 1) — `guides/과정_설계_지침.md`가 정하는 절차의 산출물.
 > **Authority order:** `portfolio/*.md`(Portfolio Canon) → 이 문서 → `courses/ddd/curriculum.md`(실제 8교시 커리큘럼, 이 문서가 대체하지 않음).
-> **Source of Learner & Context Fit / Lens Alignment:** `context/course-portfolio-unified-v2.6/courses/02_ddd.md`(Unified Baseline v2.6) — §3 규칙에 따라 그대로 가져오며 요약·재작성하지 않는다.
+> **Migration provenance:** Learner & Context Fit / Lens Alignment은 legacy context v2.6에서 흡수했다. 현재 권위는 위 Portfolio 정본과 이 Course Design에 있다.
 > **Non-goal:** 이 문서는 `courses/ddd/curriculum.md`의 세션 번호·시간표·교시 구성을 재정의하지 않는다. Curriculum이 이미 그 정보의 SSOT다. 아래 "Known Gap" 절은 서술로만 존재하며 curriculum.md를 직접 수정하지 않는다.
 
 ---
@@ -18,7 +18,7 @@
 
 ## 3. Learner & Context Fit
 
-> `context/course-portfolio-unified-v2.6/courses/02_ddd.md`의 "Learner & Context Fit"에서 그대로 가져온다 (지침 §3: 기존 baseline이 이미 채운 절이므로 요약/재작성하지 않는다).
+> migration 당시 legacy context v2.6의 "Learner & Context Fit"을 요약·재작성 없이 흡수한 내용이다.
 
 - **Audience / Work Context:** 도메인 복잡성을 모델과 코드로 다루는 개발자·설계자·아키텍트.
 - **Current Capability / Failure Mode:** 데이터 구조나 기술 구조 중심으로 모델링하고 언어·불변식·경계의 의미가 분산된다.
@@ -173,7 +173,7 @@ Coverage Matrix(§2)의 세부 항목: `Domain / Ubiquitous Language`, `Entity /
 
 ### Foundational Decision Lens Fit (`portfolio/principles.md` §A, DDD가 APPLY하는 것만)
 
-`context/.../support/04_audit/01_portfolio-integrity-audit-v2.6.md` §4가 이미 확정한 판정을 그대로 가져온다 (지침 §4).
+migration 당시 흡수·검증된 판정을 현재 기준선으로 유지한다(지침 §4).
 
 - **Systems (SYS-01/02):** domain interaction 전체와 boundary/interaction을 하나의 system으로 본다.
 - **Design (DT-01/02):** domain discovery — 문제/의미를 먼저 이해한 뒤 모델을 만든다 (Prototype to Learn 정신은 모델 가설 검증에 대응).
@@ -227,4 +227,4 @@ Baseline "8. Principles / Trade-off / Failure" verbatim:
 - 현재 커리큘럼이 **KEEP**하는 것(canon과 이미 정합): Event Storming(발견), Aggregate boundary 판단(경계 draw + trade-off), Context Mapping(그리기). 이 세 가지는 canon의 OWNER 범위 안에 있고 실습 품질도 유지된다.
 - 현재 커리큘럼에 **없는** 것: Domain/Subdomain/Ubiquitous Language의 정본 정의, Domain Model/Model-Driven Design의 정본 도입, Entity/VO/Domain Invariant/Aggregate Root라는 **용어**의 정본 정의(판단 로직은 있으나 이름이 없음), Domain Service/Repository/Domain Event 세 tactical pattern 전체.
 
-이 gap의 배경 분석은 `program-design/decisions/curriculum-canon-audit-v1.md`(HIGH priority, "없는 것이 아니라 완전히 빈 것")에 이미 기록되어 있다. 이 course-context.md는 그 audit의 결론을 반박하거나 무마하지 않고, canonical target(§9 OWNER)을 있는 그대로 명시하는 역할만 한다. **curriculum.md를 실제로 어떻게 확장할지(세션 추가, 1일 유지 vs 확장)는 Curriculum Authoring 단계(Stage 2)의 판단이며 이 문서의 범위 밖이다.**
+이 gap은 migration 이전 legacy audit에서 HIGH priority("없는 것이 아니라 완전히 빈 것")로 식별됐고, 결론은 이 Course Design에 흡수되었다. 이 course-context.md는 canonical target(§9 OWNER)을 있는 그대로 명시한다. **curriculum.md를 실제로 어떻게 확장할지(세션 추가, 1일 유지 vs 확장)는 Curriculum Authoring 단계(Stage 2)의 판단이며 이 문서의 범위 밖이다.**

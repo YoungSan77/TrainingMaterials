@@ -1,7 +1,7 @@
 # Portfolio Governance — Structure, Change Protocol & Quality Gate v2.6
 
 > **Status:** Portfolio Canon
-> **Composition:** 이 문서는 `context/course-portfolio-unified-v2.6/support/01_governance/`의 세 문서를 하나로 합친 것이다 — 08(File Structure & Authority), 09(Change & Extension Protocol), 11(Quality Gate). 셋 다 "이 저장소를 어떻게 운영·변경·검증하는가"를 다루는 운영 거버넌스라 한 파일로 묶었다. 내용은 축약 없이 원문 그대로 옮겼다.
+> **Legacy migration provenance:** legacy context v2.6의 File Structure & Authority, Change & Extension Protocol, Quality Gate를 하나로 흡수했다. 현재 운영 거버넌스의 유일한 정본은 이 문서이며 legacy 자료는 Git history에만 보존된다.
 > 개념 정의·소유권은 이 문서가 아니라 `terminology.md`·`concept-ownership.md`가 소유한다.
 
 ---
