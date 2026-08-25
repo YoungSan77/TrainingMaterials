@@ -1,113 +1,563 @@
-# 개념 소유 지도 — 연계 프로그램
+# 04. Concept Ownership Map v2.2
 
-## 프로그램 명제 (governing — 자세보다 상위, 오리엔테이션·포지셔닝이 여기서 파생)
-- **명제**: LLM은 우발 복잡도를 걷어낸다. 남는 본질 복잡도는 대부분 암묵지 — 요구사항·도메인 규칙·불변식·경계 — 이고, LLM은 이를 확률로 추론할 뿐 명세하지 못한다. 그 명세는 인간의 몫이며, 명세하지 못한 격차는 개발자가 메운다. 이 프로그램이 가르치는 요구공학·도메인 모델링·아키텍처가 바로 그 명세 기술이다. 도구가 강해질수록 이 역량은 덜 필요해지지 않고 **더 드러난다**. 용어는 새로워도 문제는 Brooks(essence/accidental)·에반스(VO·Aggregate)가 정리한 그것이다.
-- **반론과 응답**: "LLM이 결국 명세까지 충분히 잘하게 되면?" — 그런 도메인은 늘 늘어난다. 그러나 "LLM이 명세를 잘한다"는 곧 "그 도메인의 암묵지가 이미 명시화됐다"는 뜻이다. LLM은 명세를 창조하지 않고 명시화된 것을 재생한다. 명세 노동은 사라지지 않고 **프런티어로 이동**한다 — 아직 암묵인 도메인, 그리고 확률적 산출이 옳은지 통제하는 자리로. 개발자의 역할은 명세자→검증자로 올라갈 뿐, 판단은 항구적이다.
-- **판단 대상의 상승(지평선)**: 판단의 대상은 코드 → 명세 → 자원 배분으로 오른다. 이 프로그램은 명세까지를 가르친다. 배분은 지평선으로 선언만 하고 커리큘럼에 넣지 않는다(축이 다름).
-- 포지셔닝: (2) 공격 우선 — 이 명제가 프로그램을 파는 논리(수요 소멸에 대한 답). (1) 방어 — 각 과정 오리엔테이션이 이 명제를 선언.
+> **Structure:** Concept registry + current Portfolio snapshot
+> **Current engineering portfolio:** OOAD · DDD · SW Architecture · MSA · AI-Native SE
+> **Cross-cutting:** Modern QM
+> **Bridge:** Ontology / Explicit Semantics
+> **Scalability rule:** 새 과정이 추가되어도 전체 matrix를 정본 구조로 고정하지 않는다. Concept별 OWNER와 Consumer 관계가 정본이며, matrix는 현재 Portfolio의 snapshot이다.
+> **Purpose:** 개념의 정의·정본 교육(OWNER)과 재정박·적용(CONSUMER)을
+> 분리해 중복과 drift를 막는다.
 
-## 목적
-- 두 질문을 분리한다: **누가 개념을 가르치나(소유)** vs **누가 랩에서 도구로 쓰나(활용)**. 답이 대개 다르다.
-- 각 개념은 한 과정이 소유(정의·정본 교육)하고 나머지는 참조·적용한다.
-- 활용은 소유가 아니다 — 실습에서 쓰는 도구는 **환경 설정·이용을 위한 최소 개념만** 두고 가르치지 않는다.
+------------------------------------------------------------------------
 
-## 프로그램 자세 (전 과정 공통 — 각 과정 1교시 오리엔테이션에서 선언)
-- **조건부 필요악**: 완벽한 코드가 가능하면 분석·아키텍처·설계·테스트는 불필요하다. 불가능하기에 도입된 **보정**이다. 목적에 맞게 아는 채로 하면 도움, 모르거나 지나치면 필요악(순수 오버헤드). 악이 되는 건 도구가 아니라 오용(무지·과잉).
-- **Just Enough**: 사전 활동은 코드가 요구하는 만큼만. 모자라면 부채가 쌓이고(무지), 넘치면 그 자체가 부채다(과잉). 반복점진·프로토타이핑으로 나머지는 코드로 배운다(BDUF 아님).
-- **예방/상환 구분**: 사전(분석·설계·아키·테스트) = 부채 **예방** / 사후(유지보수 리팩토링) = 부채 **상환**. 서론의 자세는 예방.
-- 프로그램 축과 일치: 복잡도가 정당화할 때만 리치 · 필요 없는 MSA는 짓지 마라(YAGNI) · 우발 복잡도 억제.
-- 유지 주기: 앞 4과정은 안정(수십 년), LLM 2과정만 빠르게 낡는다 — 도구·모델 버전은 부록으로 격리, 본문은 원칙만. 두 리듬을 섞지 않는다.
+## 1. Ownership Modes
 
-## LLM 트랙 격리 불변식 (단방향 의존)
-- **앞 4과정(OOAD·아키텍처·DDD·MSA)은 LLM 트랙을 모른다.** LLM 2과정(AI-assisted·Agentic)이 앞 넷을 **소비·참조만** 한다. 의존성 규칙의 편성판 — 안쪽은 바깥을 모른다.
-- 그래서 앞 4과정 문서에 특정 LLM 과정을 지목하는 참조는 **금지**. 허용되는 것은 **추세·원칙 언급 1~2줄**("이 판단력이 효과적 LLM 도입의 출발점")뿐 — LLM 과정이 바뀌거나 없어져도 참인 문장.
-- 효과: LLM 2과정을 아무리 바꾸거나 미뤄도 앞 넷은 무풍. 개발도 미룰 수 있다.
+  -----------------------------------------------------------------------
+  Mode                                의미
+  ----------------------------------- -----------------------------------
+  **OWNER**                           정의·기원·판단·적용
+                                      조건·Trade-off·실패 조건까지 정본
+                                      교육
 
-## 개념 소유 (누가 가르치나)
-| 개념 | 소유 | 참조·적용 |
-|---|---|---|
-| OO 기초(추상화·캡슐화·다형성·상속) | OOAD | 아키텍처: 최소 리프레시 |
-| 요구사항 → 모델(유스케이스 주도 분석·도메인 개념 도출) | OOAD | — |
-| 책임 할당·GRASP | OOAD | — |
-| SOLID | OOAD | 아키텍처: DIP·SRP 리프레시 |
-| 디자인 패턴(GoF 소수: Adapter·Strategy·Factory·Observer·Template) | OOAD(OO 설계 기법) | 아키텍처: 클린 재등장분만 브리핑(Adapter=포트/어댑터, Factory=합성) |
-| TDD(테스트 우선 = 설계 압력) | OOAD | 아키텍처: 유스케이스 테스트 용이성 |
-| 결합도·응집도 | OOAD(객체 수준) | 아키텍처: 모듈·아키텍처 수준 격상 |
-| DDD 전술(Entity·VO·Aggregate·Domain Service·Repository·Factory·Domain Event) | OOAD | 아키텍처: 리치 도메인 사용 / DDD: 모델링 실습 |
-| 리팩토링 | 아키텍처(엔진) | 전 과정 랩 |
-| 의존성 규칙(Clean) | 아키텍처 | OOAD의 DIP 위에 |
-| 아키텍처 스타일·클린 4레이어 | 아키텍처 | — |
-| 스파게티→TS→리치 | 아키텍처 | — |
-| Order 예제 도메인 | 아키텍처(정의) | MSA: 분해 확장 / 전 과정 공유 |
-| DDD 전략(Bounded Context·Context Mapping) | MSA | DDD: 모델링 실습 |
-| 모듈러 모놀리스·서비스 추출·분산 패턴 | MSA | 아키텍처: 티저 |
-| 요구사항 품질·정의(ISO 29148·BABOK) | QM(S03) | OOAD: 분석 입력으로 참조 |
-| 테스트 기법·CI/CD·자동화·보안 취약성 | QM | 아키텍처: 다리만 |
-| 모델링 실습(이벤트 스토밍·애그리거트 워크숍) | DDD 1일 | OOAD 전술·MSA 전략 적용 |
-| AI 통제·효과적 LLM 도입(판단으로 AI 출력 통제) | LLM 트랙 | 앞 4과정: 추세 언급 1~2줄만(지목 금지) |
-| 에이전트 파이프라인 설계·통제(경계·HITL 게이트) | LLM 트랙(Agentic) | 아키텍처·MSA를 소비 |
+  **RECAP**                           독립 수강을 위한 최소 의미 복구
 
-## 실습 도구 (랩에서 쓰나 — 소유 아님, 환경 설정·이용 최소 개념만)
-| 도구 | 쓰는 곳 | 역할 |
-|---|---|---|
-| linter/정적분석(ArchUnit류) | 아키텍처 랩 | 의존성 규칙 게이트 — 초록불 = 규칙 통과 |
-| 캡슐화 강제 커스텀 린터(도메인 @Setter·@Data·public setter·@AllArgsConstructor 금지) | 아키텍처 랩(부3) | 빈혈 도메인 회귀 차단. **아키텍처 규칙 강제이지 품질 게이트 아님** — 소유는 아키텍처 |
-| 프레임워크(Spring) | 아키텍처 랩 | 최외곽 레이어 시연(제한적). "여기 앉고, 도메인에 의존한다" |
-| 품질 게이트 linter·SAST | QM 파이프라인 | 코드 품질·보안 게이트 |
-| 게이트 재사용(ArchUnit·캡슐화 린터·규칙 테스트) | LLM 2과정 랩 | AI 출력·에이전트 단계 산출을 앞 넷 게이트로 통과시킴(활용, 새로 안 만듦) |
-| 인메모리 파이프라인·메시지 스텁 | Agentic·MSA 랩 | 실제 프레임워크·브로커 없이 오프라인 시뮬(번들 준수) |
+  **APPLY**                           OWNER 정의를 바꾸지 않고 해당 과정
+                                      문제에 적용
 
-## R&R — 3자 역할과 경계원칙
+  **EXTEND**                          같은 원리를 더 큰/다른 수준으로
+                                      확장
 
-**3자 역할**
-- **Youngon**: 판단·정본의 원천. 교과 내용의 깊이·범위·계보·서술 방식 결정, 원전 해석 최종 판정, 최종 승인권.
-- **Claude(대화)**: 밀도 필요 교과의 소스 저작, 구조·규약 설계, 판단 보조. 결정은 사용자, 근거는 Claude.
-- **Claude Code**: 소스→슬라이드 변환(소스의 설명을 슬라이드 본문으로 펴는 것까지 책임), 엔진·회귀 수호, 저장소 관리.
+  **FORWARD**                         후속 과정에서 다룰 개념의 필요성만
+                                      예고
 
-**경계원칙**
-1. **내용 판단은 대화에서, 구현은 Code** — Code 즉석 생성 금지(소스 없이 밀도 교시 만들지 말 것).
-2. **Code 산출이 얕으면 소스를 의심한다** — Code는 있는 걸 펴는 것까지, 없는 걸 채우는 건 소스(Claude).
-3. **정본은 저장소, 판단은 대화, 반영은 Code.** 확정된 규칙·계보·결정은 반드시 저장소 md에 박는다.
+  **BRIDGE**                          두 과정 사이에서 동일 정의를
+                                      공유하되 서로 다른 적용 질문을 담당
+  -----------------------------------------------------------------------
 
-## R&R — 산출물(pptx) 관리 책임
-- **소스(`.js`)만 버전 관리 대상이다.** 렌더 산출물(pptx)은 저장소에 커밋하지 않는다 — `.js`에서 언제든 재생성되고, 바이너리 커밋은 git·pull을 무겁게 만든다.
-- 렌더는 두 용도뿐이다: (1) 사용자가 로컬에서 `node engine/cli.js build <deck>`으로 직접 만들어 본다. (2) Code(생성 에이전트)가 검증 목적으로 렌더한다 — **검증 후 그 산출물을 커밋하지 않는다.**
-- `courses/*/out/`은 `.gitignore` 대상이다 — 예외를 두지 않는다.
+------------------------------------------------------------------------
 
-## DDD 전술 경계 (겹침 주의)
-- **Domain Service**(도메인 로직) ≠ **Application Service = Use Case**(아키텍처, 유스케이스 층). 이 혼동을 OOAD에서 명시적으로 끊는다.
-- **Repository·Factory**: 개념은 OOAD, 레이어링·합성(인터페이스 위치·DIP·DI)은 아키텍처.
-- **Domain Event**: 존재만 OOAD, 인프로세스 이벤트 취급은 아키텍처·MSA.
-- **디자인 패턴 중복 주의**: Adapter·Factory는 OOAD(OO 기법)·아키텍처(포트/합성)·DDD 전술(Repository는 Adapter, Factory는 전술)에 걸친다. OOAD가 기법을 소유, 아키텍처·DDD는 *쓰임*만 — 새로 가르치지 않는다.
-- **애그리거트 3단계 간격 반복**: OOAD(개념) → 아키텍처 리치(적용) → DDD 1일(craft 워크숍). OOAD는 개념까지만, 모델링 craft는 DDD 과정 소유.
+## 2. Current Portfolio Coverage Matrix
 
-## OOD ↔ 아키텍처 이음매 (양방향)
-- 원칙: **OOD는 아키텍처 중립이 아니다.** 아키텍처가 지배하는 OOD 개념은 OOAD에서 **forward-ref로 플래그**(해법은 안 가르침, 소유는 아키텍처 유지)하고, 아키텍처에서 **re-anchor로 재정박**한다.
-- 적용 3점(각각 두 번 등장, 주제 기반 — 교시 번호는 재배분에 흔들리므로 쓰지 않음):
-  - Domain Service ≠ Application Service — OOAD DDD 전술에서 도입 → 아키텍처 유스케이스 도입부에서 재정박.
-  - Repository — OOAD 개념 → 아키텍처 리치 완성에서 레이어링 확정.
-  - DIP → 의존성 규칙 — OOAD SOLID에서 → 아키텍처 의존성 관리에서 재정박.
+  --------------------------------------------------------------------------------
+  Concept Family   OOAD        DDD          SWA          MSA          AI-Native
+  ---------------- ----------- ------------ ------------ ------------ ------------
+  Modeling         **OWNER**   APPLY        APPLY        RECAP        APPLY
+  fundamentals                                                        
 
-## 요구공학 분할
-- OOAD는 분석 진입부까지 — 요구사항 → 유스케이스(형식 대안: 유저 스토리) → 도메인 개념. **BDD(Given-When-Then)** 는 요구사항↔실행가능 명세 다리로 살짝, TDD로 연결. Order 상태 전이(R6)를 시나리오 예로.
-- 완전한 RE(도출·명세·검증·추적·관리)는 어느 과정도 깊게 안 한다 — QM 품질 쪽이거나 별도 요구공학 트랙(후보).
+  Object /         **OWNER**   APPLY        EXTEND       RECAP        EXTEND
+  Responsibility /                                                    
+  Collaboration                                                       
 
-## 선수 체인
-- OOAD → SW 아키텍처(OOAD 강제 선수) → MSA(아키텍처 선수).
-- DDD 1일: OOAD(전술) 이후 권장.
-- AI-assisted dev: 앞 4과정(특히 OOAD·아키텍처) 소프트 선수 — 명세·판단을 AI 통제로 전환.
-- Agentic SW dev: 아키텍처·MSA 강 선수 — 경계·포트·Saga·HITL 게이트를 파이프라인 설계에 재사용. AI-assisted 이후 권장.
-- 두 LLM 과정 모두 앞 넷의 capstone(단방향, 격리 불변식). 요구공학·보안은 별도 트랙 후보.
+  Cohesion /       **OWNER**   APPLY        **EXTEND**   **EXTEND**   APPLY
+  Coupling                                                            
 
-## 교과 계보·서술 원칙 (OOAD 소스 규율 — `grasp-source.md` 등 내용 정본에 적용)
-- **계보**: Larman(RDD·GRASP·DbC·유스케이스 주도 분석·반복점진 개발) → 에반스(DDD: VO·Aggregate·Domain Service·Bounded Context) → 아키텍처(그 위의 정형 패턴). OOAD가 이 계보의 앞머리를 소유하고, DDD·아키텍처가 뒤를 잇는다 — 개념 소유 표(위)와 같은 방향이다.
-- **RDD가 주, GRASP·SOLID는 도구**: 설계 질문은 "이 책임은 누가 지나"(RDD)이고, GRASP는 그 판단을 돕는 9개 관점, SOLID(특히 SRP·DIP)는 그 배치가 변화에 견디는지 보는 각도다. 원칙 자체를 목적으로 가르치지 않는다 — RDD 없이 GRASP부터 던지지 않는다.
-- **단계논리(원칙→패턴→아키텍처)**: 원칙은 단일 관점의 판단이다. 현실 문제는 여러 관점이 얽혀 원칙 하나로 안 풀린다. 원칙들의 긴장을 상황에 맞게 조합한 정형 해법이 디자인 패턴(Factory=복잡 Creator, Strategy=Polymorphism+Protected Variations, Adapter=Indirection …), 더 큰 조합이 아키텍처 패턴이다. 원칙을 알면 패턴을 유도하고, 모르면 암기한다.
-- **탈신비화 서술 원칙**: GRASP·디자인 패턴·DDD 전술은 새 지식이 아니라 개발자들이 이미 해오던 판단의 **명명·패턴화**다 — Larman·에반스는 발명이 아니라 정리를 했다. 이 프로그램의 서술은 "몰랐던 것을 배운다"가 아니라 "하던 것에 이름이 붙는다"는 톤을 유지한다(프로그램 명제의 "용어는 새로워도 문제는 이미 정리된 것"과 같은 결).
-- **설명=NewPOS·실습=Order**: 원칙·패턴의 개념 설명은 원 소스(Larman NewPOS)를 그대로 써서 정본 추적성을 지키고, 실습은 6과정이 공유하는 Order로 통일해 도메인을 새로 익히는 비용을 만들지 않는다. 둘을 섞지 않는다 — 설명 슬라이드에 Order 코드를, 실습에 NewPOS 코드를 끼워 넣지 않는다.
-- **정적/동적 모델 프레임도 Larman**: 정적 모델(개념 모델 → 클래스 모델)·동적 모델(유스케이스 → SSD(시스템 순서도) → 상호작용 → 상태 머신)은 Larman 프레임으로 세운다 — GRASP·operation contract와 한 저자·한 예제(NewPOS)라 OOA 전체(부1 분석·부3 GRASP)가 계보상 일관된 한 흐름이 된다.
+  SOLID / DIP      **OWNER**   APPLY        **EXTEND**   RECAP        APPLY
 
-## 공유 자산
-- 예제 도메인: Order — 아키텍처가 정의(`order-domain-definition.md`), MSA가 분해 확장.
-- 관통 개념: Brooks 복잡도·결합/응집·의존성 규칙 — 소유 과정이 정의, 나머지는 인용.
-- 관통 자산: Order 코드 3벌(스파게티/TS/리치)과 게이트(ArchUnit·캡슐화 린터·규칙 테스트)를 6과정이 공유. 앞 넷은 짜고 고치고, LLM 2과정은 AI 출력·에이전트 산출을 같은 게이트에 통과시킨다.
+  Domain /         FORWARD     **OWNER**    APPLY        APPLY        APPLY
+  Ubiquitous                                                          
+  Language                                                            
+
+  Entity / VO /    FORWARD     **OWNER**    APPLY        APPLY        APPLY
+  Aggregate /                                                         
+  Invariant                                                           
+
+  Domain Service / FORWARD     **OWNER**    APPLY        EXTEND       APPLY
+  Repository /                                                        
+  Domain Event                                                        
+
+  Bounded Context  FORWARD     **OWNER**    APPLY        **APPLY**    APPLY
+  / Context                                                           
+  Mapping                                                             
+
+  Architecture     FORWARD     APPLY        **OWNER**    APPLY        APPLY
+  Drivers /                                                           
+  Quality                                                             
+  Attributes                                                          
+
+  Module /         APPLY       APPLY        **OWNER**    EXTEND       APPLY
+  Component /                                                         
+  Dependency                                                          
+
+  Port / Adapter / FORWARD     APPLY        **OWNER**    APPLY        APPLY
+  Application                                                         
+  Boundary                                                            
+
+  Architecture     FORWARD     APPLY        **OWNER**    APPLY        APPLY
+  Decision /                                                          
+  Evaluation /                                                        
+  Fitness                                                             
+
+  Modular Monolith ---         FORWARD      FORWARD      **OWNER**    ---
+
+  Service Boundary ---         FORWARD      FORWARD      **OWNER**    ---
+  / Extraction                                                        
+
+  Distributed      ---         ---          FORWARD      **OWNER**    APPLY
+  communication /                                                     
+  consistency /                                                       
+  failure                                                             
+
+  Distributed      ---         ---          FORWARD      **OWNER**    APPLY
+  observability /                                                     
+  operation                                                           
+
+  Explicit         ---         **BRIDGE**   APPLY        APPLY        **BRIDGE**
+  Semantics /                                                         
+  Ontology need                                                       
+
+  Specification    ---         ---          APPLY        ---          **OWNER**
+  Engineering                                                         
+
+  Context          ---         ---          APPLY        ---          **OWNER**
+  Engineering                                                         
+
+  Prompt           ---         ---          ---          ---          **OWNER**
+  Engineering                                                         
+
+  Guardrail /      ---         ---          APPLY        APPLY        **OWNER**
+  Harness                                                             
+
+  Agent / HITL /   ---         ---          APPLY        APPLY        **OWNER**
+  Autonomy                                                            
+
+  AI Evaluation /  ---         ---          APPLY        APPLY        **OWNER**
+  Observability /                                                     
+  Cost                                                                
+  --------------------------------------------------------------------------------
+
+이 표에서 **APPLY가 많다고 해당 과정이 개념을 다시 정의해서는 안 된다.**
+
+------------------------------------------------------------------------
+
+## 3. OOAD Ownership
+
+### OWNER
+
+-   Model / Modeling 기초
+-   Analysis Model / Design Model
+-   Object / Class / Message / State / Behavior
+-   Responsibility / Collaboration
+-   Encapsulation
+-   Static / Dynamic Modeling
+-   GRASP / Information Expert
+-   객체 수준 Cohesion / Coupling
+-   SOLID
+-   Design Pattern fundamentals
+-   Tell Don't Ask / LoD / CQS 등 OO heuristic
+-   Design by Contract / Precondition / Postcondition / Object Invariant
+-   TDD / Refactoring의 설계 피드백
+
+### FORWARD
+
+-   Domain Model / DDD tactical concepts
+-   Architecture Driver / Dependency Rule
+-   System boundary
+-   MSA / AI는 과정 지도 수준
+
+### Migration from Current
+
+기존 OOAD S09 `아키텍처 지향`은 유지하되 SWA의 상세 내용을 소유하지
+않는다.\
+기존 S14 `DDD·MSA 진화`는 DDD 전술 교육을 내려놓고 **OO 모델의 한계 →
+Domain 중심 → 시스템/배포 경계**의 forward view로 재구성한다.
+
+------------------------------------------------------------------------
+
+## 4. DDD Ownership
+
+### OWNER
+
+-   Domain / Subdomain
+-   Ubiquitous Language
+-   Domain Model
+-   Entity / Value Object
+-   Invariant
+-   Aggregate / Aggregate Root
+-   Domain Service
+-   Repository concept
+-   Domain Event
+-   Event Storming / discovery
+-   Bounded Context
+-   Context Mapping
+
+### BRIDGE
+
+-   Semantic Model / Ontology 필요성
+-   Domain Model과 Ontology의 차이
+
+### Migration from Current
+
+기존 8교시 workshop의 강점은 **KEEP**한다. - Event Storming - Aggregate
+boundary - Aggregate trade-off - Context Mapping
+
+그러나 기존 "전술=OOAD, DDD=craft" 소유 구조는 폐기한다. 독립 과정이
+되도록 **Domain Model + Tactical + Strategic**의 최소 정본 교육을
+앞부분에 추가/재편한다.
+
+------------------------------------------------------------------------
+
+## 5. SW Architecture Ownership
+
+### OWNER
+
+-   Software Architecture
+-   Architecture Driver
+-   Quality Attribute / Scenario
+-   System decomposition
+-   Module / Component
+-   Dependency Rule
+-   Architecture style 선택
+-   Clean Architecture — Policy/Detail separation과 Dependency Rule의 기본 구조적 기준점
+-   Evolutionary Architecture / Architectural Characteristic / Fitness Function
+-   Application Service / application boundary
+-   Port / Adapter
+-   Architecture Decision / Trade-off
+-   Architecture Evaluation
+-   Fitness Function / Enforcement / Governance
+-   Architecture Evolution
+
+### APPLY
+
+-   OOAD의 DIP / cohesion / coupling
+-   DDD의 Domain Model / Repository / Domain Event
+
+### Migration from Current
+
+**KEEP** - 최소 OO 재정박 -
+`Spaghetti → TS → Rich Domain → Dependency Inversion` 실습 -
+Port/Adapter - ArchUnit / encapsulation gate - MSA teaser
+
+**MOVE / REDUCE** - Entity/Aggregate/Domain Modeling의 정본 설명 → DDD
+OWNER - Architecture에서는 "이미 정의된 Domain Model을 구조적으로
+보호·배치"하는 데 집중
+
+**ADD / STRENGTHEN**
+- Architecture Driver / Quality Attribute Scenario
+- 대안 비교와 Trade-off / Architecture Decision
+- Clean Architecture의 Dependency Rule을 구조적 spine으로 명확화
+- Evolutionary Architecture / Fitness Function / continuous evolution
+- Evaluation / Conformance
+
+### Critical Gap
+
+현재 커리큘럼은 Clean/Hexagonal 구조와 domain-rich refactoring에는
+강하지만 **"왜 이 Architecture인가?"를 quality driver로 판단하는 축이
+약하다.** v2에서 반드시 보강한다.
+
+------------------------------------------------------------------------
+
+## 6. MSA Ownership
+
+### OWNER
+
+-   Modular Monolith
+-   Service Boundary Evaluation
+-   Data Ownership
+-   Service Extraction
+-   Sync vs Async
+-   Integration Event / Messaging
+-   API / Event / Schema Contract와 compatibility / contract evolution
+-   Distributed Consistency / Transaction
+-   Saga / Outbox
+-   Idempotency
+-   Failure / Resilience
+-   Distributed Observability
+-   Deployment / Scaling / Operational Complexity
+-   MSA adoption/rejection decision
+
+### APPLY
+
+-   DDD Bounded Context / Context Mapping
+-   SWA Port / Adapter / Quality Trade-off
+
+### Migration from Current
+
+**KEEP** - 왜/언제 MSA -
+`Bounded Context → Modular Monolith → boundary validation → extraction` -
+Data ownership - Sync/Event 선택 - Saga/Outbox/Eventual Consistency -
+YAGNI / distributed spaghetti
+
+**CHANGE** - 기존 S02 `DDD 전략: BC·Context Mapping`은 OWNER 교육이
+아니라 **DDD recap + service-boundary input**으로 축소
+
+**ADD / STRENGTHEN** - Partial failure / timeout / retry / idempotency -
+Observability - Deployment / operation / scaling cost
+
+### Capacity Decision
+
+현재 8교시를 유지하면 위 추가 내용을 모두 깊게 다룰 수 없다.
+
+선택지는 둘이다. 1. **8교시 유지:** pattern breadth를 줄이고
+`boundary + failure + operation`에 집중 2. **2일 확장:** distributed
+patterns와 operation까지 실습
+
+기본 권고는 **1일 과정의 정체성을 "MSA 도입·경계·핵심 분산 Trade-off
+판단"으로 유지**하고, 심화 패턴은 부록/Advanced로 격리하는 것이다.
+
+------------------------------------------------------------------------
+
+## 7. AI-Native Ownership
+
+### OWNER
+
+-   Human--AI R&R
+-   AI-assisted workflow
+-   Specification Engineering
+-   Context Engineering
+-   Prompt Engineering
+-   Task / Knowledge / Tool / State / Domain-Policy Context
+-   Guardrail
+-   Harness
+-   Agent
+-   Agentic Workflow / Stage Contract
+-   HITL
+-   Autonomy Boundary
+-   Evaluation / AI Observability / Cost
+
+### APPLY
+
+-   OOAD Responsibility / Encapsulation
+-   DDD Domain Model / Language / Invariant
+-   SWA Architecture Rule / Gate / Decision
+-   MSA Failure / Observability principles
+
+### Migration from Existing AI-assisted + Agentic
+
+**KEEP** - 명세되지 않은 부분의 확률적 편차 관찰 - Order 기능 생성
+비교 - 기존 engineering gate로 AI output 검증 - feedback/re-prompt
+loop - Agent = system - stage boundary - HITL - autonomy width -
+observability / cost
+
+**MERGE**
+`AI-assisted → Specification/Context → Guardrail/Harness → Agentic`
+
+**CHANGE** - 기존 AI-assisted S03에서 `context·constraint·harness`를 한
+번에 섞지 않는다. - Harness는 Context와 Guardrail 뒤에서 별도 개념으로
+정박한다. - Agentic의 Saga/보상 "재사용" 표현은 제거하고
+**failure/recovery 사고의 유사성**으로 제한한다.
+
+**ADD / STRENGTHEN** - Knowledge / Tool / State context - reusable
+engineering assets as context - explicit semantics / ontology use -
+evaluation strategy - deterministic vs probabilistic gate allocation -
+tool permission / blast radius
+
+------------------------------------------------------------------------
+
+## 8. Ontology Bridge Ownership
+
+  Topic                                     DDD          AI-Native
+  ----------------------------------------- ------------ ------------
+  Domain semantics가 왜 필요한가            **OWNER**    RECAP
+  Concept / Relation / Role / Constraint    **BRIDGE**   APPLY
+  Domain Model ≠ Ontology                   **OWNER**    RECAP
+  Ontology 도입/기각 조건                   **BRIDGE**   **BRIDGE**
+  Ontology를 AI Context로 제공              FORWARD      **OWNER**
+  Retrieval/Tool/Agent semantic alignment   ---          **OWNER**
+
+Ontology를 DDD나 AI의 필수 구현물로 만들지 않는다.
+
+------------------------------------------------------------------------
+
+## 9. Cross-Course Re-anchor Map
+
+``` text
+OOAD
+Responsibility ───────────────→ DDD Domain Responsibility
+      │
+      ├───────────────────────→ SWA Component Responsibility
+      └───────────────────────→ AI Human/Agent Responsibility
+
+OOAD DIP ─────────────────────→ SWA Dependency Rule
+
+DDD Bounded Context ──────────→ MSA Service Boundary Evaluation
+                    (≠ automatic mapping)
+
+DDD Domain Model ─────────────→ SWA Protection/Placement
+       │
+       └─ Explicit Semantics ─→ AI Context / Ontology
+
+SWA Policy / Fitness Gate ────→ AI Guardrail / Deterministic Gate
+
+MSA Failure / Observability ──→ AI Agentic Workflow
+                    (principle reuse, not pattern identity)
+```
+
+------------------------------------------------------------------------
+
+## 10. Legacy Courses → Current Engineering Portfolio
+
+  Existing          v2 Decision             Result
+  ----------------- ----------------------- -----------------
+  OOAD              **ADAPT**               Core OOAD
+  DDD               **EXPAND/REBALANCE**    Core DDD
+  SW Architecture   **KEEP + STRENGTHEN**   Specialized SWA
+  MSA               **KEEP + FOCUS**        Specialized MSA
+  AI-assisted       **MERGE**               AI-Native 전반
+  Agentic           **MERGE**               AI-Native 후반
+
+**DROP는 기본 전략이 아니다.** 중복 정의만 OWNER로 회수한다.
+
+------------------------------------------------------------------------
+
+## 11. Prerequisite Policy
+
+**Prerequisite recommended, never assumed.**
+
+  Course      Minimum Recap
+  ----------- ------------------------------------------------------
+  OOAD        없음
+  DDD         Object / Responsibility / Encapsulation / Modeling
+  SWA         Cohesion / Coupling / DIP / Domain Model의 최소 의미
+  MSA         Bounded Context + Architecture Boundary / Port
+  AI-Native   OOAD→DDD→SWA→Ontology 전체 지도와 필요한 최소 정의
+
+------------------------------------------------------------------------
+
+## 12. Ownership Violation
+
+다음은 위반이다.
+
+-   **Duplicate Definition:** OWNER 밖에서 다른 정의를 만든다.
+-   **Ownership Drift:** 실습에서 많이 쓴다는 이유로 OWNER를 옮긴다.
+-   **Boundary Collapse:** `BC=Microservice`, `Prompt=Context`,
+    `Guardrail=Harness`처럼 인접 개념을 동일시한다.
+-   **Prerequisite Leakage:** 앞 과정을 들었다고 가정해 핵심 연결을
+    생략한다.
+-   **Tool-driven Curriculum:** 제품 기능이 curriculum architecture를
+    결정한다.
+-   **Architecture Blindness:** 구조를 가르치면서
+    driver/quality/trade-off를 설명하지 않는다.
+-   **Distribution Blindness:** MSA를 가르치면서 failure/operation
+    cost를 주변 주제로 취급한다.
+-   **AI Autonomy First:** specification/context/control보다 agent
+    autonomy를 먼저 가르친다.
+
+------------------------------------------------------------------------
+
+## 13. New Concept Admission
+
+새 개념 X는 다음을 통과해야 한다.
+
+1.  해결하는 문제가 무엇인가?
+2.  Six Axes 중 어디에 속하는가?
+3.  OWNER가 누구인가?
+4.  기존 개념과 어떻게 다른가?
+5.  어떤 선택/Trade-off를 바꾸는가?
+6.  독립 수강자에게 어떤 recap이 필요한가?
+7.  Tool/Vendor가 사라져도 남는가?
+8.  기존 Portfolio로 충분한가, 별도 과정이 필요한가?
+
+
+---
+
+## 14. Scalable Concept Registry — v2.1
+
+과정 수가 증가하면 넓은 matrix만으로 ownership을 관리하지 않는다.
+정본은 Concept별 registry를 우선한다.
+
+### Contract Family
+
+#### Design by Contract
+- **OWNER:** OOAD
+- **DDD:** APPLY — Domain invariant와 domain responsibility에 적용
+- **SWA:** EXTEND — interface/port/component contract
+- **MSA:** APPLY — service contract 사고의 기초
+- **AI-Native:** EXTEND — stage contract
+- **Modern QM:** APPLY/VERIFY — 계약 충족 evidence와 gate
+
+#### Object Invariant / Domain Invariant
+- **Object Invariant OWNER:** OOAD — Design by Contract의 object validity
+- **Domain Invariant OWNER:** DDD — domain rule / Aggregate consistency
+- **SWA:** APPLY
+- **MSA:** APPLY — consistency decision의 입력
+- **AI-Native:** APPLY — constraint/context
+- **Modern QM:** VERIFY — test/evidence 대상으로 사용
+
+#### Interface / Port Contract
+- **OOAD:** FORWARD
+- **DDD:** APPLY
+- **OWNER:** SW Architecture
+- **MSA:** EXTEND
+- **AI-Native:** APPLY — Tool/adapter interface
+- **Modern QM:** VERIFY
+
+#### API / Event / Schema Contract
+- **DDD:** FORWARD — Domain Event와 외부 contract를 구분
+- **SWA:** APPLY
+- **OWNER:** MSA
+- **AI-Native:** APPLY — Tool/API integration
+- **Modern QM:** VERIFY
+
+#### Stage Contract
+- **SWA:** APPLY — gate/policy 원리
+- **MSA:** APPLY — workflow/failure 원리
+- **OWNER:** AI-Native
+- **Modern QM:** VERIFY
+
+#### Quality Evidence / Gate
+- **Quality Evidence OWNER:** Modern QM — evidence-backed quality system과 continuous feedback
+- **Quality Gate:** cross-course mechanism; 단일 OWNER로 고정하지 않음
+- **OOAD:** APPLY — test/refactoring feedback
+- **DDD:** APPLY — invariant/domain rule verification
+- **SWA:** OWNER within architecture — fitness/conformance gate
+- **MSA:** APPLY/EXTEND — resilience/contract verification
+- **AI-Native:** OWNER within AI execution — deterministic/probabilistic evaluation gate
+- **Future DevOps:** delivery pipeline gate ownership을 Course Admission에서 결정
+
+## 15. Modern QM Cross-Cutting Ownership — v2.1
+
+Modern QM은 OOAD/DDD/SWA/MSA/AI-Native의 기술 개념을 재정의하지 않는다.
+
+### OWNER
+- Quality as system property
+- Shift-Left
+- Prevention vs Detection
+- Cost of Quality / Rework
+- Quality governance / process
+- Review / independent verification 관점
+- Test strategy의 품질 관점
+- CI quality pipeline / quality gate
+- Metrics / Goodhart / quality measurement
+- Audit / compliance evidence
+- Organizational system / incentives
+- Continuous improvement / Quality Operating Model
+- Quality Evidence
+
+### APPLY / RECAP ONLY
+- OOAD object/design principles
+- DDD Domain Model / Ubiquitous Language / Ontology need
+- SWA Architecture / Quality Attribute의 정본 정의
+- MSA distributed design patterns
+- AI-Native Context / Guardrail / Harness / Agent definitions
+
+특히 QM에서 `Context Engineering`, `Rich Domain Model`, `Ubiquitous Language`,
+`Ontology`, `Guardrail`, `Harness`를 OWNER처럼 재정의하는 것은 ownership violation이다.
+
+## 16. New Course Admission — v2.1
+
+새 Course X는 다음을 통과해야 한다.
+
+1. 기존 Portfolio로 충분히 다룰 수 없는 **독립적인 판단 문제**가 있는가?
+2. 새 OWNER 개념 또는 기존 개념의 충분히 큰 EXTEND 영역이 있는가?
+3. 독립 과정이 아니라 기존 과정의 module/advanced appendix로 충분하지 않은가?
+4. 기존 OWNER 정의를 복제하지 않고 recap/apply로 소비할 수 있는가?
+5. 학습자가 과정 후 실제로 내려야 할 decision이 무엇인가?
+6. 그 decision의 Trade-off / Failure Condition / Evidence가 무엇인가?
+7. Vendor/tool이 사라져도 과정 identity가 남는가?
+8. `course-spec-template.md`를 채울 수 있는가?
+
+향후 Agile, DevOps, Proposal, DT, AT 등은 이 gate를 통과한 뒤
+`portfolio/course-catalog.md`에 등록한다.
+
+
+---
+
+## 17. Evidence / Localization Governance Pointer
+
+Source hierarchy와 Global/Korea precedence는 `evidence-source-localization-policy.md`가
+단일 정본으로 소유한다.
+
+Concept Ownership 관점의 규칙:
+- 지역 사례의 사용 빈도가 Concept OWNER를 이동시키지 않는다.
+- Korea BP/WP/Local Context는 concept definition이 아니라 evidence/application classification이다.
+- Modern QM을 포함한 모든 과정이 동일 policy를 소비한다.

@@ -51,7 +51,7 @@ program-design/
 └─ llm-agentic-curriculum.md    · llm-agentic-lab-design.md
 ```
 
-**읽는 순서가 곧 의존 순서다.** 위 네 개(소유·도메인·레이어·환경)를 먼저 정본으로 확정하고, 그다음 여섯 과정이 그것을 인용한다 — 역방향 참조(예: `order-domain-definition.md`가 특정 과정 이름을 지목)는 금지한다. 이 규칙은 `concept-ownership-map.md`의 "LLM 트랙 격리 불변식"(4장)과 같은 패턴이며, 정본 네 문서에도 그대로 적용된다: **정본은 과정을 모른다. 과정이 정본을 안다.**
+**읽는 순서가 곧 의존 순서다.** 위 네 개(소유·도메인·레이어·환경)를 먼저 정본으로 확정하고, 그다음 여섯 과정이 그것을 인용한다 — 역방향 참조(예: `order-domain-definition.md`가 특정 과정 이름을 지목)는 금지한다. 이 규칙은 `cross-course-framework.md` §1 Governance Layers(Program Governance ↓ Course Portfolio ↓ Course Architecture ↓ Curriculum — 위 layer는 아래 layer를 모른다)와 같은 패턴이며, 정본 문서 전체에도 그대로 적용된다: **정본은 과정을 모른다. 과정이 정본을 안다.** (구 `concept-ownership-map.md` §"LLM 트랙 격리 불변식"이 이 절이 인용하던 자리였으나, Program Governance v2.2.2 편입으로 그 절은 없어졌다 — 원문은 Git history 참조.)
 
 각 과정 폴더가 실제로 생기면(3장 참조) 이 지도에 `courses/<과정>/`도 추가한다 — 지금은 `program-design/`가 유일한 산출물 위치이므로 비워 둔다.
 
@@ -82,14 +82,14 @@ QM/SWQM은 6과정 작업과 무관하게 계속 굴러가는 실제 산출물�
 
 ### 3-b. 산출물(pptx)은 저장소에 커밋하지 않는다
 
-**소스(`.js`)만 버전 관리 대상이다.** 렌더 산출물(pptx)은 커밋하지 않는다 — `.js`에서 언제든 재생성되고, 바이너리 커밋은 git·pull을 무겁게 만든다(같은 원칙을 `concept-ownership-map.md` §R&R에도 명문화했다).
+**소스(`.js`)만 버전 관리 대상이다.** 렌더 산출물(pptx)은 커밋하지 않는다 — `.js`에서 언제든 재생성되고, 바이너리 커밋은 git·pull을 무겁게 만든다(이 절이 pptx 산출물 관리 규정의 정본이다 — 구 `concept-ownership-map.md` §R&R도 같은 원칙을 명문화했으나 v2 교체로 그 절은 소실됐다, Git history 참조).
 
 - 렌더는 두 용도뿐이다: 사용자가 로컬에서 `node engine/cli.js build <deck>`으로 직접 만들거나, Code가 검증 목적으로 렌더한다.
 - **Code는 검증 후 그 산출물을 커밋하지 않는다.** `courses/*/out/`은 `.gitignore` 대상이며 예외를 두지 않는다 — `git add -f`로 우회하지 않는다.
 
 ### 3-c. 3자 역할과 경계원칙
 
-`concept-ownership-map.md` §R&R의 미러다 — 정본은 그쪽, 여기는 엔진·회귀 규약과 같은 자리에 다시 박아 둔다.
+이 절이 R&R의 정본이다. 원래는 `concept-ownership-map.md` §R&R을 정본으로 하고 이 문서는 그 미러였으나, v2 Governance 교체(구성원 명단·경계원칙과 무관한 5과정 개념 소유 재편)로 옛 §R&R 절이 소실되면서 이 절이 유일한 원문이 됐다(구 절은 Git history 참조). 새 4정본(reference-frame·principles·terminology·concept-ownership-map)은 개념 소유·판단 원칙 정본이지 저작 R&R(누가 무엇을 쓰는가) 정본이 아니므로, R&R은 저작 규약 문서인 이 자리에 계속 둔다.
 
 **3자 역할**
 - **Youngon**: 판단·정본의 원천. 교과 내용의 깊이·범위·계보·서술 방식 결정, 원전 해석 최종 판정, 최종 승인권.
@@ -107,7 +107,7 @@ QM/SWQM은 6과정 작업과 무관하게 계속 굴러가는 실제 산출물�
 
 여섯 과정의 오리엔테이션(1교시)은 프로그램 명제·자세를 **손으로 다시 쓰지 않는다.** `canon-stance.md`의 id를 참조하고, 화면·문서에 옮길 때는 그 id의 TEXT를 축자로 가져온다.
 
-**왜 필요한가.** 진단(2026-08) 결과 여섯 curriculum.md의 "프로그램 자세" 절이 이미 갈려 있었다 — DDD·MSA는 "예방 중심"으로 줄였고, AI-assisted·Agentic 두 LLM 과정은 이 절 자체가 없었다(자신들의 "과정 명제"만 있었다). `concept-ownership-map.md`는 이 자세가 "전 과정 공통 — 각 과정 1교시 오리엔테이션에서 선언"이라고 명시하는데, 실제로 선언한 것은 넷뿐이었다. §3-a 회귀 불변식이 "코드가 QM과 어긋나지 않았는지 매번 대조"를 요구하듯, 이 절은 "문서가 정본과 어긋나지 않았는지"를 요구한다.
+**왜 필요한가.** 진단(2026-08) 결과 여섯 curriculum.md의 "프로그램 자세" 절이 이미 갈려 있었다 — DDD·MSA는 "예방 중심"으로 줄였고, AI-assisted·Agentic 두 LLM 과정은 이 절 자체가 없었다(자신들의 "과정 명제"만 있었다). `canon-stance.md`는 이 자세가 "전 과정 공통 — 각 과정 1교시 오리엔테이션에서 선언"이라고 명시하는데(구 `concept-ownership-map.md`가 원래 이 문구의 출처였으나 v2 교체로 소실 — 지금은 `canon-stance.md` 자신이 이 규정의 정본이다), 실제로 선언한 것은 넷뿐이었다. §3-a 회귀 불변식이 "코드가 QM과 어긋나지 않았는지 매번 대조"를 요구하듯, 이 절은 "문서가 정본과 어긋나지 않았는지"를 요구한다.
 
 **표기 규약 (design 문서 — `*-curriculum.md`)**
 - curriculum.md의 헤더는 `## 프로그램 자세 (1교시에서 선언 — 정본: canon-stance.md)`로 통일한다(과거의 "소유 지도 인용"은 폐기 — 소유 지도가 아니라 canon-stance.md가 축자 인용 정본이다).
@@ -129,7 +129,7 @@ QM/SWQM은 6과정 작업과 무관하게 계속 굴러가는 실제 산출물�
 
 앞 장은 지도와 참조 규약을 세웠다. 진단에서 확인한 보완 대상 중 다음 것들이 이어질 장의 후보다 — 순서는 논의로 정한다.
 
-- **크로스 코스 의존 규약의 격상**: `concept-ownership-map.md`의 "LLM 트랙 격리 불변식"을 개별 문서의 서술에서 이 규약의 **강제 규칙**으로 승격 — 위반 예시와 함께.
+- **크로스 코스 의존 규약의 격상**: `cross-course-framework.md` §1 Governance Layers(구 `concept-ownership-map.md`의 "LLM 트랙 격리 불변식"이 담당하던 자리 — Program Governance v2.2.2 편입으로 그 절 자체는 없어졌다)를 개별 문서의 서술에서 이 규약의 **강제 규칙**으로 승격 — 위반 예시와 함께.
 - **forward-ref → 재정박 표기 표준**: 지금 자유 서술인 `**forward-ref: ...**` / `**재정박: ...**`을 짝을 추적할 수 있는 표기(예: 공통 표)로 표준화.
 - **실습 3층 형식의 필드 스펙화**: "형식을 복제한다"는 지시를 실제 체크리스트(판단/대면/작성 3층, (a)/(b) 대조, 코더 빈칸이 각각 무엇을 반드시 가져야 하는가)로.
 - **무게 배분의 파생 여부 결정**: 지금처럼 저자 판단으로 둘지, QM처럼 파생 공식과 검사를 둘지.
