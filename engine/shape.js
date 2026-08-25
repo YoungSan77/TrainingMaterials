@@ -47,6 +47,16 @@ const SHAPES = {
     magnitude: { data: 'list', min: 2, item: { label: 'text', value: 'number' } },
     pyramid:   { data: 'list', min: 2, item: { label: 'text' } },
     quadrant:  { data: 'quadrant' },
+    // 코드 대조(N벌, 2~3) — 스니펫/통짜 대조 랩용. data = { versions:[{label,code,marks?,blanks?}], prompt? }.
+    //   marks: R# 등 규칙 짚기(줄 강조) — { line, tag }. blanks: 코더 빈칸 줄 번호 배열.
+    //   code는 monospace로 줄바꿈 없이 그대로 그린다(다른 타입의 'lines'처럼 문단으로 재배치하지 않는다).
+    codepair:  { data: 'codepair' },
+    // UML 다이어그램(PlantUML 렌더, 표준 표기) — data = { kind, source, caption? }.
+    //   kind ∈ class|usecase|sequence|collaboration|state|package. source는 PlantUML 본문
+    //   (@startuml/@enduml 없이 — engine/plantuml/render.js가 감싼다). 렌더는 이미지 삽입이라
+    //   codepair처럼 문자열만으로 치수를 재지 못한다 — 실제로 한 번 그려 픽셀 치수를 얻는다
+    //   (engine/plantuml/render.js, 결과를 캐싱해 두 번째부터는 즉시 반환).
+    uml:       { data: 'uml' },
 };
 
 const isObj = (x) => x !== null && typeof x === 'object' && !Array.isArray(x);
@@ -144,6 +154,48 @@ function conformRows(v, out) {
     v.data.forEach((r, i) => { if (r.length !== w) out.errors.push(`data[${i}]의 칸이 ${r.length}개다 — 첫 행(${w}개)과 같아야 한다`); });
 }
 
+function conformCodepair(v, out) {
+    const d = v.data;
+    if (!isObj(d)) { out.errors.push(`data가 객체가 아니다 — codepair의 data는 { versions, prompt? }이다`); return; }
+    if (!Array.isArray(d.versions)) { out.errors.push(`data.versions가 배열이 아니다`); return; }
+    const n = d.versions.length;
+    if (n < 2 || n > 3) out.errors.push(`codepair 벌 수가 ${n}개다 — 대조는 2~3벌이어야 한다`);
+    d.versions.forEach((ver, i) => {
+        const where = `data.versions[${i}]`;
+        if (!isObj(ver)) { out.errors.push(`${where}가 객체가 아니다 — { label, code, marks?, blanks? } 형태여야 한다`); return; }
+        if (!ver.label) out.errors.push(`${where}.label이 없다 — 이 벌이 무엇인지(예: 스파게티·TS·리치) 밝힌다`);
+        conformField(ver, 'code', 'text', where, out);          // 문자열 또는 줄 배열(엔진이 \n으로 이어붙임) 둘 다 허용
+        if (!ver.code) out.errors.push(`${where}.code가 없다 — 대조할 코드가 없다`);
+        const nLines = String(ver.code || '').split('\n').length;
+        if (ver.marks !== undefined) {
+            if (!Array.isArray(ver.marks)) out.errors.push(`${where}.marks는 배열이어야 한다 — [{ line, tag }]`);
+            else ver.marks.forEach((m, k) => {
+                if (!isObj(m) || !m.line || !m.tag) out.errors.push(`${where}.marks[${k}]은 { line, tag } 형태여야 한다`);
+                else if (m.line < 1 || m.line > nLines) out.errors.push(`${where}.marks[${k}].line(${m.line})이 코드 줄 범위(1~${nLines}) 밖이다`);
+            });
+        }
+        if (ver.blanks !== undefined) {
+            if (!Array.isArray(ver.blanks)) out.errors.push(`${where}.blanks는 배열이어야 한다 — 줄 번호 배열`);
+            else ver.blanks.forEach((ln, k) => {
+                if (typeof ln !== 'number' || ln < 1 || ln > nLines) out.errors.push(`${where}.blanks[${k}](${JSON.stringify(ln)})이 코드 줄 범위(1~${nLines}) 밖이다`);
+            });
+        }
+    });
+}
+
+// uml.source가 실제로 렌더되는지(문법이 유효한지)는 여기서 안 잰다 — 형태 검사는 '그리기
+// 전에 죽지 않을 모양인가'만 본다. 렌더 실패(PlantUML 문법 오류)는 verify.js가 실제로
+// 렌더를 시도할 때 오류로 잡는다(engine/plantuml/render.js가 예외를 던진다).
+function conformUml(v, out) {
+    const d = v.data;
+    if (!isObj(d)) { out.errors.push(`data가 객체가 아니다 — uml의 data는 { kind, source, caption? }이다`); return; }
+    const KINDS = ['class', 'usecase', 'sequence', 'collaboration', 'state', 'package'];
+    if (!d.kind) out.errors.push(`data.kind가 없다 — ${KINDS.join('·')} 중 하나`);
+    else if (!KINDS.includes(d.kind)) out.errors.push(`data.kind "${d.kind}"는 지원 범위 밖이다 — ${KINDS.join('·')} 중 하나`);
+    if (!d.source || !String(d.source).trim()) out.errors.push(`data.source가 없다 — PlantUML 본문(@startuml/@enduml 없이)`);
+    else conformField(d, 'source', 'text', 'data', out);
+}
+
 function conformQuadrant(v, out) {
     const d = v.data;
     if (!isObj(d)) { out.errors.push(`data가 객체가 아니다 — quadrant의 data는 { x, y, cells }이다`); return; }
@@ -171,6 +223,8 @@ function conform(v) {
     else if (spec.data === 'graph')    conformGraph(v, out);
     else if (spec.data === 'rows')     conformRows(v, out);
     else if (spec.data === 'quadrant') conformQuadrant(v, out);
+    else if (spec.data === 'codepair') conformCodepair(v, out);
+    else if (spec.data === 'uml')      conformUml(v, out);
     return out;
 }
 

@@ -37,6 +37,36 @@ const { isFree, requiredFields, hint } = require('./skeleton.js');   // 골격 �
 const shape = require('./shape.js');                           // visual.data 형태 단일 소스(엔진과 공유)
 const ST = require('./session_types.js');                      // 세션 유형 요건 단일 소스(엔진과 공유)
 const { claimText: claim, hasRatio } = require('./triggers.js');   // 트리거 판정 단일 소스(엔진과 공유)
+const PLANTUML = require('./plantuml/render.js');               // uml 다이어그램 렌더 단일 소스(엔진과 공유)
+
+// ============================================================================
+// Tier 1 게이트(노테이션 무관) 상수 — 정본은 CLAUDE.md '규율'·'Tier 1 게이트' 절.
+//   여기는 기계 검사만 싣는다 — 규율 서술은 CLAUDE.md에, 판정 로직은 여기 한 곳에.
+// ============================================================================
+// 내부 구조어 — 학습자 필드(title·sub·lead·foot·next)에 0. 단어 매칭('주기' 포함)이 아니라
+// 형태 매칭이다 — '주기'는 '생애 주기'·'반복 주기'처럼 도메인 용어에도 흔히 쓰이는 일반
+// 명사라, 통짜로 금지하면 그 정상 용례까지 오탐한다(2026-08, ooad06·11·12·swqm08에서 실측).
+// 차단 대상은 나선형 구조 저작 라벨뿐이다 — 숫자가 바로 붙은 'N주기'(1주기·2주기…)와
+// '이후 주기'(라벨을 대명사로 받는 관용구)로 형태를 좁힌다.
+const GLOBAL_FORBIDDEN_PATTERNS = [
+    { re: /\d+\s*주기/, label: 'N주기(나선형 구조 라벨)' },
+    { re: /이후\s*주기/, label: '이후 주기(나선형 구조 라벨 대명사)' },
+];
+const UML_BOTTOM_MARGIN_MIN = 8;                 // px — PNG 하단 배경 여백 하한. 슬라이드 좌표가 아니라 실제 픽셀로 잰다(bottomMargin).
+
+// ============================================================================
+// Tier 2 노테이션 프로파일 — 정본은 CLAUDE.md '노테이션 프로파일' 절.
+//   프로파일 = 그 노테이션에서만 유효한 금지 토큰 + 매칭 규칙(어떤 uml 슬라이드에 적용되는가).
+//   전역(Tier 1)에 두지 않는 이유: 화살표(-->)는 클래스(도메인 모델)에서는 금지지만 시퀀스
+//   다이어그램에서는 정상 표기다 — 노테이션마다 뜻이 다른 규칙은 프로파일로 격리한다.
+// ============================================================================
+const PROFILES = {
+    class: {
+        match: (v) => !!(v && v.type === 'uml' && v.data && v.data.kind === 'class'),
+        forbiddenTokens: ['-->', '<--', '..>', '<..'],   // 방향 화살표 — 도메인 모델 연관은 양방향, 방향은 설계 결정(OOD)의 몫
+    },
+    // 시퀀스·협업·상태 프로파일은 동적 모델 세션이 세울 때 여기에 추가한다.
+};
 
 // ── 엔진 레이아웃 상수를 엔진 소스에서 읽는다(복제하지 않는다) ──
 //   분할 후 상수는 render/context.js에 있다. master_render.js(선두 형식 헤더)와
@@ -142,7 +172,7 @@ const visualChars = (v) => {
 //   각자의 방식으로 이 결과를 소비한다. DECK은 load_deck.js가 병합한 형태를 기대한다
 //   (meta.quotes가 절대경로로 고정돼 있어야 한다).
 // ============================================================================
-function verifyDeck(DECK) {
+function verifyDeck(DECK, opts = {}) {
     const S = DECK.session.slides;
     const NO = DECK.session.no;
     const SESSION_TYPE = DECK.session.type || ST.DEFAULT;
@@ -150,6 +180,17 @@ function verifyDeck(DECK) {
     const P = (i) => frontMatter + i + 1;
 
     const err = [], warn = [], detail = [];
+
+    // ── Tier 1/2 게이트 집계 — 정본은 CLAUDE.md. profile을 인자로 받는다(opts.profile) —
+    //   지정하면 그 프로파일만, 생략하면 매칭되는 프로파일을 전부 자동 적용한다(auto).
+    const profileArg = opts.profile || null;
+    const gate = {
+        umlSourceCount: 0, umlRenderedCount: 0,          // (a) 소스 다이어그램 수 = 렌더 pic 수
+        umlMarginMinPx: null,                            // (b) 전 다이어그램 중 최소 하단 여백(px)
+        bandOverflowCount: 0,                            // (c) 슬라이드/밴드 경계 초과 수
+        forbiddenTokenHits: [],                           // (d) 학습자 필드의 내부 구조어 검출
+        profileViolations: [],                            // Tier 2 — 프로파일 금지 토큰 검출
+    };
 
     // 인용 자산 — 경로는 데이터가 선언한다(검증기가 특정 교재를 알지 않는다).
     let ASSETS = null, CLAIMS = null, NODE = null;
@@ -186,9 +227,10 @@ function verifyDeck(DECK) {
                 if (!c) err.push(`${tag} claim '${sl.claim}'이 커리큘럼 S${String(NO).padStart(2, '0')} 명제 목록에 없다`);
                 else {
                     if (c.kind !== sl.kind) err.push(`${tag} claim '${sl.claim}'의 분류는 '${c.kind}'인데 이 장의 kind는 '${sl.kind}'이다`);
-                    const prevC = claimHit.get(sl.claim);
-                    if (prevC) err.push(`${tag} 명제 '${sl.claim}'을 슬라이드 ${prevC[0]}에서도 맡는다 — 명제 하나가 한 장이다. 두 장이 필요하면 커리큘럼에서 명제를 둘로 쪼갠다`);
-                    claimHit.set(sl.claim, [...(prevC || []), i + 1]);
+                    // 심층 소스 모델(지침 v2.6) — 명제 하나가 소스에서 1~N장으로 펴질 수 있다.
+                    //   그래서 한 claim을 여러 장이 맡는 것을 허용한다(1:N) — 예전의 1:1 중복 오류를 없앴다.
+                    //   대신 커버리지(모든 claim이 최소 1장에 덮이는가)는 아래 ⑥에서 오류로 잡는다.
+                    claimHit.set(sl.claim, [...(claimHit.get(sl.claim) || []), i + 1]);
                 }
             } else if (ARG) {
                 warn.push(`${tag} claim이 없다 — 이 장이 커리큘럼의 어느 명제를 맡는지 밝힌다`);
@@ -213,6 +255,21 @@ function verifyDeck(DECK) {
         }
         if (!free && sl.question && !/[?？]\s*$/.test(sl.question)) warn.push(`${tag} question이 물음표로 끝나지 않는다`);
         if (!sl.notes) warn.push(`${tag} notes(강사 노트)가 없다 — 던질 질문·흔한 반론·시간 배분을 남긴다`);
+        // (d) Tier 1 — 전역 금지 형태: 나선형 구조 저작 라벨이 학습자 필드(title·sub·lead·foot·next)에
+        //   새면 저작 과정의 어휘가 학습자에게 그대로 노출된다. 단어 통짜가 아니라 형태로 좁힌다
+        //   (GLOBAL_FORBIDDEN_PATTERNS 주석 참조) — '생애 주기'·'반복 주기' 같은 도메인 용어는
+        //   숫자도 '이후'도 붙지 않으므로 걸리지 않는다. notes(강사 노트)는 학습자 노출이 아니므로 검사하지 않는다.
+        {
+            const learnerText = [sl.title, sl.sub, sl.lead && sl.lead.text, sl.foot && sl.foot.body, sl.next]
+                .filter(Boolean).join(' ');
+            GLOBAL_FORBIDDEN_PATTERNS.forEach(({ re, label }) => {
+                const m = learnerText.match(re);
+                if (m) {
+                    err.push(`${tag} 학습자 필드에 내부 구조어 "${m[0]}"가 있다(${label}) — title·sub·lead·foot·next에서 뺀다`);
+                    gate.forbiddenTokenHits.push({ slide: tag, token: m[0] });
+                }
+            });
+        }
         // foot(+next) 오버플로 — foot는 layout.js 기하 검증을 안 받는 유일한 밴드다(박스 h가
         //   render/pages.js에 리터럴 1.0으로 고정돼 있다). ftr 구분선(render/primitives.js의
         //   y=7.10 — 이름 없는 리터럴이라 다른 상수처럼 소스에서 못 긁는다)까지 Y_BOT(5.90)에서
@@ -467,6 +524,55 @@ function verifyDeck(DECK) {
             });
         }
 
+        // ── codepair — N벌(2~3) 코드 대조. 배치·폰트는 layout.js가 정한다(엔진과 같은 소스).
+        else if (v.type === 'codepair') {
+            const g = LO.codepair(v.data || {}, { VT, VH });
+            need = g.need;
+            if (g.mode === 'stack' && g.tooWide)
+                warn.push(`${tag} codepair 코드 한 줄이 전폭·최소 폰트(${LO.CODE.fMin}pt)에서도 안 들어간다(최장 ${g.maxChars}자) — 그 줄을 줄이거나 두 벌로 나눈다`);
+        }
+
+        // ── uml — PlantUML 다이어그램(engine/plantuml/render.js). codepair와 달리 문자열만으론
+        //    치수를 못 재 실제로 한 번 렌더한다(해시 캐시라 재호출은 즉시 반환). 렌더 자체가
+        //    실패하면(문법 오류·jar 없음 등) 오류로 잡는다 — 형태는 맞아도 그릴 수 없는 경우다.
+        else if (v.type === 'uml') {
+            gate.umlSourceCount++;
+            try {
+                const img = PLANTUML.renderDiagram(v.data);
+                gate.umlRenderedCount++;
+                const g = LO.uml(v.data, { VT, VH }, img);
+                need = g.need;
+                if (g.scale < LO.UML.minScale)
+                    warn.push(`${tag} uml 다이어그램이 밴드에 비해 커서 ${Math.round(g.scale * 100)}%로 축소된다 — 항목을 줄이거나 더 단순화한다`);
+
+                // (b) Tier 1 — PNG 하단 배경 여백을 실제 픽셀로 잰다. 슬라이드 좌표(밴드 안에
+                //   드는지)는 이미지 내부가 잘렸는지 못 잡는다 — 이미지 자체가 테두리를 그리다
+                //   만 채로 끝나도 배치 좌표는 멀쩡하다(2026-08, plantuml 렌더러 결함으로 실증).
+                const margin = PLANTUML.bottomMargin(fs.readFileSync(img.path));
+                if (margin != null) {
+                    if (gate.umlMarginMinPx == null || margin < gate.umlMarginMinPx) gate.umlMarginMinPx = margin;
+                    if (margin < UML_BOTTOM_MARGIN_MIN)
+                        err.push(`${tag} uml PNG 하단 여백 ${margin}px — 최소 ${UML_BOTTOM_MARGIN_MIN}px 미만이면 짤림 의심(픽셀 직접 검사, 슬라이드 좌표 아님)`);
+                }
+
+                // Tier 2 — 노테이션 프로파일 금지 토큰. profileArg 지정 시 그 프로파일만, 아니면
+                //   매칭되는 프로파일을 자동 적용한다(노테이션 종류는 v.data.kind로 판정).
+                Object.entries(PROFILES).forEach(([name, prof]) => {
+                    if (profileArg && profileArg !== name) return;
+                    if (!prof.match(v)) return;
+                    const src = String((v.data && v.data.source) || '');
+                    prof.forbiddenTokens.forEach(tok => {
+                        if (src.includes(tok)) {
+                            err.push(`${tag} 프로파일 '${name}' 금지 토큰 "${tok}"가 uml source에 있다`);
+                            gate.profileViolations.push({ slide: tag, profile: name, token: tok });
+                        }
+                    });
+                });
+            } catch (e) {
+                err.push(`${tag} uml 렌더 실패 — ${String(e.message || e).split('\n')[0]}`);
+            }
+        }
+
         // 6) 밴드 초과 = 잘림 = 오류
         // 단, 밴드에 맞춰 스스로 줄어드는 타입(loop·magnitude·pyramid·quadrant)은 '여유 0'이 정상이다.
         // 이들은 하한(행 높이·반지름 최소값)에 걸릴 때만 밴드를 넘는다 → 초과만 본다. 근접 경고는 오탐이다.
@@ -475,10 +581,16 @@ function verifyDeck(DECK) {
             fillOf.set(sl, Math.min(1, need / VH));
             const slack = VH - need;
             detail.push(`${tag} ${String(v.type).padEnd(9)} VH=${VH.toFixed(2)} 필요=${need.toFixed(2)} 여유=${slack.toFixed(2)}${sl.quote ? '  [quote]' : ''}${v.caption ? '  [caption]' : ''}`);
-            if (slack < -1e-6) err.push(`${tag} ${v.type}가 밴드를 넘는다(필요 ${need.toFixed(2)}in > 밴드 ${VH.toFixed(2)}in) — 하단이 잘린다. 항목·행을 줄이거나 문장을 축약한다`);
+            if (slack < -1e-6) { err.push(`${tag} ${v.type}가 밴드를 넘는다(필요 ${need.toFixed(2)}in > 밴드 ${VH.toFixed(2)}in) — 하단이 잘린다. 항목·행을 줄이거나 문장을 축약한다`); gate.bandOverflowCount++; }
             else if (slack < 0.15 && !FILL.includes(v.type)) warn.push(`${tag} ${v.type} 밴드 여유 ${slack.toFixed(2)}in — 한 줄만 늘어도 잘린다`);
         }
     });
+
+    // (a) Tier 1 — 소스 다이어그램 수 = 렌더 pic 수. 슬라이드별로 이미 렌더 실패를 오류로
+    //   잡지만(캐치 블록), 집계 불일치를 별도로 한 번 더 확인한다 — 누락을 세는 게이트는
+    //   개별 실패 목록과 다른 관점의 안전망이다.
+    if (gate.umlSourceCount !== gate.umlRenderedCount)
+        err.push(`uml 다이어그램 소스 ${gate.umlSourceCount}개 중 ${gate.umlRenderedCount}개만 렌더됐다 — 누락 ${gate.umlSourceCount - gate.umlRenderedCount}개(위 개별 렌더 실패 참조)`);
 
     // ── 덱 구조(슬라이드 밖) 검사 ──
     // verify가 slides만 보던 사이, 과정 목차에 'undefined'와 'Session 01.'이 찍혔는데도 "이상 없음"이 나왔다.
@@ -521,12 +633,8 @@ function verifyDeck(DECK) {
         //   흐려진다 — 필요하면 하나로 합치거나 lead/foot로 눌러 담는다.
         const nDecl = S.filter(s2 => ST.isUnclaimed(SESSION_TYPE, s2.kind)).length;
         if (nDecl > 1) err.push(`선언 장이 세션 안에 ${nDecl}개다 — 세션당 최대 1개`);
-        // 장수는 파생값이다: 명제 수 + 고정 장(+선언, 있으면). 범위 검사를 두면 하한이 목표가 된다.
-        if (CLAIMS && CLAIMS.size) {
-            const want = ST.slideCount(SESSION_TYPE, CLAIMS.size) + nDecl;
-            if (S.length !== want)
-                err.push(`본문 ${S.length}장인데 커리큘럼 명제 ${CLAIMS.size}개 + 고정 ${SESSION_SPEC.fixed.length}장${nDecl ? ` + 선언 ${nDecl}장` : ''} = ${want}장이어야 한다 — 장수는 커리큘럼이 정한다`);
-        }
+        // 장수 == 명제 수 + 고정 장(1:1) 등식은 없앴다(지침 v2.6 심층 소스 모델 — 명제 하나가
+        //   소스에서 1~N장으로 펴진다). 대신 완전 커버리지를 오류로 잡는다(아래 ⑥ 참조).
     }
     const arg = (sl) => !isFree(sl);                      // statement는 논증이 아니다(skeleton.js와 같은 소스)
     (SESSION_SPEC ? SESSION_SPEC.required : []).forEach(k => {
@@ -576,14 +684,16 @@ function verifyDeck(DECK) {
     const nTB = S.filter(s => s.visual && ['table', 'boxes'].includes(s.visual.type)).length;
     if (nAll && nTB / nAll > 0.6) warn.push(`시각화의 ${Math.round(nTB / nAll * 100)}%가 table/boxes다 (${nTB}/${nAll}) — 관계·수치 타입을 회피하고 있는지 점검한다`);
 
-    // 커리큘럼 명제 중 어느 장도 맡지 않은 것 — 밀도 보고 직전이 아니라 여기서 판정에 포함한다
-    // (경고 개수·exit 코드에 반영돼야 하므로 리포트 출력과 분리한다).
+    // ⑥ 커리큘럼 명제 중 어느 장도 맡지 않은 것 — 심층 소스 모델의 완전 커버리지 계약.
+    //   1:1 장수 등식을 없앤 대신(위 참조), "선언된 claim은 반드시 최소 1장에 덮인다"를
+    //   오류로 잡는다 — claim 없는 장(§0 ARG else 분기, L235)의 경고와는 정반대 방향이다:
+    //   그쪽은 "장에 claim이 없다", 여기는 "claim에 장이 없다".
     if (CLAIMS && CLAIMS.size) {
         const miss = [...CLAIMS.keys()].filter(k => !claimHit.has(k));
-        miss.forEach(k => warn.push(`커리큘럼 명제 '${k}'(${CLAIMS.get(k).kind})를 맡은 장이 없다: "${CLAIMS.get(k).text.slice(0, 30)}…"`));
+        miss.forEach(k => err.push(`커리큘럼 명제 '${k}'(${CLAIMS.get(k).kind})를 맡은 장이 없다: "${CLAIMS.get(k).text.slice(0, 30)}…"`));
     }
 
-    return { err, warn, detail, S, NO, SESSION_TYPE, frontMatter, ASSETS, qPath, used, CLAIMS, claimHit, fillOf };
+    return { err, warn, detail, S, NO, SESSION_TYPE, frontMatter, ASSETS, qPath, used, CLAIMS, claimHit, fillOf, gate };
 }
 
 module.exports = verifyDeck;
@@ -594,8 +704,10 @@ module.exports = verifyDeck;
 if (require.main === module) {
     const deckPath = process.argv[2] || './01.js';
     const DETAIL = process.argv.includes('--detail');
+    const profileFlag = process.argv.find(a => a.startsWith('--profile='));
+    const profile = profileFlag ? profileFlag.slice('--profile='.length) : undefined;
     const DECK = require('./load_deck.js')(deckPath);    // 순수 덱 + config 병합 + meta.quotes 절대경로화
-    const { err, warn, detail, S, NO, SESSION_TYPE, frontMatter, ASSETS, qPath, used, CLAIMS, claimHit, fillOf } = verifyDeck(DECK);
+    const { err, warn, detail, S, NO, SESSION_TYPE, frontMatter, ASSETS, qPath, used, CLAIMS, claimHit, fillOf, gate } = verifyDeck(DECK, { profile });
 
     // ── 리포트 ──
     console.log(`── VERIFY: ${path.basename(deckPath)} | 세션 ${NO} | ${SESSION_TYPE} | 본문 ${S.length}장 (총 ${frontMatter + S.length}p) ──`);
@@ -605,6 +717,8 @@ if (require.main === module) {
     if (err.length)  { console.log(`\n[오류 ${err.length}]`);  err.forEach(e => console.log('  ✗ ' + e)); }
     if (warn.length) { console.log(`\n[경고 ${warn.length}]`); warn.forEach(w => console.log('  · ' + w)); }
     if (!err.length && !warn.length) console.log('이상 없음');
+    if (gate.umlSourceCount)
+        console.log(`\n게이트(Tier 1/2): uml 소스=${gate.umlSourceCount} 렌더=${gate.umlRenderedCount} · 하단여백 최소=${gate.umlMarginMinPx}px(하한 ${UML_BOTTOM_MARGIN_MIN}px) · 밴드초과=${gate.bandOverflowCount} · 금지토큰=${gate.forbiddenTokenHits.length} · 프로파일위반=${gate.profileViolations.length}`);
     // ── 밀도 보고 ── 합격/불합격이 아니라 기록이다.
     //   verify가 보장하는 것은 바닥(구조·형식·인용 진위)이고 논증의 두께는 보장하지 않는다.
     //   그래서 최소한 '얼마나 실었는가'를 눈에 보이게 남긴다 — 재지 않으면 조용히 얇아진다.

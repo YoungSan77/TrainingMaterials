@@ -269,6 +269,71 @@ module.exports = function makeLayout(env) {
                  budget: Math.floor((cw - PAD * 2 - IN(10)) / (IN(F_IN) * 1.05)) };
     };
 
+    // ── codepair ── N벌(2~3) 코드 대조. monospace, 줄바꿈 재배치 없이 원문 그대로(들여쓰기 보존).
+    //   기본은 가로 열. 한 줄이 열 폭에 안 들어가면 폰트를 fMin까지 낮춘다. 그래도 안 들어가거나
+    //   세로로 넘치면 세로 스택(벌마다 전폭)으로 바꾼다 — 폭 압박이 사라지니 폰트를 다시 최대로
+    //   본다. 스택도 넘치면(need > VH) 여기서 더 줄이지 않는다 — 가독이 미관보다 먼저다.
+    //   초과는 verify의 공통 밴드 초과 검사(§6)가 잡는다.
+    const CODE = { fMax: 11, fMin: 9, midF: 10, lineH: 1.18, pad: 0.08, headH: 0.28,
+                   colGap: 0.20, stackGap: 0.12, charW: 0.58, promptH: 0.26, promptGap: 0.10 };
+    const codeLineW = (nChars, fs) => IN(fs) * CODE.charW * nChars;         // monospace 고정폭 근사
+    const codeBlockH = (nLines, fs) => nLines * IN(fs * CODE.lineH) + CODE.pad * 2 + CODE.headH;
+    const codepair = (d, band) => {
+        const versions = (d.versions || []).map((v) => ({ ...v, lines: String(v.code || '').split('\n') }));
+        const n = versions.length;
+        const maxChars = Math.max(1, ...versions.flatMap((v) => v.lines.map((l) => l.length)));
+        const maxLines = Math.max(1, ...versions.map((v) => v.lines.length));
+        const promptH = d.prompt ? (CODE.promptH + CODE.promptGap) : 0;
+        const fitsW = (w, fs) => codeLineW(maxChars, fs) + CODE.pad * 2 <= w;
+        const pickFont = (w) => [CODE.fMax, CODE.midF, CODE.fMin].find((f) => fitsW(w, f)) || CODE.fMin;
+
+        // 가로 열 시도
+        const colW = (CW - CODE.colGap * (n - 1)) / n;
+        const rowFs = pickFont(colW);
+        const rowH = codeBlockH(maxLines, rowFs);
+        if (fitsW(colW, rowFs) && rowH + promptH <= band.VH) {
+            const cols = versions.map((v, i) => ({ ...v, x: LM + i * (colW + CODE.colGap), w: colW }));
+            return { mode: 'row', n, fs: rowFs, colW, rowH, cols, promptH,
+                     lineH: IN(rowFs * CODE.lineH), need: rowH + promptH,
+                     top: band.VT + (band.VH - (rowH + promptH)) / 2 };
+        }
+
+        // 세로 스택 — 전폭(CW)을 쓰니 폭 압박이 없다. 폰트를 다시 최대치부터 본다.
+        const stackFs = pickFont(CW);
+        const perH = versions.map((v) => codeBlockH(v.lines.length, stackFs));
+        const stackH = perH.reduce((a, b) => a + b, 0) + CODE.stackGap * (n - 1);
+        let y = 0;
+        const rows = versions.map((v, i) => {
+            const r = { ...v, w: CW, h: perH[i], yOff: y };
+            y += perH[i] + CODE.stackGap;
+            return r;
+        });
+        return { mode: 'stack', n, fs: stackFs, perH, rows, promptH, maxChars,
+                 lineH: IN(stackFs * CODE.lineH), need: stackH + promptH,
+                 tooWide: !fitsW(CW, stackFs),          // 전폭·최소 폰트에서도 안 들어가는 줄이 있다
+                 top: band.VT + (band.VH - Math.min(stackH + promptH, band.VH)) / 2 };
+    };
+
+    // ── uml ── PlantUML 이미지 배치. codepair와 달리 문자열만으로 치수를 못 잰다 — 실제
+    //   렌더(engine/plantuml/render.js)가 이미 끝난 픽셀 치수(img.wIn/hIn)를 받아 배치만
+    //   계산한다(이 함수는 여전히 순수 — I/O는 호출자가 먼저 끝내고 결과만 넘긴다).
+    //   이미지는 폰트처럼 '더 못 줄이는 하한'이 없다 — 항상 밴드에 맞춰 축소·확대한다(종횡비
+    //   유지, 밴드를 넘지 않는 한도까지 키운다 — 상한 1을 두지 않는다). 그래서 codepair의
+    //   tooWide(오류) 같은 개념이 없고, 대신 축소율이 낮으면(작게 찌부러지면) 경고로만
+    //   알린다(verify.js가 scale로 판단).
+    const UML = { minScale: 0.45, promptGap: 0.10, promptH: 0.26 };
+    const uml = (d, band, img) => {
+        const promptH = d.prompt ? (UML.promptH + UML.promptGap) : 0;
+        const availH = band.VH - promptH;
+        const scale = Math.min(CW / img.wIn, availH / img.hIn);
+        const w = img.wIn * scale, h = img.hIn * scale;
+        // top = 이미지+물음 블록 전체를 밴드에 세로 중앙 정렬한 시작 y. 이미지는 top에서 바로
+        // 시작한다(y === top) — renderUml이 'bottom = top + h'로 물음 위치를 셈하므로 어긋나면
+        // 안 된다(예전 버전은 y를 availH 기준으로 따로 중앙 정렬해 top과 어긋났었다).
+        const top = band.VT + (band.VH - (h + promptH)) / 2;
+        return { x: LM + (CW - w) / 2, y: top, w, h, scale, promptH, need: h + promptH, top };
+    };
+
     // ── caption ── 시각화 하단 출처·한계(8pt). 밴드에서 자기 몫을 먼저 가져간다.
     const capLines = (t) => Math.min(CAP_MAX, lineCount(String(t), CW - PAD * 2, F_CAP));
     const capH = (t) => t ? capLines(t) * CAP_LH + 0.06 : 0;
@@ -293,7 +358,7 @@ module.exports = function makeLayout(env) {
     };
 
     return { ITEM, isItem, colWidth, item, takeaways, bullets, table, statement,
-             chain, loop, share, magnitude, pyramid, quadrant,
+             chain, loop, share, magnitude, pyramid, quadrant, codepair, uml,
              nodesOf, chainEdges, loopEdges, cellText, capLines, capH, contextH, band,
-             CHAIN, LOOP, SHARE, MAG, PYR, QUAD, STMT, TBL, TAKE, BUL, BAND };
+             CHAIN, LOOP, SHARE, MAG, PYR, QUAD, STMT, TBL, TAKE, BUL, BAND, CODE, UML };
 };

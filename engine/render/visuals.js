@@ -2,10 +2,11 @@
 // 자동 생성(build_split.js). 원본 master_render.js에서 본문을 그대로 옮겼다.
 // 손으로 고치지 말 것 — 규칙은 원본과 골든이 정본이다.
 const makeLayout = require('../layout.js');            // 기하 측정 단일 소스(verify와 공유)
+const PLANTUML = require('../plantuml/render.js');      // uml 다이어그램 렌더 단일 소스(verify와 공유)
 module.exports = (ctx) => {
   const LO = makeLayout(ctx);
   const {
-    pres, DECK, ASSETS, noteTail, band, DRAFT, C, FF,
+    pres, DECK, ASSETS, noteTail, band, DRAFT, C, FF, FF_MONO,
     LM, CW, Y_START, Y_LINE, Y_BOT, CTX_TOP, VB, F_BODY,
     F_IN, F_HEAD, F_QKO, F_QEN, PAD, MG, SP, LH,
     SLACK, F_CAP, F_ELAB, F_STMT, F_SRC, F_NUM, CAP_LH, CAP_MAX,
@@ -309,6 +310,53 @@ module.exports = (ctx) => {
         s.addText(parts, { x: g.x, y: g.top, w: g.w, h: g.h, align: 'left', valign: 'top', margin: 0 });
     };
 
+    // codepair — N벌(2~3) 코드 대조. monospace로 원문 그대로 그린다(줄바꿈 재배치 없음 — 들여쓰기 보존).
+    //   배치(가로 열/세로 스택)·폰트·좌표는 layout.js가 정한다(verify와 같은 소스) — 여기는 그 결과만 그린다.
+    //   marks(R# 등 규칙 짚기)는 그 줄 앞에 짧은 태그를 붙이고 굵게, blanks(코더 빈칸)는 글자색을 바꿔
+    //   눈에 띄게 한다 — 별도 도형을 얹지 않는다(한 addText로 끝나야 줄 좌표가 어긋나지 않는다).
+    const renderCodePair = (s, d) => {
+        const g = LO.codepair(d, band);
+        const { pad, headH } = LO.CODE;
+        const items = g.mode === 'row' ? g.cols : g.rows;
+        items.forEach((v) => {
+            const x = v.x !== undefined ? v.x : LM, w = v.w;
+            const y = g.mode === 'row' ? g.top : g.top + v.yOff;
+            const h = g.mode === 'row' ? g.rowH : v.h;
+            s.addShape(pres.shapes.RECTANGLE, { x, y, w, h, fill: { color: C.white }, line: { color: C.navy, width: 1.25 } });
+            s.addText(v.label, { x, y, w, h: headH, fill: { color: C.navy }, color: C.white, bold: true,
+                fontSize: F_HEAD, fontFace: FF, align: 'center', valign: 'middle', margin: [MG, MG, MG, MG] });
+            const runs = [];
+            v.lines.forEach((ln, li) => {
+                const lineNo = li + 1;
+                const mark = (v.marks || []).find((m) => m.line === lineNo);
+                const isBlank = (v.blanks || []).includes(lineNo);
+                if (mark) runs.push({ text: `${mark.tag} `, options: { fontSize: Math.max(7, g.fs - 2), bold: true, color: C.teal, fontFace: FF } });
+                runs.push({ text: ln.length ? ln : ' ', options: { fontSize: g.fs, fontFace: FF_MONO,
+                    color: isBlank ? C.teal : (mark ? C.navy : C.dark), bold: !!mark, breakLine: true } });
+            });
+            s.addText(runs, { x: x + pad, y: y + headH, w: w - pad * 2, h: h - headH - pad,
+                valign: 'top', align: 'left', margin: 0 });
+        });
+        if (d.prompt) {
+            const bottom = g.mode === 'row' ? g.top + g.rowH : g.top + Math.max(...items.map((v) => v.yOff + v.h));
+            s.addText(`물음: ${d.prompt}`, { x: LM, y: bottom + LO.CODE.promptGap, w: CW, h: LO.CODE.promptH,
+                fontSize: F_IN, fontFace: FF, color: C.muted, italic: true, align: 'center', valign: 'top', margin: 0 });
+        }
+    };
+
+    // uml — PlantUML 다이어그램. 렌더(engine/plantuml/render.js)는 verify.js가 이미 한 번
+    //   호출했을 가능성이 높다(같은 해시 캐시) — 여기 호출은 사실상 캐시 조회일 뿐이다.
+    const renderUml = (s, d) => {
+        const img = PLANTUML.renderDiagram(d);
+        const g = LO.uml(d, band, img);
+        s.addImage({ path: img.path, x: g.x, y: g.y, w: g.w, h: g.h });
+        if (d.prompt) {
+            const bottom = g.top + g.h;
+            s.addText(`물음: ${d.prompt}`, { x: LM, y: bottom + LO.UML.promptGap, w: CW, h: LO.UML.promptH,
+                fontSize: F_IN, fontFace: FF, color: C.muted, italic: true, align: 'center', valign: 'top', margin: 0 });
+        }
+    };
+
     const renderTakeaways = (s, items) => {
         const g = LO.takeaways(items, band);                        // 치수는 layout.js가 잰다
         const { n, gap, h, blockH } = g;
@@ -323,5 +371,5 @@ module.exports = (ctx) => {
     };
 
 
-  return { renderBullets, autoTable, renderAutoBoxes, renderChain, renderLoop, renderShare, renderMagnitude, renderPyramid, renderQuadrant, renderSteps, renderVersus, renderStatement, renderTakeaways };
+  return { renderBullets, autoTable, renderAutoBoxes, renderChain, renderLoop, renderShare, renderMagnitude, renderPyramid, renderQuadrant, renderSteps, renderVersus, renderStatement, renderTakeaways, renderCodePair, renderUml };
 };

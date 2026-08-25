@@ -12,10 +12,10 @@ module.exports = (ctx) => {
     LOOP_IN, PAL, NN, RN, SF, AT, IN, textW,
     avail, lineCount, FREE, isFree, requiredFields, lines, lineH, textH,
     hdrFS, quoteH, capLines, capH, onDark, nodesOf, edgesOf, hdr,
-    sub, ftr, dL, addQuote, sec, tocT, K, hC,
+    sub, ftr, origin, dL, addQuote, sec, tocT, K, hC,
     td, seg, eLab, nodeBox, addCaption, autoTable, renderAutoBoxes, renderChain,
     renderLoop, renderShare, renderMagnitude, renderPyramid, renderQuadrant, renderSteps, renderVersus, renderStatement,
-    renderTakeaways, renderBullets,
+    renderTakeaways, renderBullets, renderCodePair, renderUml,
   } = ctx;
 
     const addCover = () => {
@@ -135,7 +135,7 @@ module.exports = (ctx) => {
     // ===== 본문 렌더러 (도메인 독립: 슬라이드 스펙 → 시각화) =====
     // 스펙: { head|kind, sub?, question?, lead?{label,text}, intro?, visual?, quote?, foot }
     // visual.type ∈ TYPES (항목: boxes|table|steps|versus|takeaways · 단문: statement
-    //                  · 관계: flow|pipeline|loop · 수치: share|magnitude|pyramid|quadrant)
+    //                  · 관계: flow|pipeline|loop · 수치: share|magnitude|pyramid|quadrant · 코드: codepair)
 
     const buildIntro = (intro) => sec(intro.title, C.navy, intro.items.map(([label, text]) => [
         { text: label + ': ', options: { bold: true, color: C.dark } },
@@ -172,7 +172,7 @@ module.exports = (ctx) => {
         // head를 직접 지정한 슬라이드(요약)도 번호를 받는다 → 'NN. {head}'.
         const seq = DECK.session.slides.indexOf(slide) + 1;
         const head = `${String(seq).padStart(2, '0')}. ${slide.head || slide.title}`;
-        hdr(s, head); ftr(s, pg, SF);
+        hdr(s, head); ftr(s, pg, SF); origin(s, slide.origin);
         const v = slide.visual;
         const free = v && FREE.includes(v.type);            // statement — 5단 골격을 쓰지 않는다
         if (slide.sub && !free) sub(s, slide.sub, slide.kind);   // statement는 헤더 아래 한 줄을 두지 않는다(한 문장이 전부다)
@@ -199,6 +199,8 @@ module.exports = (ctx) => {
             else if (v.type === 'magnitude') renderMagnitude(s, v.data);
             else if (v.type === 'pyramid') renderPyramid(s, v.data);
             else if (v.type === 'quadrant') renderQuadrant(s, v.data);
+            else if (v.type === 'codepair') renderCodePair(s, v.data);
+            else if (v.type === 'uml') renderUml(s, v.data);
             if (v.caption) addCaption(s, v.caption);
         }
         if (slide.quote && !free) addQuote(s, slide.quote.ko, slide.quote.en, slide.quote.author);
