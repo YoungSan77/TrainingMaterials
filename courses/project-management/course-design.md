@@ -102,8 +102,23 @@ software project의 가치·governance·stakeholder·scope·일정·자원·위�
 
 세부 절차, 시간, 자료 공개 순서와 평가 rubric은 Curriculum 단계에서 완성한다.
 
-## Major Anchor Sources
+## Anchors and References
 
-| Source | Anchors | Locator | Verification |
-|---|---|---|---|
-| Project Management Institute, PMBOK Guide — Eighth Edition | value, principles, performance domains, focus areas와 non-prescriptive tailoring | https://www.pmi.org/standards/pmbok | Verified official; 구조 확인 locator: https://www.pmi.org/-/media/pmi/documents/public/pdf/publications/pmbok-guide-eighth-edition_table-of-contents.pdf; publication 시 errata 재확인 |
+### Anchors
+
+| Tag | Anchor | Exact Original Text / Definition | Author / Source | Source / Locator | Educational Role |
+|---|---|---|---|---|---|
+| [DEFINITION][ANCHOR][CORE] | Project | “A temporary initiative in a unique context undertaken to create value.” | PMI, PMI Lexicon / PMBOK Guide – Eighth Edition lineage | — | [Project를 단순 temporary endeavor가 아니라 unique context에서 value를 만드는 initiative로 고정. (프로젝트 관리 협회)](https://www.pmi.org/-/media/pmi/documents/registered/pdf/pmbok-standards/pmi-lexicon-pm-terms.pdf?rev=447328d841c249af985d14177ddd5f95\&utm_source=chatgpt.com "PMI Lexicon of Project Management Terms") |
+| [PRINCIPLE][01][ANCHOR] | Adopt a Holistic View | “Adopt a Holistic View” | PMI, PMBOK Guide – Eighth Edition, §3.3 | — | 프로젝트를 scope/schedule/cost의 개별 최적화가 아니라 조직·환경·상호작용을 포함한 전체 system으로 판단 |
+| [PRINCIPLE][02][ANCHOR] | Focus on Value | “Focus on Value” | PMI, PMBOK Guide – Eighth Edition, §3.4 | — | 프로젝트 성공의 중심을 deliverable completion이 아니라 value에 둠 |
+| [PRINCIPLE][03][ANCHOR] | Embed Quality | “Embed Quality Into Processes and Deliverables” | PMI, PMBOK Guide – Eighth Edition, §3.5 | — | Quality를 마지막 inspection이 아니라 process와 deliverable 내부에 내재화 |
+| [PRINCIPLE][04][ANCHOR] | Accountable Leadership | “Be an Accountable Leader” | PMI, PMBOK Guide – Eighth Edition, §3.6 | — | PM의 역할을 행정적 coordination보다 ownership과 accountability의 문제로 고정 |
+| [PRINCIPLE][05][ANCHOR] | Sustainability | “Integrate Sustainability Within All Project Areas” | PMI, PMBOK Guide – Eighth Edition, §3.7 | — | Sustainability를 별도 activity가 아니라 project decision 전반의 고려사항으로 봄 |
+| [PRINCIPLE][06][ANCHOR] | Empowered Culture | “Build an Empowered Culture” | PMI, PMBOK Guide – Eighth Edition, §3.8 | — | command-and-control보다 역량 있는 팀과 책임 있는 의사결정을 지원하는 환경을 강조 |
+
+### Core References
+
+| Tag | Reference | Author / Source | Source / Locator | Educational Role |
+|---|---|---|---|---|
+| [BOOK][REFERENCE][BACKBONE] | PMBOK Guide – Eighth Edition | Project Management Institute, A Guide to the Project Management Body of Knowledge (PMBOK® Guide)—Eighth Edition, 2025 | — | [과정 전체의 primary backbone. 6 Principles를 중심으로 modern project management의 판단 체계를 제공. PMI도 8판의 핵심을 6 principles와 7 performance domains로 설명한다. (프로젝트 관리 협회)](https://www.pmi.org/es-es/standards/pmbok?utm_source=chatgpt.com "PMBOK Guide") |
+| [BOOK][REFERENCE][CORE] | Software Project Survival Guide | Steve McConnell, Software Project Survival Guide, Microsoft Press, 1997 | — | [SW 프로젝트 관리의 실무적 핵심 Reference. Planning, Requirements, QA, Architecture, Design, Construction, Testing, Release를 프로젝트 관리와 SW engineering의 한 흐름으로 연결. (Microsoft Press Store)](https://www.microsoftpressstore.com/store/software-project-survival-guide-9780735637382?utm_source=chatgpt.com "Software Project Survival Guide") |

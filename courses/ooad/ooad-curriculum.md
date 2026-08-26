@@ -1,288 +1,278 @@
-# OOAD 교육 커리큘럼 (2일 · 강의 800분 · 14세션)  [v5 — Canon v2.2.2 정렬: Design by Contract 추가, ownership 정리]
+# 객체지향 분석과 설계 실무 — Curriculum
 
-> 단일 정본. 개요 + 세션 노드(명제=주장)를 한 문서로.
-> **명제=주장(한 줄).** Claim은 Deck이 보존해야 할 필수 의미·구분·경계를 갖는다. 한 명제가 1~N장으로 펴지거나 호환되는 같은 분류의 명제가 한 장에서 연결될 수 있다. 실제 장수는 의미 coverage와 시간 예산이 정한다. 실습·외부 근거 상세는 세션이 연결한 Practice/Source 정본을 따르고, 공통 원칙·정본·공유 사례는 세션이 지정한 Portfolio Common Standards를 따른다.
-> 실습은 활동 구조(≤10장).
-> 분업: 현상·원인·원칙=문헌(작성됨) / 적용·타협·반론=경험(**`(U)`=미작성**).
-> 규칙 소유: Order R1~R7 정본=`portfolio/shared-cases/order-domain.md`(명제엔 번호 안 박음).
+## 과정 계약
 
-## A0 · 과정 개요
-- 척추 OOA·OOD — 요구사항 → 분석(개념 모델) → 책임·계약 설계(모듈화·SOLID·RDD/GRASP·Design by Contract·패턴) → 코드 → 피드백(DDD·SW Architecture·MSA 이음).
-- 전제 없음(대상 OO 얕음). 후행 SW 아키텍처 선수. 도메인 Order. 무게 기반 분량(세션≠슬롯), 강의 800분.
-- 경계: DDD 전술·전략·아키텍처·MSA는 이 과정 안에서 forward-ref 수준(9=아키텍처 가볍게, 14=DDD·아키텍처·MSA 질문만)까지만 — 정본 교육은 각 과정 소유.
-- ★층위: anemic vs rich는 설계·구현 층 — rich는 분석의 전제가 아니라 **책임·협력 설계의 결과**다. anemic은 그 설계가 실패했을 때(책임이 객체 밖으로 샜을 때)의 회복 대상이다.
+- **총 instructional time:** 800분(16h, 휴식 제외)
+- **Guardrail:** `courses/ooad/course-design.md`
+- **목적:** 업무 요구와 변경 압력을 객체의 책임·협력·계약으로 변환하고, 설계 결정을 코드로 이어갈 수 있게 한다.
+- **주 사례:** `portfolio/shared-cases/order-domain.md`의 Order. 같은 상태와 규칙을 요구에서 코드 feedback까지 발전시킨다.
+- **경계:** 도메인 의미·Aggregate·Bounded Context는 DDD, 구조적 품질 선택과 architecture evaluation은 SW Architecture, 서비스 분할과 분산 실패는 MSA로 넘긴다.
 
-## A0-1 · 프로그램 자세 (canon-stance.md)
-necessary-evil(완벽한 코드 불가라 도입된 보정) · just-enough(코드가 요구하는 만큼) · prevent-repay(사전=예방/리팩토링=상환).
-- **관통 메시지(선언 장, canon-stance.md proposition.governing TEXT 축자):** LLM은 우발 복잡도를 걷어낸다. 남는 본질 복잡도는 대부분 암묵지 — 요구사항·도메인 규칙·불변식·경계 — 이고, LLM은 이를 확률로 추론할 뿐 명세하지 못한다. 그 명세는 인간의 몫이며, 명세하지 못한 격차는 개발자가 메운다. 이 프로그램이 가르치는 요구공학·도메인 모델링·아키텍처가 바로 그 명세 기술이다. 도구가 강해질수록 이 역량은 덜 필요해지지 않고 더 드러난다. 용어는 새로워도 문제는 Brooks(essence/accidental)·에반스(VO·Aggregate)가 정리한 그것이다.
+## Capability와 필수 Outcome
 
-## A0-2 · 관통 축
-anemic→rich(전제 아닌 결과) · 개념 객체→SW 객체 · use-case driven · 도메인 어휘는 UC부터(DDD에서 Ubiquitous Language로 심화, FORWARD).
+| Capability | 과정에서 확인할 Outcome |
+|---|---|
+| 분석 문제와 구현 결정 구분 | black-box 요구, 분석 모델, 설계 모델과 코드가 답하는 질문을 구분한다. |
+| 객체 경계 발견 | 변경되는 상태와 규칙을 보고 무엇을 감추고 어떤 메시지를 드러낼지 결정한다. |
+| 책임·협력·계약으로 변경 국소화 | 책임 owner, 협력, precondition·postcondition·invariant를 일관된 설계로 만든다. |
+| evidence로 설계 검토·개선 | 모델, test failure와 변경 요청을 근거로 최소 책임 이동과 refactoring을 결정한다. |
 
-## A1 · 개념 소유
-OOAD 소유 = 분석·모듈화·SOLID·RDD/GRASP·Design by Contract(Precondition·Postcondition·Object Invariant)·디자인 패턴·레이어드 지향. 이음만 = DDD 전술/전략·MSA·아키텍처 깊이·TDD/리팩토링의 테스트 엔지니어링 깊이(QM 영역). DDD 전술 이름 안 씀(VO·Aggregate 언급도 안 함, 14서는 질문 수준의 forward만). **Object Invariant(OOAD 소유) ≠ Domain Invariant(DDD 소유)** — 겹칠 수 있으나 전자는 객체 계약, 후자는 도메인 일관성 규칙이다.
+## Learning Progression
 
+1. 절차적 Order에서 규칙 분산과 변경 파급을 관찰한다.
+2. 사용자 목표와 black-box scenario에서 설계 질문을 추출한다.
+3. 질문에 필요한 정적·동적 모델만 선택한다.
+4. 변경될 결정과 상태를 감출 객체 경계를 찾는다.
+5. 책임·협력·계약을 배치하고 원칙과 pattern을 판단 도구로 사용한다.
+6. 같은 Order를 통합 설계하고 다른 변경 사례로 일관성을 검토한다.
+7. test와 코드 feedback으로 책임 배치와 구조를 개선한다.
+8. OOAD가 만든 결과와 남은 질문을 후속 owner에 넘긴다.
 
-## A1-2 · 목차 (제목만 — 상세·명제는 노드, 시간·목표는 global_config)
-- **부 0 OOAD 개요** — 1 OOAD 개요
-- **부 1 분석(OOA)** — 2 요구사항→유스케이스 · 3 BDD · 4 정적 모델 · 5 정적 모델 실습 · 6 동적 모델 · 7 동적 모델 실습
-- **부 2 OO 설계 기초** — 8 모듈화·OO 기초 · 9 아키텍처 지향
-- **부 3 책임 주도 설계** — 10 설계 원칙(SOLID) · 11 책임주도 설계(RDD)·GRASP·계약(DbC)·디자인 패턴 · 12 Order 책임·계약 실습
-- **부 4 코드와 진화** — 13 코드로(TDD·리팩토링) · 14 마무리(객체 모델의 한계→Forward)
+## Topic / Decision Weight
 
----
+| 학습 영역 | 핵심 판단 | 시간 |
+|---|---|---:|
+| 문제영역과 큰 그림 | 왜 객체 경계와 책임이 필요한가 | 65분 |
+| 요구와 설계 질문 | 어떤 사용자 목표와 행위를 지원하는가 | 90분 |
+| Just-enough 모델 | 어떤 모델이 필요하고 무엇을 만들지 않을 것인가 | 125분 |
+| 객체 경계 | 무엇을 감추고 어떤 메시지를 드러낼 것인가 | 100분 |
+| 책임·협력·계약 | 누가 알고, 누가 하고, 무엇을 보장하는가 | 140분 |
+| 통합 설계 | 판단을 하나의 일관된 Order 설계로 결합할 수 있는가 | 150분 |
+| 설계 feedback | 새 evidence에서 어떤 최소 변경이 필요한가 | 80분 |
+| 종합과 handoff | OOAD와 다음 owner의 질문은 무엇인가 | 50분 |
+| **합계** |  | **800분** |
 
-## A2 · 세션 노드
+## 실습 Progression
 
-### 부 0 · OOAD 개요
-
-### S01. OOAD 개요
-- **유형:** 설명형
-- **분량:** 50분
-- **필수 선언:** `proposition.governing`
-- **세션 의미·범위:** OOAD의 개념·필요성·관점과 객체 경계를 통한 변경 국소화를 설명한다. 과정 오리엔테이션이나 전체 과정 진행 전략을 다루지 않는다.
-- **Practice:** 없음
-- **Sources:** `Q01`
-- **Common Standards:** `portfolio/canon-stance.md#proposition.governing`, `portfolio/canon-stance.md#stance.necessary-evil`, `portfolio/canon-stance.md#stance.just-enough`, `portfolio/canon-stance.md#stance.prevent-repay`, `portfolio/shared-cases/order-domain.md` §5 `R5 취소 조건`·§6 `상태 머신`
-- **명제:** 한 줄이 하나의 주장이다. 분류는 이를 맡는 장의 kind가 된다. 학습 목표·요약은 회수·예고이므로 명제를 갖지 않는다.
-  - `C1` [현상] 코드 조직의 진화 — 스파게티의 얽힌 제어 흐름을 structured가 완화하고, procedural/modular가 기능 분해와 모듈화를 더하며, OO가 데이터·행위 분리로 넓어진 변경 파급을 객체 경계와 책임으로 국소화한다
-  - `C2` [현상] 함수형은 다른 축 — 상태를 불변·순수로 다룬다(객체 다음이 아니라 나란한 계보)
-  - `C3` [현상] 실무 코드는 객체와 함수형 관용구가 섞여 쓰인다 — 이 과정은 객체의 계보(경계·협력)만 본다, 함수형 상태 규율은 나란한 다른 축이다
-  - `C4` [현상] 절차지향(구조적 분해)은 규모에서 무너진다 — 데이터와 함수를 분리해 따로 커진다
-  - `C5` [현상] 절차적 Order 코드 — 공유 Order data/state를 create/pay/ship/cancel procedure·service 함수가 다루면 취소 가능 판단이 여러 함수·호출부에 분산된다. OO 관점은 그 규칙과 책임을 Order 경계로 이동시킨다
-  - `C6` [현상] 요구가 바뀌면 흩어진 로직이 여러 곳에서 동시에 바뀐다(산탄총 수정)
-  - `C7` [원인] 지식이 전역 상태·공유 자료구조에 새어 있어 변경 파급이 넓다
-  - `C8` [원칙] 객체 = 데이터+행위 묶음이 아니라, 상태를 지역적으로 보호하며 메시지로 협력하고 책임을 지는 단위다(Alan Kay의 메시징·지역 상태·늦은 바인딩 계보) → 변경 국소화
-  - `C9` [원칙] 그 경계가 책임 소재를 만든다 — "이건 누구 일인가"에 답이 생긴다
-  - `C10` [원칙] OOAD는 그 경계를 어디에 긋는지를 가르친다(분석=무엇, 설계=누가)
-  - `C11` [원칙] 자세 ① 필요악 — 완벽한 코드가 가능하면 분석·설계는 불필요, 불가능하기에 보정
-  - `C12` [원칙] 자세 ② Just Enough — 코드가 요구하는 만큼만(모자라면 무지 부채, 넘치면 과잉 부채)
-  - `C13` [원칙] 자세 ③ 예방/상환 — 사전 활동=예방, 리팩토링=상환
-  - `C14` [원칙] 유스케이스·도메인 어휘가 나침반 — 유스케이스(사용자 목표)를 겨누고, 사용자 업무 언어로 도메인을 한 어휘로 쓴다(다음 UC부터 적용. DDD에서 Ubiquitous Language로 심화, FORWARD)
-  - `C16` [적용] S01의 주 사례는 Order로 통일한다 — 상태와 취소 규칙이 흩어진 절차적 구조에서 규칙·책임을 Order 경계로 옮기는 전환을 설명하며, NewPOS는 사용하지 않는다
-- **반론:** 강사가 받을 반박. 슬라이드가 아니라 강사 노트에서 답한다.
-  - "OO 오버헤드" → 필요악이다(자세①이 이미 답함)
-  - "LLM이 명세까지 하지 않나" → 명세 노동은 프런티어로 이동할 뿐이다
-
-### 부 1 · 분석 (OOA)
-
-#### 2 · 요구사항 → 유스케이스 — 설명형+실습 · 65분 (~14명제)
-- **Practice:** `P1`
-- **Sources:** 없음
-- **Common Standards:** 없음
-- `C1` [현상] 요구를 기능 목록으로 적으면 사용자 목표·맥락·흐름이 사라진다
-- `C2` [원칙] 유스케이스 = 액터가 목표를 이루려 시스템을 쓰는 텍스트 이야기
-- `C3` [원칙] 다이어그램이 아니라 텍스트가 본체다(유스케이스 다이어그램은 2차)
-- `C4` [원칙] 블랙박스 — 시스템 내부가 아니라 책임으로 기술한다
-- `C5` [원칙] 액터 = 주액터(목표 주체)·지원액터·오프스테이지(이해관계)
-- `C6` [원칙] 구조 = 주 성공 시나리오(정상 흐름) + 확장(대안·예외)
-- `C7` [원칙] 상세도 세 단계 — brief(한 문단)·casual(비형식)·fully-dressed(전제조건·성공 보장·주 성공 시나리오·확장·특별 요구)
-- `C8` [원칙] 고가치·고위험 소수만 fully-dressed로(반복 개발) = 유스케이스판 Just Enough
-- `C9` [원칙] use-case driven — 개념·동적 모델이 유스케이스에서 파생한다
-- `C10` [원칙] 유스케이스는 사용자의 업무 언어와 일관된 도메인 어휘로 쓴다 — [FORWARD] 이 언어 정합성은 DDD에서 유비쿼터스 언어(Ubiquitous Language)라는 명시적 실천으로 강화된다(DDD 소유)
-- `C11` [원칙] 유저 스토리 = 대화용 경량 약속(카드, INVEST), 유스케이스 = 시나리오 흐름
-- `C12` [원칙] 같은 요구의 두 해상도 — 언제 스토리, 언제 유스케이스인가
-- [적용/실습] Order 취소 요구를 black-box Use Case와 핵심 scenario로 작성(`P1`) (U)
-- [타협] 어디까지 상세히 — 상세가 부채가 되는 지점 (U)
-- 반론: "다이어그램이 유스케이스다"→텍스트가 본체 (U)
-
-#### 3 · BDD — 설명형+실습(가볍게) · 35분 (~7명제)
-- **Practice:** 없음
-- **Sources:** 없음
-- **Common Standards:** `portfolio/shared-cases/order-domain.md`
-- `C1` [현상] 요구·테스트·코드가 따로 놀아 명세가 낡고 셋의 해석이 갈린다
-- `C2` [원칙] BDD = 유스케이스 시나리오를 구체 예시로 명세
-- `C3` [원칙] Given-When-Then — 전제 상태·사건·기대 결과
-- `C4` [원칙] 실행가능 명세 — 시나리오가 수용 테스트로 이어질 수 있다(명세와 검증의 거리를 좁힌다)
-- `C5` [원칙] 편재 언어로 써서 업무·개발이 같은 용어로 합의(번역 손실 제거)
-- `C6` [원칙] 유저 스토리의 수용 기준을 GWT로 — 스토리(무엇·왜)+GWT(어떻게 검증) 한 쌍
-- [적용/실습] Order 유저 스토리 하나의 수용 기준을 GWT로(짧게) (U)
-- 반론: "BDD=테스트 도구"→협업·명세 접근 (U)
-
-#### 4 · 정적 모델 — 설명형 · 65분  ★앵커 (~15명제)
-- **Practice:** 없음
-- **Sources:** 없음
-- **Common Standards:** 없음
-- `C1` [현상] 구현을 먼저 생각하면 그 편의가 도메인 이해를 오염시킨다 → 개념 먼저
-- `C2` [원칙] OOA는 도메인을 두 그림으로 — 정적(무엇이 존재)·동적(무엇이 일어남). 이 세션은 정적
-- `C3` [원칙] 개념 모델 = 문제 영역에 무엇이 존재하고 어떻게 관계 맺는지 그린 그림(소프트웨어 설계 아님)
-- `C4` [원칙] 개념 모델엔 연산이 없다 — 속성(자료)은 있다. 가시성·타입은 "아직 안 정함"(설계 몫)
-- `C5` [원칙] 개념 클래스 = 도메인에 실재하는 명사(사물·역할·사건·명세·목록)
-- `C6` [원칙] 클래스 박스 세 칸(이름/속성/연산) — 분석은 이름+속성만
-- `C7` [원칙] 속성 데이터 타입은 개념적 타입(금액·수량·날짜)까지, 구현 타입은 설계
-- `C8` [원칙] 연관 = 두 개념을 선으로 잇고 동사구 이름 — 양방향, 완성본은 이름 생략(선·다중도만)
-- `C9` [원칙] 다중도 — 1·0..1·1..*·*·범위. *(0개 이상) vs 1..*(하나 이상)가 규칙을 가른다
-- `C10` [원칙] 다중도 읽는 법(양 끝 함께); 다대다(*--*)도 개념 모델엔 그대로 표기
-- `C11` [원칙] 다중도가 규칙을 드러낸다 — "1..*"="판매는 최소 한 항목"(불변식 미리)
-- `C12` [원칙] 속성인가 별도 개념 클래스인가 — "자기 속성·관계를 갖는가" Yes=개념
-- `C13` [원칙] 명세 개념 — 물리적 상품과 "그 상품이 무엇인가"(명세)는 다르다. 놓치면 틀린 모델
-- `C14` [원칙] 작성 절차(비약 제거) — 명사구→거르기→박스→연관→다중도→속성
-- `C15` [원칙] 세 단계 진화 — 개념(OOA)→설계(OOD)→코드. 각 단계는 판단(책임 배치·계약)을 거쳐 다음 단계로 넘어간다 — 기계적 1:1 변환이 아니다(codepair는 그 결과를 보여줄 뿐 절차를 대신하지 않는다)
-- `C16` [원칙] 비타협 — 개념(Concept) ≠ 클래스(Class), 분석 모델 ≠ 설계 모델, 분석 모델 ≠ 코드 골격. 세 혼동은 각 단계의 판단(무엇을 감출지·누가 책임질지)을 생략시킨다
-- [적용] NewPOS Process Sale 워크스루(3-2) → 실습 5로 손수
-
-#### 5 · 정적 모델 실습 — 워크숍형 · 60분 (≤10장)
-- **Practice:** `P2`
-- **Sources:** 없음
-- **Common Standards:** `portfolio/shared-cases/order-domain.md`
-- 목표: Order를 개념 모델 → 클래스 모델로 직접 그린다
-- 준비: Order 도메인 서술 + 다중도 규칙군(`portfolio/shared-cases/order-domain.md`) (U)
-- 진행: 명사구 추출 → 거르기 → 박스 → 연관·다중도 → 속성(4의 절차 적용) (U)
-- 산출: Order 개념 모델 다이어그램
-- 디브리프: 흔한 오류 — 명세 개념 누락·방향 화살표·속성 vs 클래스 (U)
-
-#### 6 · 동적 모델 — 설명형 · 45분  ★4표기·층위 (~9명제)
-- **Practice:** 없음
-- **Sources:** 없음
-- **Common Standards:** 없음
-- `C1` [현상] 정적 모델은 무엇이 있나만 말하고, 무엇이 언제 어떤 순서로 일어나나는 못 말한다
-- `C2` [원칙] 동적 표기 네 가지 — 시퀀스·커뮤니케이션(협업)·상태 머신·액티비티
-- `C3` [원칙] 대상이 다르다 — 시퀀스·협업=객체 간 상호작용 / 상태 머신=한 객체의 생애 / 액티비티=유스케이스·프로세스 전체
-- `C4` [원칙] SSD는 '시스템을 블랙박스로 본 시퀀스'의 변형일 뿐 — 시퀀스가 본질
-- `C5` [원칙] 분석은 네 표기를 개념 객체 수준으로 쓴다
-- `C6` [원칙] SW 객체(책임·메서드)를 넣은 시퀀스·협업은 설계=GRASP. 경계는 표기가 아니라 대상 객체(개념→SW)
-- `C7` [원칙] 상태 머신 — 상태 있는 개념(Order)의 상태·전이·사건, 허용 전이만
-- [타협] 동적은 무한 — 정적 완성에 필요한 시나리오만 (U)
-- [적용] NewPOS PlaceOrder SSD·Order 상태 머신 / Order(실습=7)
-- 반론: "GRASP와 중복?"→대상 객체가 다르다(개념→SW) (U)
-
-#### 7 · 동적 모델 실습 — 워크숍형 · 80분 (≤10장)
-- **Practice:** `P3`
-- **Sources:** 없음
-- **Common Standards:** `portfolio/shared-cases/order-domain.md`
-- 목표: 한 주문을 4표기로 관통 — 같은 것을 네 렌즈로 보며 각 표기의 자리를 익힌다
-- 준비: 5의 Order 개념 모델 + 상태 전이 규칙군 (U)
-- 진행(한 Order, 개념 객체): ①시퀀스 ②상태 머신 ③액티비티(프로세스) ④커뮤니케이션. SW 객체는 안 넣음 (U)
-- 산출: 4표기 세트 + "각 표기가 답하는 질문" 메모
-- 디브리프: 각 표기가 무엇을 드러내고 숨겼나; 책임 적용은 GRASP서 진화 (U)
-- **Just Enough Modeling**: 실무에선 넷을 다 그리지 않는다 — 상호작용 순서가 핵심이면 시퀀스, 객체 생애·상태 전이가 핵심이면 상태 머신, 업무 흐름·분기가 핵심이면 액티비티, 시스템을 블랙박스로 본 액터 상호작용이면 SSD만 고른다. 이 실습에서 넷을 다 그린 건 각 표기의 자리를 배우기 위해서다
-
-### 부 2 · OO 설계 기초
-
-#### 8 · 모듈화 · OO 기초 — 설명형+실습 · 50분 (~11명제)
-- **Practice:** `P4`
-- **Sources:** `Q05`, `Q06`, `Q07`
-- **Common Standards:** 없음
-- `C1` [현상] 큰 코드는 어디를 고치면 어디가 깨질지 모른다 — 모듈 경계가 없기 때문
-- `C2` [원칙] 정보 은닉(Parnas) — 변경될 만한 결정을 모듈 안에 감춘다
-- `C3` [원칙] 무엇을 감추고 무엇을 드러낼지가 모듈 경계의 기준(인터페이스)
-- `C4` [원칙] 결합도 — 모듈 간 의존. 낮은 결합 = 한 곳 변경이 번지지 않음
-- `C5` [원칙] 응집도 — 한 모듈이 한 관심사에. 높은 응집 = 이해·변경 쉬움
-- `C6` [원칙] 캡슐화 — 정보 은닉의 OO 실현: 데이터와 행위를 한 경계에
-- `C7` [원칙] 추상화 — 본질만 남기고 세부를 감춘다(개념의 경계)
-- `C8` [원칙] 다형성 — 같은 메시지에 타입마다 다른 응답(조건 분기를 타입으로)
-- `C9` [원칙] 상속 = "is-a"의 강결합, 조합 = "has-a"의 유연
-- `C10` [원칙] 조합을 우선한다(favor composition over inheritance)
-- `C11` [원칙] 이 기본을 SOLID(10)가 원칙으로, RDD/GRASP(11)가 배치로 심화한다
-- [적용/실습] Order 코드에서 결합·응집 냄새 찾기 (U)
-- 반론: "정보 은닉=private?"→변경 가능성 은닉(설계 판단) (U)
-
-#### 9 · 아키텍처 지향 — 설명형 · 50분 (가볍게·forward-ref, ~11명제)
-- **Practice:** 없음
-- **Sources:** 없음
-- **Common Standards:** 없음
-- `C1` [현상] 책임을 "어디에" 둘지 정하려면 그 책임이 앉을 무대(레이어)가 먼저 있어야 한다
-- `C2` [원칙] 레이어드 — 표현·응용·도메인·인프라, 각 레이어의 관심이 다르다
-- `C3` [원칙] 표현 = UI·입출력, 도메인 = 규칙·개념, 인프라 = DB·프레임워크
-- `C4` [원칙] 의존성 방향 — 소스 의존성은 안쪽으로만
-- `C5` [원칙] 도메인은 인프라를 모른다 — 프레임워크·DB를 import하면 규칙이 깨진다
-- `C6` [원칙] 왜 안쪽이 독립인가 — 규칙은 오래 살고 기술은 바뀐다
-- `C7` [원칙] 안쪽이 바깥을 필요로 하면 안쪽에 포트(인터페이스), 바깥이 구현(DIP 미리보기)
-- `C8` [원칙] 유스케이스는 응용 레이어, 개념 모델은 도메인 레이어에 앉는다
-- [적용] Order 도메인·PlaceOrder가 각각 어느 레이어에 (U)
-- forward-ref: 클린 4레이어·경계 규칙(DTO·포트 소유)의 깊은 소유는 아키텍처 과정
-
-### 부 3 · 책임 주도 설계 (OOD 핵심)
-
-#### 10 · 설계 원칙 (SOLID) — 설명형+실습 · 40분 (~8명제)
-- **Practice:** `P5`
-- **Sources:** 없음
-- **Common Standards:** `portfolio/shared-cases/order-domain.md`
-- `C1` [원칙] SOLID = 좋은 설계가 변화에 견디게 하는 5 원칙(Martin) — 8의 결합·응집을 원칙으로
-- `C2` [원칙] SRP — 클래스가 바뀌는 이유는 하나(=응집의 원칙)
-- `C3` [원칙] OCP — 확장에는 열리고 수정에는 닫힌다(다형성으로)
-- `C4` [원칙] LSP — 하위형은 상위형 자리에 그대로 치환 가능
-- `C5` [원칙] ISP — 뚱뚱한 인터페이스를 클라이언트별로 쪼갠다(결합 낮추기)
-- `C6` [원칙] DIP — 구체가 아니라 추상에 의존(9 의존성 방향과 이음). **DIP ≠ DI Framework** — 프레임워크 없이도 지킬 수 있고, 프레임워크를 써도 어길 수 있다
-- `C7` [원칙] 이건 "무엇이 좋은 설계인가" 목표지 배치 기법이 아니다 — 기법은 다음 RDD/GRASP
-- [실습] Order 코드에서 SRP 또는 DIP 위반 하나 고치기(짧게) (U)
-- 반론: "다섯이나?"→변화 국소화의 다섯 각도 (U)
-
-#### 11 · 책임주도 설계(RDD)·GRASP·계약(Design by Contract)·디자인 패턴 — 설명형+실습 · 60분(잠정 — 명제 증가로 재배분 필요, A3 참조) (~19명제)
-- **Practice:** `P6`
-- **Sources:** `Q02`, `Q03`, `Q04`, `Q06`, `Q07`
-- **Common Standards:** `portfolio/shared-cases/order-domain.md`
-- `C1` [프레임] RDD(Wirfs-Brock) — 객체를 데이터+알고리즘이 아니라 역할+책임으로 본다
-- `C2` [프레임] 설계 질문은 "무슨 클래스가 있나"가 아니라 "이 책임은 누가 지는가"
-- `C3` [원칙] 책임 두 종류 — 아는 책임(정보 보유)/하는 책임(행위 수행)
-- `C4` [원칙/★] 데이터 주도 = 빈혈(anemic)의 뿌리 — 책임을 객체 밖(서비스)에 두면 객체는 데이터 주머니
-- `C5` [원칙/★] 책임 주도 = rich — 분석에서 발견한 개념을 설계가 책임·협력으로 살려낸다(rich는 결과이지 전제가 아니다)
-- `C6` [원칙] GRASP = RDD의 구체화, 책임 배치를 사고하는 패턴(Larman)
-- `C7` [원칙] 정보 전문가 — 정보를 가진 객체에 책임을(총액=Sale, 소계=SalesLineItem)
-- `C8` [원칙] 창조자 — 담거나 정보를 가진 객체가 생성한다(복잡하면 → Factory)
-- `C9` [원칙] 제어자 — 시스템 이벤트를 도메인 경계 제어자가 받아 위임
-- `C10` [원칙] 낮은 결합·높은 응집 — 배치의 두 저울. 필요할 때 Pure Fabrication·Indirection·Protected Variations로 조정하되 결합 0을 목표로 하지 않는다(SOLID 겹침: 결합↔DIP, 응집↔SRP)
-- `C11` [원칙] 메시지·협력의 규율 — Tell, Don't Ask(상태를 꺼내 외부에서 판단하지 말고 의미 있는 행위를 요청한다)·Law of Demeter(협력에 필요한 최소한의 이웃만 안다)·CQS(상태 변경과 조회의 의도를 나눈다). 셋 다 독립 슬로건이 아니라 책임→메시지→협력→캡슐화 맥락 안의 규율이다
-- `C12` [프레임/★] Design by Contract(Meyer) — 책임은 호출자·제공자 사이의 명시적 계약이다: Precondition(호출 전 참이어야 할 것)·Postcondition(수행 후 보장할 것)·Object Invariant(외부에 안정된 상태로 노출될 때 항상 참이어야 할 것)
-- `C13` [적용] Order.cancel() 계약 — Precondition=취소 가능한 상태 / Postcondition=상태가 Cancelled / Object Invariant=완료된 주문과 취소 상태의 모순 방지(정확한 규칙은 `portfolio/shared-cases/order-domain.md`를 따른다)
-- `C14` [원칙] **Object Invariant ≠ Domain Invariant** — 전자는 객체 계약(OOAD 소유), 후자는 도메인 일관성 규칙(DDD 소유, Aggregate consistency에서 심화). 겹칠 수 있으나 관점이 다르다
-- `C15` [타협] DbC는 Eiffel 문법 강의가 아니다 — 핵심은 계약 사고이지 특정 언어의 assert 구문 암기가 아니다
-- `C16` [원칙] GRASP는 패턴의 일종(Larman) → 반복 문제엔 이름 붙은 해법(GoF Design Patterns)
-- `C17` [원칙] 패턴은 이름 암기가 아니라 문제·forces·협력·트레이드오프로 본다 — Factory(복잡한 생성)·Strategy(다형성으로 변형 교체=OCP)·Adapter·Observer
-- `C18` [타협/FORWARD] Repository는 DDD에서 Aggregate의 저장·조회 추상화로 의미가 심화된다(DDD 소유) — OOAD 핵심 패턴 예시로는 다루지 않는다
-- `C19` [원칙] 개념 객체 → SW 객체 — 분석 개념 객체를 책임·메서드·계약 가진 설계 클래스로(6·7과 이음)
-- [실습] 한 책임을 정보 전문가로 배치하고, 그 책임의 계약(Precondition·Postcondition)을 한 줄씩 적어본다(짧게) (U)
-- [타협] GRASP는 정답표 아님 — 정보 가졌다고 다 주면 응집이 무너진다(→ Pure Fabrication) (U)
-
-#### 12 · Order 책임·계약 실습(Responsibility & Contract Workshop) — 워크숍형 · 100분 (≤10장)
-- **Practice:** 없음 (`P6` 결과를 입력 가설로 사용)
-- **Sources:** `Q03`, `Q04`
-- **Common Standards:** `portfolio/shared-cases/order-domain.md`
-- 목표: 빈혈(절차적) Order를 GRASP로 배치하고 SOLID로 다듬어 rich로, 배치한 책임 중 하나 이상에 계약(Precondition·Postcondition·Object Invariant)을 붙여 여러 케이스로 굳힌다
-- 준비: 빈혈 상태 Order(로직이 서비스에) + 규칙군 (U)
-- 진행: ①빈혈 진단(책임이 어디로 샜나) → ②GRASP 배치 → ③SOLID 점검 → ④핵심 책임 하나(예: cancel)의 계약 작성 → ⑤다른 케이스 반복 (U)
-- 산출: rich Order 설계(책임이 객체 안으로) + object contract 최소 1개
-- 디브리프: 분석에서 발견한 책임을 구현이 지켰나; 계약이 검증 가능한 형태였나; Factory·Pure Fabrication 이음 (U)
-
-### 부 4 · 코드와 진화
-
-#### 13 · 코드로 — TDD·리팩토링 — 설명형+실습 · 50분 (~11명제)
-- **Practice:** `P7`
-- **Sources:** `Q08`
-- **Common Standards:** `portfolio/shared-cases/order-domain.md`
-- `C1` [현상] rich 설계를 코드로 옮기며 손이 미끄러지면 다시 빈혈로 샌다 — 두 도구가 지킨다
-- `C2` [원칙] TDD = Red-Green-Refactor(실패 테스트→통과→정리)
-- `C3` [원칙] 테스트를 먼저 써서 인터페이스·계약을 앞에서 정한다 = 설계 압력
-- `C4` [원칙] TDD는 검증 기법이면서 설계 피드백 압력으로 작동할 수 있다 — 인터페이스·계약을 앞에서 정하게 만든다
-- `C5` [원칙] TDD ↔ BDD 층위 — TDD=단위/설계(안), BDD(3)=수용/행위(바깥). 한 쌍
-- `C6` [원칙] 리팩토링 = 동작을 유지하며 구조를 개선(Fowler)
-- `C7` [원칙] anemic→rich도 리팩토링의 한 형태
-- `C8` [원칙] 방향은 원칙(GRASP·SOLID)이, 안전망은 테스트가 준다 — 원칙=방향, 테스트=안전망
-- `C9` [원칙] 테스트 없는 리팩토링은 위험하다 — 둘은 한 쌍
-- `C10` [원칙] 계약(Contract/Specification) → 테스트 증거(Test Evidence) → 설계 피드백 → 리팩토링. **테스트는 계약 자체가 아니다** — 테스트는 계약·명세 충족의 증거(evidence)가 될 수 있다
-- [적용/실습] Order 규칙 하나(취소·전이)를 Red-Green-Refactor로(짧게) (U)
-- [타협] 도구는 판단을 대체 못 한다 — 방향 없는 테스트는 나쁜 설계를 못 막는다(자세 회수) (U)
-- forward-ref: 이 구도가 아키텍처 과정 스파게티→TS→리치 리팩토링으로 확장
-
-#### 14 · 마무리 — 객체 모델의 한계 → DDD·SW Architecture·MSA Forward + 종합 — 설명형 · 50분 (~11명제)
-- **Practice:** 없음
-- **Sources:** `Q09`
-- **Common Standards:** 없음
-- `C1` [현상] 책임·계약·협력으로 Order를 분석·설계·코드로 세웠다 — 이 모델만으로는 충분하지 않은 질문들이 남는다
-- `C2` [원칙] 도메인이 커지면 "이 개념은 여기서도 같은 뜻인가?"가 개별 객체 책임만으로는 안 풀린다 — 개념·언어·경계를 체계적으로 다루는 방법이 필요해진다
-- `C3` [forward] DDD가 다루는 질문 — 도메인의 규칙·언어·경계를 어떻게 명시적 모델로 만들 것인가(전술·전략의 이름과 상세 정의는 DDD 과정 소유)
-- `C4` [forward] 객체 책임의 배치만으로는 시스템 전체 구조 문제를 풀 수 없다 — 어떤 정책을 무엇으로부터 보호할지, 왜 이 구조를 택했는지는 SW Architecture가 다룬다(9와 이음)
-- `C5` [forward] 독립 배포·팀 자율의 가치가 분산 비용보다 클 때만 서비스 경계를 나눈다 — 이 판단과 서비스 계약·실패 설계는 MSA가 다룬다
-- `C6` [원칙] 세 방향 모두 이 과정의 책임·협력·계약 사고 위에 선다 — 대체가 아니라 심화·확장이다
-- `C7` [종합] 절차지향 → 분석(개념 모델) → 설계(모듈화·SOLID·RDD/GRASP·Design by Contract·패턴) → 코드 → 피드백. Engineering Portfolio에서 OOAD의 자리 — 다음 과정들이 이 토대 위에서 각자의 문제를 연다
-- [적용] Order가 과정 전체를 어떻게 관통했나 (U)
-- 반론: "DDD·아키텍처·MSA 왜 안 깊게"→OOAD는 책임·협력·계약의 토대를 소유하고, 도메인 모델·구조 결정·분산 판단은 각 후속 과정이 정본 교육한다 (U)
+| 실습 | 입력 | 학습자 판단과 산출물 | Feedback / 실패 기준 |
+|---|---|---|---|
+| Just-enough 모델 선택 | Order 취소 요구와 변경 질문 | 필요한 모델, 모델별 질문, 제외한 모델과 이유 | 모든 UML을 만들거나 표기 완성도가 목적이면 실패 |
+| Order 책임 재배치 | 취소 판단이 service와 호출부에 흩어진 구조 | 책임표·협력 sketch·cancel 계약·change-impact 설명 | 클래스만 늘거나 규칙 owner가 여러 곳에 남으면 실패 |
+| 설계 feedback | 새 상태 규칙, test failure와 변경 요청 | before/after 책임·최소 refactoring·근거와 비용 | 원칙이나 pattern 이름만으로 변경을 정당화하면 실패 |
 
 ---
 
-## A3 · 배분
-- 강의 800분 = 1일 400(1–7)·2일 400(8–14). 무게가 시간에 드러남(책임 배치 실습 100 : BDD 35 ≈ 3배). 설계 블록(10–12)=200(25%).
-- 세션 수 14는 파생값(주제 무게로 정함).
-- **v5 개정 메모**: S11에 Design by Contract·Tell Don't Ask·CQS·Law of Demeter를 추가하며 명제 수가 13→19로 늘었다(설계 블록 10–12의 실질 무게가 커짐). 강의 800분 총량과 1일/2일 분할(1–7 / 8–14)은 유지하되, S11 세션 내부 분(分) 배분은 claim 의미 coverage·Practice·설명 시간을 함께 보고 재계산한다 — 현재 분량 표기는 잠정치다.
-- **명제=주장.** 장수는 claim 수의 기계적 합이 아니라 의미 coverage·세션 시간·Practice 운영의 결과다.
-- **미완**: 모든 `(U)`(적용·타협·반론) 미작성 — 사용자 2주기. 작성하면 해당 claim 또는 Practice 정본에 반영한다.
+## S01. 객체지향 분석과 설계 실무 개요 — 65분
+
+**Outcome:** OOAD의 문제영역, 핵심 정의, 필요성, 범위와 경계를 설명하고 Order에서 과정이 해결할 질문을 식별한다.
+
+- **실습:** 정식 실습 없음. 절차적 Order에서 취소 규칙 변경의 영향 위치를 짧게 표시한다.
+- **Anchors:** `course-design.md`의 Object-Oriented Programming, Object-Oriented Analysis, Object-Oriented Design, Design Principles over UML
+- **References:** Applying UML and Patterns
+- **Common Standards:** `portfolio/principles.md`의 `P-DT-01`, `P-ECO-01`, `P-RISK-01`; `portfolio/shared-cases/order-domain.md`
+
+### 핵심 Claim과 흐름
+
+1. 절차적 Order에서는 shared state와 create·pay·ship·cancel 함수가 분리되고 취소 판단이 여러 service와 호출부에 흩어질수록 변경 영향이 넓어진다.
+2. 객체 경계는 상태와 규칙을 지역적으로 보호하고 메시지로 협력하게 해 변경 영향을 책임 owner 주변으로 국소화한다.
+3. OOA는 문제영역의 개념과 관계를 이해하는 판단이고, OOD는 객체 분해와 책임·협력을 결정하는 판단이다. 분석 모델을 코드 골격으로 바로 바꾸지 않는다.
+4. OOAD는 UML 표기나 클래스 목록이 아니라 변화하는 행위를 책임 있는 객체와 협력으로 조직하는 판단 과정이다.
+5. 과정은 요구와 scenario에서 출발해 필요한 모델을 선택하고 객체 경계·책임·협력·계약을 설계한 뒤 코드 evidence로 개선한다.
+6. DDD의 도메인 의미 경계, SW Architecture의 구조적 trade-off, MSA의 서비스 분할은 이 과정에서 완결하지 않는다.
+
+**다음 전환:** 객체 후보를 찾기 전에 사용자가 달성하려는 목표와 관찰 가능한 행위를 명확히 한다.
+
+## S02. 요구에서 설계 질문으로 — 90분
+
+**Outcome:** Order 취소 요구를 black-box Use Case로 표현하고 구현 결정을 섞지 않은 설계 질문을 도출한다.
+
+- **실습:** Order 취소 Use Case 작성과 scenario variation 검토
+- **Anchors:** Use Case
+- **References:** Applying UML and Patterns
+- **Common Standards:** `portfolio/principles.md`의 `P-DT-01`, `P-EMP-01`; `portfolio/shared-cases/order-domain.md`
+
+### 핵심 Claim과 흐름
+
+1. Use Case는 내부 구조가 아니라 actor에게 가치 있는 관찰 가능한 결과와 이를 만드는 행위 흐름을 기술한다.
+2. main success scenario와 실패·대안 흐름은 취소 가능·불가 상태와 기대 결과를 드러내지만 책임 class나 method는 결정하지 않는다.
+3. 사용자 업무 언어를 일관되게 사용하면 이후 모델과 코드가 같은 문제를 가리키는지 추적할 수 있다. 이를 DDD의 Ubiquitous Language 교육으로 확장하지 않는다.
+4. 상세화의 기준은 현재 설계 위험이다. 책임과 경계 판단에 영향을 주지 않는 UI·framework·저장 세부는 제외한다.
+
+### 실습 운영
+
+- **준비:** Order 상태·취소 규칙과 구현 세부가 섞인 요구 문장
+- **수행:** actor와 goal → black-box main flow → 취소 불가 variation → 미결정 설계 질문
+- **산출물:** Use Case, 핵심 variation, “아직 결정하지 않은 것” 목록
+- **Feedback:** actor 관점, 관찰 가능한 결과, class·DB·API 결정의 조기 혼입을 검토한다.
+
+**다음 전환:** Use Case가 드러낸 질문마다 어떤 모델이 실제로 필요한지 선택한다.
+
+## S03. 질문에 맞는 Just-enough 모델 — 125분
+
+**Outcome:** 정적·동적 모델이 답하는 질문을 구분하고 Order 변경 판단에 필요한 최소 모델을 선택한다.
+
+- **실습:** Just-enough 모델 선택
+- **Anchors:** Object-Oriented Analysis, Object-Oriented Design, Aggregation
+- **References:** Applying UML and Patterns
+- **Common Standards:** `portfolio/principles.md`의 `P-ECO-01`, `P-RISK-01`; `portfolio/shared-cases/order-domain.md`
+
+### 핵심 Claim과 흐름
+
+1. 정적 모델은 어떤 개념과 관계가 존재하는지 답하고, 동적 모델은 사건·상태 변화·협력 순서를 답한다.
+2. 개념 모델은 문제영역을 제한하며 operation, visibility, framework type 같은 구현 결정을 소유하지 않는다.
+3. 상태 모델은 Order의 허용 전이를, sequence 또는 collaboration sketch는 한 scenario의 상호작용을 드러낸다.
+4. 표기는 의미를 보조할 뿐 대신하지 않는다. aggregation, association과 diagram 종류만으로 설계가 정당화되지 않는다.
+5. 모델 선택은 “무엇을 모두 그릴까”가 아니라 “현재 불확실성을 줄일 evidence가 무엇인가”의 판단이다.
+6. 분석 모델에서 설계 모델로 이동할 때 책임·메시지·계약 판단이 추가되며 기계적인 1:1 변환은 없다.
+
+### 실습 운영
+
+- **준비:** S02 Use Case와 Order 변경 질문 세 가지
+- **수행:** 질문별 후보 모델 비교 → 필요한 모델 선택 → 최소 범위 작성 → 제외 이유 기록
+- **산출물:** 필요한 개념·상태·협력 모델의 조합과 decision note
+- **Feedback:** 모델이 질문에 답하는지, 불필요한 UML과 분석·설계 혼합이 없는지 검토한다.
+
+**다음 전환:** 모델이 드러낸 변경 규칙을 어디에 감추고 어떤 메시지를 노출할지 결정한다.
+
+## S04. 객체 경계와 변경 국소화 — 100분
+
+**Outcome:** 변경될 상태·규칙·결정을 찾아 객체 경계 안에 감추고 안정된 협력 면을 정의한다.
+
+- **실습:** 절차적 Order와 객체 경계 후보 비교
+- **Anchors:** Object-Oriented Programming, Information Hiding, Interface / Composition
+- **References:** Applying UML and Patterns, Design Patterns
+- **Common Standards:** `portfolio/principles.md`의 `P-ECO-01`, `P-RISK-01`; `portfolio/shared-cases/order-domain.md`
+
+### 핵심 Claim과 흐름
+
+1. Encapsulation은 field를 private으로 만드는 문법이 아니라 함께 변하는 상태와 규칙을 하나의 경계가 보호하게 하는 설계다.
+2. Information Hiding은 변경 가능성이 높거나 이해하기 어려운 결정을 다른 부분에서 감추도록 경계를 정한다.
+3. 객체는 상태를 외부가 꺼내 판단하게 하기보다 의미 있는 메시지로 행위를 요청받고 자신의 규칙을 지킨다.
+4. Cohesion은 함께 변하는 책임을 모으는 정도이고 coupling은 변경이 다른 경계로 번지는 정도다. 둘은 책임 이동의 결과로 평가한다.
+5. Interface와 composition은 변화 압력이 있을 때 협력 상대와 변형을 격리하는 선택지다. 추상화 수가 목표가 아니다.
+6. Order 경계 후보는 취소 판단 정보, 상태 전이 책임과 변경 이유를 함께 보고 비교한다.
+
+**다음 전환:** 경계를 정한 뒤 각 책임을 누가 맡고 어떤 계약으로 협력할지 결정한다.
+
+## S05. 책임·협력·계약 설계 — 140분
+
+**Outcome:** Order의 책임을 배치하고 협력을 구성하며 핵심 행위의 기대와 보장을 검증 가능한 계약으로 표현한다.
+
+- **실습:** Order 책임 재배치의 안내된 첫 반복
+- **Anchors:** Responsibility-Driven Design, GRASP, Design by Contract, Dependency orientation, Interface / Composition
+- **References:** Applying UML and Patterns, SOLID Principles, Design Patterns
+- **Common Standards:** `portfolio/principles.md`의 `P-ECO-01`, `P-RISK-01`; `portfolio/shared-cases/order-domain.md`
+
+### 핵심 Claim과 흐름
+
+1. RDD의 출발 질문은 “어떤 class가 필요한가”가 아니라 “이 책임을 누가 져야 하는가”다.
+2. 책임은 알아야 하는 것과 해야 하는 것으로 구분할 수 있고, 협력은 메시지로 책임 수행을 요청하는 구조다.
+3. GRASP는 정답표가 아니라 information, cohesion, coupling과 variation을 함께 보며 책임 후보를 비교하는 판단 렌즈다.
+4. SOLID는 다섯 이름의 checklist가 아니라 책임 배치가 변화에 견디는지 검토하는 principle family다.
+5. Pattern은 문제·forces·gain·cost를 공유하는 반복 해법이며 이름이 익숙하다는 이유로 도입하지 않는다.
+6. 계약은 호출자의 precondition, 제공자의 postcondition과 안정된 상태에서 유지할 object invariant를 명시한다.
+7. Object invariant는 객체 상태의 계약이다. Aggregate와 domain consistency boundary는 DDD가 소유한다.
+8. 좋은 책임 이동은 규칙 owner와 외부 지식을 줄이며, abstraction 비용보다 change-impact 감소가 커야 한다.
+
+### 안내 실습
+
+- 절차적 `cancel`에서 판단 정보와 규칙 위치를 표시한다.
+- 책임 후보를 비교하고 information·cohesion·coupling 근거를 기록한다.
+- 선택한 owner와 협력 메시지를 sketch한다.
+- `cancel`의 precondition·postcondition·object invariant를 작성한다.
+- 책임 이동 전후의 change impact로 선택을 설명한다.
+
+**다음 전환:** 다른 상태 변화와 변경 요청에서도 같은 책임 구조가 유지되는지 통합 검증한다.
+
+## S06. Order 책임·계약 통합 Workshop — 150분
+
+**Outcome:** 분산된 Order 규칙을 일관된 책임·협력·계약으로 재설계하고 대안과 비용을 evidence로 설명한다.
+
+- **실습:** Order 책임 재배치 통합 Workshop
+- **Anchors:** Responsibility-Driven Design, GRASP, Design by Contract, Dependency orientation
+- **References:** Applying UML and Patterns, SOLID Principles, Design Patterns
+- **Common Standards:** `portfolio/principles.md`의 `P-ECO-01`, `P-RISK-01`, `P-EVID-01`; `portfolio/shared-cases/order-domain.md`
+
+### Scenario
+
+절차적 baseline은 shared Order data와 create·pay·ship·cancel service 함수를 가진다. 취소 가능 여부와 상태 전이 판단은 여러 함수와 호출부에 중복돼 있다. shared case의 규칙을 바꾸지 않고 책임 위치를 재설계한다.
+
+### 수행과 산출물
+
+1. 중복 규칙, 외부 상태 판단과 변경 파급 경로를 표시한다.
+2. 책임 owner와 협력 구조를 최소 두 가지로 비교한다.
+3. information, cohesion, coupling, abstraction cost와 reversibility로 대안을 선택한다.
+4. pay·ship·cancel 중 핵심 행위의 precondition·postcondition과 Order object invariant를 작성한다.
+5. CREATED·PAID·SHIPPED·CANCELLED 사례로 설계를 검증한다.
+6. 책임 이동 전후 change-impact와 남은 trade-off를 기록한다.
+
+### Feedback 기준
+
+- 상태와 규칙의 owner가 명확한가
+- 호출부가 Order 내부 상태를 꺼내 같은 판단을 반복하지 않는가
+- 협력 메시지가 업무 의도를 표현하는가
+- 계약이 shared rule과 일치하고 사례로 검증 가능한가
+- 추가한 interface·composition·pattern이 실제 variation을 격리하는가
+- DDD Aggregate나 architecture layer를 정답으로 빌려오지 않았는가
+
+**다음 전환:** 새 변경과 실패 evidence에서 무엇을 유지하고 무엇을 옮길지 판단한다.
+
+## S07. 코드 Evidence와 설계 Feedback — 80분
+
+**Outcome:** test failure와 변경 요청을 evidence로 해석해 동작을 보존하면서 최소 책임 이동과 refactoring을 결정한다.
+
+- **실습:** 설계 feedback
+- **Anchors:** Refactoring, Dependency orientation, Interface / Composition
+- **References:** SOLID Principles, Design Patterns
+- **Common Standards:** `portfolio/principles.md`의 `P-FLOW-01`, `P-ECO-01`, `P-EVID-01`; `portfolio/shared-cases/order-domain.md`
+
+### 핵심 Claim과 흐름
+
+1. Test는 계약 자체가 아니라 구현이 기대 행위와 계약을 충족하는지 보여주는 evidence다.
+2. Refactoring은 관찰 가능한 행위를 유지하면서 내부 구조를 더 이해하고 변경하기 쉽게 만든다.
+3. 새 변경 요청은 기존 책임 owner와 variation 가정이 여전히 유효한지 검토하게 한다.
+4. SOLID·GRASP·pattern은 변경 방향의 보조 렌즈이고 test와 change-impact가 선택의 evidence다.
+5. 현재 위험에 충분한 최소 책임 이동과 검증 범위를 선택한다.
+
+### 실습 운영
+
+- **입력:** S06 설계, 새 상태 규칙 또는 취소 정책 변경, 실패 test
+- **수행:** 실패 원인과 owner 연결 → 대안 비교 → 최소 refactoring → 계약과 test 갱신
+- **산출물:** before/after 책임과 협력, 변경한 계약, 보존된 행위, 선택 근거
+- **Feedback:** shared rule을 구현에 맞춰 바꾸지 않았는지, 이름이 아니라 evidence로 변경을 정당화했는지 검토한다.
+
+**다음 전환:** 요구에서 feedback까지의 판단을 회수하고 OOAD 밖에 남은 질문을 넘긴다.
+
+## S08. OOAD 종합과 Handoff — 50분
+
+**Outcome:** Order의 진화를 통해 OOAD capability를 종합하고 DDD·SW Architecture·MSA가 소유할 후속 질문을 구분한다.
+
+- **실습:** 개인 decision review와 동료 설명
+- **Anchors:** OO Design → DDD
+- **References:** Applying UML and Patterns
+- **Common Standards:** `portfolio/concept-ownership.md`; `portfolio/shared-cases/order-domain.md`
+
+### 핵심 Claim과 흐름
+
+1. 과정의 결과는 diagram이나 pattern 목록이 아니라 요구에서 책임 owner, 협력, 계약과 개선 근거를 설명하는 능력이다.
+2. Order는 절차적 규칙 분산에서 black-box scenario, 필요한 모델, 객체 경계, 책임·협력·계약과 code feedback으로 발전했다.
+3. domain consistency boundary는 DDD가 다룬다. OOAD의 object boundary를 Bounded Context나 Aggregate로 부르지 않는다.
+4. quality attribute를 위한 구조 선택과 평가는 SW Architecture가 다룬다. OOAD가 architecture style을 결정하지 않는다.
+5. 독립 배포 가치, 분산 비용과 서비스·데이터 소유는 MSA가 다룬다. 객체 경계를 서비스 경계로 자동 확대하지 않는다.
+
+### 종합 확인
+
+학습자는 최종 Order 설계를 사용해 다음을 설명한다.
+
+- 분석 문제와 구현 결정의 차이
+- 선택한 모델과 제외한 모델의 이유
+- 상태와 규칙의 책임 owner
+- 핵심 협력과 계약
+- change-impact를 줄였다는 evidence와 지불한 비용
+- OOAD로 답하지 않고 후속 owner에 넘길 질문
+
+---
+
+## 시간 검증
+
+| Session | 시간 |
+|---|---:|
+| S01 | 65분 |
+| S02 | 90분 |
+| S03 | 125분 |
+| S04 | 100분 |
+| S05 | 140분 |
+| S06 | 150분 |
+| S07 | 80분 |
+| S08 | 50분 |
+| **합계** | **800분** |

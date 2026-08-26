@@ -97,9 +97,31 @@
 
 세부 절차, 시간, 자료 공개 순서와 평가 rubric은 Curriculum 단계에서 완성한다.
 
-## Major Anchor Sources
+## Anchors and References
 
-| Source | Anchors | Locator | Verification |
-|---|---|---|---|
-| David Parnas, “On the Criteria To Be Used in Decomposing Systems into Modules” | Information hiding을 설계 경계의 근거로 사용 | CACM 15(12), 1972, DOI 10.1145/361598.361623 | Verified; 축자 인용은 원문 대조 후 |
-| Rebecca Wirfs-Brock & Brian Wilkerson, “Object-Oriented Design: A Responsibility-Driven Approach” | 객체를 책임과 협력으로 설계하는 방향 | OOPSLA 1989 proceedings / ACM bibliographic record | Verified bibliographic; exact quote 미사용 |
+### Anchors
+
+| Tag | Anchor | Exact Original Text / Definition | Author / Source | Source / Locator | Educational Role |
+|---|---|---|---|---|---|
+| [FOUNDATION][QUOTE][ANCHOR] | Object-Oriented Programming | “OOP to me means only messaging, local retention and protection and hiding of state-process, and extreme late-binding of all things.” | Alan Kay, “Clarification of object-oriented”, 2003 | https://www.accu.org/content/conf2011/Kevlin-Henney-Will-the-Real-OO-Please-Stand-Up.pdf | OOP의 출발점을 message·local state·late binding으로 고정 (ACCU) |
+| [DEFINITION][OOA][ANCHOR] | Object-Oriented Analysis | “Object-oriented analysis examines requirements from the perspective of the classes and objects found in the vocabulary of the problem domain.” | Grady Booch, Object-Oriented Analysis and Design with Applications | — | [OOA의 canonical definition (ScienceDirect)](https://www.sciencedirect.com/topics/computer-science/object-oriented-software?utm_source=chatgpt.com "object oriented software - an overview") |
+| [DEFINITION][OOD][ANCHOR] | Object-Oriented Design | “Object-oriented design is a method of design encompassing the process of object-oriented decomposition and a notation for depicting both logical and physical as well as static and dynamic models of the system under design.” | Grady Booch, Object-Oriented Analysis and Design with Applications | https://citeseerx.ist.psu.edu/document?doi=b3078a446b543e7aacb12db4e3ab5ef0338c2257&repid=rep1&type=pdf | OOD의 핵심을 object-oriented decomposition으로 고정. 전체 정의에는 logical/physical, static/dynamic model까지 이어짐. (CiteSeerX) |
+| [DEFINITION][USE-CASE][ANCHOR] | Use Case | “description of a set of sequences of actions and variants that a system performs that yield an observable result of value to an actor.” | Ivar Jacobson et al., The Unified Software Development Process, 1999, p.41 | https://www.pmi.org/learning/library/use-cases-project-manager-know-8262 | Use Case의 일반적으로 통용되는 canonical definition (프로젝트 관리 협회) |
+| [MODELING][QUOTE][ANCHOR] | Aggregation | “In spite of the few semantics attached to aggregation, everybody thinks it is necessary (for different reasons). Think of it as a modeling placebo.” | James Rumbaugh et al., The Unified Modeling Language Reference Manual | — | [UML 표기를 의미 자체로 착각하지 않는 modeling attitude (InformIT)](https://www.informit.com/articles/article.aspx?p=1398623\&seqNum=14\&utm_source=chatgpt.com "16.13 Composition Over Aggregation") |
+| [DESIGN][QUOTE][ANCHOR] | Design Principles over UML | “The critical design tool for software development is a mind well educated in design principles. It is not UML or any other technology.” | Craig Larman, Applying UML and Patterns | https://en.wikipedia.org/wiki/GRASP_%28object-oriented_design%29 | 이 과정이 UML 과정이 아니라 설계 판단 과정임을 고정 (위키백과) |
+| [RESPONSIBILITY][QUOTE][ANCHOR] | Responsibility-Driven Design | “We propose an alternative object-oriented design method which takes a responsibility-driven approach.” | Rebecca Wirfs-Brock, Brian Wilkerson, “Object-Oriented Design: A Responsibility-Driven Approach”, OOPSLA 1989 | — | Class보다 responsibility/collaboration을 먼저 보는 설계 관점 |
+| [RESPONSIBILITY][DEFINITION][ANCHOR] | GRASP | “General Responsibility Assignment Software Patterns (or Principles)” | Craig Larman, Applying UML and Patterns | https://www.rose-hulman.edu/class/cs/csse374/Resources/larmanCovers.pdf | 개별 GRASP 항목이 아니라 object design과 responsibility assignment를 위한 원칙군으로 사용 (로즈-헐먼 기술대학) |
+| [MODULARITY][QUOTE][ANCHOR] | Information Hiding | “Each module is then designed to hide such a decision from the others.” | D. L. Parnas, “On the Criteria To Be Used in Decomposing Systems into Modules”, CACM, 1972 | — | Encapsulation을 data hiding이 아니라 change-sensitive design decision hiding으로 확장 |
+| [CONTRACT][QUOTE][ANCHOR] | Design by Contract | “their cooperation should be based on precise specifications — contracts — describing each party’s expectations and guarantees.” | Bertrand Meyer, Eiffel / Design by Contract | https://se.inf.ethz.ch/~meyer/ongoing/etl/nutshell.pdf | 객체 협력을 expectation/guarantee가 있는 계약으로 고정 (소프트웨어 공학 연구실) |
+| [SOLID][QUOTE][ANCHOR] | Dependency orientation | “Depend upon Abstractions. Do not depend upon concretions.” | Robert C. Martin, “Design Principles and Design Patterns”, DIP | https://blog.thedojo.mx/assets/pdfs/DesignPrinciplesAndPatterns.pdf | SOLID를 단순 acronym 암기가 아니라 dependency/change 판단으로 연결 (The Dojo MX Blog) |
+| [PATTERN][QUOTE][ANCHOR] | Interface / Composition | “Program to an interface, not an implementation.” / “Favor object composition over class inheritance.” | Gang of Four, Design Patterns | https://en.wikipedia.org/wiki/Design_Patterns | Pattern을 관통하는 두 개의 압축된 design principle (위키백과) |
+| [EVOLUTION][DEFINITION][ANCHOR] | Refactoring | “a change made to the internal structure of software to make it easier to understand and cheaper to modify without changing its observable behavior.” | Martin Fowler, “Definition Of Refactoring” | — | Refactoring을 generic cleanup과 구분 Agile에서도 engineering practice로 재사용. |
+| [BOUNDARY][QUOTE][ANCHOR] | OO Design → DDD | “This book is not an introduction to object-oriented design. Nor does it propose radical design fundamentals.” | Eric Evans, Domain-Driven Design, Part II | https://fabiofumarola.github.io/nosql/readingMaterial/Evans03.pdf | DDD가 OOAD의 대체물이 아니라 기존 OO design 위에서 출발함을 고정 (Fabio Fumarola) |
+
+### Core References
+
+| Tag | Reference | Author / Source | Source / Locator | Educational Role |
+|---|---|---|---|---|
+| [BOOK][REFERENCE][CORE] | Applying UML and Patterns | Craig Larman, Applying UML and Patterns | — | OOAD Curriculum의 핵심 backbone. Use Case→Domain Model→Interaction→Responsibility→GRASP→Design Model→Patterns를 풀어내는 주 reference |
+| [SOLID][REFERENCE][CORE] | SOLID Principles | Robert C. Martin, “Design Principles and Design Patterns”; acronym lineage: Michael Feathers | — | SOLID 전체를 하나의 design-principle family로 다룸. SRP/OCP/LSP/ISP/DIP 상세는 Curriculum |
+| [PATTERN][REFERENCE][CORE] | Design Patterns | Christopher Alexander → Gamma, Helm, Johnson, Vlissides, Design Patterns | — | Pattern의 의미와 사용법을 위한 foundational reference. 23개 목록 자체가 Anchor는 아님 |

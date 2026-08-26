@@ -44,6 +44,8 @@ Engine / PPT
 
 Guardrail은 **최소 요구사항과 경계**이지 콘텐츠의 최대 범위나 문장 목록이 아니다. 하위 산출물은 상위 산출물을 단순 복사하거나 기계적으로 펼치는 결과물이 아니다.
 
+하위 산출물은 상위 Guardrail의 필수 내용을 모두 계승한다. 해당 stage의 책임 안에서 이를 상세화·구체화·사례화·실습화하고 필요한 내용을 추가할 수 있지만, 상위 필수 내용을 생략·약화·대체하거나 boundary 밖으로 확장할 수 없다.
+
 ### G2. The Next-stage LLM Completes the Artifact
 
 각 단계 LLM은 자신의 산출물 전체를 완성할 책임이 있다. Guardrail 안에서 더 좋은 내용, 근거, 사례, 설명, 관계, 구성과 표현을 자율적으로 조사·선택·추가·개선할 수 있다.
@@ -105,9 +107,10 @@ Migration 문서, 과거 설계, 이전 Curriculum, 삭제된 Source, audit, rev
 | 공통 LLM-integrated 실습 규격 | `portfolio/practice-standard.md` | 과정별 실습은 course capability에 맞게 구체화한다. |
 | 공유 사례의 상태·규칙·경계 | `portfolio/shared-cases/*` | 선택된 범위만 사용하며 Course가 임의 변경하지 않는다. |
 | 과정 목적, learner, capability, scope와 boundary | 해당 Course Design | Curriculum은 이를 Guardrail로 사용한다. |
-| 과정별 실습 상세 | 해당 Course Design의 실습 owner | Curriculum은 필요한 실습을 선택·배치한다. |
+| 과정별 실습 목적, capability, 필수 outcome과 failure boundary | 해당 Course Design | Curriculum은 이 Guardrail 안에서 실제 실행을 설계한다. |
+| 실습의 Session·content-flow 위치, 입력, 활동, 산출물과 feedback | Curriculum | Deck은 승인된 실습 흐름을 교재로 구현한다. |
 | 과정별 검증된 외부 evidence | 해당 Course Design의 Source owner | Curriculum과 Deck은 검증된 범위 안에서 사용한다. |
-| Session, claim, 시간, 학습 흐름과 입력 routing | Curriculum | Deck은 교육 범위·선택·순서를 바꾸지 않는다. |
+| 모든 slide의 교육 설계: Session 목표·claim·시간·학습 흐름·요약·입력 사용·실습·권장 slide 범위 | Curriculum | Deck은 필수 내용을 보존해 instructional/visual form으로 구현한다. |
 | slide-level teaching realization | Deck | Curriculum을 충족하되 설명과 표현을 책임 있게 완성한다. |
 | executable schema, geometry, rendering behavior | Engine | Guide의 설명과 충돌하면 실행 계약은 Engine이 결정한다. |
 | 자동 검증 판정 | 해당 Harness code | 문서는 의도를 설명하고 코드는 재현 가능한 판정을 소유한다. |
@@ -153,6 +156,7 @@ Portfolio와 현재 개발 Course Design은 일방향 상하관계가 아니라 
 
 **Guardrail**
 
+- `guides/과정_설계_지침.md`
 - User Intent
 - 관련 Portfolio owner
 - 검증 가능한 외부 evidence와 실제 learner/work context
@@ -180,6 +184,7 @@ Portfolio와 현재 개발 Course Design은 일방향 상하관계가 아니라 
 
 **Guardrail**
 
+- `guides/커리큘럼_작성_지침.md`
 - 승인된 Course Design
 - Course Design이 요구하거나 허용한 Portfolio Common Standards
 - 검증된 Source와 실습 설계
@@ -190,19 +195,28 @@ Portfolio와 현재 개발 Course Design은 일방향 상하관계가 아니라 
 
 **Responsibility**
 
-- 전체 시간 안에서 Session, claim, 학습 흐름과 실습 배치를 완성한다.
-- 필요한 Source와 Common Standards를 선택·routing한다.
+- 전체 시간 안에서 Session, claim, 학습 흐름과 실습 배치를 포함해 모든 slide의 교육 설계를 완성하고 Deck의 Guardrail을 제공한다.
+- 각 Session의 학습 목표, teaching progression, 핵심 내용, 요약과 다음 전환을 결정한다.
+- 필요한 Source·Anchor·Reference와 Common Standards를 선택하고, 사용할 내용·목적과 예상 teaching 위치를 결정한다.
+- 실습의 실제 Session·content-flow 위치, 입력, 활동, 산출물, feedback과 실패 기준을 결정한다.
+- Session 시간, 설명 밀도와 interaction을 근거로 권장 slide 수와 적절한 허용 범위를 정한다.
 - Course Design을 단순 목차로 전사하지 않고 학습 가능한 진행 구조를 설계한다.
 - Guardrail 안에서 필요한 설명, 근거와 사례를 보완할 수 있다.
+- 실제 visual form, layout, diagram, table과 code 표현은 Deck/Renderer가 결정한다.
 
 **Common Session 01 Guardrail**
 
-- 모든 과정의 Session 01 제목은 `<과정명> 개요`로 한다.
-- Session 01은 단순 Orientation이나 목차 소개가 아니라 과정 전체의 주제, 문제영역과 큰 그림을 이해시키는 Overview다.
-- 과정과 주제 소개, 핵심 정의, 필요한 이유, 현재 현황 또는 대표 문제 상황, 핵심 개념과 전체 범위, scope와 non-scope, 후속 학습을 이해하기 위한 큰 그림을 다룬다.
-- 상세 설계 기법, 세부 절차와 심화 실습은 후속 Session에서 다룬다.
-- 공통으로 고정하는 것은 Session 01의 목적과 경계뿐이다. slide 구조, claim 수, 항목 수와 진행 순서를 과정 사이에 통일하지 않는다.
-- 과정별 시간, 문제 특성과 target capability에 따라 Session 01의 깊이와 구성을 자율적으로 결정한다.
+- 모든 과정의 Session 01 제목은 <핵심 키워드> 개요로 한다.
+- <핵심 키워드>는 해당 과정의 정체성과 학습 영역을 가장 직접적으로 나타내는 짧고 통용되는 용어를 사용한다. 과정명을 기계적으로 복사할 필요는 없으며, 마케팅성 수식어·설명형 문장·창작형 제목은 사용하지 않는다.
+- Session 01은 단순 Orientation이나 목차 소개가 아니라, 해당 분야가 어떤 문제를 해결하기 위해 등장했고 무엇을 판단하는 분야인지 이해시키는 과정 전체의 Overview다.
+- 필요하면 해당 분야 이전의 대표적인 문제 상황, 기존 접근의 한계, 이후 접근이 해결하려 한 문제와 발전 맥락을 사용한다. 역사는 연대기 자체를 가르치는 것이 아니라 현재 개념이 왜 필요한지 설명하는 수단으로만 사용한다.
+- 과정과 주제 소개, 핵심 정의, 필요한 이유, 현재 현황 또는 대표 문제 상황, 주요 접근의 차이와 trade-off, 핵심 개념과 전체 범위, scope와 non-scope, 후속 학습을 이해하기 위한 큰 그림을 다룬다.
+- 특히 잘못된 문제 정의·요구·분석·설계 판단이 이후 구현·테스트·운영에서 재작업과 불필요한 복잡성으로 어떻게 증폭되는지 보여 주어, 해당 과정의 학습 필요성을 연결한다.
+- Session 01은 과정 전체 내용을 압축해서 미리 가르치는 세션이 아니다. 상세 설계 기법, 세부 절차, 개별 framework·pattern·tool의 심화 내용과 본격 실습은 후속 Session에서 다룬다.
+- 서로 다른 접근이나 패러다임을 소개할 경우 우열이나 유행의 순서로 설명하지 않는다. 각 접근이 해결하려는 문제, 얻는 이점, 지불하는 비용과 적용 맥락을 중심으로 비교한다.
+- 공통으로 고정하는 것은 Session 01의 목적과 경계뿐이다. 모든 과정에 역사, 비교, 동일한 문제 유형을 강제하지 않으며 slide 구조, claim 수, 항목 수, 진행 순서와 설명 방식도 통일하지 않는다.
+- 과정별 시간, 문제 특성, target capability와 선수지식에 따라 Session 01의 깊이, 비중과 구성을 자율적으로 결정한다.
+- Session 01이 끝났을 때 학습자는 최소한 이 분야가 왜 필요한지, 어떤 문제를 해결하는지, 기존 또는 인접 접근과 무엇이 다른지, 무엇을 판단하는 분야인지, 어디까지 다루고 어디부터 다른 과정의 영역인지, 이후 학습이 어떤 흐름으로 이어지는지 설명할 수 있어야 한다.
 
 **Curriculum Harness**
 
@@ -212,10 +226,23 @@ Portfolio와 현재 개발 Course Design은 일방향 상하관계가 아니라 
 
 상세 저작 규칙은 Governance가 통제하는 Curriculum annex가 담당한다.
 
+**Human-in-the-Loop Workflow**
+
+Curriculum 개발은 다음 승인 순서를 따른다.
+
+1. Capability와 Learning Progression에서 Session Architecture를 제안한다.
+2. 사용자가 Session Architecture를 승인한다.
+3. Session을 하나씩 상세 설계하고 각 Session마다 사용자 승인을 받는다.
+4. 승인된 모든 Session을 모아 전체 Curriculum을 재구성하고 narrative, 중복, 시간, 밀도, Source·Anchor·Reference와 실습 연결을 통합 검토한다.
+5. 사용자가 전체 Curriculum을 최종 승인한 뒤 Deck stage로 진행한다.
+
+첫 제안에서 전체 상세 Curriculum을 한 번에 생성하지 않는다. 승인된 Session은 현재 대화 context 또는 사용자가 보존한 파일에서 유지할 수 있으며, 이를 위한 별도 persistent helper나 intermediate SSOT를 만들지 않는다. 최종 통합은 승인본의 단순 concatenate가 아니라 전체 교육과정으로 다시 구성하는 작업이다.
+
 ### 5.3 Deck Stage
 
 **Guardrail**
 
+- `guides/교재_작성_지침.md`
 - 승인된 Curriculum
 - 해당 Session에 연결된 실습과 Source
 - 해당 Session에 지정된 Portfolio Common Standards
@@ -227,10 +254,11 @@ Portfolio와 현재 개발 Course Design은 일방향 상하관계가 아니라 
 
 **Responsibility**
 
-- Session 시간을 실제로 가르칠 수 있는 Deck 전체를 완성한다.
+- Curriculum의 필수 교육 설계를 모두 계승해 Session 시간을 실제로 가르칠 수 있는 instructional/visual realization을 완성한다.
 - claim을 기계적으로 slide와 1:1 대응시키지 않는다.
 - 관계, 인과, 상태, 책임, 경계와 전환을 의미에 맞는 시각 구조로 표현한다.
 - Guardrail 안에서 설명, 예제, interaction, narrative와 instructor notes를 보완한다.
+- Curriculum의 권장 slide 수와 허용 범위를 따르되 교육적·시각적 근거가 있으면 필수 내용을 보존하며 가감할 수 있다.
 - Curriculum에 없는 새로운 과정 목적이나 ownership 변경을 만들지 않는다.
 
 **Deck Harness**

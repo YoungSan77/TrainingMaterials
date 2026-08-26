@@ -99,9 +99,35 @@ test나 audit 활동은 수행하지만 품질 위험과 evidence를 delivery de
 
 세부 절차, 시간, 자료 공개 순서와 평가 rubric은 Curriculum 단계에서 완성한다.
 
-## Major Anchor Sources
+## Anchors and References
 
-| Source | Anchors | Locator | Verification |
-|---|---|---|---|
-| ISO/IEC 25010:2023 | product quality model의 표준 vocabulary | https://www.iso.org/standard/78176.html | Verified official locator; 표준 전문 인용 안 함 |
-| W. Edwards Deming, Out of the Crisis | 품질 문제를 management system 관점에서 보는 lineage | MIT Press, 1986, ISBN 978-0262541152 | Verified bibliographic; 94% 수치 축자 사용 안 함 |
+### Anchors
+
+| Tag | Anchor | Exact Original Text / Definition | Author / Source | Source / Locator | Educational Role |
+|---|---|---|---|---|---|
+| [SYSTEM][QUOTE][ANCHOR] | Quality is a System Issue | “94% belongs to the system (responsibility of management), 6% special.” | W. Edwards Deming, Out of the Crisis lineage | — | 품질 문제를 개인보다 system/process 관점에서 바라보는 출발점 |
+| [PREVENTION][QUOTE][ANCHOR] | Build Quality In | “Cease dependence on inspection to achieve quality. Eliminate the need for inspection on a mass basis by building quality into the product in the first place.” | W. Edwards Deming, Out of the Crisis, Point 3 | — | 검사로 품질을 만들어내는 것이 아니라 처음부터 process/product에 내재화 |
+| [PREVENTION][QUOTE][ANCHOR] | Inspection is Too Late | “Inspection is too late. The quality, good or bad, is already in the product.” | W. Edwards Deming, Out of the Crisis | — | 예방과 Shift-Left를 압축하는 문구 |
+| [IMPROVEMENT][QUOTE][ANCHOR] | Continual Improvement | “Improve constantly and forever the system of production and service.” | W. Edwards Deming, Out of the Crisis, Point 5 | — | 품질을 지속적인 system improvement로 고정 |
+| [PREVENTION][QUOTE][ANCHOR] | Do It Right vs. Do It Over | “There’s never enough time to do it right, but somehow, there’s always enough time to do it over.” | Anonymous, widely used engineering adage | — | 예방에는 시간이 없다면서 재작업에는 더 많은 시간을 쓰는 모순을 기억시키는 Anchor |
+| [LEARNING][QUOTE][ANCHOR] | Experience Without Theory | “Experience without theory teaches nothing.” | W. Edwards Deming, Out of the Crisis lineage | — | 경험 자체를 지식이나 개선으로 착각하지 않도록 함 |
+| [LEARNING][QUOTE][ANCHOR] | Theory Gives Experience Meaning | “Without theory, experience has no meaning. Without theory, one has no questions to ask. Hence without theory, there is no learning.” | W. Edwards Deming, The New Economics for Industry, Government, Education | — | Context/theory 없는 경험의 기계적 복제를 방지 |
+| [ECONOMICS][QUOTE][ANCHOR] | Quality is Free | “Quality is free. It's not a gift, but it is free.” | Philip B. Crosby, Quality Is Free, 1979 | — | 품질을 failure/rework까지 포함한 경제 문제로 바라봄 |
+| [REQUIREMENTS][QUOTE][ANCHOR] | Hardest Part of Software | “The hardest single part of building a software system is deciding precisely what to build.” | Frederick P. Brooks Jr., No Silver Bullet | — | 품질이 coding/testing보다 앞선 요구와 문제 정의에서 시작함을 고정 |
+| [REQUIREMENTS][QUOTE][ANCHOR] | Requirements Emerge Through Use | “it is really impossible for a client, even working with a software engineer, to specify completely, precisely, and correctly the exact requirements of a modern software product before trying some versions of the product.” | Frederick P. Brooks Jr., No Silver Bullet | — | Feedback과 iterative discovery가 요구 품질에 필수임을 설명 |
+| [TESTING][QUOTE][ANCHOR] | Limits of Testing | “Program testing can be used to show the presence of bugs, but never to show their absence.” | Edsger W. Dijkstra, Notes on Structured Programming | — | Test pass를 품질 보증 전체와 동일시하지 않게 함 |
+| [MEASUREMENT][QUOTE][ANCHOR] | Goodhart's Law | “Any observed statistical regularity will tend to collapse once pressure is placed upon it for control purposes.” | Charles Goodhart, original formulation | — | Metric을 통제목표로 사용할 때 발생하는 왜곡을 설명 |
+| [MEASUREMENT][QUOTE][ANCHOR] | Measure Becomes Target | “When a measure becomes a target, it ceases to be a good measure.” | Marilyn Strathern, “Improving Ratings”, 1997 | — | Goodhart 효과를 교육적으로 기억하기 쉬운 문장으로 고정 |
+| [MEASUREMENT][QUOTE][ANCHOR] | Measurement Changes Behavior | “Tell me how you measure me, and I will tell you how I will behave.” | Eliyahu M. Goldratt, The Haystack Syndrome | — | KPI와 metric이 사람과 조직의 행동을 변화시킴을 설명 |
+| [EVIDENCE][QUOTE][ANCHOR] | Don't Fool Yourself | “The first principle is that you must not fool yourself — and you are the easiest person to fool.” | Richard P. Feynman, “Cargo Cult Science”, 1974 | — | 형식적 metric·audit·certification이 실질 품질을 대신하는 것을 경계 |
+| [DOMAIN][QUOTE][ANCHOR] | Domain Value | “The heart of software is its ability to solve domain-related problems for its user.” | Eric Evans, Domain-Driven Design | — | SW 품질의 최종 목적을 사용자/domain value와 연결 DDD의 Domain Value Anchor를 SWQM에서 재사용. |
+
+### Core References
+
+| Tag | Reference | Author / Source | Source / Locator | Educational Role |
+|---|---|---|---|---|
+| [STANDARD][REFERENCE][CORE] | Software Product Quality Model | ISO/IEC 25010, SQuaRE | — | Software/Product Quality를 체계적으로 다루는 핵심 표준 Reference |
+| [STANDARD][REFERENCE][CORE] | Quality Management System | ISO 9000 / ISO 9001 family | — | Customer focus, process approach, improvement, evidence-based decision making 등의 QMS 기반 Reference |
+| [MATURITY][REFERENCE] | CMMI | CMMI Institute / ISACA, current CMMI model | — | 인증 단계가 아니라 process capability/improvement를 다룰 Reference |
+| [DELIVERY][REFERENCE] | DORA | DORA, Software Delivery Performance research | — | Quality와 delivery feedback/performance 관계를 위한 empirical Reference DevOps의 DORA evidence를 SWQM 관점에서 재사용. |
+| [TESTING][REFERENCE] | Test Strategy / Testing Pyramid | Mike Cohn lineage; Google Testing Blog | — | 다양한 test level의 feedback economics를 Curriculum에서 전개 |

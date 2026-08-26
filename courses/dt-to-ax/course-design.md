@@ -102,9 +102,26 @@ digital/AI transformation initiative를 기획·후원·실행하지만 pilot과
 
 세부 절차, 시간, 자료 공개 순서와 평가 rubric은 Curriculum 단계에서 완성한다.
 
-## Major Anchor Sources
+## Anchors and References
 
-| Source | Anchors | Locator | Verification |
-|---|---|---|---|
-| NIST AI Risk Management Framework 1.0 | AI risk governance를 transformation operating model에 연결 | https://www.nist.gov/itl/ai-risk-management-framework | Verified official; AI engineering 상세 owner로 사용하지 않음 |
-| OECD Going Digital Toolkit | digital transformation을 다차원 정책·capability 맥락에서 보는 reference | https://goingdigital.oecd.org/ | Verified official organizational locator |
+### Anchors
+
+| Tag | Anchor | Exact Original Text / Definition | Author / Source | Source / Locator | Educational Role |
+|---|---|---|---|---|---|
+| [DT][DEFINITION][ANCHOR] | Digital Transformation | “Digital transformation — the use of technology to radically improve performance or reach of enterprises — is a hot topic for companies across the globe.” | George Westerman, Didier Bonnet, Andrew McAfee, MIT Center for Digital Business, “The Nine Elements of Digital Transformation” | — | DT를 단순 digitization/IT 구축이 아니라 enterprise performance 또는 reach의 근본적 개선으로 고정 |
+| [TRANSFORMATION][QUOTE][ANCHOR] | Transformation ≠ Faster Old Process | “It is time to stop paving the cow paths. Instead of embedding outdated processes in silicon and software, we should obliterate them and start over.” | Michael Hammer, “Reengineering Work: Don’t Automate, Obliterate”, Harvard Business Review, 1990 | — | DT/AX 모두에서 가장 강한 Anchor 중 하나. 기존 업무를 기술로 빠르게 만드는 것과 업무 자체를 재설계하는 것을 구분. |
+| [TRANSFORMATION][QUOTE][ANCHOR] | Caterpillar vs. Butterfly | “When digital transformation is done correctly, it's like a caterpillar turning into a butterfly, but when done wrong, all you have is a really fast caterpillar.” | George Westerman, MIT | — | 기존 organization/process에 technology만 덧붙인 상태와 진짜 transformation을 직관적으로 구분하는 널리 알려진 문구. |
+| [AI][QUOTE][ANCHOR] | AI as General-Purpose Capability | “AI is the new electricity.” | Andrew Ng, widely used formulation | — | AI를 하나의 application/tool이 아니라 여러 산업과 업무를 바꾸는 general-purpose enabling technology로 바라보는 압축 Anchor. |
+
+### Core References
+
+| Tag | Reference | Author / Source | Source / Locator | Educational Role |
+|---|---|---|---|---|
+| [BOOK][REFERENCE][BACKBONE] | Leading Digital | George Westerman, Didier Bonnet, Andrew McAfee, Leading Digital | — | Digital capability와 leadership capability를 함께 보는 DT의 핵심 reference |
+| [PROCESS][REFERENCE][FOUNDATION] | Business Process Reengineering | Michael Hammer, James Champy, Reengineering the Corporation; Hammer 1990 HBR | — | Technology adoption 전에 work/process를 재설계한다는 transformation lineage |
+| [AI][REFERENCE][CORE] | AI Transformation Playbook | Andrew Ng, AI Transformation Playbook | — | AI를 몇 개 PoC에 적용하는 것이 아니라 조직 capability, team, training, strategy로 확장하는 AX reference |
+| [EXPERIMENT][REFERENCE][CORE] | The Lean Startup | Eric Ries, The Lean Startup | — | Pilot → evidence → learn → scale/stop의 실험적 transformation 접근을 설명하는 reference |
+| [BUSINESS-MODEL][REFERENCE] | Business Model Generation | Alexander Osterwalder, Yves Pigneur, Business Model Generation | — | Transformation을 process뿐 아니라 value proposition, customer, channel, revenue/cost 구조의 변화로 확장 |
+| [ARCHITECTURE][REFERENCE] | Enterprise Architecture | The Open Group, TOGAF Standard; Enterprise Architecture literature | — | Strategy/Capability/Process/Data/Application/Technology를 연결하는 transformation foundation의 Reference. EA framework 자체를 과정 spine으로 만들지는 않음. |
+| [GOVERNANCE][REFERENCE][CORE] | AI Risk Management Framework | NIST, AI RMF 1.0 + Generative AI Profile | — | AI use case의 risk, trustworthiness, lifecycle governance를 위한 authoritative reference. NIST는 trustworthy AI를 valid/reliable, safe, secure/resilient, accountable/transparent 등으로 설명한다. |
+| [GOVERNANCE][REFERENCE] | AI Management System | ISO/IEC 42001:2023 | — | AX를 individual tool adoption이 아니라 organization-level AI management, policy, accountability, continual improvement 관점에서 다룰 reference |

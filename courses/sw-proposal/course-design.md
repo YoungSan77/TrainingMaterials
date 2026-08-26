@@ -100,9 +100,25 @@ RFP 응답과 기술제안 작성 경험은 있지만 compliance 중심 문서�
 
 세부 절차, 시간, 자료 공개 순서와 평가 rubric은 Curriculum 단계에서 완성한다.
 
-## Major Anchor Sources
+## Anchors and References
 
-| Source | Anchors | Locator | Verification |
-|---|---|---|---|
-| APMP Body of Knowledge — Bid & Proposal Writing | proposal planning·compliance·customer-focused content의 전문 baseline | https://www.apmp.org/assets/BoK-BW-M.v4.pdf | Verified official PDF locator; 확인된 범위만 사용 |
-| Project Management Institute, PMBOK Guide — Eighth Edition | delivery feasibility와 project governance 연결 | https://www.pmi.org/standards/pmbok | Verified official; proposal 작성법 owner로 사용하지 않음 |
+### Anchors
+
+| Tag | Anchor | Exact Original Text / Definition | Author / Source | Source / Locator | Educational Role |
+|---|---|---|---|---|---|
+| [CUSTOMER][QUOTE][ANCHOR] | Write for the Customer | “As a proposal writer, you must always remember you are writing for the customer, not for yourself or your management.” | Shipley, Proposal Writer Playbook, §1.3 | https://digital.shipleywins.com/view/320547 | 제안서를 자사 소개서로 만드는 오류를 차단. Customer가 문서의 중심이라는 가장 직접적인 Anchor. (Shipley) |
+| [BENEFIT][QUOTE][ANCHOR] | Benefits Before Features | “Customers buy benefits, not features. They buy what your product or service will do for them, not its features.” | Shipley, “Seven Rules for Writing Winning Proposals” | https://www.shipleywins.com/blogs/seven-rules-for-writing-winning-proposals | 기술·기능 나열형 SW 제안서를 막고 customer outcome/value 중심으로 전환. (Shipley Wins) |
+| [NEED][QUOTE][ANCHOR] | Benefit Requires Customer Need | “No Product/Service Benefits without a Customer Need.” | Shipley, “Seven Rules for Writing Winning Proposals” | https://www.shipleywins.com/blogs/seven-rules-for-writing-winning-proposals | Benefit도 고객의 실제 problem/opportunity와 연결되지 않으면 의미가 없다는 판단 기준. (Shipley Wins) |
+| [THEME][DEFINITION][ANCHOR] | Theme Statement | “Theme statements in proposals link benefits for the customer to features of the solution in your offer.” | Shipley, Proposal Writer Playbook | https://digital.shipleywins.com/view/320547/34/ | Theme을 slogan이 아니라 customer benefit ↔ solution feature 연결로 정의. (Shipley) |
+| [EVIDENCE][QUOTE][ANCHOR] | Claims Require Evidence | “Quantified benefits must be supportable, and you should provide evidence soon after in the proposal. If you cannot support your claims, change your theme statement.” | APMP, Body of Knowledge – Bid & Proposal Writing | https://www.apmp.org/assets/BoK-BW-M.v4.pdf | 숫자·성과·우월성 주장에 proof가 따라야 한다는 강한 Anchor. (APMP) |
+| [VALUE][DEFINITION][ANCHOR] | Value Proposition | “A value proposition is an offer demonstrating value or worth to the customer.” | Shipley, Proposal Writer Playbook | https://digital.shipleywins.com/view/320547/34/ | Value proposition을 자사 강점 소개가 아니라 customer에게 제공하는 가치로 고정. (Shipley) |
+| [WIN][QUOTE][ANCHOR] | Win Strategy | “Win strategies perform four key functions: Leverage your strengths; Mitigate your weaknesses and risks; Neutralize your competitors’ strengths; Exploit your competitors’ weaknesses.” | Shipley, Proposal Writer Playbook | https://digital.shipleywins.com/view/320547 | Win Strategy가 화려한 문구가 아니라 경쟁 상황에 대한 선택과 집중임을 설명. (Shipley) |
+
+### Core References
+
+| Tag | Reference | Author / Source | Source / Locator | Educational Role |
+|---|---|---|---|---|
+| [BOOK][REFERENCE][BACKBONE] | Shipley Proposal Guide | Shipley Associates, Shipley Proposal Guide, v5 | https://www.shipleywins.com/tools-and-guidebooks/digital-proposal-guide | 과정의 핵심 실무 backbone. Proposal Strategy, Customer Focus, Bid/No-Bid, Compliance, Theme, Review, Document Design 등을 연결. (Shipley Wins) |
+| [REFERENCE][CORE] | APMP Body of Knowledge | APMP, Body of Knowledge – Bid & Proposal Writing | https://www.apmp.org/assets/BoK-BW-M.v4.pdf | Capture/Proposal professional practice와 customer-focused proposal writing의 권위 있는 Reference. (APMP) |
+| [EVIDENCE][REFERENCE][CORE] | Customer / Opportunity Evidence | 실제 RFP, evaluation criteria, Q&A, customer discovery, contract/compliance sources | — | 특정 opportunity에서는 일반 best practice보다 고객이 제공한 source가 우선. 과정에서 evidence hierarchy를 적용하는 실무 Reference |
+| [EVIDENCE][REFERENCE] | Past Performance / Proof | 실제 조직의 검증 가능한 delivery evidence | — | “우수하다”, “최고다” 같은 adjective 대신 비교 가능한 실적과 proof로 신뢰를 만드는 Reference |

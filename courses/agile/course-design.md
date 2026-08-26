@@ -95,9 +95,38 @@ Scrum event를 운영하거나 도입을 검토하지만 ceremony 준수와 adap
 
 세부 절차, 시간, 자료 공개 순서와 평가 rubric은 Curriculum 단계에서 완성한다.
 
-## Major Anchor Sources
+## Anchors and References
 
-| Source | Anchors | Locator | Verification |
-|---|---|---|---|
-| Manifesto for Agile Software Development and Principles | 가치·working software·change·frequent delivery의 foundational direction | https://agilemanifesto.org/ and https://agilemanifesto.org/principles.html | Verified official |
-| Ken Schwaber & Jeff Sutherland, The Scrum Guide 2020 | Scrum definition, empiricism, accountabilities/events/artifacts | https://scrumguides.org/scrum-guide.html | Verified official current version as of review |
+### Anchors
+
+| Tag | Anchor | Exact Original Text / Definition | Author / Source | Source / Locator | Educational Role |
+|---|---|---|---|---|---|
+| [FOUNDATION][MANIFESTO][ANCHOR] | Agile Manifesto — 4 Values | “We are uncovering better ways of developing software by doing it and helping others do it. Through this work we have come to value: Individuals and interactions over processes and tools; Working software over comprehensive documentation; Customer collaboration over contract negotiation; Responding to change over following a plan. That is, while there is value in the items on the right, we value the items on the left more.” | Kent Beck et al., Manifesto for Agile Software Development, 2001 | — | Agile의 가치 판단 기준 전체를 고정 |
+| [PRINCIPLE][01][ANCHOR] | Customer Satisfaction / Valuable Software | “Our highest priority is to satisfy the customer through early and continuous delivery of valuable software.” | Principles behind the Agile Manifesto, Principle 1 | — | Agile의 최우선 목적은 activity가 아니라 customer value |
+| [PRINCIPLE][02][ANCHOR] | Welcome Change | “Welcome changing requirements, even late in development. Agile processes harness change for the customer's competitive advantage.” | Principle 2 | — | 변화 대응을 실패가 아니라 경쟁력으로 봄 |
+| [PRINCIPLE][03][ANCHOR] | Frequent Delivery | “Deliver working software frequently, from a couple of weeks to a couple of months, with a preference to the shorter timescale.” | Principle 3 | — | 작은 delivery/feedback cycle의 근거 |
+| [PRINCIPLE][04][ANCHOR] | Business–Developer Collaboration | “Business people and developers must work together daily throughout the project.” | Principle 4 | — | 사일로·handoff가 아니라 지속적인 collaboration을 요구 |
+| [PRINCIPLE][05][ANCHOR] | Motivated Individuals / Trust | “Build projects around motivated individuals. Give them the environment and support they need, and trust them to get the job done.” | Principle 5 | — | 자율성은 방임이 아니라 environment + support + trust 위에서 작동 |
+| [PRINCIPLE][06][ANCHOR] | Communication | “The most efficient and effective method of conveying information to and within a development team is face-to-face conversation.” | Principle 6 | — | Agile의 interaction 중심 사고를 고정. 특정 물리적 근무형태의 절대 규칙으로 확대하지 않음 |
+| [PRINCIPLE][07][ANCHOR] | Working Software | “Working software is the primary measure of progress.” | Principle 7 | — | 문서량·task completion보다 검증 가능한 working software를 진척 기준으로 둠 |
+| [PRINCIPLE][08][ANCHOR] | Sustainable Development | “Agile processes promote sustainable development. The sponsors, developers, and users should be able to maintain a constant pace indefinitely.” | Principle 8 | — | Agile을 crunch나 단기 속도 경쟁과 구분 |
+| [PRINCIPLE][09][ANCHOR] | Technical Excellence / Good Design | “Continuous attention to technical excellence and good design enhances agility.” | Principle 9 | — | 좋은 engineering이 agility의 장애물이 아니라 기반임을 고정 |
+| [PRINCIPLE][10][ANCHOR] | Simplicity | “Simplicity—the art of maximizing the amount of work not done—is essential.” | Principle 10 | — | 더 많이 하는 것보다 불필요한 일을 제거하는 판단 기준 |
+| [PRINCIPLE][11][ANCHOR] | Self-Organizing Teams | “The best architectures, requirements, and designs emerge from self-organizing teams.” | Principle 11 | — | architecture/design까지 team autonomy와 learning의 산물이라는 원칙 |
+| [PRINCIPLE][12][ANCHOR] | Reflect and Adjust | “At regular intervals, the team reflects on how to become more effective, then tunes and adjusts its behavior accordingly.” | Principle 12 | — | Agile을 feedback → learning → adaptation의 지속적 cycle로 고정 |
+| [EMPIRICISM][QUOTE][ANCHOR] | Transparency → Inspection → Adaptation | “Transparency enables inspection. Inspection without transparency is misleading and wasteful. Inspection enables adaptation. Inspection without adaptation is considered pointless.” | Ken Schwaber, Jeff Sutherland, The Scrum Guide, 2020 | — | Scrum의 Event/Artifact보다 underlying empirical feedback mechanism을 고정 |
+| [SCRUM][DEFINITION][ANCHOR] | Scrum | “Scrum is a lightweight framework that helps people, teams and organizations generate value through adaptive solutions for complex problems.” | Ken Schwaber, Jeff Sutherland, The Scrum Guide, 2020 | — | [Scrum을 Sprint/Event 집합이 아니라 complex problem에 adaptive solution을 통해 value를 만드는 lightweight framework로 정의. 현재 공식 정의. (Scrum Guides)](https://scrumguides.org/scrum-guide.html?from=hub\&utm_source=chatgpt.com "Scrum Guide") |
+| [SCRUM][BOUNDARY][ANCHOR] | Scrum is Purposefully Incomplete | “The Scrum framework is purposefully incomplete, only defining the parts required to implement Scrum theory.” | Ken Schwaber, Jeff Sutherland, The Scrum Guide, 2020 | — | [Scrum이 TDD·CI·Refactoring 같은 engineering practice까지 제공한다고 오해하는 것을 차단. Scrum과 Agile engineering의 경계를 잡는 데 특히 중요. (Scrum Guides)](https://scrumguides.org/scrum-guide.html?from=hub\&utm_source=chatgpt.com "Scrum Guide") |
+| [TDD][DEFINITION][ANCHOR] | Test-Driven Development | “Test-Driven Development (TDD) is a technique for building software that guides software development by writing tests.” | Martin Fowler, “Test Driven Development”, 2023; Kent Beck lineage | https://martinfowler.com/bliki/TestDrivenDevelopment.html | TDD를 단순 unit testing이나 test-first slogan이 아니라 tests가 development를 guide하는 technique으로 고정. (martinfowler.com) |
+| [TDD][PRACTICE][ANCHOR] | Red → Green → Refactor | “Write a test for the next bit of functionality you want to add. Write the functional code until the test passes. Refactor both new and old code to make it well structured.” | Martin Fowler, “Test Driven Development”; Kent Beck lineage | https://martinfowler.com/bliki/TestDrivenDevelopment.html | TDD의 반복 구조를 Test → Working Code → Design Improvement로 완결해서 보여줌. Refactoring이 TDD의 부가 작업이 아니라 cycle 자체의 일부임을 명확히 함. (martinfowler.com) |
+| [REFACTORING][DEFINITION][ANCHOR] | Refactoring | “a change made to the internal structure of software to make it easier to understand and cheaper to modify without changing its observable behavior.” | Martin Fowler, Refactoring / “Definition Of Refactoring” | https://martinfowler.com/bliki/DefinitionOfRefactoring.html | Refactoring을 rewrite·cleanup·기능변경과 구분하는 canonical definition. (martinfowler.com) OOAD의 Refactoring 정의를 Agile engineering context에서 재사용. |
+
+### Core References
+
+| Tag | Reference | Author / Source | Source / Locator | Educational Role |
+|---|---|---|---|---|
+| [BOOK][REFERENCE][BACKBONE] | Clean Agile: Back to Basics | Robert C. Martin, Clean Agile: Back to Basics, 2019 | — | 과정의 핵심 해석 backbone. Agile을 ceremony/framework가 아니라 feedback, engineering discipline, professionalism의 관점에서 해석 |
+| [BOOK][REFERENCE][FOUNDATION] | Extreme Programming Explained | Kent Beck, Extreme Programming Explained | — | Feedback, simplicity, communication, courage와 XP engineering practice의 원류 |
+| [FRAMEWORK][REFERENCE] | Scrum Guide | Ken Schwaber, Jeff Sutherland, The Scrum Guide, 2020 | — | Scrum은 Agile 전체가 아니라 대표적인 empirical framework로 사용 |
+| [BOOK][REFERENCE][CORE] | Test-Driven Development: By Example | Kent Beck, Test-Driven Development: By Example, 2002 | — | TDD의 primary foundational reference. Clean Agile과 XP에서 다루는 engineering discipline을 구체화 |
+| [BOOK][REFERENCE][CORE] | Refactoring | Martin Fowler, Refactoring: Improving the Design of Existing Code | — | 지속적인 design improvement, code smells, small safe changes를 다룰 핵심 reference |

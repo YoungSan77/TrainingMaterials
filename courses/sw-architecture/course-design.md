@@ -102,9 +102,25 @@ layer·pattern은 알지만 왜 그 구조를 선택하고 어떻게 검증할�
 
 세부 절차, 시간, 자료 공개 순서와 평가 rubric은 Curriculum 단계에서 완성한다.
 
-## Major Anchor Sources
+## Anchors and References
 
-| Source | Anchors | Locator | Verification |
-|---|---|---|---|
-| ISO/IEC/IEEE 42010:2022 | architecture description, concern, viewpoint의 표준적 경계 | ISO standard 74393 / https://www.iso.org/standard/74393.html | Verified official locator |
-| SEI, Quality Attribute Workshops / ATAM resources | quality scenario와 trade-off 기반 평가 | https://www.sei.cmu.edu/our-work/software-architecture/ | Verified organizational source |
+### Anchors
+
+| Tag | Anchor | Exact Original Text / Definition | Author / Source | Source / Locator | Educational Role |
+|---|---|---|---|---|---|
+| [STANDARD][DEFINITION][ANCHOR] | Architecture | “fundamental concepts or properties of a system in its environment embodied in its elements, relationships, and in the principles of its design and evolution” | ISO/IEC/IEEE 42010 | — | [Architecture의 공식적 기준 정의. Structure뿐 아니라 environment와 design/evolution principles까지 포함 (ISO Architecture)](https://www.iso-architecture.org/ieee-1471/defining-architecture.html?utm_source=chatgpt.com "ISO/IEC/IEEE 42010: Defining \"architecture\"") |
+| [DEFINITION][ANCHOR] | Software Architecture | “The software architecture of a system is the set of structures needed to reason about the system. These structures comprise software elements, relations among them, and properties of both.” | Len Bass, Paul Clements, Rick Kazman, Software Architecture in Practice | — | [Architecture를 단순 상위 수준 그림이 아니라 system에 대해 reasoning하기 위해 필요한 structures로 정의 (Scribd)](https://www.scribd.com/document/714260809/SEI-Series-in-Software-Engineering-Len-Bass-Paul-Clements-Rick-Kazman-Software-Architecture-in-Practice-Addison-Wesley-Professional-2021?utm_source=chatgpt.com "(SEI Series in Software Engineering) Len Bass, Paul Clements, Rick Kazman - Software Architecture in Practice-Addison-Wesley Professional (2021)") |
+| [DECISION][QUOTE][ANCHOR] | Architecture vs. Design | “All architecture is design, but not all design is architecture. Architecture represents the significant design decisions that shape the form and function of a system, where significant is measured by the cost of change.” | Grady Booch, Handbook of Software Architecture / “On Design” lineage | https://handbookofsoftwarearchitecture.com/ | Architecture와 일반 Design의 경계를 significance와 cost of change로 고정 (소프트웨어 아키텍처 핸드북) |
+| [STYLE][DEFINITION][ANCHOR] | Architectural Style | “An architectural style, then, defines a family of such systems in terms of a pattern of structural organization. More specifically, an architectural style determines the vocabulary of components and connectors that can be used in instances of that style, together with a set of constraints on how they can be combined.” | David Garlan, Mary Shaw, An Introduction to Software Architecture | https://www.se.rit.edu/~swen-440/reading/Garlan%20and%20Shaw%20-%201993%20-%20AN%20INTRODUCTION%20TO%20SOFTWARE%20ARCHITECTURE.pdf | Style을 이름이나 분류가 아니라 components + connectors + constraints로 정의되는 structural family로 고정 (RIT South East) |
+| [PATTERN][DEFINITION][ANCHOR] | Architectural Pattern | “An architectural pattern expresses a fundamental structural organization schema for software systems. It provides a set of predefined subsystems, specifies their responsibilities, and includes rules and guidelines for organizing the relationships between them.” | Frank Buschmann et al., Pattern-Oriented Software Architecture, Volume 1: A System of Patterns | https://www.inf.uni-hamburg.de/en/inst/ab/swk/research/publications/pdf/2007-advei148.pdf | Architectural Pattern을 system-level의 반복 가능한 structural organization schema로 정의 (함부르크 대학교 정보학) |
+| [EVOLUTION][DEFINITION][ANCHOR] | Evolutionary Architecture | “An evolutionary architecture supports guided, incremental change across multiple dimensions.” | Neal Ford, Rebecca Parsons, Patrick Kua, Building Evolutionary Architectures | https://evolutionaryarchitecture.com/precis.html | Architecture를 정적 구조물이 아니라 의도적으로 변화할 수 있어야 하는 구조로 확장 (Evolutionary Architectures) |
+| [ORGANIZATION][QUOTE][ANCHOR] | Conway's Law | “Organizations which design systems are constrained to produce designs which are copies of the communication structures of these organizations.” | Melvin E. Conway, “How Do Committees Invent?”, Datamation, 1968 | — | [Architecture가 기술적 분할만의 결과가 아니라 조직의 communication structure와도 강하게 연결됨을 고정 (OUP Academic)](https://academic.oup.com/icc/article/25/5/709/2198460?utm_source=chatgpt.com "mirroring hypothesis: theory, evidence, and exceptions") |
+
+### Core References
+
+| Tag | Reference | Author / Source | Source / Locator | Educational Role |
+|---|---|---|---|---|
+| [BOOK][REFERENCE][CORE] | Software Architecture in Practice | Len Bass, Paul Clements, Rick Kazman, Software Architecture in Practice | — | Architecture definition, structure, quality attributes, architectural reasoning을 위한 핵심 reference |
+| [BOOK][REFERENCE][CORE] | Building Evolutionary Architectures | Neal Ford, Rebecca Parsons, Patrick Kua, Building Evolutionary Architectures | — | Evolutionary Architecture와 Fitness Function을 Curriculum에서 풀어낼 핵심 reference |
+| [STRUCTURE][REFERENCE] | Clean Architecture / Dependency Rule | Robert C. Martin, “The Clean Architecture” | — | Policy와 Detail의 분리, dependency direction을 다룰 때 참고. Architecture 전체를 대표하는 정의로 사용하지 않음 |
+| [VIEW][REFERENCE] | Architecture Views / Viewpoints | ISO/IEC/IEEE 42010; Philippe Kruchten, “The 4+1 View Model of Architecture” | — | 하나의 그림으로 Architecture 전체를 표현할 수 없고 stakeholder concern에 따라 여러 view가 필요함을 Curriculum에서 전개 |

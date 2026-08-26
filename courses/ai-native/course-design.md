@@ -104,9 +104,21 @@ LLM coding 도구를 사용하지만 prompt 품질과 engineering reliability를
 
 세부 절차, 시간, 자료 공개 순서와 평가 rubric은 Curriculum 단계에서 완성한다.
 
-## Major Anchor Sources
+## Anchors and References
 
-| Source | Anchors | Locator | Verification |
-|---|---|---|---|
-| NIST AI Risk Management Framework 1.0 | AI risk를 Govern·Map·Measure·Manage로 운영하는 공통 기준 | https://www.nist.gov/itl/ai-risk-management-framework | Verified official; 1.0 revision 진행 중임을 publication 시 재확인 |
-| NIST AI 600-1, Generative AI Profile | 생성형 AI 고유 위험과 lifecycle action | https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf | Verified official, July 2024 |
+### Anchors
+
+| Tag | Anchor | Exact Original Text / Definition | Author / Source | Source / Locator | Educational Role |
+|---|---|---|---|---|---|
+| [AGENT][DEFINITION][ANCHOR] | Agent | “Agents are systems that independently accomplish tasks on your behalf.” | OpenAI, A practical guide to building agents | — | [Agent를 단순 chatbot/LLM call과 구분하는 최소 정의. (OpenAI)](https://openai.com/business/guides-and-resources/a-practical-guide-to-building-ai-agents/?utm_source=chatgpt.com "A practical guide to building agents") |
+| [AGENT][DEFINITION][ANCHOR] | Workflow vs. Agent | “Agents ... are systems where LLMs dynamically direct their own processes and tool usage, maintaining control over how they accomplish tasks.” | Anthropic, “Building Effective AI Agents” | https://www.anthropic.com/engineering/building-effective-agents?via=aitoolhunt | Agentic system의 핵심을 model-directed process/tool use로 고정. predefined workflow와 구분. (Anthropic) |
+| [CONTEXT][DEFINITION][ANCHOR] | Context Engineering | “Context engineering refers to the set of strategies for curating and maintaining the optimal set of tokens (information) during LLM inference” | Anthropic, “Effective context engineering for AI agents”, 2025 | https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents | Prompt Engineering보다 넓은 Context Engineering의 직접 정의. (Anthropic) |
+| [ENGINEERING][QUOTE][ANCHOR] | Engineer's Role Changes | “a software engineering team’s primary job is no longer to write code, but to design environments, specify intent, and build feedback loops” | Ryan Lopopolo / OpenAI, “Harness engineering: leveraging Codex in an agent-first world”, 2026 | — | [AI-native 개발에서 인간의 중심 업무가 code typing에서 environment + intent + feedback system design으로 이동한다는 직접적 경험 문구. (OpenAI)](https://openai.com/index/harness-engineering/?utm_source=chatgpt.com "Harness engineering: leveraging Codex in an agent-first world") |
+
+### Core References
+
+| Tag | Reference | Author / Source | Source / Locator | Educational Role |
+|---|---|---|---|---|
+| [HARNESS][REFERENCE][CORE] | Harness Engineering | OpenAI, “Harness engineering: leveraging Codex in an agent-first world” | — | [Repository knowledge, architecture enforcement, tools, tests, feedback loop, observability, autonomy를 하나의 engineering environment로 다루는 핵심 contemporary reference. (OpenAI)](https://openai.com/index/harness-engineering/?utm_source=chatgpt.com "Harness engineering: leveraging Codex in an agent-first world") |
+| [HARNESS][REFERENCE] | Harness Design | Anthropic, “Harness design for long-running application development” | https://www.anthropic.com/engineering/harness-design-long-running-apps | Harness를 고정된 framework가 아니라 model capability와 함께 계속 검증·단순화해야 하는 execution system으로 다룰 reference. (Anthropic) |
+| [STANDARD][REFERENCE] | AI Risk Management Framework | NIST, AI RMF 1.0 및 GenAI Profile | — | AI risk/governance가 필요한 지점의 authoritative reference. 과정의 engineering spine으로 사용하지 않음 |

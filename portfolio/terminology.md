@@ -23,7 +23,7 @@
 | Term | Definition |
 |---|---|
 | Course Design | 과정 목적·학습자·capability·scope·ownership·필수 outcome을 정하는 Curriculum Guardrail |
-| Curriculum | Session, claim, 시간, 학습 흐름과 입력 routing을 소유하는 교육 orchestration SSOT |
+| Curriculum | Course Design Guardrail을 계승해 Session 구조·시간·학습 목표·요약·teaching progression과 핵심 내용, Anchor/Reference의 교육적 사용 위치·목적, 실습의 실제 배치·실행 설계와 Deck의 권장 slide 수·허용 범위를 소유하는 모든 slide의 교육 설계이자 Deck Guardrail. 실제 slide wording, visual form, layout과 rendering은 소유하지 않는다. |
 | Claim | 학습자가 이해·판단·적용해야 하는 검증 가능한 핵심 의미 |
 | 실습 | 학습자가 과정이 소유한 판단을 적용하고 산출물과 evidence를 만드는 학습 활동 |
 | Source | 과정 주장·정의·인용을 지지하는 검증된 외부 근거 |

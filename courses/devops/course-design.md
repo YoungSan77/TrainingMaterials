@@ -100,9 +100,23 @@ CI/CD 도구를 사용하거나 Dev/Ops 협업을 추진하지만 병목과 운�
 
 세부 절차, 시간, 자료 공개 순서와 평가 rubric은 Curriculum 단계에서 완성한다.
 
-## Major Anchor Sources
+## Anchors and References
 
-| Source | Anchors | Locator | Verification |
-|---|---|---|---|
-| DORA research program | software delivery/operations capability와 성과 evidence | https://dora.dev/ | Verified official program; 최신 metric 정의는 publication 시 재확인 |
-| Jez Humble & David Farley, Continuous Delivery | reliable repeatable delivery pipeline의 foundational lineage | Addison-Wesley, 2010, ISBN 978-0321601919 | Verified bibliographic; exact quote 미사용 |
+### Anchors
+
+| Tag | Anchor | Exact Original Text / Definition | Author / Source | Source / Locator | Educational Role |
+|---|---|---|---|---|---|
+| [CI][DEFINITION][ANCHOR] | Continuous Integration | “Continuous Integration is a software development practice where members of a team integrate their work frequently, usually each person integrates at least daily — leading to multiple integrations per day. Each integration is verified by an automated build (including test) to detect integration errors as quickly as possible.” | Martin Fowler, “Continuous Integration” | — | CI를 Jenkins 설치나 pipeline 실행이 아니라 frequent integration + automated verification + rapid feedback으로 고정 |
+| [CI][QUOTE][ANCHOR] | Fix the Build Immediately | “The whole point of Continuous Integration is to provide rapid feedback. Nothing sucks the blood of a CI activity more than a broken build that isn't fixed promptly.” | Martin Fowler, “Continuous Integration” | — | CI의 핵심이 build 횟수가 아니라 빠른 feedback과 즉각적인 repair discipline임을 고정 |
+| [CD][DEFINITION][ANCHOR] | Continuous Delivery | “Continuous Delivery is the ability to get changes of all types—including new features, configuration changes, bug fixes and experiments—into production, or into the hands of users, safely and quickly in a sustainable way.” | Jez Humble, Continuous Delivery | — | CD를 자동배포 tool이 아니라 changes를 safely, quickly, sustainably 전달할 수 있는 capability로 정의 |
+
+### Core References
+
+| Tag | Reference | Author / Source | Source / Locator | Educational Role |
+|---|---|---|---|---|
+| [BOOK][REFERENCE][BACKBONE] | The DevOps Handbook | Gene Kim, Jez Humble, Patrick Debois, John Willis, The DevOps Handbook | — | DevOps 과정의 핵심 backbone. Flow, Feedback, continual learning, delivery pipeline, operations를 하나의 system으로 연결 |
+| [FOUNDATION][REFERENCE][CORE] | The Three Ways | Gene Kim et al., The DevOps Handbook / The Phoenix Project lineage | — | Flow → Feedback → Continual Learning and Experimentation을 DevOps 전체 사고구조로 사용. 단순 slogan 암기가 아니라 Curriculum spine |
+| [AUTOMATION][REFERENCE][CORE] | Infrastructure as Code | Kief Morris, Infrastructure as Code | — | Operations 환경을 수동 작업이 아니라 versioned, repeatable, testable engineering artifact로 만드는 reference |
+| [MEASUREMENT][REFERENCE][CORE] | Accelerate | Nicole Forsgren, Jez Humble, Gene Kim, Accelerate, 2018 | — | DevOps practice와 software delivery/organizational performance 관계를 empirical evidence로 설명하는 핵심 reference |
+| [MEASUREMENT][REFERENCE] | DORA Software Delivery Performance | DORA, current research | — | 현재 delivery performance metrics와 capability evidence를 설명. 개인·팀 productivity KPI로 사용하지 않음 |
+| [OPERATIONS][REFERENCE] | Site Reliability Engineering | Google, Site Reliability Engineering | — | Reliability, automation, observability, operational feedback을 engineering 문제로 다루는 reference. DevOps와 SRE를 동일시하지 않음 |

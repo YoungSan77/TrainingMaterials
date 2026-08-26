@@ -21,9 +21,13 @@
 
 최종 Course Design의 Anchor Source에는 Verified 또는 Quote-verified만 둔다. 검증 후보와 “나중에 사용할 자료”는 live Source registry에 보존하지 않는다.
 
-## 3. Anchor Source Contract
+## 3. Anchor and Reference Contract
 
-Anchor Source는 장식용 참고문헌이 아니라 과정의 핵심 개념·방향을 고정한다. 필요한 경우 다음을 기록한다.
+Anchor는 장식용 참고문헌이나 최소화 대상이 아니라 과정의 본질·정의·원칙·mental model을 기억 가능하게 고정하는 교육 자산이다. 오래 유지되는 정의, 원칙, 검증된 인용, canonical wording, law/maxim, manifesto statement처럼 분야의 의미를 완결하는 문장을 적극 사용할 수 있다. 일반 Evidence가 claim과 currentness를 뒷받침한다면 Anchor는 개념의 핵심을 고정한다.
+
+Reference는 Curriculum과 Deck을 구성할 때 사용하는 책·논문·표준·framework·공식 자료 또는 권위 있는 body of knowledge다. 슬라이드에 축자로 표시할 의무가 없으며, 같은 source의 여러 세부 개념을 별도 pseudo-reference로 분해하지 않는다.
+
+과정별 Anchor와 Reference의 owner는 각 `courses/<course>/course-design.md`다. 전 과정 Anchor dataset이나 별도 global Anchor SSOT를 만들지 않는다. 필요한 경우 다음을 기록한다.
 
 - source와 author/organization
 - 정확한 원문 또는 검증 가능한 정의
@@ -32,9 +36,9 @@ Anchor Source는 장식용 참고문헌이 아니라 과정의 핵심 개념·�
 - 과정에서의 역할
 - verification status
 
-축자 인용은 Quote-verified일 때만 허용한다. Verified source를 의역할 때는 source가 실제로 지지하는 범위를 넘지 않는다.
+축자 인용은 Quote-verified일 때만 허용하며 검증된 원문을 줄이거나 바꿔 쓰지 않는다. 영문 원문이 authority이고, Deck은 원문과 구분된 한국어 교육용 번역을 병기할 수 있다. Verified source를 의역할 때는 source가 실제로 지지하는 범위를 넘지 않는다.
 
-동일 Anchor의 원문·정의 owner는 하나만 둔다. 여러 과정에서 반복 사용되면 Portfolio common asset 후보로 검토하고, 한 과정에서만 필요하면 해당 Course Design이 소유한다.
+같은 source나 quote가 서로 다른 교육적 역할로 여러 과정에 필요하면 각 Course Design에서 재사용할 수 있다. 이것은 global registry로 통합할 근거가 아니다.
 
 ## 4. Research Contract
 
@@ -52,9 +56,9 @@ LLM은 Course Design Guardrail 안에서 더 나은 근거를 조사·추가할 
 
 ## 6. Curriculum and Deck Use
 
-- Course Design은 필요한 evidence family와 핵심 Anchor를 정한다.
-- Curriculum LLM은 claim을 완성하며 필요한 Source를 선택한다.
-- Deck LLM은 Curriculum이 routing한 Source를 우선 사용하되, Guardrail 안의 설명 보완을 위한 추가 조사 책임을 가진다.
+- Course Design은 과정별 Anchor와 Reference 및 각각의 교육적 역할을 소유한다.
+- Curriculum LLM은 Course Design Guardrail 안에서 Anchor와 Reference를 어디서 어떻게 사용할지 선택하고, 사용할 내용·목적과 예상 teaching 위치를 정해 claim과 전체 교육 흐름을 완성한다.
+- Deck LLM은 Curriculum이 선택한 Anchor와 Reference를 사용하며, exact Anchor를 표시할 때 검증된 원문과 교육용 번역을 구분한다.
 - 추가한 중요한 외부 주장은 동일 verification contract를 충족해야 한다.
 - Harness는 ID·locator·quote exactness처럼 deterministic한 부분을 검사한다.
 - Source의 교육적 적합성과 claim strength는 semantic/human review가 판정한다.

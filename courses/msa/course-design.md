@@ -98,9 +98,25 @@
 
 세부 절차, 시간, 자료 공개 순서와 평가 rubric은 Curriculum 단계에서 완성한다.
 
-## Major Anchor Sources
+## Anchors and References
 
-| Source | Anchors | Locator | Verification |
-|---|---|---|---|
-| Martin Fowler & James Lewis, “Microservices” | microservice 특성과 독립 배포·business capability 논의 | https://martinfowler.com/articles/microservices.html | Verified web locator |
-| Chris Richardson, Microservices Patterns | Saga, transactional outbox, idempotent consumer의 pattern lineage | Manning, 2018, ISBN 978-1617294549 | Verified bibliographic; exact quote 미사용 |
+### Anchors
+
+| Tag | Anchor | Exact Original Text / Definition | Author / Source | Source / Locator | Educational Role |
+|---|---|---|---|---|---|
+| [DEFINITION][ANCHOR][CORE] | Microservice Architecture | “In short, the microservice architectural style is an approach to developing a single application as a suite of small services, each running in its own process and communicating with lightweight mechanisms, often an HTTP resource API. These services are built around business capabilities and independently deployable by fully automated deployment machinery.” | James Lewis, Martin Fowler, “Microservices”, 2014 | https://martinfowler.com/microservices/?lang=en | MSA의 대표적 정의. service, business capability, independent deployment가 한 문맥에 들어 있음. (martinfowler.com) |
+| [DEFINITION][ANCHOR][CORE] | Microservices | “Microservices are independently deployable services modelled around a business domain.” | Sam Newman, Building Microservices | — | micro보다 independent deployability와 business domain을 핵심으로 고정 |
+| [FOUNDATION][QUOTE][ANCHOR] | Distributed System | “A distributed system is one in which the failure of a computer you didn't even know existed can render your own computer unusable.” | Leslie Lamport, DEC SRC, 1987 | — | Microservices는 결국 distributed system이라는 사실을 기억시키는 고전적 문구 |
+| [TRADE-OFF][QUOTE][ANCHOR] | Distribution Cost | “Distributed systems are harder to program, since remote calls are slow and are always at risk of failure.” | Martin Fowler, “Microservice Trade-Offs”, 2015 | https://martinfowler.com/articles/microservice-trade-offs.html | 분산을 선택하면 latency와 failure가 설계 문제로 들어온다는 것을 한 문장으로 고정. (martinfowler.com) |
+| [TRADE-OFF][QUOTE][ANCHOR] | Distribution is Always a Cost | “But distribution is always a cost. I'm always reluctant to play the distribution card, and think too many people go distributed too quickly because they underestimate the problems.” | Martin Fowler, “Microservice Trade-Offs”, 2015 | https://martinfowler.com/articles/microservice-trade-offs.html | MSA를 default architecture로 선택하는 태도를 경계하는 대표 문구. (martinfowler.com) |
+| [DDD][BOUNDARY][ANCHOR] | Bounded Context and Microservices | “This process is useful for both monolithic and microservice architectures, but there is a natural correlation between service and context boundaries” | James Lewis, Martin Fowler, “Microservices”, 2014 | https://martinfowler.com/articles/microservices.html?trk=public_post_comment-text | DDD의 Bounded Context가 MSA service boundary와 연관되지만, 동일 개념은 아님을 직접 MSA 문맥에서 표현. (martinfowler.com) |
+| [DDD][COMMENT][ANCHOR] | DDD is Necessary but Insufficient | “while (logical) design techniques such as DDD domain modeling concepts, loose coupling and high cohesion are essential for creating good software, they are insufficient when designing a microservice architecture.” | Chris Richardson, “DDD, necessary but insufficient: physical design principles for microservices” | https://microservices.io/post/architecture/2024/03/18/exploreddd-physical-design-principles-for-microservices.html | DDD가 MSA boundary 설계에 중요하지만, team/process/transaction/network 같은 physical constraint까지 고려해야 한다는 매우 직접적인 문구. (microservices.io) |
+| [BOUNDARY][QUOTE][ANCHOR] | Wrong Boundaries are Expensive | “Getting service boundaries wrong can be expensive. It can lead to a larger number of cross-service changes, overly coupled components, and in general could be worse than just having a single monolithic system.” | Sam Newman, “Microservices For Greenfield?”, 2015 | — | MSA의 핵심 난제가 service count가 아니라 boundary correctness임을 고정 |
+
+### Core References
+
+| Tag | Reference | Author / Source | Source / Locator | Educational Role |
+|---|---|---|---|---|
+| [BOOK][REFERENCE][CORE] | Building Microservices | Sam Newman, Building Microservices | — | MSA Curriculum의 핵심 reference |
+| [BOOK][REFERENCE][CORE] | Microservices Patterns | Chris Richardson, Microservices Patterns | — | decomposition, data, consistency, messaging, operation 관련 Curriculum reference |
+| [REFERENCE][FOUNDATION] | Fallacies of Distributed Computing | Peter Deutsch et al. | — | distributed-system의 잘못된 전제를 Curriculum에서 다루기 위한 foundational reference |

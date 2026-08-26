@@ -98,4 +98,3 @@ TrainingMaterials/
 ## Working Exit Condition
 
 OOAD의 세 WORKING artifact는 새 OOAD Curriculum과 Deck이 승인돼 geometry baseline을 대체하거나, regression consumer가 제거되는 변경 단위에서 GENERATED 또는 DELETE로 귀결한다. 다음 Curriculum LLM의 입력으로 사용하지 않는다.
-

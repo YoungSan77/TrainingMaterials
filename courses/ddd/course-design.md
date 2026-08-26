@@ -94,9 +94,25 @@
 
 세부 절차, 시간, 자료 공개 순서와 평가 rubric은 Curriculum 단계에서 완성한다.
 
-## Major Anchor Sources
+## Anchors and References
 
-| Source | Anchors | Locator | Verification |
-|---|---|---|---|
-| Eric Evans, Domain-Driven Design | Ubiquitous Language, Aggregate, Bounded Context의 원전 lineage | Addison-Wesley, 2003, ISBN 978-0321125217 | Verified bibliographic; exact quote 미사용 |
-| Martin Fowler, “BoundedContext” | 모델의 적용 범위와 Context 경계 설명 | https://martinfowler.com/bliki/BoundedContext.html | Verified web locator |
+### Anchors
+
+| Tag | Anchor | Exact Original Text / Definition | Author / Source | Source / Locator | Educational Role |
+|---|---|---|---|---|---|
+| [FOUNDATION][QUOTE][ANCHOR] | Essence vs. Accident | “Following Aristotle, I divide them into essence—the difficulties inherent in the nature of the software—and accidents—those difficulties that today attend its production but that are not inherent.” | Frederick P. Brooks Jr., No Silver Bullet — Essence and Accident in Software Engineering | https://worrydream.com/refs/Brooks_1986_-_No_Silver_Bullet.pdf | 기술적 수단(accidental)과 SW가 표현해야 할 본질적 어려움(essential)을 구분 (Worrydream) |
+| [FOUNDATION][QUOTE][ANCHOR] | The Hard Part is Conceptual | “I believe the hard part of building software to be the specification, design, and testing of this conceptual construct, not the labor of representing it and testing the fidelity of the representation.” | Frederick P. Brooks Jr., No Silver Bullet | https://worrydream.com/refs/Brooks_1986_-_No_Silver_Bullet.pdf | DDD가 도구보다 conceptual model/problem에 집중해야 하는 근거 (Worrydream) |
+| [FOUNDATION][QUOTE][ANCHOR] | The Heart of Software | “The heart of software is its ability to solve domain-related problems for its user. All other features, vital though they may be, support this basic purpose.” | Eric Evans, Domain-Driven Design | https://studylib.net/doc/27486792/domain-driven-desing | DDD의 존재 이유 자체를 압축 (studylib.net) |
+| [DEFINITION][MODEL][ANCHOR] | Model | “A system of abstractions that describes selected aspects of a domain and can be used to solve problems related to that domain.” | Eric Evans, Domain-Driven Design Reference, Definitions | https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf | DDD에서 말하는 Model 자체를 canonical definition으로 고정 (Domain Language) |
+| [DEFINITION][UL][ANCHOR] | Ubiquitous Language | “A language structured around the domain model and used by all team members within a bounded context to connect all the activities of the team with the software.” | Eric Evans, Domain-Driven Design Reference, Definitions | https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf | 핵심은 UL이 domain model을 중심으로 구조화된 언어라는 것. 단순 공통용어집이 아님 (Domain Language) |
+| [DEFINITION][BOUNDED-CONTEXT][ANCHOR] | Bounded Context | “A description of a boundary (typically a subsystem, or the work of a particular team) within which a particular model is defined and applicable.” | Eric Evans, Domain-Driven Design Reference, Definitions | https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf | Bounded Context를 service/deployment boundary가 아니라 model applicability boundary로 고정 (Domain Language) |
+| [BOUNDARY][QUOTE][ANCHOR] | DDD builds on OO Design | “This book is not an introduction to object-oriented design. Nor does it propose radical design fundamentals.” | Eric Evans, Domain-Driven Design, Part II | https://fabiofumarola.github.io/nosql/readingMaterial/Evans03.pdf | OOAD → DDD 관계 고정 (Fabio Fumarola) |
+| [EXPERT][COMMENT][ANCHOR] | DDD centers on a Domain Model | “Domain-Driven Design is an approach to software development that centers the development on programming a domain model” | Martin Fowler, “Domain Driven Design” | — | DDD를 tactical pattern collection으로 축소하는 것을 방지 |
+
+### Core References
+
+| Tag | Reference | Author / Source | Source / Locator | Educational Role |
+|---|---|---|---|---|
+| [BOOK][REFERENCE][CORE] | Domain-Driven Design | Eric Evans, Domain-Driven Design: Tackling Complexity in the Heart of Software, 2003 | — | DDD 전체 Curriculum의 primary reference |
+| [BOOK][REFERENCE] | Implementing Domain-Driven Design | Vaughn Vernon, Implementing Domain-Driven Design, 2013 | — | Evans의 전략·전술 개념을 실제 구현 판단으로 풀 때 참고 |
+| [BOOK][REFERENCE] | Introducing EventStorming | Alberto Brandolini, Introducing EventStorming: An Act of Deliberate Collective Learning | — | collaborative domain discovery를 Curriculum에서 다룰 때 참고 |
