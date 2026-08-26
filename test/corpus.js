@@ -109,14 +109,19 @@ const CASES = [
   { file: '45-uml-state.js',          name: '[uml] state 렌더',        expect: '[성공]', runner: 'engine' },
   { file: '46-uml-package.js',        name: '[uml] package 렌더',      expect: '[성공]', runner: 'engine' },
   { file: '47-uml-bad-kind.js',       name: '[uml] 지원 범위 밖 kind',  expect: '지원 범위 밖이다' },
+  // ── S01 역반영: 필수 선언·claim N:1/1:N·notes 시간 기반 밀도. ──
+  { file: '48-required-declaration-missing.js', name: '[선언⑥] 필수 선언 누락', expect: "필수 선언 'proposition.test'" },
+  { file: '49-claim-many-to-one.js', name: '[claim] N:1 mapping', expect: '커리큘럼 명제: 2/2 반영' },
+  { file: '50-claim-one-to-many.js', name: '[claim] 1:N mapping', expect: '커리큘럼 명제: 1/1 반영' },
+  { file: '51-notes-budget-density.js', name: '[밀도] notes 시간 우선', expect: 'notes 배분 10분이 세션 분량 10분과 일치', detail: true },
 ];
 
 // 검사기를 돌려 { out, code }를 돌려준다(오류 시 exit≠0로 throw → e.stdout/e.status에서 회수).
 //   기본은 verify. runner:'engine'인 케이스는 엔진을 돌린다 — 렌더 앞단 게이트는 verify로 잴 수 없다.
 //   (게이트가 검사 뒤에 있어 'verify 초록 + 렌더러 사망'이 났던 사고의 회귀 방어)
-function runCheck(deckAbs, runner) {
+function runCheck(deckAbs, runner, detail) {
     const bin = runner === 'engine' ? RENDER : runner === 'course' ? COURSE : VERIFY;
-    const args = runner === 'engine' ? [bin, deckAbs, '--out', OUT_TMP] : [bin, deckAbs];
+    const args = runner === 'engine' ? [bin, deckAbs, '--out', OUT_TMP] : [bin, deckAbs, ...(detail ? ['--detail'] : [])];
     try {
         const out = execFileSync('node', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
         return { out, code: 0 };
@@ -153,7 +158,7 @@ function fail(msg) { console.error('[중단] ' + msg); process.exit(1); }
     let missed = 0;
     console.log(`── CORPUS: ${CASES.length}개 케이스 · 검증기 탐지 확인 ──\n`);
     for (const c of CASES) {
-        const { out, code } = runCheck(path.join(DIR, c.file), c.runner);
+        const { out, code } = runCheck(path.join(DIR, c.file), c.runner, c.detail);
         const found = out.includes(c.expect);
         // gap:true는 판정이 뒤집힌다 — '아직 안 잡힌다'가 통과다. 문자열이 나타나면
         // gap이 해소된 것이므로 실패로 띄워 갱신(승격)을 유도한다.

@@ -3,7 +3,7 @@
 module.exports = {
   book: { title: '객체지향 분석·설계(OOAD)', subtitle: 'Order로 배우는 요구에서 설계까지' },
   curriculum: [
-    { day: 'Day 1 — 오리엔테이션과 분석', items: ['오리엔테이션'] }
+    { day: 'Day 1 — OOAD 개요와 분석', items: ['OOAD 개요'] }
   ],
   meta: { quotes: 'ooad-curriculum.md' },
 };

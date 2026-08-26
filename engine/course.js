@@ -66,7 +66,7 @@ const rows = files.map((f) => {
         walk(sl.visual);
         return a + n;
     }, 0);
-    const used = new Set(S.map(sl => sl.claim).filter(Boolean));
+    const used = new Set(S.flatMap(sl => Array.isArray(sl.claim) ? sl.claim : sl.claim ? [sl.claim] : []));
     const parts = [...new Set(S.map(sl => sl.part).filter(Boolean))];
     const nDecl = S.filter(sl => ST.isUnclaimed(type, sl.kind)).length;
     return { file: f, no: D.session.no, title: D.session.title, type, n: S.length,

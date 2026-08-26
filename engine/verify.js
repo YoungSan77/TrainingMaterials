@@ -230,15 +230,19 @@ function verifyDeck(DECK, opts = {}) {
             // 고정 장(회수·예고)과 선언(manifesto)은 명제를 갖지 않는다
             const ARG = !ST.isFixed(SESSION_TYPE, sl.kind) && !ST.isUnclaimed(SESSION_TYPE, sl.kind);
             if (sl.claim) {
-                const c = CLAIMS.get(sl.claim);
-                if (!c) err.push(`${tag} claim '${sl.claim}'이 커리큘럼 S${String(NO).padStart(2, '0')} 명제 목록에 없다`);
-                else {
-                    if (c.kind !== sl.kind) err.push(`${tag} claim '${sl.claim}'의 분류는 '${c.kind}'인데 이 장의 kind는 '${sl.kind}'이다`);
-                    // 심층 소스 모델(지침 v2.6) — 명제 하나가 소스에서 1~N장으로 펴질 수 있다.
-                    //   그래서 한 claim을 여러 장이 맡는 것을 허용한다(1:N) — 예전의 1:1 중복 오류를 없앴다.
-                    //   대신 커버리지(모든 claim이 최소 1장에 덮이는가)는 아래 ⑥에서 오류로 잡는다.
-                    claimHit.set(sl.claim, [...(claimHit.get(sl.claim) || []), i + 1]);
-                }
+                const ids = Array.isArray(sl.claim) ? sl.claim : [sl.claim];
+                if (!ids.length) err.push(`${tag} claim 배열이 비어 있다`);
+                if (new Set(ids).size !== ids.length) err.push(`${tag} claim 배열에 같은 id가 중복됐다: ${ids.join(', ')}`);
+                ids.forEach(id => {
+                    const c = CLAIMS.get(id);
+                    if (!c) err.push(`${tag} claim '${id}'이 커리큘럼 S${String(NO).padStart(2, '0')} 명제 목록에 없다`);
+                    else {
+                        if (c.kind !== sl.kind) err.push(`${tag} claim '${id}'의 분류는 '${c.kind}'인데 이 장의 kind는 '${sl.kind}'이다`);
+                        // 명제 하나는 1:N장으로 펴질 수 있고, 같은 분류의 호환되는
+                        // 명제 여러 개는 한 장에서 자연스러운 논증을 이룰 때 N:1로 묶을 수 있다.
+                        claimHit.set(id, [...(claimHit.get(id) || []), i + 1]);
+                    }
+                });
             } else if (ARG) {
                 warn.push(`${tag} claim이 없다 — 이 장이 커리큘럼의 어느 명제를 맡는지 밝힌다`);
             }
@@ -640,8 +644,12 @@ function verifyDeck(DECK, opts = {}) {
         //   흐려진다 — 필요하면 하나로 합치거나 lead/foot로 눌러 담는다.
         const nDecl = S.filter(s2 => ST.isUnclaimed(SESSION_TYPE, s2.kind)).length;
         if (nDecl > 1) err.push(`선언 장이 세션 안에 ${nDecl}개다 — 세션당 최대 1개`);
-        // 장수 == 명제 수 + 고정 장(1:1) 등식은 없앴다(지침 v2.6 심층 소스 모델 — 명제 하나가
-        //   소스에서 1~N장으로 펴진다). 대신 완전 커버리지를 오류로 잡는다(아래 ⑥ 참조).
+        if (NODE && NODE.requiredDeclaration) {
+            const matched = S.filter(s2 => ST.isUnclaimed(SESSION_TYPE, s2.kind) && s2.proposition === NODE.requiredDeclaration);
+            if (!matched.length)
+                err.push(`커리큘럼 필수 선언 '${NODE.requiredDeclaration}'을 맡은 선언 장이 없다 — kind:'선언'과 proposition id를 일치시킨다`);
+        }
+        // 장수 == 명제 수 + 고정 장(1:1) 등식은 없다. 대신 완전 커버리지를 오류로 잡는다(아래 ⑥ 참조).
     }
     const arg = (sl) => !isFree(sl);                      // statement는 논증이 아니다(skeleton.js와 같은 소스)
     (SESSION_SPEC ? SESSION_SPEC.required : []).forEach(k => {
@@ -654,7 +662,15 @@ function verifyDeck(DECK, opts = {}) {
         if (NODE.minutes && SESSION_SPEC) {
             // 분량과 명제 수는 서로를 견제한다: 80분이라 써놓고 명제가 다섯이면 그 자리에서 어긋남이 드러난다.
             const want = Math.round(NODE.minutes / SESSION_SPEC.minPerSlide);
-            if (Math.abs(S.length - want) > Math.max(2, want * 0.3))
+            const noteTimes = S.map(s2 => Number((String(s2.notes || '').match(/배분\s*(\d+(?:\.\d+)?)\s*분/) || [])[1]));
+            const allTimed = noteTimes.length > 0 && noteTimes.every(Number.isFinite);
+            const noteTotal = allTimed ? noteTimes.reduce((a, n) => a + n, 0) : null;
+            const timeFits = allTimed && Math.abs(noteTotal - NODE.minutes) <= 1;
+            if (timeFits)
+                detail.push(`notes 배분 ${noteTotal}분이 세션 분량 ${NODE.minutes}분과 일치 — 장수 heuristic 경고를 생략한다`);
+            else if (allTimed && Math.abs(noteTotal - NODE.minutes) > Math.max(2, NODE.minutes * 0.1))
+                warn.push(`notes 배분 합계 ${noteTotal}분 ≠ 세션 분량 ${NODE.minutes}분 — 설명·실습·토론 시간을 다시 배분한다`);
+            if (!timeFits && Math.abs(S.length - want) > Math.max(2, want * 0.3))
                 warn.push(`분량 ${NODE.minutes}분에 본문 ${S.length}장 — ${SESSION_TYPE}은 장당 약 ${SESSION_SPEC.minPerSlide}분이라 ${want}장 안팎이 맞다. 분량이나 명제 수를 조정한다`);
         }
     }
@@ -691,7 +707,7 @@ function verifyDeck(DECK, opts = {}) {
     const nTB = S.filter(s => s.visual && ['table', 'boxes'].includes(s.visual.type)).length;
     if (nAll && nTB / nAll > 0.6) warn.push(`시각화의 ${Math.round(nTB / nAll * 100)}%가 table/boxes다 (${nTB}/${nAll}) — 관계·수치 타입을 회피하고 있는지 점검한다`);
 
-    // ⑥ 커리큘럼 명제 중 어느 장도 맡지 않은 것 — 심층 소스 모델의 완전 커버리지 계약.
+    // ⑥ 커리큘럼 명제 중 어느 장도 맡지 않은 것 — claim 완전 커버리지 계약.
     //   1:1 장수 등식을 없앤 대신(위 참조), "선언된 claim은 반드시 최소 1장에 덮인다"를
     //   오류로 잡는다 — claim 없는 장(§0 ARG else 분기, L235)의 경고와는 정반대 방향이다:
     //   그쪽은 "장에 claim이 없다", 여기는 "claim에 장이 없다".

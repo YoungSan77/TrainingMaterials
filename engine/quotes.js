@@ -43,7 +43,8 @@ const parse = (mdPath) => {
 
 // 세션 노드의 '명제' 목록 파서. 커리큘럼이 '무엇을 주장할지'를 정하고 덱이 그것을 참조한다.
 //   형식(계약):  - `C1` [현상] 명제 한 줄
-//   덱은 슬라이드마다 claim: 'C1'로 가리키고, verify가 id 존재·분류 일치·커버리지를 대조한다.
+//   덱은 슬라이드마다 claim: 'C1' 또는 claim: ['C1','C2']로 가리키고,
+//   verify가 id 존재·분류 일치·커버리지를 대조한다.
 //   이 절이 없는 세션(구 형식)은 null을 돌려준다 — 검사를 건너뛴다.
 const parseClaims = (mdPath, no) => {
     const src = fs.readFileSync(mdPath, 'utf8');
@@ -63,6 +64,7 @@ const parseClaims = (mdPath, no) => {
 // 세션 노드의 메타(분량·유형). 커리큘럼이 '이 세션이 얼마나 무거운가'를 정하고
 //   덱과 과정 검사기가 그것을 대조한다. 없으면 null 필드로 돌려준다(구 형식 호환).
 //   형식:  - **분량:** 50분   /   - **유형:** 설명형
+//          - **필수 선언:** `proposition.governing`
 const parseSessionMeta = (mdPath, no) => {
     const src = fs.readFileSync(mdPath, 'utf8');
     const tag = 'S' + String(no).padStart(2, '0');
@@ -71,9 +73,11 @@ const parseSessionMeta = (mdPath, no) => {
     const body = sec[0];
     const mMin = body.match(/\*\*분량:?\*\*\s*(\d+)\s*분/);
     const mType = body.match(/\*\*유형:?\*\*\s*([^\n]+)/);
+    const mDecl = body.match(/\*\*필수 선언:?\*\*\s*`([^`]+)`/);
     const mTitle = body.match(/^\s*###\s*S\d+\.\s*(.+)$/m);
     return { minutes: mMin ? Number(mMin[1]) : null,
              type: mType ? mType[1].trim() : null,
+             requiredDeclaration: mDecl ? mDecl[1].trim() : null,
              title: mTitle ? mTitle[1].trim() : null };
 };
 

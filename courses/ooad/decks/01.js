@@ -1,309 +1,205 @@
-// 01.js — 세션 1 오리엔테이션 (순수 session 데이터)
-// 계약: 교재_작성_지침.md / 씨앗: ooad-curriculum.md #S01 (주장·구조) + sources/01-orientation.md (방향·점·예제)
-//
-// [2026-08 자율 생성] 씨앗(커리큘럼+전개) → LLM이 각 슬라이드를 자율로 교재-밀도 생성. 환각 방어 = 사람 검토.
-//   층 경계: 오리엔 수준 — anemic·RDD·GRASP·SOLID·정보은닉 '용어'는 안 씀(소유 세션). 자세는 canon-stance 축자.
-//   [밀도 보정] lead(거버닝)는 유지, 박스/대비 body는 두 줄 실질 내용으로(한 줄 키워드 금지). 두 층의 밀도를 맞춘다.
-//   본문 16장: 학습목표1 · C1~C16 · 요약1 = 18장.
-//   ※검토 지점: Order 코드·상태 규칙(NEW/PAID/CANCELLED, PAID 취소 불가, 부분취소)이 order-domain-definition와 맞는지.
-
 const slides = [
-
-  // 01. 학습 목표
   {
-    kind: '학습 목표',
-    title: '이 과정이 다루는 것',
-    sub: '절차지향이 무너지는 이유에서 출발해, 객체라는 답과 과정의 자세를 세운다.',
-    question: '이 세션에서 무엇을 얻는가?',
-    lead: { label: '여정', text: '이 세션은 과정 전체의 출발점이다. 절차지향이 규모에서 왜 무너지는지 코드로 확인하고, 객체라는 "경계"가 그 답인 이유를 본 뒤, 과정을 관통하는 자세와 지향을 세운다.' },
-    visual: { type: 'boxes', data: [
-      { title: '문제', body: ['절차지향은 왜 규모에서 무너지는가?', '흩어진 규칙과 산탄총 수정을 코드로 본다'] },
-      { title: '해결의 씨앗', body: ['객체=경계가 무엇을 바꾸는가?', '규칙을 데이터 곁에 두어 변경을 가둔다'] },
-      { title: '자세·지향', body: ['어떤 태도로 어디를 향하는가?', '필요악 · Just Enough · 예방/상환', 'UC·UL 나침반과 요구→진화 여정'] }
-    ]},
-    foot: { kw: '핵심', color: 'navy', body: '객체는 데이터와 행위를 한 경계로 묶어 변경을 국소화한다 — 이 한 문장이 과정 전체의 씨앗이다.' },
-    notes: '과정 첫 세션. 청중에게 "규칙 하나 바꾸는데 여러 파일을 고쳤던" 경험을 먼저 묻고 시작한다. 배분 3분.'
+    kind: '학습 목표', title: 'OOAD를 보는 기준',
+    sub: 'OOAD가 변경을 다루는 방식을 객체 경계와 책임으로 설명한다',
+    question: 'OOAD는 복잡한 코드를 어떤 관점으로 다루는가?',
+    lead: { label: '학습 목표', text: '코드 조직의 한계에서 객체 경계가 필요한 이유까지 연결한다.' },
+    visual: { type: 'bullets', data: [
+      { head: '진화', text: '코드 조직 방식이 해결해 온 한계를 구분한다.' },
+      { head: '객체', text: '메시지·지역 상태·책임의 관계를 설명한다.' },
+      { head: '판단', text: '필요악·Just Enough·예방과 상환을 적용한다.' }
+    ] },
+    foot: { kw: '관점', color: 'navy', body: '표기법보다 변경을 국소화하는 경계와 책임에 집중한다.' },
+    notes: '4분. 오늘의 범위는 과정 안내가 아니라 OOAD의 개념·필요성·관점이다.'
   },
-
-  // 02. 계보 — 조직 축
   {
-    kind: '현상', claim: 'C1',
-    title: '코드 조직 방식의 계보',
-    sub: '코드 조직은 흐름·지식·데이터를 차례로 통제하며 진화해왔다.',
-    question: '각 세대는 앞 세대의 무엇을 고쳤는가?',
-    lead: { label: '조직 축', text: '코드를 어떻게 조직하나에는 계보가 있다. 각 세대는 앞 세대가 통제하지 못한 것을 통제하며 나아갔다 — 그 순서를 보면 객체지향이 왜 그 자리에 있는지 보인다.' },
-    visual: { type: 'steps', data: [
-      { title: '스파게티', body: ['GOTO로 아무 데나 분기 — 흐름을 못 따라간다'] },
-      { title: '구조적/절차적', body: ['순차·분기·반복으로 흐름을 길들인다'] },
-      { title: '모듈화', body: ['변경될 결정을 모듈 안에 숨긴다'] },
-      { title: '객체지향', body: ['데이터와 행위를 한 경계에 함께 둔다'] }
-    ]},
-    origin: 'Dijkstra(Go To Statement Considered Harmful) · Parnas(1972)',
-    foot: { kw: '조직 축', color: 'navy', body: '각 세대는 앞 세대가 못 통제한 것을 통제했다 — 흐름, 다음 지식의 위치, 다음 데이터와 행위의 관계.' },
-    notes: '계보는 동기·지도이지 원칙이 아니다(그 경계는 C3). "정보 은닉" 용어는 세션 8 소유라 여기선 descriptive로만. 배분 4분.'
+    kind: '선언', title: '명세 역량의 자리', proposition: 'proposition.governing',
+    visual: { type: 'statement', text: 'LLM은 우발 복잡도를 걷어낸다. 남는 본질 복잡도는 대부분 암묵지 — 요구사항·도메인 규칙·불변식·경계 — 이고, LLM은 이를 확률로 추론할 뿐 명세하지 못한다. 그 명세는 인간의 몫이며, 명세하지 못한 격차는 개발자가 메운다. 이 프로그램이 가르치는 요구공학·도메인 모델링·아키텍처가 바로 그 명세 기술이다. 도구가 강해질수록 이 역량은 덜 필요해지지 않고 더 드러난다. 용어는 새로워도 문제는 Brooks(essence/accidental)·에반스(VO·Aggregate)가 정리한 그것이다.' },
+    notes: '4분. 프로그램 명제를 축자 선언하고 요구사항·규칙·경계를 명시하는 OOAD의 역할로 연결한다.'
   },
-
-  // 03. 계보 — 상태 축(함수형)
   {
-    kind: '현상', claim: 'C2',
-    title: '함수형이라는 나란한 축',
-    sub: '함수형은 상태를 불변·순수로 다루는, 객체와 나란한 다른 축이다.',
-    question: '함수형은 객체의 다음 단계인가?',
-    lead: { label: '상태 축', text: '앞의 계보가 "코드를 어떻게 나누나"였다면, 이와 별개로 "상태를 어떻게 다루나"의 축이 있다. 함수형은 명령형의 가변 상태 문제에 답하는, 객체 다음이 아니라 나란히 자란 다른 계보다.' },
-    visual: { type: 'versus', data: [
-      { title: '명령형 (조직 축)', body: ['변수를 계속 바꿔가며 일한다', '부작용이 곳곳에 남아 값의 추적이 어렵다'], negative: false },
-      { title: '함수형 (상태 축)', body: ['값을 바꾸지 않고 새 값을 계산한다', '같은 입력이면 늘 같은 결과', '부작용이 없어 추론·테스트가 쉽다'], negative: false }
-    ]},
-    origin: '람다 대수 · Lisp(McCarthy)',
-    foot: { kw: '상태 축', color: 'teal', body: '객체는 코드의 조직을, 함수형은 상태의 규율을 준다 — 서로 다른 축의 답이다.' },
-    notes: '함수형은 이름·기여(불변·순수)까지만 — 깊이는 과정 밖. 배분 3분.'
-  },
-
-  // 04. 계보 — 수렴
-  {
-    kind: '현상', claim: 'C3',
-    title: '두 계보의 수렴',
-    sub: '현대의 좋은 객체 코드는 조직과 상태 규율을 함께 쓴다.',
-    question: '왜 계보를 알아야 뒤의 효용이 보이는가?',
-    lead: { label: '수렴', text: '현대의 좋은 객체 코드는 두 계보를 함께 쓴다 — 객체로 조직하고, 그 안에서 함수형의 상태 규율을 빌린다. 그 수렴의 증거는 이 과정 뒤에서 배운다.' },
-    visual: { type: 'boxes', data: [
-      { title: '객체가 주는 것', body: ['데이터와 행위를 한 경계로 조직', '"무엇을 아는가"와 "무엇을 하는가"를 함께'] },
-      { title: '함수형이 주는 것', body: ['값을 안 바꿔 상태를 규율', '언제 무엇이 바뀌는지 예측 가능하게'] },
-      { title: '수렴의 증거', body: ['불변 값 객체', '부작용 없는 순수 계산', '다형성으로 분기 제거 (뒤에서 배움)'] }
-    ]},
-    foot: { kw: '경계', color: 'navy', body: '계보는 동기이자 지도다 — "옛날엔 이랬다"가 "그래서 맞다"로 미끄러지면 안 된다. 각 기법은 그 자체 근거로 선다.' },
-    notes: '각 기법의 깊이는 소유 세션(모듈화=8). 배분 3분.'
-  },
-
-  // 05. 절차지향의 한계 — 정의·현상
-  {
-    kind: '현상', claim: 'C4',
-    title: '절차지향의 한계',
-    sub: '데이터와 함수를 갈라놓으면 규모가 커질수록 규칙의 주인이 사라진다.',
-    question: '규모가 커지면 무엇이 무너지는가?',
-    lead: { label: '정의', text: '절차지향은 "무엇을 저장하나"(자료구조)와 "무엇을 하나"(함수)를 따로 둔다. 작은 규모에선 깔끔하지만, 커지면 하나의 주문을 여러 함수가 제각기 열어 고치게 된다.' },
-    visual: { type: 'flow', data: {
-      dir: 'LR',
-      nodes: [ { id: 'calc', label: 'calcTotal' }, { id: 'val', label: 'validate' }, { id: 'can', label: 'cancel' }, { id: 'ord', label: 'Order 데이터' } ],
-      edges: [ { from: 'calc', to: 'ord', label: '읽고 고침' }, { from: 'val', to: 'ord', label: '읽고 고침' }, { from: 'can', to: 'ord', label: '읽고 고침' } ]
-    }},
-    foot: { kw: '현상', color: 'failL', body: '한 규칙의 진실이 코드 어디에도 온전히 없다 — 바꾸려면 그 규칙을 아는 함수를 다 찾아야 한다.' },
-    notes: '다음 두 장이 이 현상을 코드 실물과 변경 시나리오로 구체화. 배분 3분.'
-  },
-
-  // 06. 절차적 코드
-  {
-    kind: '현상', claim: 'C5',
-    title: '절차적 Order 코드',
-    sub: '로직이 서비스로 빠지면 데이터는 규칙 없는 자료구조로 전락한다.',
-    question: '이 코드에서 "취소 가능 여부"는 누가 아는가?',
-    lead: { label: '코드 읽기', text: 'OrderData는 필드와 게터·세터만 갖는다. 취소 가능 판단은 OrderService.cancel 안에, 합계·검증 규칙은 또 다른 메서드에 있다. 주문 객체를 손에 쥐어도 그것으로 무엇을 할 수 있는지 객체 스스로는 모른다.' },
-    visual: { type: 'codepair', data: { versions: [
-      { label: 'OrderData — 규칙 없는 자료구조',
-        code: 'class OrderData {\n  private List<Item> items;\n  private String status;   // "NEW","PAID","CANCELLED"\n  List<Item> getItems() { return items; }\n  void setStatus(String s) {\n    this.status = s;         // 아무 값이나 받는다\n  }\n}' },
-      { label: 'OrderService — 규칙이 흩어진 곳',
-        code: 'class OrderService {\n  void cancel(OrderData o) {\n    if (o.getStatus().equals("PAID"))\n      throw new IllegalStateException();\n    o.setStatus("CANCELLED");   // 취소 규칙\n  }\n  int calcTotal(OrderData o) { ... }  // 합계 규칙\n}' }
+    kind: '현상', title: '코드 조직의 진화', claim: 'C1',
+    sub: '코드 조직은 앞선 접근의 한계를 줄이는 방향으로 진화했다',
+    question: '각 접근은 바로 앞 방식의 어떤 한계를 줄였는가?',
+    lead: { label: '연속된 보정', text: '새 접근은 이전 방식을 지우기보다 통제하기 어려운 지점을 보정한다.' },
+    visual: { type: 'pipeline', data: { nodes: [
+      { id: 'spaghetti', label: '스파게티' }, { id: 'structured', label: '구조화' },
+      { id: 'modular', label: '모듈화' }, { id: 'oo', label: '객체 경계' }
+    ], edges: [
+      { from: 'spaghetti', to: 'structured', label: '제어 흐름' },
+      { from: 'structured', to: 'modular', label: '기능 분해' },
+      { from: 'modular', to: 'oo', label: '변경 파급' }
     ] } },
-    foot: { kw: '흩어짐', color: 'failL', body: 'setStatus는 아무 값이나 받는다 — "PAID는 못 되돌린다"는 규칙을 데이터가 스스로 못 지킨다.' },
-    notes: '코드는 예시 골격. 실제 상태·규칙은 order-domain-definition와 대조해 교정. 배분 4분.'
+    foot: { kw: '진화', color: 'navy', body: 'OO는 데이터와 행위의 분리에서 생긴 변경 파급을 경계와 책임으로 줄인다.' },
+    notes: '3분. 역사 연표가 아니라 제어 흐름→기능 분해→변경 국소화라는 문제 전환만 설명한다.'
   },
-
-  // 07. 산탄총
   {
-    kind: '현상', claim: 'C6',
-    title: '산탄총 수정',
-    sub: '규칙 하나를 바꾸면 그 규칙을 아는 모든 함수를 동시에 고쳐야 한다.',
-    question: '"부분 취소"를 새로 넣으면 어디를 고쳐야 하는가?',
-    lead: { label: '무너지는 순간', text: '"주문 일부만 취소" 규칙 하나를 넣는다고 하자. 규칙이 한 곳에 없으니 그 규칙을 아는 함수를 다 찾아 함께 고쳐야 한다 — 하나라도 빠뜨리면 합계는 맞는데 상태가 틀리는 조용한 버그가 된다.' },
-    visual: { type: 'boxes', data: [
-      { title: 'cancel', body: ['부분 취소 로직 자체를 바꾼다'] },
-      { title: 'calcTotal', body: ['남은 항목으로 합계를 다시 센다'] },
-      { title: 'validate', body: ['부분 취소가 가능한지 새로 판단한다'] }
-    ]},
-    foot: { kw: '산탄총', color: 'failL', body: '변경 하나 = 산탄처럼 흩어진 여러 발. 빠뜨린 한 발이 조용한 버그가 된다.' },
-    notes: '다음 장이 이 파급의 원인(지식의 위치)을 짚는다. 배분 3분.'
-  },
-
-  // 08. 원인 — 흩어진 지식
-  {
-    kind: '원인', claim: 'C7',
-    title: '흩어진 지식',
-    sub: '규칙이 여러 곳에 퍼져 있으면 변경 파급을 예측할 수 없다.',
-    question: '왜 변경 파급을 예측할 수 없는가?',
-    lead: { label: '원인', text: '산탄총 수정은 증상이고, 원인은 "지식이 어디 있나"다. 도메인 규칙이 특정 객체가 아니라 여러 곳에 전역처럼 퍼져 있으면, 한 규칙을 바꿀 때 파급이 어디까지 미칠지 알 수 없다.' },
+    kind: '현상', title: '나란한 두 관점', claim: ['C2', 'C3'],
+    sub: '객체와 함수형은 상태를 다루는 서로 다른 축이다',
+    question: '함수형은 객체지향 다음 단계인가?',
+    lead: { label: '병렬 관계', text: '실무에서는 두 관용구가 섞이지만 이 과정은 객체의 경계와 협력에 집중한다.' },
     visual: { type: 'versus', data: [
-      { title: '지식이 흩어짐', body: ['여러 모듈이 같은 규칙을 안다', '바꿀 때 고칠 범위를 알 수 없다', '빠뜨린 한 곳이 조용한 버그가 된다'], negative: true },
-      { title: '지식이 경계 안', body: ['한 객체가 자기 규칙을 안다', '변경 파급이 그 안에 갇힌다'], negative: false }
-    ]},
-    foot: { kw: '원인', color: 'navy', body: '파급을 예측하려면 지식에 경계가 있어야 한다 — 다음 장의 답이 그 경계다.' },
-    notes: '우측 칸이 다음 장(객체=경계)의 forward-ref. 배분 3분.'
+      { title: '객체 관점', body: ['상태를 경계 안에 보호', '메시지와 책임으로 협력'], negative: false },
+      { title: '함수형 관점', body: ['불변 값으로 상태를 다룸', '순수 함수로 변환을 표현'], negative: false }
+    ] },
+    foot: { kw: '경계', color: 'teal', body: '함수형은 우열 비교 대상이 아니라 나란한 상태 규율이며 이 세션의 비중심 축이다.' },
+    notes: '3분. 객체 다음에 함수형이 온다는 선형 계보를 만들지 않고 과정의 범위를 밝힌다.'
   },
-
-  // 09. 객체 = 경계
   {
-    kind: '원칙', claim: 'C8',
-    title: '객체, 데이터와 행위의 경계',
-    sub: '규칙을 데이터 곁에 두면 밖에서는 요청만 하고 세부는 몰라도 된다.',
-    question: '경계를 그으면 코드가 어떻게 달라지는가?',
-    lead: { label: '해결', text: '객체는 데이터와 그것을 지키는 규칙을 한 경계 안에 함께 둔다. 밖에서는 order.cancel()만 부르고 규칙의 세부는 몰라도 되며, 규칙이 바뀌어도 고칠 곳은 Order 안 한 곳뿐이다.' },
-    visual: { type: 'codepair', data: { versions: [
-      { label: '절차적 — 밖에서 상태를 직접 바꾼다',
-        code: '// 규칙을 아는 쪽과 데이터가 분리\nif (order.getStatus().equals("PAID"))\n  throw new IllegalStateException();\norder.setStatus("CANCELLED");' },
-      { label: '객체 — 규칙이 경계 안에서 지켜진다',
-        code: 'class Order {\n  private Status status;\n  void cancel() {\n    if (status == Status.PAID)\n      throw new IllegalStateException();\n    this.status = Status.CANCELLED;\n  }\n}\n// 밖에서는: order.cancel();' }
+    kind: '현상', title: '분리된 데이터와 함수', claim: ['C4', 'C5'],
+    sub: '공유 상태와 절차가 따로 커지면 규칙의 자리가 흩어진다',
+    question: 'Order 취소 가능 여부는 어디에서 판단되는가?',
+    lead: { label: '절차적 Order', text: 'create·pay·ship·cancel이 같은 Order 상태를 읽으면 하나의 규칙에 여러 판단 지점이 생긴다.' },
+    visual: { type: 'flow', data: { dir: 'LR', nodes: [
+      { id: 'services', label: '서비스 함수' }, { id: 'order', label: '공유 Order' },
+      { id: 'callers', label: '여러 호출부' }
+    ], edges: [
+      { from: 'services', to: 'order', label: '상태 읽기' },
+      { from: 'order', to: 'callers', label: '취소 판단 분산' }
     ] } },
-    foot: { kw: '국소화', color: 'teal', body: '상태를 직접 바꾸던 것을 "취소해줘"라는 요청으로 바꾼다 — 규칙의 주인이 데이터 자신이 된다.' },
-    notes: '훈련: "취소 조건을 하나 더 넣으면 절차적은 몇 곳, 객체는 몇 곳?"을 먼저 묻는다. anemic·RDD 용어 금지(설계 세션). 배분 5분.'
+    foot: { kw: '분산', color: 'failL', body: '취소 규칙이 procedure·service와 호출부로 퍼지면 변경할 곳도 함께 늘어난다.' },
+    notes: '4분. 구현 코드를 만들지 않고 shared data와 네 procedure의 관계만 보여준다. 취소 조건은 SHIPPED 이전이다.'
   },
-
-  // 10. 경계가 책임을 만든다
   {
-    kind: '원칙', claim: 'C9',
-    title: '경계가 만드는 책임 소재',
-    sub: '규칙이 한 객체 안에 있으면 고칠 곳도 책임질 주체도 하나다.',
-    question: '경계는 무엇에 답을 주는가?',
-    lead: { label: '책임 소재', text: '경계가 생기면 "이 규칙은 누구 일인가"에 답이 생긴다. 취소 규칙이 Order 안에 있으면 고칠 곳도, 물어볼 곳도 Order 하나로 좁혀진다.' },
+    kind: '현상', title: '요구 변경의 파급', claim: 'C6',
+    sub: '흩어진 규칙은 한 요구 변경을 여러 코드 변경으로 증폭시킨다',
+    question: '취소 정책 하나가 바뀌면 몇 곳을 함께 고쳐야 하는가?',
+    lead: { label: '산탄총 수정', text: '변경 이유는 하나지만 수정 지점과 누락 위험은 여러 곳에 생긴다.' },
+    visual: { type: 'pipeline', data: { nodes: [
+      { id: 'policy', label: '정책 변경' }, { id: 'search', label: '판단 탐색' },
+      { id: 'edits', label: '동시 수정' }, { id: 'risk', label: '누락 위험', gate: true }
+    ] } },
+    foot: { kw: '파급', color: 'failT', body: '규칙의 위치를 모르면 변경 작업은 검색과 동기화 문제가 된다.' },
+    notes: '3분. C5의 구조가 요구 변경 시 어떤 작업 비용으로 나타나는지 연결한다.'
+  },
+  {
+    kind: '원인', title: '넓어진 지식의 범위', claim: 'C7',
+    sub: '지식이 공유 상태로 새면 변경의 영향 범위도 넓어진다',
+    question: '왜 관련 없어 보이는 함수까지 같은 변경에 흔들리는가?',
+    lead: { label: '원인', text: '업무 지식이 소유자 없이 공유 자료구조에 노출되어 있기 때문이다.' },
+    visual: { type: 'flow', data: { dir: 'LR', nodes: [
+      { id: 'rule', label: '취소 지식' }, { id: 'shared', label: '공유 상태' },
+      { id: 'callers', label: '여러 호출부' }, { id: 'blast', label: '넓은 파급' }
+    ], edges: [
+      { from: 'rule', to: 'shared', label: '누출' }, { from: 'shared', to: 'callers', label: '직접 판단' },
+      { from: 'callers', to: 'blast', label: '동시 영향' }
+    ] } },
+    foot: { kw: '소유', color: 'navy', body: '문제는 함수 개수가 아니라 규칙을 책임지는 경계가 없다는 데 있다.' },
+    notes: '3분. C6의 결과를 C7의 원인으로 되짚고 다음 객체 경계로 연결한다.'
+  },
+  {
+    kind: '원칙', title: '객체의 핵심 구성', claim: 'C8',
+    sub: '객체는 상태를 보호하며 메시지로 협력하고 책임지는 단위다',
+    question: '데이터와 함수를 한곳에 두는 것만으로 객체가 되는가?',
+    lead: { label: '객체', text: '경계 안의 상태를 직접 노출하지 않고 메시지로 책임 수행을 요청한다.' },
+    visual: { type: 'flow', data: { dir: 'LR', nodes: [
+      { id: 'message', label: '메시지' }, { id: 'boundary', label: '보호 경계' },
+      { id: 'state', label: '지역 상태' }, { id: 'change', label: '변경 국소화' }
+    ], edges: [
+      { from: 'message', to: 'boundary', label: '책임 요청' }, { from: 'boundary', to: 'state', label: '보호' },
+      { from: 'state', to: 'change', label: '영향 제한' }
+    ] } },
+    foot: { kw: '객체', color: 'teal', body: '상태·메시지·책임이 함께 있을 때 경계가 변경을 국소화한다.' },
+    notes: '4분. [Sources] Q01 — Alan Kay, Email to Stefan Ram, 23 July 2003, email body. 메시징·지역 상태 보호·늦은 바인딩 계보를 교육용 paraphrase로 설명하며 축자 인용하지 않는다.'
+  },
+  {
+    kind: '원칙', title: '경계와 책임의 연결', claim: ['C9', 'C10'],
+    sub: 'OOAD는 경계를 찾아 책임의 주인을 정하는 활동이다',
+    question: '분석의 대상은 어떻게 설계의 책임 주체가 되는가?',
+    lead: { label: '두 질문', text: '분석은 무엇이 존재하는지 찾고, 설계는 그 일을 누가 맡을지 정한다.' },
+    visual: { type: 'pipeline', data: { nodes: [
+      { id: 'what', label: '무엇인가' }, { id: 'boundary', label: '경계 설정' },
+      { id: 'who', label: '누가 하나' }, { id: 'owner', label: '책임 주체' }
+    ], edges: [
+      { from: 'what', to: 'boundary', label: '분석' }, { from: 'boundary', to: 'who', label: '설계' },
+      { from: 'who', to: 'owner', label: '배치' }
+    ] } },
+    foot: { kw: 'OOAD', color: 'navy', body: '객체 경계는 “이 일은 누구 책임인가”라는 설계 질문에 답할 자리를 만든다.' },
+    notes: '3분. 분석=무엇, 설계=누가라는 경계를 연속된 판단으로 설명한다.'
+  },
+  {
+    kind: '원칙', title: '필요악으로서의 설계', claim: 'C11',
+    sub: '분석과 설계는 완벽하지 않은 코드를 보정하기 위한 활동이다',
+    question: '분석과 설계는 언제 도움이 되고 언제 오버헤드가 되는가?',
+    lead: { label: '필요악', text: '완벽한 코드가 불가능해 도입한 보정이므로 목적과 비용을 함께 판단한다.' },
+    visual: { type: 'flow', data: { dir: 'LR', nodes: [
+      { id: 'imperfect', label: '불완전한 코드' }, { id: 'correction', label: '보정 활동' },
+      { id: 'fit', label: '목적 적합' }, { id: 'overhead', label: '오용·과잉' }
+    ], edges: [
+      { from: 'imperfect', to: 'correction', label: '필요' }, { from: 'correction', to: 'fit', label: '아는 채 적용' },
+      { from: 'correction', to: 'overhead', label: '모르거나 과잉' }
+    ] } },
+    foot: { kw: '필요악', color: 'navy', body: '완벽한 코드가 불가능해서 도입된 보정이다 — 목적에 맞게 쓰면 도움, 오용하면 필요악이다.' },
+    notes: '3분. stance.necessary-evil SHORT를 foot에 축자 사용한다.'
+  },
+  {
+    kind: '원칙', title: 'Just Enough의 두 부채', claim: 'C12',
+    sub: '사전 활동은 부족과 과잉이 만드는 두 부채 사이에서 조절한다',
+    question: '분석과 설계는 많을수록 좋은가?',
+    lead: { label: 'Just Enough', text: '코드가 요구하는 만큼만 수행하고 나머지는 반복적으로 배운다.' },
     visual: { type: 'versus', data: [
-      { title: '경계 없음', body: ['아무나 상태를 직접 바꾼다', '규칙의 주인이 없다', '버그가 나면 "누구 코드인가"부터 헤맨다'], negative: true },
-      { title: '경계 있음', body: ['Order만 자기 상태를 바꾼다', '고칠 곳도 책임질 주체도 하나로 좁혀진다'], negative: false }
-    ]},
-    foot: { kw: '원칙', color: 'teal', body: '경계는 지식만이 아니라 책임의 주소를 정한다.' },
-    notes: '다음 장이 이 책임을 OOAD의 두 축으로 잇는다. 배분 3분.'
+      { title: '모자람', body: ['규칙과 경계를 모름', '무지 부채가 누적'], negative: true },
+      { title: '넘침', body: ['쓰지 않을 결정을 선점', '과잉 부채가 누적'], negative: true }
+    ] },
+    foot: { kw: 'Just Enough', color: 'teal', body: '사전 활동은 코드가 요구하는 만큼만 — 모자라면 부채, 넘치면 그 자체가 부채다.' },
+    notes: '3분. stance.just-enough SHORT의 의미를 유지하고 가운데 판단 기준은 lead로 제시한다.'
   },
-
-  // 11. 분석 / 설계 두 축
   {
-    kind: '원칙', claim: 'C10',
-    title: '분석과 설계, 두 질문',
-    sub: '분석은 무엇이 있나를, 설계는 누가 무엇을 하나를 묻는다.',
-    question: 'OOAD는 무엇을 가르치는가?',
-    lead: { label: '두 축', text: 'OOAD가 가르치는 것은 그 경계를 "어디에" 긋는가다. 두 질문으로 나뉜다 — 분석이 재료(개념)를 찾고, 설계가 그 재료에 일(책임)을 맡긴다.' },
+    kind: '원칙', title: '예방과 상환의 순환', claim: 'C13',
+    sub: '사전 활동은 부채를 예방하고 리팩토링은 발생한 부채를 상환한다',
+    question: '설계는 코딩 전에 끝나는 활동인가?',
+    lead: { label: '시간 축', text: '예방과 상환은 대립이 아니라 코드에서 배우며 반복하는 한 순환이다.' },
+    visual: { type: 'loop', data: { nodes: [
+      { id: 'prevent', label: '사전 예방' }, { id: 'code', label: '코드 피드백' }, { id: 'repay', label: '리팩토링' }
+    ], edges: [
+      { from: 'prevent', to: 'code' }, { from: 'code', to: 'repay' }, { from: 'repay', to: 'prevent' }
+    ] } },
+    foot: { kw: '예방·상환', color: 'teal', body: '사전 활동은 부채 예방, 사후 유지보수는 부채 상환을 맡는다.' },
+    notes: '3분. stance.prevent-repay SHORT를 바탕으로 예방→코드 피드백→상환의 시간 관계를 보여준다.'
+  },
+  {
+    kind: '원칙', title: '목표와 언어의 나침반', claim: 'C14',
+    sub: '유스케이스와 도메인 어휘가 분석과 설계의 방향을 고정한다',
+    question: '경계와 책임은 무엇을 기준으로 찾아야 하는가?',
+    lead: { label: '두 기준', text: '사용자 목표를 겨누고 같은 업무 언어로 개념과 규칙을 표현한다.' },
+    visual: { type: 'pipeline', data: { nodes: [
+      { id: 'goal', label: '사용자 목표' }, { id: 'usecase', label: '유스케이스' },
+      { id: 'language', label: '도메인 어휘' }, { id: 'boundary', label: '경계·책임' }
+    ], edges: [
+      { from: 'goal', to: 'usecase', label: '흐름' }, { from: 'usecase', to: 'language', label: '업무 표현' },
+      { from: 'language', to: 'boundary', label: '설계 기준' }
+    ] } },
+    foot: { kw: 'FORWARD', color: 'navy', body: '다음 유스케이스부터 적용하며, 언어 정합성은 DDD에서 더 깊게 다룬다.' },
+    notes: '3분. OOAD의 사용자 목표와 도메인 어휘까지만 설명하고 Ubiquitous Language는 DDD forward boundary로 남긴다.'
+  },
+  {
+    kind: '적용', title: 'Order 경계로의 이동', claim: 'C16',
+    sub: 'S01의 Order 사례는 흩어진 판단을 책임 경계로 옮기는 전환을 보여준다',
+    question: '취소 가능 판단의 주인은 어디에 있어야 하는가?',
+    lead: { label: '주 사례', text: 'SHIPPED 이전에만 취소 가능하다는 규칙을 Order가 책임지게 한다.' },
     visual: { type: 'versus', data: [
-      { title: '분석 (OOA)', body: ['무엇이 있나 — 개념과 관계', '주문·상품·고객과 그 사이 관계를 찾는다'], negative: false },
-      { title: '설계 (OOD)', body: ['누가 무엇을 하나 — 책임', '찾은 개념에 할 일(책임)을 배치한다'], negative: false }
-    ]},
-    foot: { kw: '원칙', color: 'navy', body: '"무엇이 있나"에서 "누가 하나"로 — 이 과정의 두 축이다.' },
-    notes: '이 두 축이 과정 관통 축(개념 모델 → 책임 설계)의 기초. 배분 3분.'
+      { title: '절차적 구조', body: ['공유 상태를 여러 함수가 읽음', '취소 판단이 호출부에 분산'], negative: true },
+      { title: '객체 경계', body: ['Order가 상태와 규칙을 보호', 'cancel 요청에 책임으로 응답'], negative: false }
+    ] },
+    foot: { kw: 'Order', color: 'teal', body: '상태와 규칙은 같고, 달라지는 것은 그 규칙을 책임지는 경계다.' },
+    notes: '4분. Common Standard §5 R5와 §6 상태 머신만 사용한다. PENDING·PAID는 취소 가능하고 SHIPPED 이후는 불가하다. NewPOS는 사용하지 않는다.'
   },
-
-  // 12. 자세 ① 필요악
   {
-    kind: '원칙', claim: 'C11',
-    title: '자세 ① 필요악',
-    sub: '완벽한 코드가 불가능하기에 도입된 보정이다.',
-    question: '분석·설계는 왜 필요악인가?',
-    lead: { label: '필요악', text: '분석·설계·테스트는 그 자체가 목적이 아니다. 완벽한 코드를 처음부터 쓸 수 있다면 불필요하지만, 그럴 수 없기에 도입된 보정이다 — 쓰는 법에 따라 도움도, 필요악도 된다.' },
-    visual: { type: 'versus', data: [
-      { title: '아는 채로', body: ['목적에 맞게 필요한 만큼 한다', '미래의 부채를 막는 도움이 된다'], negative: false },
-      { title: '모르거나 지나치면', body: ['관행으로 또는 과하게 한다', '아무것도 못 막는 순수 오버헤드(필요악)'], negative: true }
-    ]},
-    origin: 'canon-stance.md · stance.necessary-evil',
-    foot: { kw: '자세①', color: 'navy', body: '도구가 아니라 쓰는 법이 도움과 오버헤드를 가른다.' },
-    notes: 'canon-stance SHORT 축자. 반론 "OO가 오버헤드 아닌가"에 이 자세가 답. 배분 3분.'
-  },
-
-  // 13. 자세 ② Just Enough
-  {
-    kind: '원칙', claim: 'C12',
-    title: '자세 ② Just Enough',
-    sub: '코드가 요구하는 만큼만 — 모자라도 넘쳐도 부채다.',
-    question: '사전 활동은 얼마나 해야 하는가?',
-    lead: { label: 'Just Enough', text: '그렇다면 얼마나 해야 하나. 답은 "코드가 요구하는 만큼만"이다 — 전부 미리 정하는 BDUF가 아니라, 반복하며 코드가 가르쳐주는 만큼 채운다.' },
-    visual: { type: 'versus', data: [
-      { title: '모자람', body: ['몰라서 대충 넘어간다', '나중에 되돌리는 무지의 부채'], negative: true },
-      { title: '넘침 (BDUF)', body: ['안 쓸 것까지 미리 설계한다', '짊어지고 가는 과잉의 부채'], negative: true }
-    ]},
-    origin: 'canon-stance.md · stance.just-enough',
-    foot: { kw: '자세②', color: 'navy', body: '모자람도 넘침도 부채다 — 코드가 요구하는 선이 기준이다.' },
-    notes: 'canon-stance SHORT 축자. 배분 3분.'
-  },
-
-  // 14. 자세 ③ 예방/상환
-  {
-    kind: '원칙', claim: 'C13',
-    title: '자세 ③ 예방과 상환',
-    sub: '사전 활동은 예방, 사후 리팩토링은 상환이다.',
-    question: '오늘의 자세는 예방인가 상환인가?',
-    lead: { label: '예방/상환', text: '이 활동들을 언제 하느냐로 두 종류를 가른다. 오늘 서론에서 세우는 자세는 예방이고, 상환(리팩토링)은 코드를 다룬 뒤 세션 13에서 만난다.' },
-    visual: { type: 'boxes', data: [
-      { title: '예방 (오늘)', body: ['코드 전 분석·설계·테스트', '부채가 생기기 전에 막는다'] },
-      { title: '상환 (세션 13)', body: ['이미 쌓인 부채를 갚는다', '리팩토링으로 나중에 되돌린다'] }
-    ]},
-    origin: 'canon-stance.md · stance.prevent-repay',
-    foot: { kw: '자세③', color: 'navy', body: '예방과 상환은 한 쌍이다 — 오늘은 예방, 상환은 세션 13.' },
-    notes: 'canon-stance SHORT 축자. 배분 3분.'
-  },
-
-  // 15. 지향 — UC·UL
-  {
-    kind: '원칙', claim: 'C14',
-    title: 'UC·UL이라는 나침반',
-    sub: '기능이 아니라 사용자 목표를 향하고, 도메인을 한 어휘로 말한다.',
-    question: '무엇을 향해 설계하는가?',
-    lead: { label: '나침반', text: '무엇을 향해 설계하나. 기능이 아니라 사용자가 이루려는 목표(유스케이스)를 향하고, 그 목표를 모두가 같은 단어로 말하도록 편재 언어를 정한다.' },
-    visual: { type: 'boxes', data: [
-      { title: '유스케이스 (UC)', body: ['사용자 목표를 겨눈다', '"버튼"이 아니라 "주문 취소"가 설계 단위'] },
-      { title: '편재 언어 (UL)', body: ['대화·코드가 같은 단어를 쓴다', '"취소"가 어디서나 같은 뜻', '다음 세션 유스케이스부터 적용'] }
-    ]},
-    foot: { kw: '지향', color: 'navy', body: 'UL은 선언이 아니라 실천이다 — 유스케이스 세션부터 실제로 쓴다.' },
-    notes: 'UL 개념 소유는 이후 DDD 과정, 여기선 적용의 시작만. 배분 3분.'
-  },
-
-  // 16. 지향 — 과정 지도
-  {
-    kind: '원칙', claim: 'C15',
-    title: '과정 지도',
-    sub: '요구에서 진화까지, 2일의 여정을 미리 본다.',
-    question: '이 과정은 어디를 향해 가는가?',
-    lead: { label: '여정', text: '이 과정은 하나의 여정을 따라간다 — 요구에서 시작해 분석·설계·코드를 거쳐 진화로 이어진다. 오늘은 그 출발점, 왜 이 여정이 필요한지와 어떤 자세로 걸을지를 정하는 날이다.' },
-    visual: { type: 'flow', data: {
-      dir: 'LR',
-      nodes: [ { id: 'req', label: '요구' }, { id: 'ana', label: '분석' }, { id: 'des', label: '설계' }, { id: 'code', label: '코드' }, { id: 'evo', label: '진화' } ],
-      edges: [ { from: 'req', to: 'ana' }, { from: 'ana', to: 'des' }, { from: 'des', to: 'code' }, { from: 'code', to: 'evo' } ]
-    }},
-    foot: { kw: '오늘', color: 'navy', body: '오늘은 출발점 — 자세와 지향을 세운다. 다음은 요구를 유스케이스로 옮긴다.' },
-    notes: '각 정거장은 이후 세션이 소유. 배분 3분.'
-  },
-
-  // 17. 예제 — Order
-  {
-    kind: '적용', claim: 'C16',
-    title: 'Order, 과정의 예제 도메인',
-    sub: '규칙이 살아 있는 도메인이라야 경계 안에서 규칙 지키기를 연습한다.',
-    question: '이 도메인은 왜 예제로 적합한가?',
-    lead: { label: '적용', text: '과정 내내 하나의 도메인으로 이야기한다. 개념은 라만의 NewPOS(판매 시점 관리)로 설명하고, 실습은 Order(주문)로 한다. Order를 고른 건 규칙이 살아 있는 도메인이라, "경계 안에서 규칙을 지킨다"를 연습하기 좋기 때문이다.' },
-    visual: { type: 'boxes', data: [
-      { title: '설명', body: ['라만의 NewPOS(판매)', '개념은 검증된 예제로 설명한다'] },
-      { title: '실습', body: ['Order(주문)', '경계·책임을 손으로 만든다'] },
-      { title: '특징', body: ['합계 = 항목들의 합', '결제된 주문은 취소 불가', '상태는 정해진 순서로만 전이', '항목이 0개인 주문은 없다'] }
-    ]},
-    foot: { kw: '훈련', color: 'navy', body: '"주문에 항목이 0개일 수 있나?" — 도메인 규칙을 미리 감각한다.' },
-    notes: '세부 규칙은 실습 세션(정본 order-domain-definition.md)로 미룬다. 배분 3분.'
-  },
-
-  // 18. 요약
-  {
-    kind: '요약',
-    head: '요약과 다음 연결',
-    title: '요약과 다음 연결',
-    sub: '객체는 경계이고, 그 경계가 과정 전체를 관통한다.',
-    question: '오늘 세운 것은 무엇인가?',
-    lead: { label: '정리', text: '오늘 세운 것을 정리하자 — 절차지향의 한계에서 출발해, 객체라는 답과 과정의 자세·지향에 닿았다.' },
+    kind: '요약', title: 'OOAD 개요 요약', head: '요약',
+    sub: 'OOAD는 변경을 국소화할 경계와 책임을 찾는 활동이다',
+    question: '오늘의 관점을 한 문장으로 어떻게 연결할 수 있는가?',
+    lead: { label: '회수', text: '분산된 지식을 객체 경계 안의 책임으로 옮기고 필요한 만큼 반복한다.' },
     visual: { type: 'takeaways', data: [
-      { title: '경계', body: ['객체는 데이터와 행위를 한 경계로 묶어 변경을 국소화한다'] },
-      { title: '자세', body: ['필요악 · Just Enough · 예방과 상환'] },
-      { title: '지향', body: ['사용자 목표를 겨누고 편재 언어로 말한다'] }
-    ]},
-    foot: { kw: '다음', color: 'navy', body: '다음은 요구를 유스케이스로 옮긴다.' },
-    next: '요구를 유스케이스로 옮긴다',
-    notes: '첫 장의 질문("규칙 하나 바꾸는데 여러 파일을 고쳤던 경험")으로 닫는다. 배분 3분.'
+      { title: '문제', body: ['공유 상태와 흩어진 규칙은 변경 파급을 넓힌다.'] },
+      { title: '원칙', body: ['객체는 상태를 보호하고 메시지로 책임을 수행한다.'] },
+      { title: '판단', body: ['필요악·Just Enough·예방과 상환으로 비용을 조절한다.'] }
+    ] },
+    foot: { kw: 'OOAD', color: 'navy', body: '분석은 무엇을 찾고, 설계는 그 책임을 누가 맡을지 정한다.' },
+    notes: '3분. 세션의 문제→원인→원칙→적용 흐름을 회수한다.'
   }
-
 ];
 
 module.exports = { session: {
-  no: 1,
-  title: '오리엔테이션',
-  slides,
+  no: 1, title: 'OOAD 개요', type: '설명형', slides,
   get toc() { return this.slides.map((s, i) => [String(i + 1).padStart(2, '0'), s.head || s.title]); }
-}};
+} };
