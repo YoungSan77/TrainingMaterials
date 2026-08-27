@@ -81,9 +81,9 @@ S03과 S04는 단계가 아니라 같은 Problem Understanding의 상호보완 �
 다음처럼 시작하면 요구가 쉽게 기능 목록이 된다.
 
 ```text
-주문 취소 기능
-환불 기능
-배송 조회 기능
+주문 생성 기능
+결제 기능
+주문 조회 기능
 알림 기능
 ```
 
@@ -100,15 +100,15 @@ S03과 S04는 단계가 아니라 같은 Problem Understanding의 상호보완 �
 S02에서는 그래서 Event에서 출발했다.
 
 ```text
-Cancellation Requested
+Order Requested
         ↓
-Shipment Started?
+Item In Stock?
         ↓
 Payment Completed?
         ↓
 Required Response
         ↓
-Cancellation / Rejection / Refund
+Order Confirmed / Rejected
 ```
 
 S04의 Dynamic Analysis는 이 질문을 더 깊게 파고든다.
@@ -120,15 +120,15 @@ S04의 Dynamic Analysis는 이 질문을 더 깊게 파고든다.
 S04에서 Event를 다룰 때 가장 먼저 경계를 잡는다.
 
 ```text
-Cancel button clicked
+주문하기 button clicked
         ≠
-Cancellation Requested
+Order Requested
 ```
 
 ```text
 REST endpoint called
         ≠
-Cancellation Requested
+Order Requested
 ```
 
 ```text
@@ -140,7 +140,7 @@ Payment Confirmed
 ```text
 DB row updated
         ≠
-Order Cancelled
+Order Placed
 ```
 
 왼쪽은 Event를 **어떻게 전달·표현·구현했는가**에 가깝다.
@@ -158,18 +158,18 @@ Order Cancelled
 예:
 
 ```text
-사용자가 취소 버튼을 누른다
+사용자가 주문하기 버튼을 누른다
 ```
 
 보다:
 
 ```text
-Customer requests cancellation
+Customer places order
 ```
 
 이 Analysis에 적합하다.
 
-왜냐하면 취소 요청은:
+왜냐하면 주문 요청은:
 
 - Web Button
 - Mobile Gesture
@@ -221,14 +221,14 @@ Event는 사람 Actor에 한정되지 않는다.
 ### Human / Business Event
 
 ```text
-Customer requests cancellation
+Customer places order
 ```
 
 ### External System Event
 
 ```text
 Payment provider confirms payment
-Carrier reports shipment started
+Inventory system confirms stock reserved
 ```
 
 ### Temporal Event
@@ -259,20 +259,19 @@ S02·S03에서 유지한 용어집을 계속 사용한다.
 예:
 
 ```text
-Cancellation Requested
+Order Requested
 Payment Confirmed
-Shipment Started
-Refund Required
-Cancelled
+Order Paid
+Order Confirmed
 ```
 
 Dynamic Model을 그리다가:
 
 ```text
-Shipment Started
-Shipping Started
-Dispatch Completed
-Fulfillment Started
+Payment Confirmed
+Payment Completed
+Payment Succeeded
+Payment Settled
 ```
 
 같은 표현이 섞였다면 먼저 물어야 한다.
@@ -288,11 +287,11 @@ Diagram을 고치기 전에 용어집을 확인한다.
 S02 Scenario:
 
 ```text
-1. Customer가 취소를 요청한다.
-2. 취소 가능 여부를 판단한다.
-3. 배송이 시작됐으면 취소하지 않는다.
-4. 결제됐으면 Refund가 필요하다.
-5. Order가 Cancelled가 된다.
+1. Customer가 상품을 선택해 주문을 요청한다.
+2. 선택한 상품의 재고를 확인한다.
+3. 재고가 없으면 주문 요청을 거부한다.
+4. 주문을 생성하고 총액을 계산한다.
+5. 결제를 요청하고 결제 완료를 반영한다.
 6. Customer에게 결과가 제공된다.
 ```
 
@@ -363,17 +362,17 @@ Question
 예:
 
 ```text
-Order Cancellation 전체
+Place Order 전체
 ```
 
 대신:
 
 ```text
-Cancellation Requested
+재고 확인
         ↕
-Shipment Started
+동시 주문 경쟁
         ↓
-Cancellation Eligibility
+재고 차감 처리
 ```
 
 이 구간만 모델링할 수 있다.
@@ -482,13 +481,13 @@ PaymentClient
 S04에서 보는 것은:
 
 ```text
-Cancellation Requested
+Order Requested
         ↓
-Shipment 상태가 판단에 필요
+재고 상태가 판단에 필요
         ↓
 Payment 상태가 판단에 필요
         ↓
-Refund 필요 여부
+Order 총액 확정
         ↓
 Order State Change
 ```
@@ -502,7 +501,7 @@ Order State Change
 S02 SSD:
 
 ```text
-Customer → System : cancelOrder
+Customer → System : placeOrder
 ```
 
 System은 Black Box다.
@@ -534,9 +533,8 @@ S04에서는 participant를 다음 수준에서 사용할 수 있다.
 ```text
 Customer
 Order
-Shipment
+OrderItem
 Payment
-Refund
 ```
 
 하지만 이는:
@@ -572,13 +570,11 @@ Communication
 ```text
 Customer
    |
-   | cancellation request
+   | place order request
    v
 Order
  /   \
-Shipment Payment
-           \
-           Refund
+OrderItem Payment
 ```
 
 S04에서는 이것을 상세 설계도로 발전시키지 않는다.
@@ -600,17 +596,17 @@ S04에서는 이것을 상세 설계도로 발전시키지 않는다.
 예:
 
 ```text
-Cancellation Requested
+Order Requested
         ↓
-Shipment Started?
+Item In Stock?
    ┌────┴─────┐
-  Yes         No
+  No          Yes
    ↓           ↓
-Reject      Payment Completed?
+Reject      Payment Attempted
                 ↓
-          Refund Required?
+          Payment Completed?
                 ↓
-            Cancel
+            Confirm
 ```
 
 ---
@@ -695,7 +691,7 @@ Transition Rules
 무엇이 발생했는가?
 
 ```text
-Cancellation Requested
+Payment Confirmed
 ```
 
 ### State
@@ -711,7 +707,7 @@ Paid
 무엇이 어떻게 달라지는가?
 
 ```text
-Paid → Cancelled
+Placed → Paid
 ```
 
 ### Guard
@@ -719,7 +715,7 @@ Paid → Cancelled
 어떤 조건에서 가능한가?
 
 ```text
-[Shipment Not Started]
+[Payment Amount Matches Order Total]
 ```
 
 ---
@@ -727,12 +723,12 @@ Paid → Cancelled
 # 26. State Machine 예
 
 ```text
-Paid
+Placed
   |
-  | Cancellation Requested
-  | [Shipment Not Started]
+  | Payment Confirmed
+  | [Payment Amount Matches Order Total]
   v
-Cancelled
+Paid
 ```
 
 핵심은 UML notation이 아니다.
@@ -808,19 +804,18 @@ S03:
 
 ```text
 Order
+OrderItem
+Product
 Payment
-Refund
-Shipment
 ```
 
 S04:
 
 ```text
-Cancellation Requested
+Order Requested
 Payment Confirmed
-Shipment Started
-Refund Required
-Order Cancelled
+Order Paid
+Order Confirmed
 ```
 
 두 모델을 연결한다.
@@ -844,18 +839,18 @@ Requirement
 S03에서는:
 
 ```text
-Payment — Refund
+Order — Payment
 ```
 
 관계를 단순하게 봤다.
 
-S04에서 partial refund 사례를 보면:
+S04에서 분할 결제(split payment) 사례를 보면:
 
 ```text
-Payment
+Order
     ↓
-Refund #1
-Refund #2
+Payment #1
+Payment #2
 ```
 
 가 가능하다는 사실이 드러날 수 있다.
@@ -878,14 +873,13 @@ Refund #2
 Dynamic Model에서:
 
 ```text
-Refund Required
+Split Payment Requested
 ```
 
 를 표현했는데 Static Model에:
 
 ```text
-Refund
-Payment–Refund Relationship
+Order — Payment의 1..* Multiplicity
 ```
 
 이 전혀 없다면 질문해야 한다.
@@ -929,7 +923,7 @@ Meaning / Boundary 재합의
 Dynamic Analysis 중:
 
 ```text
-Refund Failed
+Payment Declined by Provider
 ```
 
 라는 Event가 새로 드러났다.
@@ -939,7 +933,7 @@ S02에는 이 Requirement가 없었다.
 그러면:
 
 ```text
-Refund Failed
+Payment Declined by Provider
         ↓
 Context?
         ↓
@@ -973,10 +967,9 @@ S04에서도 S03과 동일한 Anchor를 사용한다.
 Essential Dynamic Complexity:
 
 ```text
-Cancellation Requested
-Shipment Started
+Order Requested
 Payment Confirmed
-Refund Required
+Order Total Calculated
 Temporal Dependency
 State Transition
 Business Constraint

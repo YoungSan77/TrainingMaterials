@@ -57,6 +57,10 @@ Object
 
 > **직원=Object, 부서=Class로 1:1 모델링하자는 뜻이 아니다. 조직에서 R&R을 배치할 때 사용하는 판단 방식이 Responsibility Assignment를 이해하는 데 유사하다는 비유다.**
 
+### Role이란 무엇인가
+
+Role은 객체가 특정 Collaboration에서 수행하는 역할이며, 관련 Responsibility의 묶음으로 이해할 수 있다. 한 직원이 상황에 따라 "결재자" 역할과 "검토자" 역할을 각각 수행하듯, 하나의 객체도 Collaboration 맥락에 따라 여러 Role을 수행할 수 있다.
+
 ---
 
 ## 3. Responsibility-Driven Design
@@ -235,6 +239,8 @@ S06의 목표는 모든 Class/Method를 확정하는 것이 아니다.
 
 ## 실습 슬라이드 — 수강생에게 보이는 내용
 
+> 이 실습은 새 Diagram을 처음부터 작성하는 것이 아니라, 기존 S05 Class Diagram과 S04 Sequence 중 핵심 구간을 수정·발전시키는 **Existing Model Refinement**다.
+
 **입력**
 
 - 자신의 S05 **Initial Design Class Diagram**
@@ -243,9 +249,9 @@ S06의 목표는 모든 Class/Method를 확정하는 것이 아니다.
 
 **과제**
 
-1. S05 설계에서 Responsibility owner가 약한 부분을 찾아 재배치한다.
-2. 주요 Message와 Collaboration을 설계한다.
-3. Class Diagram과 Sequence Diagram을 왕복하며 책임 배치와 협력의 일관성을 확인한다.
+1. S05 Initial Design Class Diagram에서 Responsibility owner가 약한 부분을 찾아 **그 Class Diagram을 수정**한다(새 Diagram을 처음부터 그리지 않는다).
+2. S04 Place Order Analysis Sequence Diagram 중 재배치된 Responsibility와 관련된 **핵심 구간 하나**를 Design Sequence로 발전시켜 Message/Collaboration을 검증한다(전체 interaction을 다시 그리지 않는다).
+3. Sequence에서 발견된 문제를 Class Diagram에 feedback한다.
 4. LLM에게 다른 Responsibility Assignment와 반론을 요청하고 자신의 안과 비교한다.
 5. 필요한 Pattern/원칙만 선택하여 적용하고 이유를 기록한다.
 
@@ -259,8 +265,8 @@ S06의 목표는 모든 Class/Method를 확정하는 것이 아니다.
 
 **필수 산출물**
 
-- **Refined Design Class Diagram 1개**
-- **Design Sequence Diagram 1개**
+- **Refined Design Class Diagram 1개** — S05 Initial Design을 수정한 결과
+- **Design Sequence Diagram 1개** — S04 Sequence 중 재배치된 Responsibility가 드러나는 핵심 구간 하나를 발전시킨 결과(전체 interaction이 아니다)
 
 `Responsibility–Owner Table`은 필요하면 중간 사고 도구로 사용할 수 있으나 제출 필수는 아니다.
 
@@ -277,8 +283,8 @@ S06의 목표는 모든 Class/Method를 확정하는 것이 아니다.
 권장 시간:
 
 - S05 Before 모델 문제 표시: 5분
-- Responsibility 재배치: 7분
-- Design Sequence 작성: 7분
+- Class Diagram Responsibility 재배치(기존 Diagram 수정): 7분
+- Design Sequence 작성(핵심 구간 1개로 한정): 7분
 - Class↔Sequence feedback: 3분
 - LLM 대안/반론 검토: 5~8분
 

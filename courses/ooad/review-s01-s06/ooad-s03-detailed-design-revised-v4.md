@@ -86,13 +86,13 @@ S02에서 Requirement를 정제하고 Operation Contract까지 작성했다.
 예:
 
 ```text
-cancelOrder(orderId)
+placeOrder(items)
 
 Postconditions
 
-- Order가 CANCELLED 상태가 된다.
-- 필요한 경우 Refund가 생성된다.
-- Refund와 Payment 사이의 관계가 형성된다.
+- Order가 생성된다.
+- 선택된 OrderItem들이 Order와 연관된다.
+- Order 총액이 결정되고 Payment가 요청된다.
 ```
 
 이것만으로도 필요한 System Behavior는 상당히 명확해졌다.
@@ -102,15 +102,14 @@ Postconditions
 ```text
 Order란 정확히 무엇인가?
 
-Payment와 Refund는 어떤 관계인가?
+Order와 OrderItem은 어떤 관계인가?
 
-Order와 Shipment는 어떤 관계인가?
+OrderItem과 Product는 어떤 관계인가?
 
-배송이 시작됐다는 사실은
-무엇에 대해 알아야 하는 정보인가?
-
-한 Payment에 Refund가 하나만 가능한가?
+한 Order에 Payment는 하나만 가능한가?
 ```
+
+(Order Cancellation·Refund처럼 이후 변화 요구에서 다시 검토할 관계도 있지만, S03의 기본 범위는 아니다.)
 
 즉:
 
@@ -248,13 +247,13 @@ SW의 핵심 어려움 중 상당 부분은 문제 자체가 가진 conceptual c
 
 ```text
 Order
+OrderItem
+Product
 Payment
-Refund
-Shipment
 
-취소 가능 조건
-결제와 환불 관계
-배송 상태와 취소 규칙
+주문 총액 계산 규칙
+재고와 주문 수량의 관계
+결제 성공/실패에 따른 처리
 ```
 
 이것들은 문제영역의 본질에 속할 수 있다.
@@ -329,16 +328,13 @@ shipping API
 ```text
 Customer
 Order
+OrderItem
 Product
 Payment
-Refund
-Shipment
 
 주문
 결제
-취소
-배송
-환불
+총액 계산
 
 그리고 그 관계와 업무 규칙
 ```
@@ -363,7 +359,7 @@ S02의 Requirement Discovery부터 **용어집**을 만들기 시작했다. S03�
 - SSD
 - Operation Contract
 
-Order Cancellation에서 다음 단어가 나타날 수 있다.
+Place Order → Payment에서 다음 단어가 나타날 수 있다.
 
 ```text
 Customer
@@ -371,9 +367,6 @@ Order
 Order Item
 Product
 Payment
-Refund
-Shipment
-Cancellation
 Status
 Quantity
 ```
@@ -592,13 +585,13 @@ S03에서는:
 S02의 Operation Contract:
 
 ```text
-cancelOrder(orderId)
+placeOrder(items)
 
 Postconditions
 
-1. Order가 CANCELLED가 된다.
-2. 필요한 경우 Refund가 생성된다.
-3. Refund와 Payment 관계가 형성된다.
+1. Order가 생성된다.
+2. 선택된 OrderItem들이 Order와 연관된다.
+3. Order 총액이 결정되고 Payment가 요청된다.
 ```
 
 여기에는 이미 정적 모델을 발견할 강한 clue가 있다.
@@ -606,29 +599,29 @@ Postconditions
 ### Object/Instance Creation
 
 ```text
-Refund가 생성된다.
+Order가 생성된다.
 ```
 
-→ `Refund`라는 Concept을 검토해야 한다.
+→ `Order`라는 Concept을 검토해야 한다.
 
 ### Attribute Modification
 
 ```text
-Order가 CANCELLED가 된다.
+Order 총액이 결정된다.
 ```
 
 → `Order`라는 Concept  
-→ 상태를 표현할 Attribute/Value가 필요할 수 있다.
+→ 총액을 표현할 Attribute/Value가 필요할 수 있다.
 
 ### Relationship Change
 
 ```text
-Refund와 Payment 관계가 형성된다.
+선택된 OrderItem들이 Order와 연관되고, Payment가 요청된다.
 ```
 
-→ `Refund`  
-→ `Payment`  
-→ 둘 사이 Relationship
+→ `Order`  
+→ `OrderItem`, `Payment`  
+→ Order와 OrderItem, Order와 Payment 사이 Relationship
 
 따라서:
 
@@ -666,8 +659,6 @@ Order
 OrderItem
 Product
 Payment
-Refund
-Shipment
 ```
 
 중요한 경계:
@@ -694,13 +685,13 @@ Class 생성
 
 예:
 
-> 고객이 Cancel Button을 눌러 Order Number로 주문을 취소한다.
+> 고객이 주문하기 Button을 눌러 Order Number로 상품을 주문한다.
 
 명사:
 
 ```text
 Customer
-Cancel Button
+주문하기 Button
 Order Number
 Order
 ```
@@ -710,7 +701,7 @@ Order
 - Customer → Concept 가능
 - Order → Concept 가능
 - Order Number → Order의 Attribute 가능
-- Cancel Button → UI Solution
+- 주문하기 Button → UI Solution
 
 이다.
 
@@ -735,25 +726,25 @@ Order
 ```text
 Order
 Payment
-Shipment
+OrderItem
 ```
 
 ### 중요한 상태 변화의 대상인가?
 
 ```text
-Order becomes cancelled
+Order becomes paid
 ```
 
 ### 새로 생성되거나 제거되는 의미 있는 대상인가?
 
 ```text
-Refund is created
+OrderItem is created
 ```
 
 ### 다른 Concept과 의미 있는 관계를 가지는가?
 
 ```text
-Payment ↔ Refund
+Order ↔ Payment
 ```
 
 ### 현재 Requirement를 설명하기 위해 독립적으로 구분해야 하는가?
@@ -803,12 +794,12 @@ Attribute:
 
 > **현재 문제를 이해하기 위해 Concept에 대해 알아야 하는 의미 있는 정보**
 
-Order Cancellation이라면:
+Place Order → Payment라면:
 
 ```text
 Order.status
 Payment.status
-Shipment.status
+OrderItem.quantity
 ```
 
 가 중요할 수 있다.
@@ -943,8 +934,6 @@ Customer places Order
 Order contains OrderItem
 OrderItem refers to Product
 Order is paid by Payment
-Order is fulfilled by Shipment
-Refund relates to Payment
 ```
 
 Relationship은:
@@ -996,7 +985,7 @@ Customer 없이 Order가 존재할 수 있는가?
 
 Order 하나에 Payment는 하나인가 여러 개인가?
 
-Payment 하나에 Refund가 여러 번 발생할 수 있는가?
+Order 하나에 OrderItem은 몇 개까지 가능한가?
 ```
 
 즉:
@@ -1010,13 +999,13 @@ Payment 하나에 Refund가 여러 번 발생할 수 있는가?
 예:
 
 ```text
-Payment ----- Refund
+Order ----- Payment
 ```
 
 에서 정확한 multiplicity를 모른다면 추측해서:
 
 ```text
-Payment 1 ----- 0..1 Refund
+Order 1 ----- 1 Payment
 ```
 
 라고 그리지 않는다.
@@ -1041,15 +1030,14 @@ Need clarification
 예:
 
 ```text
-Payment -------- Refund
+Order -------- Payment
 ```
 
 를 그리는 순간:
 
-- 하나의 Payment에 여러 Refund가 가능한가?
-- 부분 환불이 가능한가?
-- Refund 실패 후 재시도가 별도 Refund인가?
-- Payment가 없는데 Refund가 가능한가?
+- 하나의 Order에 Payment가 여러 번 발생할 수 있는가(분할 결제)?
+- 결제 실패 후 재시도는 같은 Payment인가 새 Payment인가?
+- Payment 없이 Order가 존재할 수 있는가?
 
 라는 질문이 생긴다.
 
@@ -1153,19 +1141,6 @@ Payment
 ----------------
 amount : Money
 status : PaymentStatus
-    |
-    | related to
-    v
-Refund
-
-
-Order
-    |
-    | fulfilled by
-    v
-Shipment
-----------------
-status : ShipmentStatus
 ```
 
 목적:
@@ -1213,18 +1188,16 @@ DDD의:
 Analysis
 
 Order
+OrderItem
 Payment
-Refund
-Shipment
 ```
 
 이 발견됐다고 해서:
 
 ```text
 class Order
+class OrderItem
 class Payment
-class Refund
-class Shipment
 ```
 
 로 기계적으로 변환하지 않는다.
@@ -1255,9 +1228,9 @@ Order
 orderNumber
 status
 ----------------
-cancel()
+addItem()
+calculateTotal()
 pay()
-ship()
 ```
 
 이미 질문이 바뀐다.
@@ -1268,9 +1241,9 @@ Problem Understanding
 Responsibility Assignment
 ```
 
-`cancel()`을 Order에 넣었다는 것은 이미:
+`calculateTotal()`을 Order에 넣었다는 것은 이미:
 
-> **취소 책임은 Order가 가진다.**
+> **총액 계산 책임은 Order가 가진다.**
 
 라는 Design Decision을 내린 것이다.
 
@@ -1328,15 +1301,15 @@ OrderStatus
 
 현재 질문이:
 
-> **Order Cancellation을 충분히 이해할 수 있는가?**
+> **Place Order → Payment를 충분히 이해할 수 있는가?**
 
 라면 다음은 필요할 수 있다.
 
 ```text
 Order
+OrderItem
+Product
 Payment
-Refund
-Shipment
 ```
 
 반면:

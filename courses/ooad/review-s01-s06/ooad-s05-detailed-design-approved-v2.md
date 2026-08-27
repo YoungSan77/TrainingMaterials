@@ -197,8 +197,8 @@ S03에서 다음 Concept을 찾았다.
 ```text
 Order
 Payment
-Refund
-Shipment
+OrderItem
+Product
 Customer
 ```
 
@@ -207,8 +207,8 @@ Customer
 ```text
 Order → Order class
 Payment → Payment class
-Refund → Refund class
-Shipment → Shipment class
+OrderItem → OrderItem class
+Product → Product class
 Customer → Customer class
 ```
 
@@ -217,13 +217,13 @@ Customer → Customer class
 하지만 이것만으로는 중요한 질문에 답하지 못한다.
 
 ```text
-누가 취소 가능 여부를 판단하는가?
+누가 Order 총액을 계산하는가?
 
 누가 Order 상태를 변경할 수 있는가?
 
-Refund 필요 여부는 어디에서 판단하는가?
+Payment 요청 여부는 어디에서 판단하는가?
 
-Shipment 상태가 바뀌었을 때
+OrderItem 수량이 바뀌었을 때
 누가 그 영향을 알아야 하는가?
 
 어떤 Rule이 어디에 있어야
@@ -267,14 +267,14 @@ S03/S04:
 
 ```text
 Order
+OrderItem
+Product
 Payment
-Refund
-Shipment
 
-Cancellation Requested
-Shipment Started
+Order Requested
 Payment Confirmed
-Refund Required
+Order Paid
+Order Confirmed
 ```
 
 는 Design의 강한 evidence다.
@@ -352,9 +352,9 @@ Order
 
 ```text
 OrderService
-CancellationService
+PricingService
 PaymentService
-RefundService
+NotificationService
 ```
 
 에 있다면:
@@ -376,9 +376,9 @@ Behavior
 예:
 
 ```text
-if order.status == PAID
-   and shipment.status != SHIPPED
-   and payment.refundable == true
+if order.status == PENDING
+   and orderItem.quantity <= product.stock
+   and payment.status == NONE
 then ...
 ```
 
@@ -441,16 +441,16 @@ Order
 ```text
 Order status
 Payment state
-Shipment state
+OrderItem quantity
 ```
 
 ### 누가 이 상태를 바꿀 권한을 가져야 하는가?
 
 ```text
-Cancel
+Create
+AddItem
 Pay
-Ship
-Refund
+Confirm
 ```
 
 State와 Behavior 사이의 강한 의미 관계가 object boundary의 후보가 된다.
@@ -494,12 +494,12 @@ Parnas의 핵심 문제의식은:
 
 예:
 
-Order Cancellation Rule이:
+Order 총액 계산 Rule이:
 
 ```text
-배송 시작 전만 취소 가능
+수량 × 단가를 모두 더하고
 +
-결제 완료 시 Refund 필요
+할인/부가 정책을 반영한다
 ```
 
 라고 하자.
@@ -515,9 +515,9 @@ Repository
 
 여러 곳이 그 Rule을 알아서는 안 된다.
 
-숨겨야 할 것은 단순 status field가 아니라:
+숨겨야 할 것은 단순 total field가 아니라:
 
-> **Cancellation 판단 규칙 자체**
+> **총액 계산 규칙 자체**
 
 다.
 
@@ -535,7 +535,7 @@ Repository
 
 ```text
 주문 lifecycle rule이 바뀐다.
-취소 가능 조건이 바뀐다.
+주문 총액 계산 규칙이 바뀐다.
 주문 completion rule이 바뀐다.
 ```
 
@@ -543,7 +543,7 @@ Repository
 
 ```text
 결제 상태 rule이 바뀐다.
-환불 가능 조건이 바뀐다.
+결제 승인 실패 처리 규칙이 바뀐다.
 결제 authorization rule이 바뀐다.
 ```
 
@@ -572,7 +572,7 @@ Change Reason
 ```text
 Order State
 +
-Cancellation Eligibility
+Order Completion Eligibility
 +
 Order Transition
 ```
@@ -586,7 +586,7 @@ Order Transition
 반대로:
 
 ```text
-Order cancellation rule
+Order 총액 계산 rule
 ```
 
 과:
@@ -653,7 +653,7 @@ Design에서 필요하다면:
 Order
 OrderLine
 PricingPolicy
-CancellationPolicy
+PaymentCoordinator
 ```
 
 등으로 나뉠 수 있다.
@@ -673,9 +673,9 @@ CancellationPolicy
 Analysis에서는:
 
 ```text
-Cancellation
-Cancellation Reason
-Cancellation Rule
+Pricing
+Discount
+Tax
 ```
 
 을 별도 Concept으로 이해했더라도,
@@ -701,8 +701,8 @@ Final Object Structure
 ```text
 Order
 Payment
-Shipment
-Refund
+OrderItem
+Product
 ```
 
 가 보인다.
@@ -710,13 +710,13 @@ Refund
 하지만 S04에서:
 
 ```text
-Cancellation Requested
+Order Requested
         ↓
-Shipment state 확인
+재고 상태 확인
         ↓
 Payment state 확인
         ↓
-Refund Required
+Order Total 확정
         ↓
 Order State Change
 ```
@@ -747,7 +747,11 @@ Object Boundary Candidate
 
 ---
 
-# 22. Boundary Question 1 — 누가 상태를 소유해야 하는가?
+# 22. Object Boundary를 판단하는 질문
+
+체계적인 GRASP 적용은 S06에서 다룬다. S05에서는 지금까지 정리한 State·Behavior·Change Reason을 근거로 다음 두 질문만 확인한다.
+
+### 누가 상태를 소유하고 통제해야 하는가?
 
 예:
 
@@ -775,101 +779,21 @@ S05에서는 즉시 답을 확정하지 않고:
 
 를 비교한다.
 
----
-
-# 23. Boundary Question 2 — 누가 Rule을 알아야 하는가?
+### 어떤 불변조건을 보호해야 하는가?
 
 예:
 
 ```text
-배송 시작 후 취소 불가
+Order 총액은 OrderItem 합계와 항상 일치해야 한다
 ```
 
-가능한 후보:
+이 Rule이 Domain invariant라면 누구도 임의로 이 둘을 어긋나게 만들 수 없어야 한다. 이 질문은 object boundary를 강하게 제한한다.
 
-```text
-Order
-Shipment
-CancellationPolicy
-Application Service
-```
-
-S05에서는 후보를 만든다.
-
-아직 GRASP로 최종 배치하지 않는다.
+S05에서는 이 두 질문으로 후보만 만든다. 외부에 무엇을 숨길지, 판단과 실행 책임을 누구에게 나눌지 같은 세부 배치와 근거는 S06의 RDD/GRASP에서 다룬다.
 
 ---
 
-# 24. Boundary Question 3 — 누가 판단하고 누가 실행하는가?
-
-두 책임은 다를 수 있다.
-
-예:
-
-```text
-취소 가능한가?
-```
-
-와:
-
-```text
-실제로 취소한다
-```
-
-를 같은 책임으로 가정하지 않는다.
-
-질문:
-
-```text
-Rule을 누가 아는가?
-State를 누가 소유하는가?
-변경 권한을 누가 가져야 하는가?
-```
-
----
-
-# 25. Boundary Question 4 — 어떤 불변조건을 보호해야 하는가?
-
-예:
-
-```text
-Shipped Order cannot be Cancelled
-```
-
-이 Rule이 Domain invariant라면:
-
-> **누구도 임의로 Shipped → Cancelled 상태를 만들 수 없어야 한다.**
-
-이 질문은 object boundary를 강하게 제한한다.
-
----
-
-# 26. Boundary Question 5 — 외부에서 무엇을 몰라도 되는가?
-
-좋은 boundary는 외부가 내부 판단 과정을 몰라도 된다.
-
-나쁜 예:
-
-```text
-getStatus()
-getPaymentStatus()
-getShipmentStatus()
-getRefundStatus()
-
-외부에서 모든 판단
-```
-
-더 나은 후보:
-
-```text
-객체가 필요한 판단을 스스로 제공
-```
-
-단 구체적인 message와 responsibility는 S06에서 결정한다.
-
----
-
-# 27. Alan Kay — Message 관점의 연결
+# 23. Alan Kay — Message 관점의 연결
 
 Alan Kay의 OOP 관점에서 중요한 요소:
 
@@ -896,14 +820,14 @@ message boundary
 
 ---
 
-# 28. Message는 아직 상세 설계하지 않는다
+# 24. Message는 아직 상세 설계하지 않는다
 
 S05에서:
 
 ```text
-cancel()
-isCancellable()
-requestRefund()
+addItem()
+calculateTotal()
+pay()
 ```
 
 같은 구체 method signature를 만드는 데 집중하지 않는다.
@@ -911,7 +835,7 @@ requestRefund()
 질문은 더 상위다.
 
 ```text
-누가 취소 판단 책임을 가져야 하는가?
+누가 총액 계산 책임을 가져야 하는가?
 누가 상태 전이를 통제해야 하는가?
 ```
 
@@ -919,7 +843,7 @@ requestRefund()
 
 ---
 
-# 29. Domain Object와 Technical Object를 구분
+# 25. Domain Object와 Technical Object를 구분
 
 S05에서 다음을 너무 일찍 끌어오지 않는다.
 
@@ -944,18 +868,18 @@ Message Consumer
 
 ---
 
-# 30. Application Flow와 Domain Responsibility를 섞지 않는다
+# 26. Application Flow와 Domain Responsibility를 섞지 않는다
 
 예:
 
 ```text
-Cancel Order Use Case
+Place Order Use Case
 ```
 
 전체 흐름을 조정하는 책임과:
 
 ```text
-Order가 취소 가능한지 판단
+Order 총액이 올바른지 판단
 ```
 
 하는 Domain Rule은 다른 종류의 책임일 수 있다.
@@ -972,108 +896,42 @@ Domain Decision
 
 ---
 
-# 31. Candidate Boundary를 여러 개 만든다
+# 27. 여러 후보를 비교하고 위험 신호를 확인한다
 
-한 번에 정답을 찾지 않는다.
-
-예:
+한 번에 정답을 찾지 않는다. 예를 들어 Order 총액 계산 책임을 다음처럼 비교해볼 수 있다.
 
 ### Candidate A
 
 ```text
-Order가 취소 판단과 상태 변경 모두 담당
+Order가 계산과 상태 변경 모두 담당
 ```
 
 ### Candidate B
 
 ```text
-CancellationPolicy가 판단
+PricingPolicy가 계산
 Order가 상태 변경
 ```
 
 ### Candidate C
 
 ```text
-Application Service가 판단
+Application Service가 계산
 Order는 data만 유지
 ```
 
-이 단계의 목적은:
+다음 신호가 보이면 다른 대안을 의심한다.
 
-> **비교 가능한 설계 대안을 만드는 것**
+- **Data-only Object** — Order가 getter/setter만 가진다.
+- **God Service** — OrderService가 모든 Rule과 Flow를 가진다.
+- **Rule Duplication** — UI/Service/Batch/API가 각자 총액을 계산한다.
+- **State Exposure** — 외부가 객체 내부 상태 조합을 직접 알아야 한다.
 
-이다.
-
----
-
-# 32. 어떤 대안을 우선 의심해야 하는가?
-
-다음 신호는 경고다.
-
-### Data-only Object
-
-```text
-Order
-= getters/setters only
-```
-
-### God Service
-
-```text
-OrderService
-= 모든 Rule과 Flow
-```
-
-### Rule Duplication
-
-```text
-UI
-Service
-Batch
-API
-```
-
-각자 취소 가능 여부 판단.
-
-### State Exposure
-
-외부가 객체 내부 상태 조합을 알아야 한다.
+좋은 후보는 대체로 자신의 상태와 직접 관련된 Rule을 알고, 유효한 상태 전이를 통제하며, 변경 이유가 비교적 응집돼 있다. 다만 모든 behavior를 Entity 하나에 몰아넣는다는 뜻은 아니다. 더 정교한 평가(Cohesion/Coupling 지표, GRASP 적용)는 S06·S08에서 이어간다.
 
 ---
 
-# 33. Boundary Evaluation — S05 수준
-
-아직 S08처럼 정교하게 평가하지 않는다.
-
-S05에서는 최소한 다음만 본다.
-
-```text
-State와 Behavior가 함께 있는가?
-Rule이 한곳에 모이는가?
-Invariant를 보호할 수 있는가?
-Change Reason이 국소화되는가?
-외부가 내부를 너무 많이 알아야 하는가?
-```
-
----
-
-# 34. 좋은 후보의 특징
-
-좋은 object boundary 후보는 대체로:
-
-- 자신의 상태를 안다.
-- 자신의 상태와 직접 관련된 Rule을 안다.
-- 유효한 상태 전이를 통제한다.
-- 변경 이유가 비교적 응집돼 있다.
-- 내부 판단을 외부에 과도하게 노출하지 않는다.
-
-하지만:
-
-> **모든 behavior를 Entity 하나에 몰아넣는다는 뜻은 아니다.**
-
----
-
-# 35. 응집도와 결합도는 예고만 한다
+# 28. 응집도와 결합도는 예고만 한다
 
 S05에서 Cohesion/Coupling을 본격적으로 평가하지 않는다.
 
@@ -1091,7 +949,7 @@ S05에서 Cohesion/Coupling을 본격적으로 평가하지 않는다.
 
 ---
 
-# 36. Just-enough Object Boundary
+# 29. Just-enough Object Boundary
 
 S03/S04와 같은 원칙을 이어간다.
 
@@ -1111,7 +969,7 @@ S03/S04와 같은 원칙을 이어간다.
 
 ---
 
-# 37. Stop Condition
+# 30. Stop Condition
 
 다음에 답할 수 있으면 S06으로 넘어갈 수 있다.
 

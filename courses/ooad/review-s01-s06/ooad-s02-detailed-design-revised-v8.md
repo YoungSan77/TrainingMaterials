@@ -1,8 +1,8 @@
 # S02. 문제 발견과 요구 이해
 
 - **시간:** 90분
-- **권장 슬라이드:** 47장 전후
-- **허용 범위:** 44~50장
+- **권장 슬라이드:** 43장 전후
+- **허용 범위:** 40~46장
 
 ## 과정 목표
 
@@ -68,19 +68,13 @@ Requirement
 
 > **고객의 요구는 Requirement의 정답이 아니라 Requirement Discovery의 입력이다.**
 
-## Brooks + Bezos — 고객도 처음부터 완전한 요구를 모른다
+## Brooks — 고객도 처음부터 완전한 요구를 모른다
 
 Frederick P. Brooks Jr.의 문제의식을 Anchor로 사용한다.
 
 > **“The client does not know what he wants.”**
 
 핵심은 고객의 능력 부족이 아니다. 복잡한 SW에서는 고객도 실제 solution을 보고 사용하고 경험하기 전까지 자신이 정말 필요한 것이 무엇인지 완전히 알기 어렵다.
-
-Jeff Bezos의 주주서한에서 다음 관점도 함께 사용한다.
-
-> **“Even when they don’t yet know it, customers want something better.”**
-
-두 메시지는 같은 방향을 가리킨다.
 
 ```text
 What customer says
@@ -89,6 +83,8 @@ What customer actually needs
         ≠
 Best solution
 ```
+
+(Bezos·von Neumann·Lean의 관련 메시지는 이 Session 뒤쪽의 "공통 결론" 슬라이드에서 함께 다룬다.)
 
 따라서 요구사항은 처음부터 완전한 형태로 존재하는 답을 받아 적는 것이 아니라:
 
@@ -115,22 +111,22 @@ Problem / Need
 예:
 
 ```text
-"고객이 Cancel 버튼을 눌러
-orders 테이블의 status를 C로 변경한다."
+"고객이 주문하기 버튼을 눌러
+orders 테이블에 새 row를 INSERT한다."
 ```
 
 이 문장을 그대로 Requirement로 확정하면 다음이 결합된다.
 
 ```text
 Essential Need
-주문을 취소할 수 있어야 한다.
+고객은 원하는 상품을 주문할 수 있어야 한다.
 
         +
 
 Solution Detail
-Cancel Button
+주문하기 Button
 orders table
-status = C
+INSERT
 ```
 
 핵심:
@@ -139,28 +135,7 @@ status = C
 
 S02에서 Use Case, SSD, Operation Contract를 사용하는 중요한 이유도 **외부에서 필요한 행위와 결과를 내부 구현 결정으로부터 분리하기 위해서**다.
 
-## 개발자도 모른다 — John von Neumann
-
-요구사항 문제를 고객에게만 돌릴 수 없다.
-
-개발자도 처음에는:
-
-- 업무를 충분히 모른다.
-- 사용자의 실제 업무 맥락을 모른다.
-- 업무 규칙과 예외를 모른다.
-- 무엇이 중요한지 모른다.
-- 어떤 solution이 실제로 작동할지 모른다.
-- 자신의 assumption을 사실처럼 받아들일 수 있다.
-
-John von Neumann의 문구를 Anchor로 사용한다.
-
-> **“There’s no sense in being precise when you don’t even know what you’re talking about.”**
-
-교육적 메시지:
-
-> **모르는 것을 자세히 쓰는 것은 분석이 아니다.**
-
-요구사항 정의서의 상세도보다 먼저 필요한 것은 **문제와 업무에 대한 이해의 정확도**다.
+요구사항 문제를 고객에게만 돌릴 수도 없다. 개발자도 처음에는 업무와 예외를 충분히 모르고, 자신의 assumption을 사실처럼 받아들일 수 있다(von Neumann의 관련 메시지도 "공통 결론" 슬라이드에서 다룬다).
 
 ---
 
@@ -204,17 +179,7 @@ Rework
 
 > **충분한 정보를 얻기 전에 확정하지 않고, 필요한 정보를 얻은 뒤에는 책임 있게 결정한다.**
 
-## Lean Software Development — 너무 일찍 작성하지 않는다
-
-Lean Software Development에서 소개되는 문제의식을 사용한다.
-
-> **요구사항 변경은 요구사항을 너무 일찍 작성했기 때문에 발생하기도 한다.**
-
-`Decide as Late as Possible`은 결정을 무조건 미루라는 뜻이 아니다.
-
-> **충분한 정보를 얻을 때까지 불필요하게 상세한 결정을 확정하지 않는 것**
-
-이다.
+(Lean Software Development의 `Decide as Late as Possible` 관련 메시지도 "공통 결론" 슬라이드에서 함께 다룬다.)
 
 ## Requirement Change의 두 종류
 
@@ -313,21 +278,27 @@ Predictive에서는 formal requirement baseline의 일부 evidence가 될 수 �
 
 S02에서는 필요한 System Behavior와 Domain State Change까지 명확히 한다. 그 상태 변화가 일어나는 **정적 구조와 동적 행위를 구체적으로 모델링하는 것은 S03·S04에서 이어간다.**
 
+## 공통 결론 — 다섯 근거를 한 장에 모은다
+
+Boehm·Standish·Bezos·von Neumann·Lean을 각각 별도 section으로 다시 가르치지 않고, 이미 사용한 근거를 한 슬라이드에 모아 하나의 결론으로 묶는다.
+
+- **Boehm** — 결함을 늦게 발견할수록 재작업 비용이 커질 수 있다(S01에서 다룬 재작업 비용 데이터를 다시 부른다).
+- **Standish** — 요구된 기능이 곧 필요한 기능은 아니다(S01에서 다룬 미사용 기능 비율을 다시 부른다).
+- **Bezos** — **“Even when they don’t yet know it, customers want something better.”**
+- **von Neumann** — **“There’s no sense in being precise when you don’t even know what you’re talking about.”**
+- **Lean** — 요구사항 변경은 그것을 너무 일찍 작성했기 때문에 발생하기도 한다 (`Decide as Late as Possible`).
+
+> **요구사항은 가능한 한 빨리 많이 확정하는 것이 목적이 아니다. 필요한 것을 발견하고 불확실성을 관리하며, 필요한 시점에 필요한 수준으로 구체화한다.**
+
+**Slide Notes:** Boehm·Standish의 정확한 수치와 출처는 S01에서 이미 확정했으므로 여기서 새 수치를 만들지 않고 재호출만 한다. Bezos·von Neumann·Lean 인용은 이 Session에서 처음 사용하는 원문 그대로이며 별도 수치를 추가하지 않는다. 각 근거의 배경 설명은 강사 구두 설명으로 보완하고, 본 슬라이드는 다섯 근거를 나열해 하나의 결론으로 묶는 데 집중한다.
+
 ---
 
 # 3. 좋은 요구사항이란 무엇인가
 
 ## ISO/IEC/IEEE 29148 — 개별 요구사항의 자격
 
-- **Necessary**
-- **Appropriate**
-- **Unambiguous**
-- **Complete**
-- **Singular**
-- **Feasible**
-- **Verifiable**
-- **Correct**
-- **Conforming**
+ISO/IEC/IEEE 29148은 개별 요구사항이 갖춰야 할 자격을 정의한다. 대표적으로 **Necessary·Unambiguous·Complete·Feasible·Verifiable**을 꼽을 수 있다.
 
 핵심:
 
@@ -354,15 +325,7 @@ System / Software Requirement
 
 ## ISO/IEC 25010:2023 — Product Quality Model
 
-1. **Functional Suitability**
-2. **Performance Efficiency**
-3. **Compatibility**
-4. **Interaction Capability**
-5. **Reliability**
-6. **Security**
-7. **Maintainability**
-8. **Flexibility**
-9. **Safety**
+ISO/IEC 25010은 **Functional Suitability, Performance Efficiency, Reliability, Security, Maintainability** 등 9개 품질 특성으로 Quality Requirement의 범위를 넓게 확인하게 한다.
 
 S02에서는 품질속성을 놓치지 않기 위한 요구사항 관점까지만 다룬다. 품질속성의 정량화, architectural driver, trade-off는 SW Architecture 과정으로 넘긴다.
 
@@ -379,12 +342,6 @@ S02에서는 품질속성을 놓치지 않기 위한 요구사항 관점까지�
 - 누구에게 물어야 하는가?
 - 무엇을 직접 봐야 하는가?
 - 무엇을 만들어 보여줘야 하는가?
-
-대표 방법:
-
-- **Interview** — 목표·문제·규칙·예외·판단 이유
-- **Observation** — 실제 업무·암묵지·우회 절차
-- **Workshop** — 이해관계 충돌·범위·용어·우선순위
 
 핵심:
 
@@ -455,12 +412,11 @@ Interview, Observation, Workshop, Prototype, 기존 문서와 업무 대화에�
 ```text
 Order
 Customer
-Cancellation
+OrderItem
+Product
 Payment
-Refund
-Shipment
-Payment Due
-Shipment Started
+Order Status
+Payment Status
 ```
 
 단순 단어 목록으로 끝내지 않는다.
@@ -530,13 +486,13 @@ Stakeholder Value
 Event-centered requirement analysis에서 Event는 **현재 선택된 UI·API·message mechanism·database operation이 아니라 Problem / Domain에서 의미 있는 사건**으로 표현한다.
 
 ```text
-Cancel button clicked
+주문하기 button clicked
         ↓ normalize
-Customer requests cancellation
+Customer places order
 
 REST endpoint called
         ↓ normalize
-Cancellation requested
+Order requested
 
 Kafka message received
         ↓ normalize
@@ -544,7 +500,7 @@ Payment confirmed
 
 DB row updated
         ↓ normalize
-Order became cancelled
+Order became paid
 ```
 
 따라서 다음을 구분한다.
@@ -572,7 +528,7 @@ Structured Analysis의 essential requirements 관점에서는 System이 반응�
 
 Event는 사람 Actor의 요청에만 한정되지 않는다.
 
-- **External / Business Event** — Customer가 주문 취소를 요청한다.
+- **External / Business Event** — Customer가 상품을 주문하기로 결정한다.
 - **Signal / External System Event** — 결제 시스템이 결제 완료를 알린다.
 - **Temporal Event** — 결제 기한이 만료된다.
 
@@ -584,10 +540,10 @@ Event는 사람 Actor의 요청에만 한정되지 않는다.
 
 | Event | Context / Condition | Required Response / Outcome |
 |---|---|---|
-| Customer requests cancellation | Shipment not started | Order cancellation을 처리한다 |
-| Customer requests cancellation | Shipment already started | Cancellation을 거부한다 |
-| Payment completed | Order exists | Payment 완료 상태를 반영한다 |
-| Refund required | Paid order is cancelled | Refund가 필요하다는 Domain 결과를 만든다 |
+| Customer requests order | Selected item in stock | 주문을 생성하고 총액을 계산한다 |
+| Customer requests order | Selected item out of stock | 주문 생성을 거부하고 재고 부족을 알린다 |
+| Order total determined | Order created | Payment를 요청한다 |
+| Payment completed | Payment requested | Payment 완료 상태를 반영한다 |
 
 이 표는 상세 설계가 아니다. **Essential Problem을 행동 단위로 빠르게 훑고 누락 Event를 찾는 분석 도구**다.
 
@@ -645,11 +601,11 @@ Domain에서 의미 있는 사건·상태 변화
 예:
 
 ```text
-Customer requests cancellation
+Customer places order
         ↓
-System must process cancellation
+System must process order
         ↓
-Order cancelled / Refund required
+Order created / Payment required
 ```
 
 이 연결은 S02의 `System Event → System Operation → Operation Contract → Required Domain State Change`와 S04의 Dynamic Analysis를 자연스럽게 잇는다.
@@ -828,21 +784,21 @@ Actor
 - Stakeholders / Interests
 - Preconditions
 - Trigger
-- Main Success Flow
+- Main Success Scenario
 - Alternative Flows
 - Exception Flows
 - Postconditions
 
-## Main Success Flow + 좋은 Flow 작성법
+## Main Success Scenario + 좋은 Scenario 작성법
 
-예: `Cancel Order`
+예: `Place Order`
 
-1. Customer가 주문 취소를 요청한다.
-2. System은 주문을 식별한다.
-3. System은 취소 가능 여부를 확인한다.
-4. System은 주문을 취소한다.
-5. System은 필요한 환불을 처리한다.
-6. System은 취소 결과를 Customer에게 알린다.
+1. Customer가 상품과 수량을 선택하여 주문을 요청한다.
+2. System은 선택된 상품과 수량을 확인한다.
+3. System은 주문을 생성하고 총액을 계산한다.
+4. System은 결제를 요청한다.
+5. System은 결제 성공을 반영한다.
+6. System은 주문 완료 결과를 Customer에게 알린다.
 
 ```text
 Actor Action → System Response → Actor Action → System Response
@@ -861,13 +817,13 @@ Actor Action → System Response → Actor Action → System Response
 
 ## Alternative Flow / Exception Flow
 
-Main Success Flow와 다른 의미 있는 경로를 정의한다.
+Main Success Scenario와 다른 의미 있는 경로를 정의한다.
 
 예:
 
-- 배송이 이미 시작됨
-- 주문을 찾을 수 없음
-- 환불 처리 실패
+- 재고가 부족한 상품이 포함됨
+- 결제가 실패함
+- 유효하지 않은 상품이 포함됨
 
 ## Flow와 Scenario
 
@@ -877,7 +833,7 @@ Use Case Specification에 정의된 가능한 행동 경로.
 ### Scenario
 정의된 Flow를 따라 실제 한 번 수행되는 **구체적인 실행 인스턴스**.
 
-따라서 이 과정에서는 `Main Success Scenario` 대신 **Main Success Flow**를 사용한다.
+다만 이 과정에서는 Use Case Specification의 주 경로를 가리키는 고유 명칭으로 **Main Success Scenario**를 사용한다. 표 등 축약이 필요한 곳에서는 `Main Success`로 줄여 쓸 수 있다.
 
 ---
 
@@ -896,10 +852,10 @@ S02에서는 Domain의 개념 구조를 본격적으로 모델링하지 않는�
 ```text
 Customer             Order System
    |                       |
-   | cancelOrder(id)       |
+   | placeOrder(items)     |
    |---------------------->|
    |                       |
-   | cancellationResult    |
+   | orderConfirmation     |
    |<----------------------|
 ```
 
@@ -907,7 +863,7 @@ System은 하나의 **Black Box**다. 내부 객체 interaction을 그리지 않
 
 ## System Event와 System Operation
 
-`cancelOrder(orderId)`와 같은 Actor의 의미 있는 요청을 System Event로 보고, 이에 대응해 System이 제공해야 하는 행위를 System Operation으로 식별한다.
+`placeOrder(items)`와 같은 Actor의 의미 있는 요청을 System Event로 보고, 이에 대응해 System이 제공해야 하는 행위를 System Operation으로 식별한다.
 
 아직 어떤 객체가 구현할지는 결정하지 않는다.
 
@@ -919,9 +875,9 @@ System은 하나의 **Black Box**다. 내부 객체 interaction을 그리지 않
 
 예:
 
-- Order가 취소 상태가 된다.
-- 필요한 Refund가 생성된다.
-- 필요한 객체 관계와 상태가 변경된다.
+- Order가 생성된다.
+- 선택된 OrderItem들이 Order와 연관된다.
+- Order 총액이 결정되고 Payment가 요청된다.
 
 > **What changed, not how implemented.**
 
@@ -994,9 +950,9 @@ so that <value>
 
 예:
 
-- 배송 시작 전 주문은 취소할 수 있다.
-- 배송 시작 후 주문은 취소할 수 없다.
-- 결제가 완료된 주문을 취소하면 환불해야 한다.
+- 재고가 있는 상품만 주문할 수 있다.
+- 결제가 완료되어야 주문이 확정된다.
+- 결제가 실패하면 주문은 확정되지 않는다.
 
 ## BDD / Example
 
@@ -1004,13 +960,13 @@ BDD는 `Given / When / Then` 문법을 배우는 것이 목적이 아니다.
 
 ```text
 Given
-결제가 완료된 배송 전 주문
+재고가 있는 상품을 선택한 주문
 
 When
-고객이 주문을 취소하면
+고객이 결제를 완료하면
 
 Then
-주문은 취소되고 환불된다
+주문은 결제 완료 상태가 된다
 ```
 
 핵심:
@@ -1190,55 +1146,54 @@ Domain State Change
 
 ---
 
-# 권장 47장 구성
+# 권장 43~45장 구성
 
-추가된 내용은 `Analysis ≠ Phase`, Brooks `Essence / Accident`, Problem Understanding을 기존 요구분석 흐름에 연결하기 위한 핵심 설명이다. 실습은 본편 1장으로 통합하고 예시 답안은 별첨으로 분리했으므로 권장 slide 수는 Deck 단계에서 본문 밀도를 기준으로 다시 산정한다.
+추가된 내용은 `Analysis ≠ Phase`, Brooks `Essence / Accident`, Problem Understanding을 기존 요구분석 흐름에 연결하기 위한 핵심 설명이다. 실습은 본편 1장으로 통합하고 예시 답안은 별첨으로 분리했으므로 권장 slide 수는 Deck 단계에서 본문 밀도를 기준으로 다시 산정한다. ISO 29148/25010 상세 목록과 수집 방법 소개 bullet는 표/요약 문장으로 축약했고, Boehm/Standish/Bezos/von Neumann/Lean은 개별 section 대신 `공통 결론` 1개 슬라이드로 통합해 밀도를 낮췄다.
 
 | # | Block | Slide |
 |---:|---|---|
 | 1 | Opening | 과정 목표 |
 | 2 | 1 | 고객 요구 ≠ 요구사항 |
-| 3 | 1 | Brooks + Bezos — 고객도 처음부터 완전한 요구를 모른다 |
+| 3 | 1 | Brooks — 고객도 처음부터 완전한 요구를 모른다 |
 | 4 | 1 | **Brooks Essence / Accident — Essential Problem과 Solution 분리** |
-| 5 | 1 | 개발자도 모른다 — John von Neumann |
-| 6 | 2 | Too Late vs Too Early |
-| 7 | 2 | Lean SW Development — 너무 일찍 작성하지 않는다 |
-| 8 | 2 | Requirement Change의 두 종류 |
-| 9 | 2 | **Predictive vs Iterative / Agile — Analysis는 사라지지 않는다** |
-| 10 | 2 | **Requirement Baseline과 Problem Understanding** |
-| 11 | 3 | ISO/IEC/IEEE 29148 — 좋은 요구사항의 자격 |
-| 12 | 3 | 요구사항의 유형 |
-| 13 | 3 | ISO/IEC 25010:2023 — 9개 Product Quality Characteristics |
-| 14 | 4 | 요구사항 수집·발견 |
-| 15 | 4 | 수집 방법의 선택 — Interview / Observation / Workshop |
-| 16 | 4 | Prototype — 보여주면서 발견한다 |
-| 17 | 4 | Wireframe + 복잡한 업무 화면 |
-| 18 | 4 | Report Prototype |
-| 19 | 5 | 왜 Use Case인가 — Actor Goal에서 필요한 기능을 찾는다 |
-| 20 | 5 | Use Case 정의 |
-| 21 | 5 | Use Case의 본질은 Text다 — Larman |
-| 22 | 5 | Actor — 정의와 식별 |
-| 23 | 5 | System Boundary |
-| 24 | 5 | Association |
-| 25 | 5 | Use Case Diagram |
-| 26 | 5 | Order Use Case Diagram |
-| 27 | 5 | Use Case Diagram 작성 방법 |
-| 28 | 5 | 좋은 Use Case를 찾는 질문 |
-| 29 | 6 | Use Case Specification |
-| 30 | 6 | Main Success Flow + 좋은 Flow 작성법 |
-| 31 | 6 | Alternative / Exception Flow |
-| 32 | 6 | Flow와 Scenario 구분 |
-| 33 | 7 | **Domain — 문제와 업무의 세계** |
-| 34 | 7 | SSD — System Sequence Diagram |
-| 35 | 7 | System Event → System Operation |
-| 36 | 7 | Operation Contract — What changed, not how |
-| 37 | 7 | **Domain State Change → Static / Dynamic Analysis View** |
-| 38 | 8 | User Story |
-| 39 | 8 | Use Case vs User Story |
-| 40 | 9 | Acceptance Criteria |
-| 41 | 9 | BDD / Example |
-| 42 | 25~30 | **[실습] Place Order Use Case Diagram + Specification** |
+| 5 | 2 | Too Late vs Too Early |
+| 6 | 2 | Requirement Change의 두 종류 |
+| 7 | 2 | **Predictive vs Iterative / Agile — Analysis는 사라지지 않는다** |
+| 8 | 2 | **Requirement Baseline과 Problem Understanding** |
+| 9 | 2 | **공통 결론 — Boehm/Standish/Bezos/von Neumann/Lean을 한 장에** |
+| 10 | 3 | ISO/IEC/IEEE 29148 — 좋은 요구사항의 자격(축약) |
+| 11 | 3 | 요구사항의 유형 |
+| 12 | 3 | ISO/IEC 25010:2023 — Product Quality Model(축약) |
+| 13 | 4 | 요구사항 수집·발견 |
+| 14 | 4 | 수집 방법의 선택 — Interview / Observation / Workshop / Prototype |
+| 15 | 4 | Prototype — 보여주면서 발견한다 |
+| 16 | 4 | Wireframe + 복잡한 업무 화면 |
+| 17 | 4 | Report Prototype |
+| 18 | 5 | 왜 Use Case인가 — Actor Goal에서 필요한 기능을 찾는다 |
+| 19 | 5 | Use Case 정의 |
+| 20 | 5 | Use Case의 본질은 Text다 — Larman |
+| 21 | 5 | Actor — 정의와 식별 |
+| 22 | 5 | System Boundary |
+| 23 | 5 | Association |
+| 24 | 5 | Use Case Diagram |
+| 25 | 5 | Order Use Case Diagram |
+| 26 | 5 | Use Case Diagram 작성 방법 |
+| 27 | 5 | 좋은 Use Case를 찾는 질문 |
+| 28 | 6 | Use Case Specification |
+| 29 | 6 | Main Success Scenario + 좋은 Scenario 작성법 |
+| 30 | 6 | Alternative / Exception Flow |
+| 31 | 6 | Flow와 Scenario 구분 |
+| 32 | 7 | **Domain — 문제와 업무의 세계** |
+| 33 | 7 | SSD — System Sequence Diagram |
+| 34 | 7 | System Event → System Operation |
+| 35 | 7 | Operation Contract — What changed, not how |
+| 36 | 7 | **Domain State Change → Static / Dynamic Analysis View** |
+| 37 | 8 | User Story |
+| 38 | 8 | Use Case vs User Story |
+| 39 | 9 | Acceptance Criteria |
+| 40 | 9 | BDD / Example |
+| 41 | 25~30 | **[실습] Place Order Use Case Diagram + Specification** |
 | A1 | 별첨 | **[별첨] 실습 해설 — Place Order Use Case Diagram** |
 | A2 | 별첨 | **[별첨] 실습 해설 — Place Order Use Case Specification** |
-| 46 | 11 | **요구사항 정의와 Analysis의 분리 문제** |
-| 47 | Closing | 과정 요약 + S03 연결 |
+| 42 | 11 | **요구사항 정의와 Analysis의 분리 문제** |
+| 43 | Closing | 과정 요약 + S03 연결 |
