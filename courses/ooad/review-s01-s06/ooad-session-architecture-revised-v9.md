@@ -218,3 +218,8 @@ S02~S06의 공통 기본 시나리오는 **Place Order → Payment**로 한다.
 | **S10** | **Test·Refactoring과 설계 Feedback** | **70분** | 변경 요청과 Test evidence로 객체 설계를 어떻게 검증하고 개선하는가? | 변경/Test Failure → 설계 문제 관찰 → 책임·계약 재검토 → 최소 책임 이동 → observable behavior 보존 → Refactoring → 재검증 | **[실습] Test·Refactoring Feedback (20~30분):** before/after 책임 구조와 최소 Refactoring 근거 작성 → LLM으로 대안·회귀 위험 검증 | Fowler Refactoring, DIP / SOLID Principles, *Design Patterns* | **12~15** |
 | **S11** | **OOAD 종합과 Handoff** | **35분** | OOAD가 결정한 것과 다음 전문 영역으로 넘길 판단을 구분할 수 있는가? | 요구 → 분석 모델 → 객체 설계 → Code/Test → Feedback → OOAD 경계 → DDD/Architecture/MSA | **Closing Review:** Order 설계를 전체 판단 흐름으로 설명하고 남은 문제를 owner 과정으로 분류 | Evans OO Design→DDD / *Applying UML and Patterns* | **7~9** |
 |  | **Total** | **800분** |  |  |  |  | **전체 상세설계 후 통합 재산정** |
+
+## 7.1 S07 / S08 Ownership Boundary
+
+- **S07 — Local refinement:** 하나의 실제 `Order Cancellation / Refund` change request에서 드러난 책임·협력 문제를 대상으로, 그 change에 필요한 contract/variation mechanism만 선택하여 적용한다. Interface/Composition, Polymorphism, Protected Variations 등은 실제 change가 요구할 때 사용할 수 있지만 catalogue나 checklist로 확장하지 않는다.
+- **S08 — Holistic design judgment:** 여러 설계 대안을 Change Impact, Cohesion, Coupling, Dependency, Abstraction Cost, SOLID, Pattern과 Trade-off 관점에서 종합 비교한다. S07의 local change 적용을 일반적인 설계 대안 평가 능력으로 확장한다.

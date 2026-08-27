@@ -64,8 +64,7 @@ S03은 여기서 출발한다.
 - Requirement/Scenario를 Static·Dynamic 관점으로 검토하는 것이 Problem Understanding을 강화하는 이유를 설명한다.
 - Brooks의 `Essence / Accident`를 Problem Understanding과 Solution Decision의 경계에 적용한다.
 - S02에서 시작한 **용어집을 정적 분석 관점에서 정제**하고, Concept·Attribute·Value Domain·Relationship과 의미를 일치시킨다.
-- ER/Logical Data Model, Ontology, OO Analysis Static Model의 관계를 큰 수준에서 구분한다.
-- OOAD의 모델 기반 흐름과 MDD/MDA, DDD의 연결 관계를 설명한다.
+- Conceptual / Analysis Domain Model의 목적을 ER/Logical Model·Ontology와 큰 수준에서 구분하고, MDD/MDA·DDD는 별도 심화 영역임을 설명한다.
 - S02의 Operation Contract와 Domain State Change에서 Concept 후보를 발견한다.
 - Concept과 Attribute를 구분한다.
 - 필요한 경우 Attribute에 **analysis-level type / value domain**을 정의한다.
@@ -381,202 +380,23 @@ Quantity
 
 ---
 
-# 10. 정적 모델의 더 큰 위치
+# 10. Static Modeling의 위치와 경계
 
-S03의 모델링은 OOAD만의 독립된 발명이 아니다.
+S03의 `Conceptual / Analysis Domain Model`은 Problem Domain의 **Concept·Attribute·Value Domain·Relationship·Multiplicity**를 이해하고, 이후 객체 설계로 넘길 정적 Problem Understanding을 만드는 모델이다.
 
-문제의 구조를 명시적으로 표현하려는 SW Engineering의 긴 흐름 안에 있다.
+인접 접근과는 목적만 구분한다.
 
-## Information Engineering / ER / Logical Model
+| 접근 | 이 Session에서 구분할 위치 |
+|---|---|
+| ER / Logical Model | 데이터 구조와 관계를 표현하는 관점 |
+| Ontology | 개념의 의미와 의미적 관계를 다루는 관점 |
+| Conceptual / Analysis Domain Model | OO Analysis를 위해 Problem Domain의 의미 있는 정적 구조를 표현하는 관점 |
+| MDD / MDA | 모델과 transformation을 체계화하는 별도 심화 영역 |
+| DDD | Domain Model을 지속적으로 정제하고 전략·전술 판단으로 확장하는 별도 전문 영역 |
 
-핵심 질문:
+어느 접근이 다른 접근을 대체하거나 우월하다는 뜻이 아니다. S03에서는 ER·Ontology·MDD/MDA·DDD의 기법을 가르치지 않고, 다음 경계만 유지한다.
 
-> **어떤 데이터가 존재하며 어떻게 관계되는가?**
-
-주요 요소:
-
-```text
-Entity
-Attribute
-Relationship
-Cardinality
-```
-
-데이터 구조를 명확하게 표현하는 데 강하다.
-
----
-
-## Ontology
-
-핵심 질문:
-
-> **무엇이 무엇이며, 어떤 의미와 의미적 관계를 가지는가?**
-
-관심:
-
-```text
-Concept
-Category
-Meaning
-Relationship
-Constraint
-```
-
----
-
-## OO Analysis Static Model
-
-핵심 질문:
-
-> **OO 설계로 이어질 Problem Domain에 어떤 Concept·Attribute·Relationship이 존재하는가?**
-
-```text
-Concept
-Attribute
-Relationship
-Multiplicity
-```
-
-따라서:
-
-```text
-ER / Logical Model
-→ Data Structure
-
-Ontology
-→ Concept / Meaning Structure
-
-OO Analysis Static Model
-→ OO Analysis를 위한 Problem-Domain Structure
-```
-
-로 좌표화한다.
-
-어느 하나가 다른 것을 대체하거나 우월하다는 의미가 아니다.
-
-> **같은 현실을 다른 engineering concern과 목적에서 모델링한다.**
-
----
-
-# 11. OOAD와 MDD/MDA
-
-OOAD에는 이미 다음 모델 기반 흐름이 존재한다.
-
-```text
-Requirement
-    ↓
-Analysis Model
-    ↓
-Design Model
-    ↓
-Implementation
-```
-
-MDD/MDA는 이것과 무관하게 새롭게 등장한 별도 사고라기보다:
-
-> **기존 모델 기반 분석 → 설계 → 구현 흐름에서 Model과 Transformation의 역할을 더 체계화·정형화·표준화한 흐름**
-
-으로 위치시킨다.
-
-```text
-OOAD
-
-Analysis Model
-      ↓
-Design Model
-      ↓
-Implementation
-
-        ↓
-모델 기반 흐름의
-체계화·정형화·표준화
-
-MDD / MDA
-
-Model
-  ↓
-Transformation
-  ↓
-Implementation
-```
-
-S03에서는 MDD/MDA 기법을 가르치지 않는다.
-
-이 연결의 목적은:
-
-> **Analysis Model이 UML 연습용 그림이 아니라 SW Engineering의 중요한 개발 artifact라는 맥락을 제공하는 것**
-
-이다.
-
----
-
-# 12. OOAD와 DDD
-
-OOAD에서 이미 Domain과 Domain Model을 다룬다.
-
-DDD는 이 기반을 버리고 새로운 것을 시작하는 것이 아니다.
-
-연결 관계는:
-
-```text
-OOAD
-Problem Domain을 분석하고
-객체 설계로 전환
-        ↓
-DDD
-Domain과 Domain Model을
-SW 개발의 중심에 더 강하게 위치
-```
-
-DDD에서는:
-
-- Domain Expert와의 협력
-- Ubiquitous Language
-- Domain Model의 지속적 정제
-- Bounded Context
-- Aggregate
-
-등으로 훨씬 깊어진다.
-
-하지만 S03에서 배우지 않는다.
-
-S03에서는:
-
-> **Domain과 Domain Model의 기본적인 의미 연결**
-
-까지만 한다.
-
----
-
-# 13. 한 번에 좌표화
-
-```text
-                   Problem / Business Reality
-                             ↓
-                           Domain
-                             ↓
-              ┌──────────────┼──────────────┐
-              │              │              │
-          Meaning        Data Structure   OO Analysis
-              │              │              │
-          Ontology      ER / Logical      Static Model
-                                            │
-                                      Dynamic Model
-                                            ↓
-                                      Design Model
-                                            ↓
-                                     Implementation
-                                            │
-                           ┌────────────────┴───────────────┐
-                           │                                │
-                       MDD / MDA                           DDD
-                 모델 기반 흐름의               Domain Model 중심성의
-              체계화·정형화·표준화                     강화
-```
-
-이 그림은 계보와 관계를 이해하기 위한 좌표다.
-
-세부 이론을 여기서 가르치지 않는다.
+> **Conceptual / Analysis Domain Model은 UML 표기 연습이나 구현 Class 설계가 아니라, 현재 Problem Domain의 정적 의미 구조를 명시하는 분석 모델이다.**
 
 ---
 
@@ -1658,8 +1478,8 @@ S03에서 다음은 설명할 수 있다.
 
 ## Whole-Curriculum Integration 단계로 이관한 조정 항목
 
-1. **ER/Logical Model·Ontology·MDD/MDA·DDD 좌표의 밀도**  
-   내용적으로는 필요하다. 문제는 75분에서 어느 정도까지 압축할지다.
+1. **Static Modeling 위치·경계의 밀도**
+   인접 접근은 하나의 짧은 위치·경계 teaching unit으로 유지한다. Conceptual / Analysis Domain Model의 목적을 구분하는 범위를 넘어 ER·Ontology·MDD/MDA·DDD 자체 기법으로 확장하지 않는다.
 
 2. **Value Domain의 깊이**  
    `Date / Money / Boolean / OrderStatus`와 제한된 값 집합까지는 포함한다. 단위·범위·정밀도까지 어디까지 들어갈지는 조정할 수 있다.

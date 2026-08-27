@@ -142,15 +142,59 @@ DB나 Repository에 데이터가 있다는 뜻이 아니다.
 
 포함/소유, 긴밀한 사용, 초기화 정보, lifecycle 관계를 clue로 본다.
 
+`OrderItem` 생성 책임을 비교한다.
+
+```text
+Before
+OrderService.addItem(order, product, quantity)
+    item = new OrderItem(product, quantity)
+    order.items.add(item)
+
+After 후보
+Order.addItem(product, quantity)
+    item = new OrderItem(product, quantity)
+    items.add(item)
+```
+
+Order가 OrderItem을 포함하고 lifecycle과 초기화 정보를 자연스럽게 관리한다면 생성 책임을 가까이 두어 일관성을 국소화할 수 있다. 반면 생성이 단순하거나 자연스러운 owner가 없고, 책임 이동이 owner의 dependency와 복잡성만 늘린다면 Creator 기준을 억지로 적용하지 않는다. 단순 생성을 위해 별도 Factory/Creator abstraction을 추가할 필요도 없다.
+
 ### Controller
 
 > System Event를 받고 Use Case/System Operation의 흐름을 시작·조정할 책임은 누구에게 둘 것인가?
 
 Framework `Controller` Class와 동일시하지 않는다. Controller가 Domain Rule owner가 되는 것도 아니다.
 
+```text
+Before
+PlaceOrderController가 total 계산, Payment 판단,
+Order 상태 변경까지 모두 수행
+
+After 후보
+application/use-case boundary가 요청을 받고 협력을 조정
+Order와 Payment가 각자의 Domain Rule과 상태를 책임
+```
+
+별도 Controller role이 항상 필요한 것은 아니다. 이미 자연스러운 application/use-case boundary가 System Event를 받고 협력을 시작한다면 Controller 객체를 추가하는 것은 불필요한 indirection이 될 수 있다. 어느 경우에도 Controller는 Domain Rule owner가 아니다.
+
 ### High Cohesion
 
 > 한 객체의 Responsibility들이 같은 목적과 변경 이유를 중심으로 얼마나 잘 모여 있는가?
+
+```text
+Before
+OrderService
+- createOrder / addItem / calculateTotal
+- requestPayment / updatePaymentStatus
+- sendReceipt / saveOrder
+
+After 후보
+Order      : 주문 구성, total, 주문 상태
+OrderItem  : item subtotal
+Payment    : 결제 상태와 결과
+coordination role : Place Order 협력 시작·조정
+```
+
+서로 다른 의미와 change reason을 가진 책임을 한 Service에 몰지 않는다. 다만 cohesion을 높인다는 이유로 책임을 지나치게 잘게 분리하면 객체 수, collaboration과 indirection 비용이 증가한다. 독립된 역할과 변경 이유가 그 비용을 정당화할 때만 분리한다.
 
 ### Low Coupling
 

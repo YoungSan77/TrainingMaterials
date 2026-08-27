@@ -638,15 +638,19 @@ Activity Diagram은 특히 E2E Process Map으로 팽창하기 쉽다.
 예:
 
 ```text
+Draft
+  |
+  | Order Submitted
+  v
 Placed
+  |
+  | Payment Requested
+  v
+Payment Pending
   |
   | Payment Confirmed
   v
 Paid
-  |
-  | Shipment Started
-  v
-Shipped
 ```
 
 ---
@@ -744,30 +748,23 @@ Paid
 Order 전체 lifecycle이:
 
 ```text
-Created
-Pending
+Draft
+Placed
+Payment Pending
 Paid
-Preparing
-Packed
-Ready
-Shipped
-Delivered
-Returned
-Refunding
-Refunded
-Closed
+Payment Failed
 ...
 ```
 
-처럼 길다고 하자.
+처럼 여러 상태를 가진다고 하자.
 
-현재 질문이 취소 가능성이라면 필요한 상태만 잘라볼 수 있다.
+현재 질문이 결제 결과에 따른 주문 상태 변화라면 필요한 상태만 잘라볼 수 있다.
 
 ```text
+Placed
+Payment Pending
 Paid
-Preparing
-Shipped
-Cancelled
+Payment Failed
 ```
 
 즉 State Machine도 Analysis Slice를 적용한다.
@@ -895,9 +892,9 @@ Order — Payment의 1..* Multiplicity
 Dynamic Analysis 중 다음이 발견됐다고 하자.
 
 ```text
-Shipment Started
-Dispatch Started
-Fulfillment Started
+Payment Confirmed
+Payment Authorized
+Payment Completed
 ```
 
 이들은 같을 수도 있고 다를 수도 있다.
@@ -1111,7 +1108,7 @@ Draft → Placed → Paid
 
 - 권장 시간: participant/핵심 message 10분 → 조건/대안 보완 5분 → LLM 검토 5~8분.
 - State/Communication/Activity를 다시 작성하게 하지 않는다. 이들은 본편 제공 예제로 비교한다.
-- `Payment`는 포함한다. `Shipment`는 기본 실습 흐름에서 제외한다.
+- 기본 실습 흐름은 `Place Order → Payment`로 유지한다.
 - 분석 수준에서 필요한 외부 결제 역할을 participant로 표현할지는 시스템 경계 정의에 따라 판단하게 한다.
 - message name을 `createOrder()`, `save()` 같은 구현 operation으로 빨리 고정하지 않게 한다.
 

@@ -235,23 +235,23 @@ Alan Kay의 OOP Anchor는 객체지향의 중심을 Class hierarchy가 아니라
 
 ```text
 Order
-- status
-- paymentStatus
+- items
+- totalAmount
 
-OrderService.cancel()
-ShippingService.ship()
-PaymentService.refund()
+OrderService.calculateTotal()
+CheckoutService.calculateTotal()
+PaymentService.validateAmount()
 ```
 
-여러 Service가 `order.status`를 읽어 취소 가능 여부를 판단하고 있다.
+여러 Service가 `OrderItem.quantity`와 금액 정보를 읽어 주문 총액을 각각 계산하고 있다.
 
-새 요구:
+문제:
 
-> **배송이 시작된 주문은 취소할 수 없다.**
+> **같은 주문 총액 규칙이 여러 곳에 퍼져 있어 한 규칙 변경이 여러 Service에 파급된다.**
 
 질문:
 
-> **취소 가능 여부를 판단하는 책임은 누구에게 있어야 하는가?**
+> **주문 총액을 알고 계산하는 책임은 어디에 있어야 하는가?**
 
 이 단계에서는 해결책을 설계하지 않는다.
 

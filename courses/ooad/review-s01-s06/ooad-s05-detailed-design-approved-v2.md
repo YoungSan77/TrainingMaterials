@@ -424,8 +424,9 @@ getter/setter
 
 ```text
 Order
-    state
-    cancellation rules
+    items / quantities
+    total calculation rule
+    order state transition
 ```
 
 가 함께 있어야 하는지 검토한다.

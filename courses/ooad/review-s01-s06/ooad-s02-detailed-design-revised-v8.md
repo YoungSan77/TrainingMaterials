@@ -732,10 +732,10 @@ Actor
 예:
 
 - Customer → Place Order
-- Customer → Cancel Order
 - Customer → Check Order Status
+- Customer → Pay Order 또는 결제 interaction
+- Payment Gateway → 결제 결과 전달
 - Administrator → Manage Order
-- Payment Gateway → 결제 관련 interaction
 
 핵심은 각 Actor에게 실제 필요한 Goal이 무엇인가를 확인하는 것이다.
 
@@ -760,13 +760,13 @@ Actor
 
 좋은 예:
 - Place Order
-- Cancel Order
 - Check Order Status
+- Pay Order
 
 부적절한 수준:
-- Click Cancel Button
-- Validate Order ID
-- Update Order Table
+- Click Submit Button
+- Validate Product ID
+- Insert Order Row
 
 ---
 
