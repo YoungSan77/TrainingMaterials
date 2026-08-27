@@ -60,7 +60,7 @@ Brooks의 Essence / Accident 관점에서 Analysis는 problem-domain의 essentia
 - composition/interface/dependency 원칙의 압력 기반 적용
 - test와 refactoring evidence를 통한 설계 feedback
 
-책임 할당 판단(정보 전문가·응집도·결합도·정보 은닉)을 먼저 정착시킨 뒤, 계약·변화 대응 원칙(precondition/postcondition/invariant, composition/interface/dependency)으로 이어간다. 어떤 순서로든 principle/pattern은 checklist가 아니라 현재 설계 문제에 필요한 것만 선택하고 trade-off를 설명하는 heuristic으로 사용한다. 개별 GRASP/Pattern 항목의 적용 절차는 Curriculum·Session Detailed Design이 결정한다.
+객체에 메시지를 요청하기 전에 무엇이 참이어야 하고, 수행 뒤 무엇을 보장하며, 객체가 계속 지켜야 할 일관성이 무엇인지 객체 계약(precondition/postcondition/invariant)으로 먼저 명시한다. 그 계약을 누가 소유하고 보장해야 하는지 물으며 책임 할당 판단(정보 전문가·응집도·결합도·정보 은닉)으로 이어가고, 이후 실제 change가 기존 계약에 주는 압력을 관찰해 composition/interface/dependency 같은 변화 대응 원칙을 필요한 만큼 선택한다. 어떤 순서로든 principle/pattern은 checklist가 아니라 현재 설계 문제에 필요한 것만 선택하고 trade-off를 설명하는 heuristic으로 사용한다. 개별 GRASP/Pattern 항목의 적용 절차는 Curriculum·Session Detailed Design이 결정한다.
 
 ## Ownership
 
@@ -95,12 +95,14 @@ Brooks의 Essence / Accident 관점에서 Analysis는 problem-domain의 essentia
 ## Learning Progression
 
 1. 문제 오해와 절차적 변경 파급을 관찰하고, Analysis를 phase가 아니라 Problem/Solution을 구분하는 사고 활동으로 정립한다
-2. 요구·scenario·Operation Contract에서 essential problem과 required domain change를 구현 detail과 구분한다
+2. 요구·scenario·System Operation Contract에서 essential problem과 required domain change를 구현 detail과 구분한다
 3. 정적 모델로 Domain의 concept·attribute·relationship을 명시하여 Problem Understanding의 구조 관점을 만든다
 4. 동적 모델로 interaction·state change를 확인하여 같은 Problem Understanding의 행위 관점을 보완한다
 5. 분석 모델을 구현 Class로 기계 변환하지 않고, 학습자 자신의 기존 경험으로 먼저 객체 경계·책임·메시지 관점의 initial design(before model)을 만든다
-6. 그 initial design을 계약·응집도·결합도 같은 공학적 판단 기준으로 다시 검토해 책임 배치를 정제한다(refined design)
-7. 코드와 test evidence로 설계를 개선하고 DDD/Architecture 경계를 확인한다
+6. 그 initial design의 핵심 메시지에 객체 계약을 명시하고, 그 계약을 누가 보장할지 RDD·응집도·결합도 같은 공학적 판단 기준으로 검토해 책임 배치를 정제한다(refined design)
+7. 새로운 change request가 기존 계약과 협력에 주는 압력을 관찰해 필요한 variation mechanism으로 local refinement한다
+8. 여러 설계 대안을 change impact·cohesion/coupling·dependency·abstraction cost·SOLID·pattern·trade-off 관점에서 종합 판단한다
+9. 코드와 test evidence로 설계를 개선하고 DDD/Architecture 경계를 확인한다
 
 이는 Session 구조가 아니다. Curriculum LLM은 16h 안에서 중요도·난이도·실습과 feedback 필요성에 따라 시간을 비균등 배분한다.
 
@@ -110,7 +112,7 @@ Curriculum은 하나의 공통 progression을 기본 예로 사용해 Requiremen
 
 ## Change as Learning Device
 
-핵심 실습은 먼저 정상 요구로 책임과 협력 구조를 설계하게 한 뒤, 후속 학습에서 새로운 change request를 투입해 그 설계가 어디서 흔들리는지 관찰하고 책임·계약·variation 대응을 보완하게 한다. Order Cancellation/Refund는 이 change request의 대표 사례이며 기본 설계의 대상이 아니다. 이 원칙은 이후 change impact·design evaluation·refactoring 학습으로 이어지는 교육적 장치다.
+핵심 실습은 먼저 정상 요구의 핵심 메시지에 객체 계약을 명시하고 그 계약을 보장할 책임과 협력 구조를 설계하게 한 뒤, 후속 학습에서 새로운 change request를 투입해 기존 계약과 설계가 어디서 흔들리는지 관찰하고 책임·variation 대응을 보완하게 한다. Order Cancellation/Refund는 이 change request의 대표 사례이며 기본 설계의 대상이 아니다. 이 원칙은 이후 change impact·design evaluation·refactoring 학습으로 이어지는 교육적 장치다.
 
 ## 핵심 실습 방향
 

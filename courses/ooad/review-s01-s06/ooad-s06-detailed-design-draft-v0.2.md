@@ -20,10 +20,13 @@ S05
 Experience-based Initial Design
         ↓
 S06
-RDD-based Responsibility & Collaboration Refinement
+Responsibility → Message → Object Contract
+→ Role / Collaboration → RDD / GRASP
+→ Refined Design
         ↓
 S07
-Contract & Variation Refinement
+New Change → Existing Contract Stress
+→ Variation Refinement
 ```
 
 S05: **“내 경험으로 이 책임을 여기에 배치했다.”**  
@@ -31,49 +34,9 @@ S06: **“RDD 관점에서 왜 이 객체가 이 책임을 가져야 하는지 �
 
 ---
 
-## 2. 조직의 R&R 비유
+## 2. Responsibility
 
-Responsibility를 처음 설명할 때 조직의 직원 R&R을 비유로 사용한다.
-
-```text
-조직
-직원
-→ Role
-→ Responsibility
-→ 필요한 Knowledge / Authority
-→ Collaboration
-```
-
-객체 설계도 비슷한 판단을 한다.
-
-```text
-Software System
-Object
-→ Role
-→ Responsibility
-→ State / Knowledge
-→ Message / Collaboration
-```
-
-> **직원=Object, 부서=Class로 1:1 모델링하자는 뜻이 아니다. 조직에서 R&R을 배치할 때 사용하는 판단 방식이 Responsibility Assignment를 이해하는 데 유사하다는 비유다.**
-
-### Role이란 무엇인가
-
-Role은 객체가 특정 Collaboration에서 수행하는 역할이며, 관련 Responsibility의 묶음으로 이해할 수 있다. 한 직원이 상황에 따라 "결재자" 역할과 "검토자" 역할을 각각 수행하듯, 하나의 객체도 Collaboration 맥락에 따라 여러 Role을 수행할 수 있다.
-
----
-
-## 3. Responsibility-Driven Design
-
-객체 설계를 Class/Attribute/Method 목록부터 시작하지 않는다.
-
-```text
-Responsibility
-        ↓
-Role / Object
-        ↓
-Collaboration
-```
+객체 설계를 Class/Attribute/Method 목록부터 시작하지 않고, 객체가 맡아야 할 의미 있는 의무인 Responsibility에서 시작한다.
 
 핵심 질문:
 
@@ -83,7 +46,7 @@ Collaboration
 
 ---
 
-## 4. Responsibility ≠ Method
+## 3. Responsibility ≠ Method
 
 Responsibility는 객체가 맡아야 하는 의미 있는 의무이고, Method는 그 책임을 구현하는 하나의 구체 표현이다.
 
@@ -91,7 +54,7 @@ S06에서는 Responsibility와 Message/Collaboration을 설계하되 구현 sign
 
 ---
 
-## 5. Knowing / Doing Responsibility
+## 4. Knowing / Doing Responsibility
 
 ### Knowing
 
@@ -110,17 +73,80 @@ Knowing과 Doing은 암기 항목이 아니라 Responsibility owner를 검토하
 
 ---
 
-## 6. Message와 Collaboration
+## 5. Message
 
 Message는 다른 객체에게 Responsibility 수행을 요청하는 의미 있는 통신이다.
-
-Collaboration은 각 객체가 자신의 Responsibility를 수행하기 위해 다른 객체의 Responsibility를 사용하는 협력 구조다.
 
 Message를 method syntax로 곧바로 고정하지 않는다.
 
 ---
 
-## 7. CRC 관점
+## 6. Object Contract — Message가 지켜야 할 약속
+
+Responsibility와 Message를 정했다면, 호출 가능한 이름만 적지 않고 그 Message가 성립하고 끝난 뒤 무엇을 보장해야 하는지 명시한다.
+
+- **Precondition:** 수신 객체가 Message를 수행하기 전에 호출 측과 협력이 만족해야 할 조건
+- **Postcondition:** Message가 정상 완료된 뒤 수신 객체가 보장해야 할 관찰 가능한 상태 변화나 결과
+- **Invariant:** 특정 Message 하나를 넘어 객체가 유효한 동안 계속 지켜야 할 일관성
+
+`Place Order → Payment`의 핵심 Message 하나를 예로 본다.
+
+```text
+Order.place()
+
+Precondition
+- Order에 하나 이상의 OrderItem이 있고 각 quantity가 0보다 크다.
+- Order가 아직 place되지 않았다.
+
+Postcondition
+- Order total이 각 OrderItem subtotal의 합으로 확정된다.
+- Order는 placed 상태가 된다.
+
+Invariant
+- Order total은 OrderItem subtotal 합과 일치한다.
+- placed Order의 item 구성과 확정 total은 서로 모순되지 않는다.
+```
+
+이는 S02의 **System Operation Contract**와 수준이 다르다. S02는 System을 black box로 보고 `placeOrder` 완료 뒤 문제영역에서 무엇이 달라져야 하는지를 기록했다. S06의 **Object Contract**는 설계 안의 특정 수신 객체와 Message가 협력에서 무엇을 요구하고 보장하는지 기록한다.
+
+Object Contract는 별도 문서 양식을 채우는 것이 목적이 아니다. 조건을 지나치게 구현 detail로 쓰거나, 호출 측이 알 수 없는 내부 상태를 precondition으로 떠넘기거나, 실제 owner가 보장할 수 없는 postcondition을 붙이면 계약이 책임 배치를 감추게 된다.
+
+따라서 다음 질문으로 RDD/GRASP 판단을 시작한다.
+
+> **이 precondition을 확인하고 postcondition·invariant를 보장할 knowledge와 authority를 가진 Responsibility owner는 누구인가?**
+
+## 7. Role과 Collaboration — 계약을 협력에 배치하기
+
+Responsibility와 Object Contract를 실제 협력에 배치할 때 조직의 직원 R&R을 비유로 사용할 수 있다.
+
+```text
+조직                         Software System
+직원                         Object
+→ Role                       → Role
+→ Responsibility             → Responsibility
+→ 필요한 Knowledge/Authority → State/Knowledge
+→ Collaboration              → Message/Collaboration
+```
+
+> **직원=Object, 부서=Class로 1:1 모델링하자는 뜻이 아니다. 조직에서 R&R을 배치할 때 사용하는 판단 방식이 Responsibility Assignment를 이해하는 데 유사하다는 비유다.**
+
+Role은 객체가 특정 Collaboration에서 수행하는 역할이며, 관련 Responsibility의 묶음으로 이해할 수 있다. 한 직원이 상황에 따라 "결재자" 역할과 "검토자" 역할을 각각 수행하듯, 하나의 객체도 Collaboration 맥락에 따라 여러 Role을 수행할 수 있다.
+
+Collaboration은 각 객체가 자신의 Responsibility를 수행하기 위해 다른 객체의 Responsibility를 사용하는 협력 구조다.
+
+## 8. Responsibility-Driven Design
+
+```text
+Responsibility
+        ↓
+Role / Object
+        ↓
+Collaboration
+```
+
+RDD는 앞에서 명확히 한 Responsibility와 Object Contract를 어떤 Role/Object가 맡고 누구와 협력할지 검토한다.
+
+## 9. CRC 관점
 
 CRC는 Class, Responsibility, Collaborator를 함께 본다.
 
@@ -128,7 +154,7 @@ S06에서는 CRC Card 자체를 별도 산출물로 만들지 않는다. Class D
 
 ---
 
-## 8. GRASP 기본 — 실습에 사용할 판단 언어
+## 10. GRASP 기본 — 실습에 사용할 판단 언어
 
 ### Information Expert
 
@@ -264,7 +290,7 @@ S06에서는 필요한 collaboration을 유지하면서 불필요한 knowledge/d
 
 ---
 
-## 9. Pattern은 Checklist가 아니다
+## 11. Pattern은 Checklist가 아니다
 
 ```text
 Information Expert ✓
@@ -278,7 +304,7 @@ Low Coupling ✓
 
 ---
 
-## 10. S05 Initial Design 회수
+## 12. S05 Initial Design 회수
 
 수강생은 자신의 S05 Initial Design Class Diagram을 다시 연다.
 
@@ -294,7 +320,7 @@ Low Coupling ✓
 
 ---
 
-## 11. Class Diagram과 Sequence Diagram의 왕복
+## 13. Class Diagram과 Sequence Diagram의 왕복
 
 ```text
 Design Class Diagram
@@ -310,7 +336,7 @@ Class Diagram은 Responsibility의 정적 배치를 보여주고, Sequence Diagr
 
 ---
 
-## 12. Responsibility–Owner Table의 위치
+## 14. Responsibility–Owner Table의 위치
 
 Responsibility–Owner Table은 설명·사고 도구로 사용할 수 있다.
 
@@ -325,7 +351,7 @@ Responsibility–Owner Table은 설명·사고 도구로 사용할 수 있다.
 
 ---
 
-## 13. Just-enough RDD
+## 15. Just-enough RDD
 
 S06의 목표는 모든 Class/Method를 확정하는 것이 아니다.
 
@@ -333,13 +359,14 @@ S06의 목표는 모든 Class/Method를 확정하는 것이 아니다.
 
 - 주요 Responsibility가 적절한 owner에 배치됨
 - 주요 Message와 Collaborator가 식별됨
+- 핵심 Message 하나의 Object Contract와 그 보장 owner가 명확함
 - Class Diagram과 Sequence Diagram이 서로 일관됨
 - Responsibility 이동의 이유를 RDD/GRASP 관점에서 설명 가능
-- S07에서 Contract/Variation으로 검토할 질문이 남아 있음
+- S07 change가 기존 Contract/Collaboration에 주는 압력을 검토할 질문이 남아 있음
 
 ---
 
-# 14. [실습] RDD Responsibility & Collaboration Refinement (25~30분)
+# 16. [실습] RDD Responsibility & Collaboration Refinement (25~30분)
 
 > **본편 실습 슬라이드는 1장만 사용한다.** 세부 진행과 힌트는 Slide Notes, 예시 답안은 Session 마지막 `[별첨]`으로 분리한다.
 
@@ -357,9 +384,10 @@ S06의 목표는 모든 Class/Method를 확정하는 것이 아니다.
 
 1. S05 Initial Design Class Diagram에서 Responsibility owner가 약한 부분을 찾아 **그 Class Diagram을 수정**한다(새 Diagram을 처음부터 그리지 않는다).
 2. S04 Place Order Analysis Sequence Diagram 중 재배치된 Responsibility와 관련된 **핵심 구간 하나**를 Design Sequence로 발전시켜 Message/Collaboration을 검증한다(전체 interaction을 다시 그리지 않는다).
-3. Sequence에서 발견된 문제를 Class Diagram에 feedback한다.
-4. LLM에게 다른 Responsibility Assignment와 반론을 요청하고 자신의 안과 비교한다.
-5. 필요한 Pattern/원칙만 선택하여 적용하고 이유를 기록한다.
+3. 그 핵심 구간의 Message 하나에 precondition/postcondition과 필요한 invariant를 간결하게 명시하고, 누가 이를 보장할지 확인한다.
+4. Sequence와 Object Contract에서 발견된 문제를 Class Diagram에 feedback한다.
+5. LLM에게 다른 Responsibility Assignment와 반론을 요청하고 자신의 안과 비교한다.
+6. 필요한 Pattern/원칙만 선택하여 적용하고 이유를 기록한다.
 
 **고려할 Pattern / 원칙**
 
@@ -372,14 +400,15 @@ S06의 목표는 모든 Class/Method를 확정하는 것이 아니다.
 **필수 산출물**
 
 - **Refined Design Class Diagram 1개** — S05 Initial Design을 수정한 결과
-- **Design Sequence Diagram 1개** — S04 Sequence 중 재배치된 Responsibility가 드러나는 핵심 구간 하나를 발전시킨 결과(전체 interaction이 아니다)
+- **Design Sequence Diagram 1개** — S04 Sequence 중 재배치된 Responsibility가 드러나는 핵심 구간 하나를 발전시키고, 그 안의 핵심 Message 하나에 Object Contract를 함께 명시한 결과(전체 interaction이 아니다)
 
-`Responsibility–Owner Table`은 필요하면 중간 사고 도구로 사용할 수 있으나 제출 필수는 아니다.
+Object Contract를 별도 산출물로 만들지 않는다. `Responsibility–Owner Table`은 필요하면 중간 사고 도구로 사용할 수 있으나 제출 필수는 아니다.
 
 **판단 기준**
 
 - Responsibility owner를 근거로 설명할 수 있는가?
 - Controller와 Domain Decision owner를 구분했는가?
+- 핵심 Message의 precondition/postcondition/invariant와 이를 보장할 owner가 일치하는가?
 - Data-only Object / God Service가 줄었는가?
 - 필요한 Collaboration은 유지하면서 불필요한 Coupling을 줄였는가?
 - Class와 Sequence가 같은 Responsibility 구조를 말하는가?
@@ -390,7 +419,7 @@ S06의 목표는 모든 Class/Method를 확정하는 것이 아니다.
 
 - S05 Before 모델 문제 표시: 5분
 - Class Diagram Responsibility 재배치(기존 Diagram 수정): 7분
-- Design Sequence 작성(핵심 구간 1개로 한정): 7분
+- Design Sequence 작성(핵심 구간 1개로 한정, 핵심 Message의 precondition/postcondition/invariant 확인 포함): 7분
 - Class↔Sequence feedback: 3분
 - LLM 대안/반론 검토: 5~8분
 
@@ -463,7 +492,7 @@ PlaceOrderController / Use-case role
 
 ---
 
-## 15. Feedback 기준
+## 17. Feedback 기준
 
 1. S05 모델의 변경 이유를 설명할 수 있는가?
 2. Responsibility를 Method name으로만 판단하지 않았는가?
@@ -472,13 +501,14 @@ PlaceOrderController / Use-case role
 5. Controller를 framework class와 동일시하지 않았는가?
 6. Controller에 Domain Rule을 몰아넣지 않았는가?
 7. High Cohesion/Low Coupling을 숫자나 checklist로 사용하지 않았는가?
-8. Class Diagram과 Sequence Diagram 사이의 feedback이 있었는가?
-9. LLM이 만든 Pattern/객체를 근거 없이 채택하지 않았는가?
-10. S07에서 검토할 Contract/Variation 질문이 남아 있는가?
+8. 핵심 Message의 Object Contract와 이를 보장할 Responsibility owner가 일치하는가?
+9. Class Diagram과 Sequence Diagram 사이의 feedback이 있었는가?
+10. LLM이 만든 Pattern/객체를 근거 없이 채택하지 않았는가?
+11. S07 change가 기존 Contract/Collaboration에 주는 압력을 검토할 질문이 남아 있는가?
 
 ---
 
-## 16. Failure Conditions
+## 18. Failure Conditions
 
 - S05 모델을 거의 그대로 두고 Pattern 이름만 붙인다.
 - GRASP를 checklist로 적용한다.
@@ -490,11 +520,16 @@ PlaceOrderController / Use-case role
 - Sequence에서 드러난 문제를 Class 책임에 feedback하지 않는다.
 - Class/Sequence/Responsibility Table에 같은 내용을 반복 작성하는 것을 산출물 품질로 착각한다.
 - LLM이 제안한 Manager/Policy/Service를 근거 없이 추가한다.
-- S07에서 다룰 Contract/Variation을 미리 과도하게 소비한다.
+- Object Contract를 별도 양식 산출물로 늘리거나 구현 signature 목록으로 축소한다.
+- S07의 change/variation mechanism을 미리 소비한다.
 
 ---
 
-## 17. Anchor / Reference
+## 19. Anchor / Reference
+
+### Design by Contract / Meyer
+
+S06에서는 precondition, postcondition, invariant를 핵심 Message의 Object Contract로 사용해 Responsibility owner가 보장할 약속을 명확히 한다. S07은 이 개념을 새로 가르치지 않고 실제 change가 기존 계약에 주는 압력을 관찰한다.
 
 ### Responsibility-Driven Design / CRC
 
@@ -514,15 +549,19 @@ Pattern 자체를 암기하는 것이 아니라 **Responsibility Assignment 대�
 
 ---
 
-## 18. Session Summary
+## 20. Session Summary
 
 ```text
 S05
 Experience-based Initial Design
         ↓
 S06
-RDD
-Responsibility / Role / Collaboration
+Responsibility / Message
+        ↓
+Object Contract
+precondition / postcondition / invariant
+        ↓
+Role / Collaboration / RDD
         ↓
 GRASP Basic
         ↓
@@ -543,19 +582,18 @@ Refined Design
 
 ---
 
-## 19. S07로 넘기는 질문
+## 21. S07로 넘기는 질문
 
-S07에서는 다음을 묻는다.
+S06에서 핵심 Message의 Object Contract는 이미 세웠다. S07에서는 새로운 change request를 투입해 다음을 묻는다.
 
 ```text
-이 책임을 수행하기 전에 무엇이 참이어야 하는가?
-수행 후 무엇을 보장해야 하는가?
+기존 precondition/postcondition/invariant 중 무엇이 흔들리는가?
 새로운 variation이 생기면 어떤 책임과 협력이 흔들리는가?
 변화를 어디에서 흡수해야 하는가?
 ```
 
 S07에서는 S06 Refined Design에 **Order Cancellation / Refund 변화 요구**를 투입하고 다음 관점을 필요에 따라 사용한다.
 
-> **Polymorphism · Indirection · Protected Variations · Pure Fabrication · Design by Contract · 필요 시 Interface/Composition**
+> **Polymorphism · Indirection · Protected Variations · Pure Fabrication · 필요 시 Interface/Composition**
 
 이 목록도 checklist가 아니다.

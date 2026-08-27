@@ -888,6 +888,8 @@ System은 하나의 **Black Box**다. 내부 객체 interaction을 그리지 않
 
 S02에서는 전자를 먼저 명확히 하고 후자를 아직 결정하지 않는다.
 
+여기서 작성하는 것은 System을 black box로 본 **System Operation Contract**다. 개별 객체가 Message 수행 전후와 lifecycle 동안 보장할 **Object Contract**는 객체와 Responsibility owner가 드러나는 S06에서 다룬다.
+
 ## 요구 분석의 전체 연결
 
 ```text
