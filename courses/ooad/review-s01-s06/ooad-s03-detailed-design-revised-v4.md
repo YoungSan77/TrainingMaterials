@@ -400,7 +400,7 @@ S03의 `Conceptual / Analysis Domain Model`은 Problem Domain의 **Concept·Attr
 
 ---
 
-# 14. S02 Operation Contract → S03 Static Model
+# 11. S02 Operation Contract → S03 Static Model
 
 S02의 Operation Contract:
 
@@ -465,7 +465,7 @@ Static Analysis Model
 
 ---
 
-# 15. Concept
+# 12. Concept
 
 Concept은 다음처럼 정의한다.
 
@@ -491,7 +491,7 @@ Software Class
 
 ---
 
-# 16. Noun Extraction ≠ Concept Modeling
+# 13. Noun Extraction ≠ Concept Modeling
 
 다음 방식은 사용하지 않는다.
 
@@ -537,7 +537,7 @@ Order
 
 ---
 
-# 17. Concept 식별 질문
+# 14. Concept 식별 질문
 
 다음 질문을 사용한다.
 
@@ -573,7 +573,7 @@ Order ↔ Payment
 
 ---
 
-# 18. Concept vs Attribute
+# 15. Concept vs Attribute
 
 모든 값을 Concept으로 만들지는 않는다.
 
@@ -608,7 +608,7 @@ status
 
 ---
 
-# 19. Attribute
+# 16. Attribute
 
 Attribute:
 
@@ -641,7 +641,7 @@ databaseSequence
 
 ---
 
-# 20. Attribute의 Type / Value Domain
+# 17. Attribute의 Type / Value Domain
 
 분석 모델에서 Type을 모두 금지하지 않는다.
 
@@ -705,7 +705,7 @@ Optional<String>
 
 ---
 
-# 21. Value Domain
+# 18. Value Domain
 
 Type보다 Domain 의미가 더 중요한 경우가 있다.
 
@@ -743,7 +743,7 @@ S03은:
 
 ---
 
-# 22. Relationship
+# 19. Relationship
 
 Concept은 서로 독립된 목록이 아니다.
 
@@ -764,7 +764,7 @@ Relationship은:
 
 ---
 
-# 23. Relationship은 선보다 의미가 먼저다
+# 20. Relationship은 선보다 의미가 먼저다
 
 다음 모델:
 
@@ -788,7 +788,7 @@ Order is paid by Payment
 
 ---
 
-# 24. Multiplicity
+# 21. Multiplicity
 
 Multiplicity는 UML 기호 암기가 아니다.
 
@@ -814,7 +814,7 @@ Order 하나에 OrderItem은 몇 개까지 가능한가?
 
 ---
 
-# 25. 모르면 그리지 않는다
+# 22. 모르면 그리지 않는다
 
 예:
 
@@ -843,7 +843,7 @@ Need clarification
 
 ---
 
-# 26. 모델은 Requirement를 다시 질문하게 한다
+# 23. 모델은 Requirement를 다시 질문하게 한다
 
 정적 모델을 만들면 Requirement가 충분하지 않다는 사실이 드러날 수 있다.
 
@@ -881,7 +881,7 @@ Requirement Refinement
 
 ---
 
-# 27. Whole–Part
+# 24. Whole–Part
 
 Order와 OrderItem은 Whole–Part 후보가 될 수 있다.
 
@@ -901,7 +901,7 @@ Order
 
 ---
 
-# 28. Rumbaugh — Aggregation Anchor
+# 25. Rumbaugh — Aggregation Anchor
 
 Rumbaugh의 Aggregation에 대한 문제의식을 여기서 사용한다.
 
@@ -925,7 +925,7 @@ Relationship Understanding
 
 ---
 
-# 29. Conceptual / Analysis Domain Model
+# 26. Conceptual / Analysis Domain Model
 
 이제 지금까지 발견한 것을 통합한다.
 
@@ -969,7 +969,7 @@ status : PaymentStatus
 
 ---
 
-# 30. Domain Model이라는 용어
+# 27. Domain Model이라는 용어
 
 S03의 `Domain Model`은:
 
@@ -1000,7 +1000,7 @@ DDD의:
 
 ---
 
-# 31. Analysis Concept ≠ Software Class
+# 28. Analysis Concept ≠ Software Class
 
 가장 중요한 경계 중 하나다.
 
@@ -1038,7 +1038,7 @@ class Payment
 
 ---
 
-# 32. Operation/Method를 넣지 않는 이유
+# 29. Operation/Method를 넣지 않는 이유
 
 다음과 같이 그리면:
 
@@ -1083,7 +1083,7 @@ Constraint
 
 ---
 
-# 33. 구현 요소 제거
+# 30. 구현 요소 제거
 
 다음은 S03 모델에서 제거 대상이다.
 
@@ -1115,7 +1115,7 @@ OrderStatus
 
 ---
 
-# 34. Just-enough Static Model
+# 31. Just-enough Static Model
 
 목표는 현실 전체의 완전한 Domain Dictionary를 만드는 것이 아니다.
 
@@ -1150,7 +1150,7 @@ AccountingPeriod
 
 ---
 
-# 35. 언제 모델링을 멈출 것인가
+# 32. 언제 모델링을 멈출 것인가
 
 다음 질문에 충분히 답할 수 있다면 멈출 수 있다.
 
@@ -1168,7 +1168,7 @@ AccountingPeriod
 
 ---
 
-# 36. [실습] Order Conceptual Domain Model 작성 (25~30분)
+# 33. [실습] Order Conceptual Domain Model 작성 (25~30분)
 
 > **본편 실습 슬라이드는 1장만 사용한다.** 모델 작성 단계·힌트는 Slide Notes에 두고, 예시 답안은 Session 마지막 `[별첨]`으로 분리한다.
 
@@ -1258,7 +1258,7 @@ Payment
 - 구현 method/Controller/Repository/DB relation은 넣지 않는다.
 - 답안은 하나의 가능한 모델이며 다른 모델도 Requirement 근거와 의미 일관성이 있으면 허용한다.
 
-# 38. Feedback 기준
+# 35. Feedback 기준
 
 ### 1. Domain 중심인가?
 
@@ -1300,7 +1300,7 @@ Method나 Responsibility를 미리 결정하지 않았는가?
 
 ---
 
-# 39. Failure Conditions
+# 36. Failure Conditions
 
 다음을 실패로 본다.
 
@@ -1322,7 +1322,7 @@ Method나 Responsibility를 미리 결정하지 않았는가?
 
 ---
 
-# 40. Anchor / Reference 사용
+# 37. Anchor / Reference 사용
 
 ## Brooks — Essence / Accident
 
@@ -1387,7 +1387,7 @@ DDD Pattern은 다루지 않는다.
 
 ---
 
-# 41. Session Summary
+# 38. Session Summary
 
 ```text
 S01
@@ -1440,7 +1440,7 @@ Static Problem Understanding
 
 ---
 
-# 42. S04로 넘기는 질문
+# 39. S04로 넘기는 질문
 
 S03에서 다음은 설명할 수 있다.
 

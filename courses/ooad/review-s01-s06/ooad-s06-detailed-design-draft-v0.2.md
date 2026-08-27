@@ -136,6 +136,33 @@ S06에서는 CRC Card 자체를 별도 산출물로 만들지 않는다. Class D
 
 DB나 Repository에 데이터가 있다는 뜻이 아니다.
 
+`Order` 총액 계산 책임을 비교한다.
+
+```text
+Before
+OrderService.calculateTotal(order)
+    total = 0
+    for item in order.items
+        total += item.product.price * item.quantity
+
+After 후보
+Order.total()
+    sum(item.subtotal())
+
+OrderItem.subtotal()
+    quantity * unitPrice
+```
+
+`OrderService`가 계산을 위해 OrderItem의 quantity·price 구조까지 알아야 했다면, 그 정보를 이미 자연스럽게 가진 Order·OrderItem이 더 나은 owner 후보일 수 있다. 핵심은 method 위치 자체가 아니라 **그 Responsibility 수행에 필요한 정보를 자연스럽게 아는 객체가 누구인가**이다.
+
+흔한 오용:
+
+- DB/Repository에 데이터가 있다는 이유만으로 Repository를 Expert로 본다.
+- Expert라는 이유로 관련된 모든 Responsibility를 한 객체에 몰아넣는다.
+- 정보를 가장 많이 아는 객체를 기계적으로 찾고 cohesion·collaboration 비용을 고려하지 않는다.
+
+Information Expert는 강한 출발점이지 자동 정답은 아니다. 다른 Responsibility와의 cohesion, 필요한 collaboration, 실제 change reason과 함께 비교해 최종 배치를 판단한다.
+
 ### Creator
 
 > 어떤 객체가 다른 객체의 생성과 lifecycle을 자연스럽게 책임질 수 있는가?
@@ -199,6 +226,41 @@ coordination role : Place Order 협력 시작·조정
 ### Low Coupling
 
 > 필요한 Collaboration을 유지하면서 불필요한 knowledge/dependency를 얼마나 줄이는가?
+
+`Place Order` 흐름에서 Controller/Application object가 협력이 필요하다는 이유로 Order·OrderItem·Payment의 내부 상태를 직접 탐색하면, 그 대상들의 내부 구조가 바뀔 때마다 변경이 전파된다.
+
+```text
+Before
+PlaceOrderController
+    items = order.getItems()
+    for item in items
+        price = item.getUnitPrice()
+        qty = item.getQuantity()
+    payment.setAmount(total)
+    order.setPaymentStatus(payment.getStatus())
+
+After 후보
+amount = order.total()
+payment = paymentResponsibility.request(amount)
+order.reflectPayment(payment.result)
+```
+
+Controller가 Order/OrderItem/Payment 내부 구조를 직접 알아야 했던 것을, 의미 있는 message 몇 개로 국소화한다.
+
+판단 질문:
+
+- 이 dependency가 책임 수행에 정말 필요한가?
+- 상대 객체의 내부 표현까지 알아야 하는가?
+- 더 의미 있는 message 하나로 협력할 수 있는가?
+- coupling을 줄이기 위해 추가한 abstraction/중간 객체의 비용이 더 크지 않은가?
+
+흔한 오용:
+
+- dependency 수가 0에 가까울수록 좋다고 생각한다.
+- coupling을 줄인다는 이유로 무조건 abstraction/중간 객체를 추가한다.
+- collaboration 자체를 없애려고 한 객체에 모든 일을 몰아넣는다.
+
+S06에서는 필요한 collaboration을 유지하면서 불필요한 knowledge/dependency를 줄이는 것까지만 다룬다. 변화 지점을 보호하기 위한 Protected Variations·Indirection·Polymorphism은 S07에서 다룬다.
 
 ---
 
