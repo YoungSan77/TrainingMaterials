@@ -12,6 +12,12 @@ TrainingMaterials/
 ├── courses/
 │   ├── <11 course>/course-design.md
 │   └── ooad/
+│       ├── session-architecture.md
+│       ├── sessions/
+│       │   ├── s01-detailed-design.md
+│       │   ├── ...
+│       │   ├── s06-detailed-design.md
+│       │   └── s07-detailed-design.md
 │       ├── ooad-curriculum.md
 │       ├── global_config.js
 │       └── decks/01.js
@@ -63,6 +69,9 @@ TrainingMaterials/
 | Path | Type | Role | Owner | Consumer | Lifecycle Status |
 |---|---|---|---|---|---|
 | `courses/*/course-design.md` | Course Design set | 11개 과정의 Curriculum Guardrail | 해당 Course Design | Curriculum LLM·Harness | REQUIRED |
+| `courses/ooad/session-architecture.md` | Session Architecture | OOAD Session progression·시간·경계 정본 | OOAD Curriculum | Session Detailed Design·Curriculum Harness | REQUIRED |
+| `courses/ooad/sessions/s01-detailed-design.md`–`s06-detailed-design.md` | Session Detailed Design set | 승인된 OOAD S01–S06 교육 설계 정본 | OOAD Curriculum | Curriculum 통합·Deck LLM | REQUIRED |
+| `courses/ooad/sessions/s07-detailed-design.md` | Session Detailed Design | 승인된 OOAD S07 교육 설계 정본 | OOAD Curriculum | Curriculum 통합·Deck LLM | REQUIRED |
 | `courses/ooad/ooad-curriculum.md` | Regression input | 기존 OOAD geometry baseline 재현 입력; 새 Curriculum authority 아님 | Regression Harness | OOAD legacy Deck fixture | WORKING |
 | `courses/ooad/global_config.js` | Regression adapter | 기존 OOAD Deck fixture runtime config | Regression Harness | Deck loader | WORKING |
 | `courses/ooad/decks/01.js` | Regression fixture | 승인 전 기존 geometry baseline의 render input | Regression Harness | Snapshot runner | WORKING |

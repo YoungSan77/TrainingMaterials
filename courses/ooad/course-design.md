@@ -60,7 +60,7 @@ Brooks의 Essence / Accident 관점에서 Analysis는 problem-domain의 essentia
 - composition/interface/dependency 원칙의 압력 기반 적용
 - test와 refactoring evidence를 통한 설계 feedback
 
-객체에 메시지를 요청하기 전에 무엇이 참이어야 하고, 수행 뒤 무엇을 보장하며, 객체가 계속 지켜야 할 일관성이 무엇인지 객체 계약(precondition/postcondition/invariant)으로 먼저 명시한다. 그 계약을 누가 소유하고 보장해야 하는지 물으며 책임 할당 판단(정보 전문가·응집도·결합도·정보 은닉)으로 이어가고, 이후 실제 change가 기존 계약에 주는 압력을 관찰해 composition/interface/dependency 같은 변화 대응 원칙을 필요한 만큼 선택한다. 어떤 순서로든 principle/pattern은 checklist가 아니라 현재 설계 문제에 필요한 것만 선택하고 trade-off를 설명하는 heuristic으로 사용한다. 개별 GRASP/Pattern 항목의 적용 절차는 Curriculum·Session Detailed Design이 결정한다.
+객체에 메시지를 요청하기 전에 무엇이 참이어야 하고, 수행 뒤 무엇을 보장하며, 객체가 계속 지켜야 할 일관성이 무엇인지 객체 계약(precondition/postcondition/invariant)으로 먼저 명시한다. 그 계약을 누가 소유하고 보장해야 하는지 물으며 책임 할당 판단(정보 전문가·응집도·결합도·정보 은닉)으로 이어가고, 이후 실제 change가 기존 계약에 주는 압력을 관찰해 composition/interface/dependency 같은 변화 대응 원칙을 필요한 만큼 적용한다. **GRASP는 서로 배타적인 해결책 목록이 아니라 Responsibility Assignment를 검토하는 중첩 가능한 판단 관점으로 사용하며, 하나의 설계 결정이 여러 GRASP 관점에서 동시에 설명될 수 있다. GoF Design Pattern은 반복되는 특정 설계 문제에 대한 재사용 가능한 solution structure로 다루며, 문제·책임·협력·계약과 change pressure를 먼저 이해한 뒤 그 해결 구조와 Pattern vocabulary를 연결한다.** 원칙과 Pattern을 checklist나 이름 맞히기로 사용하지 않으며, Pattern별 상세 적용·비교·조합은 현재 과정의 completeness를 위해 확장하지 않는다. 개별 GRASP/Pattern 항목의 적용 절차는 Curriculum·Session Detailed Design이 결정한다.
 
 ## Ownership
 
@@ -72,7 +72,7 @@ Brooks의 Essence / Accident 관점에서 Analysis는 problem-domain의 essentia
 - architecture style·quality-attribute trade-off
 - MSA 서비스 분할
 - 특정 언어·framework 숙련
-- pattern catalog 암기
+- pattern catalog 암기 및 GoF Pattern별 상세 적용·비교·조합을 완결적으로 가르치기
 
 ### Cross-course Boundary / Handoff
 
@@ -100,7 +100,7 @@ Brooks의 Essence / Accident 관점에서 Analysis는 problem-domain의 essentia
 4. 동적 모델로 interaction·state change를 확인하여 같은 Problem Understanding의 행위 관점을 보완한다
 5. 분석 모델을 구현 Class로 기계 변환하지 않고, 학습자 자신의 기존 경험으로 먼저 객체 경계·책임·메시지 관점의 initial design(before model)을 만든다
 6. 그 initial design의 핵심 메시지에 객체 계약을 명시하고, 그 계약을 누가 보장할지 RDD·응집도·결합도 같은 공학적 판단 기준으로 검토해 책임 배치를 정제한다(refined design)
-7. 새로운 change request가 기존 계약과 협력에 주는 압력을 관찰해 필요한 variation mechanism으로 local refinement한다
+7. 새로운 change request가 기존 계약과 협력에 주는 압력을 관찰해 필요한 variation mechanism으로 local refinement하고, Pattern 이름 없이 설계 문제와 해결 구조를 먼저 이해한 뒤 대표 GoF Pattern vocabulary와 연결한다
 8. 여러 설계 대안을 change impact·cohesion/coupling·dependency·abstraction cost·SOLID·pattern·trade-off 관점에서 종합 판단한다
 9. 코드와 test evidence로 설계를 개선하고 DDD/Architecture 경계를 확인한다
 

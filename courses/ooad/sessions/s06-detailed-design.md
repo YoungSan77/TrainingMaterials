@@ -286,11 +286,11 @@ Controller가 Order/OrderItem/Payment 내부 구조를 직접 알아야 했던 �
 - coupling을 줄인다는 이유로 무조건 abstraction/중간 객체를 추가한다.
 - collaboration 자체를 없애려고 한 객체에 모든 일을 몰아넣는다.
 
-S06에서는 필요한 collaboration을 유지하면서 불필요한 knowledge/dependency를 줄이는 것까지만 다룬다. 변화 지점을 보호하기 위한 Protected Variations·Indirection·Polymorphism은 S07에서 다룬다.
+S06에서는 필요한 collaboration을 유지하면서 불필요한 knowledge/dependency를 줄이는 것까지만 다룬다. 변화 지점을 보호하기 위한 Polymorphism·Pure Fabrication·Indirection·Protected Variations와 이들의 중첩 관계는 S07에서 다룬다.
 
 ---
 
-## 11. Pattern은 Checklist가 아니다
+## 11. GRASP는 서로 배타적인 해법 목록이 아니다
 
 ```text
 Information Expert ✓
@@ -300,7 +300,17 @@ High Cohesion ✓
 Low Coupling ✓
 ```
 
-처럼 적용 여부를 채우는 것이 목표가 아니다. 책임 하나에 여러 관점이 충돌할 수 있으므로 Pattern은 **대안을 비교하는 판단 언어**로 사용한다.
+처럼 적용 여부를 채우거나 하나만 고르는 것이 목표가 아니다. GRASP는 **Responsibility Assignment를 바라보는 서로 다른 판단 관점**이며, 하나의 설계 결정에 여러 관점이 동시에 성립할 수 있다. 관점끼리 trade-off가 충돌할 수도 있고, 반대로 같은 책임 배치를 함께 지지할 수도 있다.
+
+예를 들어 `Order.total()`과 `OrderItem.subtotal()`에 계산 책임을 배치하는 하나의 결정은 다음처럼 동시에 설명될 수 있다.
+
+- **Information Expert:** 계산에 필요한 주문 항목과 수량·가격 정보를 자연스럽게 가진 곳에 책임을 둔다.
+- **High Cohesion:** 주문 계산 책임을 주문 의미와 가까운 객체에 모은다.
+- **Low Coupling:** Controller/Service가 OrderItem 내부 구조를 직접 탐색하지 않게 한다.
+
+> **세 개의 GRASP를 각각 적용한 것이 아니라, 하나의 Responsibility Assignment를 세 관점에서 검토한 것이다.**
+
+S06에서는 이 중첩 가능성을 먼저 이해한다. S07에서는 `PaymentGateway` 같은 하나의 설계 결정이 Low Coupling·Pure Fabrication·Indirection·Protected Variations·Polymorphism 등 여러 관점에서 동시에 설명되는 사례로 확장한다.
 
 ---
 
@@ -386,7 +396,7 @@ S06 실습의 기본 판단 언어:
 - High Cohesion
 - Low Coupling
 
-Pattern 자체를 암기하는 것이 아니라 **Responsibility Assignment 대안을 설명·비교하는 데 사용**한다.
+GRASP 항목 자체를 암기하거나 상호배타적으로 선택하는 것이 아니라 **하나의 Responsibility Assignment를 여러 관점에서 설명·검토하는 데 사용**한다.
 
 ---
 
@@ -413,15 +423,15 @@ Pattern 자체를 암기하는 것이 아니라 **Responsibility Assignment 대�
 3. 그 핵심 구간의 Message 하나에 precondition/postcondition과 필요한 invariant를 간결하게 명시하고, 누가 이를 보장할지 확인한다.
 4. Sequence와 Object Contract에서 발견된 문제를 Class Diagram에 feedback한다.
 5. LLM에게 다른 Responsibility Assignment와 반론을 요청하고 자신의 안과 비교한다.
-6. 필요한 Pattern/원칙만 선택하여 적용하고 선택·비선택 이유를 기록한다.
+6. GRASP를 상호배타적으로 고르지 말고, 현재 Responsibility Assignment를 설명하는 데 의미 있는 관점과 각 관점의 근거를 기록한다.
 
-**검토 추천 Pattern/원칙**
+**검토 GRASP 관점**
 
 > **Information Expert · Creator · Controller · High Cohesion · Low Coupling**
 
 **주의**
 
-> 전부 적용하는 checklist가 아니다. 현재 Responsibility 문제에 필요한 관점만 선택하고, 적용하지 않은 이유도 설명할 수 있어야 한다.
+> 서로 배타적인 선택지가 아니다. 하나의 Responsibility Assignment가 여러 GRASP 관점에서 동시에 설명될 수 있다. 현재 판단에 의미 있는 관점과 각 관점이 무엇을 설명하는지 구분한다.
 
 **필수 산출물**
 
@@ -446,7 +456,7 @@ Object Contract를 별도 산출물로 만들지 않는다. `Responsibility–Ow
 현재 배치 때문에 다른 객체의 내부 상태를 과도하게 알아야 하는 곳은 어디인가?
 Controller가 Domain Rule까지 소유하고 있는가?
 다른 Responsibility Assignment는 가능한가? 대안의 coupling/cohesion 비용은 무엇인가?
-Pattern 이름이 아니라 실제 Responsibility와 정보 근거로 반론을 제시하라.
+GRASP 이름을 checklist처럼 붙이지 말고 실제 Responsibility와 정보 근거로 반론을 제시하라. 하나의 배치가 여러 GRASP 관점에서 동시에 설명될 수 있음을 고려하라.
 새로운 기능이나 S07 variation mechanism은 추가하지 마라.
 ...
 ```
@@ -461,7 +471,7 @@ Pattern 이름이 아니라 실제 Responsibility와 정보 근거로 반론을 
 - Class↔Sequence feedback: 3분
 - LLM 대안/반론 검토: 5~8분
 
-강사는 LLM이 Pattern 이름을 기계적으로 붙이는지 확인하게 한다. Pattern 이름보다 실제 Responsibility/knowledge/change reason 근거가 우선이다.
+강사는 LLM이 GRASP 이름을 기계적으로 붙이거나 서로 배타적인 선택지처럼 취급하는지 확인하게 한다. 이름보다 실제 Responsibility/knowledge/change reason 근거가 우선이다.
 
 ---
 
@@ -555,7 +565,7 @@ Invariant     : placed Order의 item 구성과 확정 total은 서로 모순되�
 4. Creator를 자동 생성 규칙으로 쓰지 않았는가?
 5. Controller를 framework class와 동일시하지 않았는가?
 6. Controller에 Domain Rule을 몰아넣지 않았는가?
-7. High Cohesion/Low Coupling을 숫자나 checklist로 사용하지 않았는가?
+7. GRASP를 서로 배타적인 선택지나 checklist로 사용하지 않고, 하나의 Responsibility Assignment에 여러 관점이 중첩될 수 있음을 설명했는가?
 8. 핵심 Message의 Object Contract와 이를 보장할 Responsibility owner가 일치하는가?
 9. Class Diagram과 Sequence Diagram 사이의 feedback이 있었는가?
 10. LLM이 만든 Pattern/객체를 근거 없이 채택하지 않았는가?
@@ -566,7 +576,7 @@ Invariant     : placed Order의 item 구성과 확정 total은 서로 모순되�
 ## 19. Failure Conditions
 
 - S05 모델을 거의 그대로 두고 Pattern 이름만 붙인다.
-- GRASP를 checklist로 적용한다.
+- GRASP를 checklist나 상호배타적인 Pattern 선택 문제로 적용한다.
 - 모든 Responsibility를 `OrderService`에 둔다.
 - 모든 Behavior를 Entity 하나에 몰아넣는다.
 - Controller가 Domain Rule을 직접 판단한다.
@@ -609,7 +619,7 @@ Refined Design
 
 > **Class Diagram은 책임의 정적 배치를, Sequence Diagram은 그 책임의 동적 협력을 검증한다.**
 
-> **GRASP는 checklist가 아니라 Responsibility Assignment 대안을 비교하는 판단 언어다.**
+> **GRASP는 서로 배타적인 해법 목록이 아니라 Responsibility Assignment를 여러 각도에서 검토하는 중첩 가능한 판단 관점이다.**
 
 ---
 
@@ -623,4 +633,4 @@ S06에서 핵심 Message의 Object Contract는 이미 세웠다. S07에서는 �
 변화를 어디에서 흡수해야 하는가?
 ```
 
-다음 Session에서는 S06 Refined Design에 새로운 variation을 투입해 기존 Contract/Collaboration이 받는 압력과 variation point를 검토한다. 구체적인 variation 구조나 해결 Pattern은 S06에서 선행 제시하지 않는다.
+다음 Session에서는 S06 Refined Design에 새로운 variation을 투입해 기존 Contract/Collaboration이 받는 압력과 variation point를 검토한다. 구체적인 variation 구조나 S07의 후반 GRASP(Polymorphism·Pure Fabrication·Indirection·Protected Variations), GoF Pattern vocabulary는 S06에서 선행 제시하지 않는다.
