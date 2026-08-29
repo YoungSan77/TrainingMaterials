@@ -366,7 +366,31 @@ S06의 목표는 모든 Class/Method를 확정하는 것이 아니다.
 
 ---
 
-# 16. [실습] RDD Responsibility & Collaboration Refinement (25~30분)
+## 16. Anchor / Reference
+
+### Design by Contract / Meyer
+
+S06에서는 precondition, postcondition, invariant를 핵심 Message의 Object Contract로 사용해 Responsibility owner가 보장할 약속을 명확히 한다. S07은 이 개념을 새로 가르치지 않고 실제 change가 기존 계약에 주는 압력을 관찰한다.
+
+### Responsibility-Driven Design / CRC
+
+S06의 핵심 관점은 Responsibility, Role, Collaboration이다.
+
+### GRASP / Larman
+
+S06 실습의 기본 판단 언어:
+
+- Information Expert
+- Creator
+- Controller
+- High Cohesion
+- Low Coupling
+
+Pattern 자체를 암기하는 것이 아니라 **Responsibility Assignment 대안을 설명·비교하는 데 사용**한다.
+
+---
+
+# 17. [실습] Responsibility & Collaboration Refinement · 25~30분
 
 > **본편 실습 슬라이드는 1장만 사용한다.** 세부 진행과 힌트는 Slide Notes, 예시 답안은 Session 마지막 `[별첨]`으로 분리한다.
 
@@ -376,8 +400,10 @@ S06의 목표는 모든 Class/Method를 확정하는 것이 아니다.
 
 **입력**
 
+- S02 **Place Order Use Case Diagram / Specification** — 요구 behavior evidence
+- S03 **Conceptual Domain Model** — state/relationship evidence
+- S04 **Place Order Analysis Sequence Diagram** — interaction evidence이자 핵심 구간의 직접 refinement 대상
 - 자신의 S05 **Initial Design Class Diagram**
-- S04 **Place Order Analysis Sequence Diagram**
 - 기본 범위: **Place Order → Payment**
 
 **과제**
@@ -387,9 +413,9 @@ S06의 목표는 모든 Class/Method를 확정하는 것이 아니다.
 3. 그 핵심 구간의 Message 하나에 precondition/postcondition과 필요한 invariant를 간결하게 명시하고, 누가 이를 보장할지 확인한다.
 4. Sequence와 Object Contract에서 발견된 문제를 Class Diagram에 feedback한다.
 5. LLM에게 다른 Responsibility Assignment와 반론을 요청하고 자신의 안과 비교한다.
-6. 필요한 Pattern/원칙만 선택하여 적용하고 이유를 기록한다.
+6. 필요한 Pattern/원칙만 선택하여 적용하고 선택·비선택 이유를 기록한다.
 
-**고려할 Pattern / 원칙**
+**검토 추천 Pattern/원칙**
 
 > **Information Expert · Creator · Controller · High Cohesion · Low Coupling**
 
@@ -413,6 +439,18 @@ Object Contract를 별도 산출물로 만들지 않는다. `Responsibility–Ow
 - 필요한 Collaboration은 유지하면서 불필요한 Coupling을 줄였는가?
 - Class와 Sequence가 같은 Responsibility 구조를 말하는가?
 
+**LLM용 추천 프롬프트**
+
+```text
+이 Responsibility를 수행하는 데 필요한 정보를 가장 자연스럽게 가진 객체는 누구인가?
+현재 배치 때문에 다른 객체의 내부 상태를 과도하게 알아야 하는 곳은 어디인가?
+Controller가 Domain Rule까지 소유하고 있는가?
+다른 Responsibility Assignment는 가능한가? 대안의 coupling/cohesion 비용은 무엇인가?
+Pattern 이름이 아니라 실제 Responsibility와 정보 근거로 반론을 제시하라.
+새로운 기능이나 S07 variation mechanism은 추가하지 마라.
+...
+```
+
 ## Slide Notes — 진행 가이드
 
 권장 시간:
@@ -422,21 +460,6 @@ Object Contract를 별도 산출물로 만들지 않는다. `Responsibility–Ow
 - Design Sequence 작성(핵심 구간 1개로 한정, 핵심 Message의 precondition/postcondition/invariant 확인 포함): 7분
 - Class↔Sequence feedback: 3분
 - LLM 대안/반론 검토: 5~8분
-
-LLM prompt 예:
-
-```text
-이 설계의 책임 배치를 RDD 관점에서 검토하라.
-특히 Information Expert, Creator, Controller,
-High Cohesion, Low Coupling 중 실제로 관련된 관점만 사용하라.
-
-1. owner 근거가 약한 Responsibility
-2. Data-only Object / God Service 위험
-3. 불필요한 Coupling
-4. 대안 Responsibility Assignment
-
-을 제시하되 새로운 기능을 추가하지 마라.
-```
 
 강사는 LLM이 Pattern 이름을 기계적으로 붙이는지 확인하게 한다. Pattern 이름보다 실제 Responsibility/knowledge/change reason 근거가 우선이다.
 
@@ -468,19 +491,50 @@ OrderService
 
 ```text
 Order
-- addItem
-- calculateTotal
-- reflectPayment
+- items : OrderItem[1..*]
++ addItem(product, quantity)
++ total()
++ reflectPayment(result)
 
 OrderItem
-- calculateSubtotal
+- quantity
+- unitPrice
++ subtotal()
 
 Payment
-- payment-related state/responsibility
+- amount
+- status
++ recordResult(result)
 
 PlaceOrderController / Use-case role
-- receive Place Order system event
-- coordinate collaboration
++ placeOrder(items, paymentMethod)
+
+Relations
+Order 1 ── 1..* OrderItem : Order가 주문 항목을 포함하고 합계를 책임진다
+OrderItem * ── 1 Product : 주문 항목이 선택 Product를 참조한다
+Order 1 ── 0..1 Payment : 현재 baseline의 결제 결과를 반영한다
+PlaceOrderController ──coordinates──> Order / Payment
+```
+
+핵심 Design Sequence:
+
+```text
+Customer → PlaceOrderController : placeOrder(items, paymentMethod)
+PlaceOrderController → Order : addItem(product, quantity) [반복]
+PlaceOrderController → Order : place()
+Order → PlaceOrderController : confirmed total
+PlaceOrderController → Payment : request(total, paymentMethod)
+Payment → PlaceOrderController : paymentResult
+PlaceOrderController → Order : reflectPayment(paymentResult)
+```
+
+핵심 Message Object Contract:
+
+```text
+Order.place()
+Precondition  : Order에 하나 이상의 유효한 OrderItem이 있다.
+Postcondition : Order가 placed 상태가 되고 확정 total은 각 OrderItem.subtotal()의 합과 같다.
+Invariant     : placed Order의 item 구성과 확정 total은 서로 모순되지 않는다.
 ```
 
 이름과 세부 구조는 정답이 아니다. 해설의 핵심은 다음을 비교하는 데 있다.
@@ -489,10 +543,11 @@ PlaceOrderController / Use-case role
 - Controller가 Domain Rule을 소유하지 않는 이유
 - Payment 관련 Responsibility와 Order Responsibility를 어디까지 분리할지
 - Class Diagram의 Responsibility가 Sequence Message와 일치하는지
+- `PlaceOrderController`는 coordination role이며 total 계산이나 결제 규칙의 owner가 아닌 이유
 
 ---
 
-## 17. Feedback 기준
+## 18. Feedback 기준
 
 1. S05 모델의 변경 이유를 설명할 수 있는가?
 2. Responsibility를 Method name으로만 판단하지 않았는가?
@@ -508,7 +563,7 @@ PlaceOrderController / Use-case role
 
 ---
 
-## 18. Failure Conditions
+## 19. Failure Conditions
 
 - S05 모델을 거의 그대로 두고 Pattern 이름만 붙인다.
 - GRASP를 checklist로 적용한다.
@@ -522,30 +577,6 @@ PlaceOrderController / Use-case role
 - LLM이 제안한 Manager/Policy/Service를 근거 없이 추가한다.
 - Object Contract를 별도 양식 산출물로 늘리거나 구현 signature 목록으로 축소한다.
 - S07의 change/variation mechanism을 미리 소비한다.
-
----
-
-## 19. Anchor / Reference
-
-### Design by Contract / Meyer
-
-S06에서는 precondition, postcondition, invariant를 핵심 Message의 Object Contract로 사용해 Responsibility owner가 보장할 약속을 명확히 한다. S07은 이 개념을 새로 가르치지 않고 실제 change가 기존 계약에 주는 압력을 관찰한다.
-
-### Responsibility-Driven Design / CRC
-
-S06의 핵심 관점은 Responsibility, Role, Collaboration이다.
-
-### GRASP / Larman
-
-S06 실습의 기본 판단 언어:
-
-- Information Expert
-- Creator
-- Controller
-- High Cohesion
-- Low Coupling
-
-Pattern 자체를 암기하는 것이 아니라 **Responsibility Assignment 대안을 설명·비교하는 데 사용**한다.
 
 ---
 
@@ -592,8 +623,4 @@ S06에서 핵심 Message의 Object Contract는 이미 세웠다. S07에서는 �
 변화를 어디에서 흡수해야 하는가?
 ```
 
-S07에서는 S06 Refined Design에 **Order Cancellation / Refund 변화 요구**를 투입하고 다음 관점을 필요에 따라 사용한다.
-
-> **Polymorphism · Indirection · Protected Variations · Pure Fabrication · 필요 시 Interface/Composition**
-
-이 목록도 checklist가 아니다.
+다음 Session에서는 S06 Refined Design에 새로운 variation을 투입해 기존 Contract/Collaboration이 받는 압력과 variation point를 검토한다. 구체적인 variation 구조나 해결 Pattern은 S06에서 선행 제시하지 않는다.

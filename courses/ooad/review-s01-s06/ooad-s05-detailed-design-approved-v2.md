@@ -71,77 +71,6 @@ Initial Design Class Diagram
 
 S05 본문의 Encapsulation, Information Hiding, Change Reason은 수강생의 초기 선택을 되돌아보게 하는 관점으로 사용하되, **체계적인 Responsibility Assignment는 S06·S07이 소유한다.**
 
-# 1B. [실습] Analysis Model → Initial Design (25~30분)
-
-> **실습 위치:** S03·S04 분석 모델을 회수한 직후, RDD/GRASP를 체계적으로 설명하기 전에 실시한다.  
-> **본편 실습 슬라이드는 1장만 사용한다.** 세부 진행은 Slide Notes, 해설은 Session 마지막 `[별첨]`으로 분리한다.
-
-## 실습 슬라이드 — 수강생에게 보이는 내용
-
-**입력**
-
-- S03의 전체 Order Conceptual / Analysis Domain Model
-- S04의 Place Order Analysis Sequence Diagram
-- S04에서 제공한 State / Communication / Activity 관점
-- 기본 범위: **Place Order → Payment**
-
-**과제**
-
-지금까지의 분석 결과와 **자신의 기존 설계 경험**을 바탕으로 객체 설계의 1차안을 작성한다.
-
-- 분석 모델 전체에서 주요 Behavior/Responsibility를 찾는다.
-- Responsibility를 적절하다고 판단한 객체에 1차 배치한다.
-- 필요하면 Analysis Concept을 분리·통합하거나 설계 객체를 추가한다.
-- Attribute뿐 아니라 주요 Responsibility/Operation이 보이는 **Initial Design Class Diagram**을 만든다.
-- 먼저 독립적으로 완성한 Initial Design snapshot을 저장한 뒤 LLM에 누락되거나 모호한 Responsibility 후보만 검토하게 한다.
-- **LLM에 GRASP/RDD Pattern을 적용하라고 요청하지 않는다.**
-
-**필수 산출물**
-
-- **Initial Design Class Diagram 1개**
-- 최초 독립 설계 snapshot과 LLM 검토 후 변경한 부분의 간단한 기록
-
-**판단 기준**
-
-- Conceptual Model을 Class로 1:1 복사하지 않았는가?
-- Static + Dynamic Model을 모두 근거로 사용했는가?
-- 객체가 Attribute만 가진 Data Holder로 끝나지 않았는가?
-- 주요 Behavior가 어느 객체에 속하는지 표현했는가?
-- Solution Detail이 Domain/Object Design을 압도하지 않는가?
-
-## Slide Notes — 진행 가이드
-
-- 권장 시간: 독립 설계 15분 → LLM 검토 5분 → 필요한 수정/기록 5~10분.
-- 수강생에게 Pattern 이름을 힌트로 주지 않는다. 이 실습의 목적은 “현재 내가 어떻게 책임을 배치하는가”를 드러내는 것이다.
-- Class Diagram에는 주요 Attribute와 Responsibility/Operation을 함께 표현하게 한다.
-- S03의 모든 Concept가 반드시 같은 수의 Design Class가 될 필요는 없다고만 안내한다.
-- LLM prompt는 “누락되거나 모호한 responsibility를 찾아라. GRASP나 Design Pattern 이름으로 해결안을 제시하지 마라.” 정도로 제한한다.
-- 이 결과를 S06 시작 시 그대로 다시 사용한다.
-
-## [별첨] 실습 해설 — Initial Design에서 관찰할 것
-
-이 별첨은 하나의 정답 모델을 강제하지 않는다. 대표적인 초기 설계에서 다음을 관찰한다.
-
-- Concept→Class 1:1 복사
-- `OrderService` 등에 Behavior 집중
-- `Order`, `OrderItem`, `Payment`가 Data Holder로 남음
-- Sequence에서 드러난 responsibility가 Class에 반영되지 않음
-- 한 객체가 다른 객체 내부 state를 과도하게 알아야 함
-- 구현 Controller/Repository/API가 너무 일찍 중심이 됨
-
-해설의 목적은 “틀렸다”를 선언하는 것이 아니라 **S06에서 RDD 관점으로 무엇을 다시 질문해야 하는가?**를 만드는 것이다.
-
-```text
-누가 무엇을 알아야 하는가?
-누가 무엇을 해야 하는가?
-누구와 협력해야 하는가?
-이 책임의 owner를 어떤 근거로 설명할 수 있는가?
-```
-
-이 질문을 그대로 S06의 입력으로 넘긴다.
-
----
-
 # 2. 가장 중요한 경계
 
 S03의 Concept을 그대로 Class로 바꾸지 않는다.
@@ -985,47 +914,7 @@ S03/S04와 같은 원칙을 이어간다.
 
 ---
 
-# 50. Feedback 기준
-
-1. Analysis Concept를 그대로 Class로 변환하지 않았는가?
-2. Static + Dynamic evidence를 함께 사용했는가?
-3. 객체를 Data Holder로만 보지 않았는가?
-4. State와 Behavior의 의미적 결합을 고려했는가?
-5. Change Reason을 물었는가?
-6. Information Hiding을 field visibility로 축소하지 않았는가?
-7. 중요한 invariant를 보호할 boundary 후보가 있는가?
-8. Rule이 여러 곳에 중복되지 않는가?
-9. data-only object + god service 구조를 그대로 수용하지 않았는가?
-10. 여러 object boundary 대안을 비교했는가?
-11. 책임 owner를 너무 빨리 확정하지 않았는가?
-12. Technical Object가 Domain 판단을 압도하지 않았는가?
-13. S06에서 해결할 질문을 남겼는가?
-
----
-
-# 51. Failure Conditions
-
-- Requirement의 명사를 그대로 Class로 만든다.
-- Analysis Concept와 Design Class를 1:1로 가정한다.
-- S04 Sequence participant를 그대로 Software Object로 확정한다.
-- Entity를 field + getter/setter의 데이터 구조로 만든다.
-- 모든 behavior를 Service에 배치한다.
-- Encapsulation을 `private` keyword로만 설명한다.
-- Information Hiding을 단순 data hiding으로 축소한다.
-- 변경 이유를 고려하지 않는다.
-- 다른 변경 이유를 가진 책임을 하나의 객체에 몰아넣는다.
-- 동일 Rule을 여러 객체/서비스에서 중복 판단한다.
-- 외부가 객체 내부 state combination을 알아야 한다.
-- invariant를 외부 코드가 유지하도록 둔다.
-- Class Diagram부터 완성하려 한다.
-- Controller/Repository/API 등의 기술 객체부터 설계한다.
-- 하나의 정답 object model만 만들고 대안을 비교하지 않는다.
-- S05에서 GRASP/Pattern으로 너무 빨리 책임을 확정한다.
-- S06에서 다룰 Message/Collaboration을 미리 상세 설계한다.
-
----
-
-# 52. Anchor / Reference
+# 31. Anchor / Reference
 
 ## Parnas — Information Hiding
 
@@ -1057,7 +946,7 @@ S03/S04와 같은 원칙을 이어간다.
 
 ---
 
-# 53. S04 Anchor와의 연결
+# 32. S04 Anchor와의 연결
 
 S04까지의 Anchor:
 
@@ -1093,7 +982,151 @@ S05
 
 ---
 
-# 54. Session Summary
+# 33. [실습] Analysis Model → Initial Design · 25~30분
+
+> **본편 실습 슬라이드는 1장만 사용한다.** 세부 진행은 Slide Notes, 예시 Before Model은 Practice 뒤 `[별첨]`으로 분리하며 Practice 전에 공개하지 않는다.
+
+## 실습 슬라이드 — 수강생에게 보이는 내용
+
+**Input**
+
+- S02 Place Order Use Case Diagram
+- S02 Place Order Use Case Specification
+- S03 Conceptual Domain Model
+- S04 Place Order Analysis Sequence Diagram
+- 기본 범위: **Place Order → Payment**
+
+**Task**
+
+1. Use Case에서 필요한 Behavior/Rule을 식별한다.
+2. Static Model에서 state/relationship, Dynamic Model에서 interaction/behavior evidence를 확인한다.
+3. 자신의 경험으로 첫 Responsibility Allocation을 수행한다.
+4. 필요하면 Analysis Concept을 split/merge하거나 최소한의 Design Object를 추가한다.
+5. 주요 Attribute와 Responsibility/Operation이 보이는 Initial Design Class Diagram을 작성하고 최초 snapshot을 보존한다.
+6. LLM으로 누락·모호함만 검토하고 변경 내용을 간단히 기록한다.
+
+**Required Output**
+
+- Initial Design Class Diagram 1개
+- 최초 독립 snapshot과 LLM 검토 후 변경 기록
+
+**Review Criteria**
+
+- Requirement와 Static/Dynamic evidence를 모두 사용했는가?
+- Analysis Concept을 Design Class로 기계적으로 1:1 변환하지 않았는가?
+- owner 없는 Behavior나 Data-only Object가 남아 있는가?
+- 기술 객체가 Domain/Object Design을 압도하지 않는가?
+- 아직 배우지 않은 RDD/GRASP를 정답처럼 적용하지 않았는가?
+
+**LLM용 추천 프롬프트**
+
+```text
+Use Case에서 요구되는 Behavior 중 owner가 없는 것은 무엇인가?
+Static/Dynamic Model에는 근거가 있는데 Design Class Diagram에서 빠진 Responsibility가 있는가?
+Data만 있고 의미 있는 Behavior가 없는 객체가 있는가?
+여러 종류의 Responsibility가 하나의 Service/Manager에 몰려 있는가?
+Analysis Concept을 Design Class로 기계적으로 1:1 변환한 부분이 있는가?
+구현 기술이나 Framework 객체를 너무 일찍 추가했는가?
+GRASP나 Design Pattern을 적용한 정답 구조는 제시하지 마라.
+...
+```
+
+## Slide Notes — 진행 가이드
+
+- 권장 시간: 독립 설계 15분 → LLM 검토 5분 → 필요한 수정/기록 5~10분.
+- Pattern 이름을 힌트로 주지 않는다. 목적은 현재 자신의 Responsibility Allocation 방식을 드러내는 것이다.
+- S03의 모든 Concept가 같은 수의 Design Class가 될 필요는 없다고만 안내한다.
+- 이 최초 snapshot을 S06의 직접 refinement input으로 보존한다.
+
+## [별첨] Initial Design Class Diagram — S06 Before Model 예시
+
+```text
+Customer
+- customerId
+
+Order
+- orderNo
+- items
+- paymentStatus
+
+OrderItem
+- quantity
+- unitPrice
+
+Product
+- productId
+- name
+
+Payment
+- amount
+- status
+
+OrderService
++ createOrder(customer, products)
++ addItem(order, product, quantity)
++ calculateTotal(order)
++ requestPayment(order, method)
++ updatePaymentStatus(order, result)
+
+Relations
+Customer 1 ── 0..* Order
+Order 1 ── 1..* OrderItem
+OrderItem * ── 1 Product
+Order 1 ── 0..1 Payment
+OrderService ──uses──> Order / OrderItem / Payment
+```
+
+이 모델은 final correct design이 아니라 S06의 **Before Model**이다. Use Case behavior는 보이지만 `OrderService`에 여러 Responsibility가 집중되고 `Order`·`OrderItem`·`Payment`가 Data Holder에 가까운 약점이 의도적으로 남아 있다. S06의 Information Expert·Cohesion/Coupling 적용 결과나 정답 구조는 여기서 제시하지 않는다.
+
+## Practice Feedback
+
+- 최초 snapshot과 LLM 검토 후 변경을 구분했는가?
+- LLM이 RDD/GRASP/Pattern 정답을 선행 주입하지 않았는가?
+- 남은 책임 약점을 S06에서 다시 검토할 질문으로 기록했는가?
+
+---
+
+# 34. Feedback 기준
+
+1. Analysis Concept를 그대로 Class로 변환하지 않았는가?
+2. Static + Dynamic evidence를 함께 사용했는가?
+3. 객체를 Data Holder로만 보지 않았는가?
+4. State와 Behavior의 의미적 결합을 고려했는가?
+5. Change Reason을 물었는가?
+6. Information Hiding을 field visibility로 축소하지 않았는가?
+7. 중요한 invariant를 보호할 boundary 후보가 있는가?
+8. Rule이 여러 곳에 중복되지 않는가?
+9. data-only object + god service 구조를 그대로 수용하지 않았는가?
+10. 여러 object boundary 대안을 비교했는가?
+11. 책임 owner를 너무 빨리 확정하지 않았는가?
+12. Technical Object가 Domain 판단을 압도하지 않았는가?
+13. S06에서 해결할 질문을 남겼는가?
+
+---
+
+# 35. Failure Conditions
+
+- Requirement의 명사를 그대로 Class로 만든다.
+- Analysis Concept와 Design Class를 1:1로 가정한다.
+- S04 Sequence participant를 그대로 Software Object로 확정한다.
+- Entity를 field + getter/setter의 데이터 구조로 만든다.
+- 모든 behavior를 Service에 배치한다.
+- Encapsulation을 `private` keyword로만 설명한다.
+- Information Hiding을 단순 data hiding으로 축소한다.
+- 변경 이유를 고려하지 않는다.
+- 다른 변경 이유를 가진 책임을 하나의 객체에 몰아넣는다.
+- 동일 Rule을 여러 객체/서비스에서 중복 판단한다.
+- 외부가 객체 내부 state combination을 알아야 한다.
+- invariant를 외부 코드가 유지하도록 둔다.
+- Class Diagram부터 완성하려 한다.
+- Controller/Repository/API 등의 기술 객체부터 설계한다.
+- 하나의 정답 object model만 만들고 대안을 비교하지 않는다.
+- S05에서 GRASP/Pattern으로 너무 빨리 책임을 확정한다.
+- S06에서 다룰 Message/Collaboration을 미리 상세 설계한다.
+
+---
+
+# 36. Session Summary
 
 ```text
 S03
@@ -1130,7 +1163,7 @@ Information Hiding
 
 ---
 
-# 55. S06으로 넘기는 질문
+# 37. S06으로 넘기는 질문
 
 S05까지는 다음을 만들었다.
 

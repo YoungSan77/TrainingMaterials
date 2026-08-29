@@ -791,14 +791,11 @@ Actor
 
 ## Main Success Scenario + 좋은 Scenario 작성법
 
-예: `Place Order`
+작성법 설명용 예: `Check Order Status`
 
-1. Customer가 상품과 수량을 선택하여 주문을 요청한다.
-2. System은 선택된 상품과 수량을 확인한다.
-3. System은 주문을 생성하고 총액을 계산한다.
-4. System은 결제를 요청한다.
-5. System은 결제 성공을 반영한다.
-6. System은 주문 완료 결과를 Customer에게 알린다.
+1. Customer가 자신의 주문 상태 조회를 요청한다.
+2. System은 조회할 주문을 식별한다.
+3. System은 현재 주문 상태를 제공한다.
 
 ```text
 Actor Action → System Response → Actor Action → System Response
@@ -821,9 +818,8 @@ Main Success Scenario와 다른 의미 있는 경로를 정의한다.
 
 예:
 
-- 재고가 부족한 상품이 포함됨
-- 결제가 실패함
-- 유효하지 않은 상품이 포함됨
+- 조회할 주문을 찾을 수 없음
+- Customer에게 해당 주문을 조회할 권한이 없음
 
 ## Flow와 Scenario
 
@@ -977,77 +973,6 @@ Then
 
 ---
 
-# 10. [실습] Place Order Use Case 작성 (25~30분)
-
-> **본편 실습 슬라이드는 1장만 사용한다.** 아래 세부 진행은 Slide Notes에 두고, 예시 답안·해설은 Session 마지막 `[별첨]`으로 분리한다.
-
-## 실습 슬라이드 — 수강생에게 보이는 내용
-
-**입력**
-
-고객은 하나 이상의 상품과 수량을 선택하여 주문한다. 시스템은 주문을 생성하고 주문 총액을 계산한다. 고객은 주문 금액을 결제하며 결제가 성공하면 주문의 결제 완료 상태가 반영된다.
-
-**과제**
-
-1. `Place Order`를 중심으로 **Use Case Diagram**을 작성한다.
-2. `Place Order`의 **Use Case Specification**을 작성한다: Use Case Name, Primary Actor, Trigger, Precondition, Main Success Scenario, 주요 Alternative/Exception, Postcondition.
-3. LLM에게 누락된 Actor/interaction, 과도한 기능, UI/API/DB 등 Solution Detail 여부를 검토하게 한다.
-4. Requirement 근거가 없는 LLM 제안은 제거한다.
-
-**필수 산출물**
-
-- Use Case Diagram 1개
-- `Place Order` Use Case Specification 1개
-
-**판단 기준**
-
-- Actor Goal이 중심인가?
-- Main Flow가 업무 의미 수준인가?
-- Diagram과 Specification이 서로 일관적인가?
-- Requirement에 없는 기능이나 Solution Detail을 임의로 추가하지 않았는가?
-
-## Slide Notes — 진행 가이드
-
-- 권장 시간: Diagram 8~10분 → Specification 10~12분 → LLM 검토·수정 5~8분.
-- 먼저 수강생이 독립적으로 초안을 만든 뒤 LLM을 사용하게 한다.
-- `Payment Gateway`, UI Button, REST API, DB Table을 Actor/Use Case/Flow에 섣불리 넣으면 “Problem인가 Solution인가?”를 질문한다.
-- 모든 예외를 완전하게 쓰게 하지 않는다. 주요 Alternative/Exception 1~2개면 충분하다.
-- SSD와 Operation Contract는 이 실습 산출물이 아니다. 본문에서 강사가 Place Order Use Case를 입력으로 어떻게 후속 분석하는지 설명한다.
-
-## [별첨] 실습 해설 — Place Order Use Case Diagram
-
-권장 구조:
-
-```text
-Customer
-   |
-   +---- Place Order
-             |
-             +---- Process Payment  (필요한 수준에서 관계 설명)
-```
-
-- Actor는 `Customer`를 중심으로 한다.
-- 외부 결제 사업자를 Actor로 포함할지는 문제 정의/시스템 경계에 따라 달라질 수 있으므로 단일 정답으로 강제하지 않는다.
-- Diagram의 목적은 구현 컴포넌트를 그리는 것이 아니라 Actor Goal과 System Boundary를 표현하는 데 있다.
-
-## [별첨] 실습 해설 — Place Order Use Case Specification
-
-| 항목 | 예시 |
-|---|---|
-| Use Case | Place Order |
-| Primary Actor | Customer |
-| Trigger | 고객이 선택한 상품을 주문하기로 결정한다 |
-| Precondition | 주문 가능한 상품과 수량이 선택되어 있다 |
-| Main Success | 주문 정보를 확인한다 → 주문을 생성한다 → 총액을 결정한다 → 결제를 요청한다 → 결제 성공을 반영한다 → 주문 완료 결과를 제공한다 |
-| Alternative | 결제가 실패하면 주문 완료로 확정하지 않고 실패 결과를 제공한다 |
-| Postcondition | 성공 시 Order가 생성되고 Payment 완료가 반영되어 있다 |
-
-**해설 포인트**
-
-- `Shipment`는 이 기본 실습의 필수 흐름에서 제외한다.
-- `Order Cancellation`과 `Refund`는 후반 variation/change request에서 사용한다.
-- 정답 문구보다 Diagram–Specification–Requirement 사이의 의미 일관성이 중요하다.
-
 # 11. 요구사항 정의와 Analysis의 분리 문제
 
 실무에서는 요구사항 정의 자체는 강조하면서도, **문제를 구현 결정과 분리하여 이해하는 Analysis 사고가 약해지는 경우**가 있다.
@@ -1095,6 +1020,94 @@ Implementation Baseline이 조기에 결합
 이어야 한다.
 
 국가·산업별 현황을 정량적인 일반 사실로 제시하려면 별도의 검증된 조사·연구가 필요하다. Deck에서는 검증된 근거가 확보된 경우에만 특정 지역의 보편적 현상으로 단정한다.
+
+---
+
+# 12. [실습] Place Order Use Case 작성 · 25~30분
+
+> **본편 실습 슬라이드는 1장만 사용한다.** 아래 세부 진행은 Slide Notes에 두고, 예시 답안은 Practice 뒤 `[별첨]`으로 분리하며 Practice 전에 공개하지 않는다.
+
+## 실습 슬라이드 — 수강생에게 보이는 내용
+
+**Input**
+
+> 고객은 하나 이상의 물건을 고르고 Card 또는 Bank Transfer로 결제하여 주문한다.
+
+상세 정상 Scenario/Event Flow는 제공하지 않는다.
+
+**Use Case Specification Template**
+
+| Use Case | Primary Actor | Goal | Trigger | Precondition | Main Success Flow | Alternative / Exception Flow | Postcondition |
+|---|---|---|---|---|---|---|---|
+|  |  |  |  |  |  |  |  |
+
+필요하면 clarification question과 assumption을 별도로 기록한다.
+
+**Task**
+
+1. 사용자 Goal과 System Boundary를 판단하여 `Place Order` Use Case Diagram을 작성한다.
+2. Input 문장에서 Main Success Flow를 직접 도출하고 필요한 Alternative/Exception Flow를 분리하여 Specification을 완성한다.
+3. LLM 검토 결과 중 Requirement 근거가 없는 제안은 채택하지 않고 assumption 또는 확인 질문으로 남긴다.
+
+**Required Output**
+
+- Place Order Use Case Diagram 1개
+- Place Order Use Case Specification 1개
+
+**Review Criteria**
+
+- 사용자 Goal이 명확한가?
+- 정상 흐름이 시작부터 종료까지 연결되는가?
+- Alternative/Exception이 필요한 곳에서 분리됐는가?
+- Requirement와 assumption이 구분되는가?
+- 불필요한 UI·DB·API·Framework Solution Detail이 없는가?
+- S03/S04 분석에 필요한 evidence가 남는가?
+
+**LLM용 추천 프롬프트**
+
+```text
+이 요구에서 Place Order의 사용자 Goal과 System Responsibility를 구분해 검토하라.
+내 Main Success Flow에서 빠진 Event나 불필요하게 추가한 Event가 있는가?
+Main Success Flow와 Alternative/Exception Flow의 구분이 적절한가?
+UI, DB, API, Framework 등 Solution Detail을 미리 결정한 부분이 있는가?
+원래 요구에서 확인할 수 없는 assumption과 이해관계자에게 확인할 질문은 무엇인가?
+...
+```
+
+## Slide Notes — 진행 가이드
+
+- 권장 시간: Diagram 8~10분 → Specification 10~12분 → LLM 검토·수정 5~8분.
+- 먼저 수강생이 독립적으로 Main Success Flow를 도출한 뒤 LLM을 사용하게 한다.
+- `Payment Gateway`, UI Button, REST API, DB Table을 섣불리 넣으면 “Problem인가 Solution인가?”를 질문한다.
+- 모든 예외를 완전하게 쓰게 하지 않는다. 주요 Alternative/Exception 1~2개면 충분하다.
+- SSD와 Operation Contract는 이 실습 산출물이 아니다.
+
+## [별첨] Place Order Use Case Diagram — 예시
+
+```text
+System Boundary: Order System
+
+Customer ── association ──> (Place Order)
+```
+
+- `Customer`는 Primary Actor이고 `Place Order`는 Customer Goal을 나타낸다.
+- 결제 방식 Card/Bank Transfer는 Flow의 variation이며 별도 Use Case나 Actor로 강제하지 않는다.
+- 외부 결제 사업자를 Actor로 둘지는 확인된 System Boundary가 있을 때만 결정한다.
+
+## [별첨] Place Order Use Case Specification — 예시
+
+| 항목 | 예시 |
+|---|---|
+| Use Case | Place Order |
+| Primary Actor | Customer |
+| Goal | 선택한 물건을 결제하여 주문을 완료한다 |
+| Trigger | Customer가 선택한 물건의 주문을 요청한다 |
+| Precondition | 하나 이상의 물건이 선택되어 있다 |
+| Main Success Flow | 1. Customer가 주문을 요청한다. 2. System이 선택 물건과 주문 정보를 확인한다. 3. System이 결제 방식을 요청한다. 4. Customer가 Card 또는 Bank Transfer를 선택한다. 5. System이 결제를 처리한다. 6. System이 주문 완료 결과를 제공한다. |
+| Alternative / Exception Flow | 4A. 지원하지 않는 결제 방식이면 다시 선택하도록 알린다. 5A. 결제가 실패하면 주문 완료로 확정하지 않고 실패 결과를 제공한다. |
+| Postcondition | 성공 시 주문과 결제 결과가 기록되고 주문 완료 결과가 제공된다 |
+
+이 두 별첨은 S02 Practice 완료가 어려운 수강생에게 강사가 이후 Session의 `[별첨] Recovery Baseline`으로 제공할 수 있으며, 기본 Input이나 Practice 전 정답이 아니다. `Shipment`, `Order Cancellation`, `Refund`는 이 답안 범위에 포함하지 않는다.
 
 ---
 
@@ -1194,8 +1207,8 @@ Domain State Change
 | 38 | 8 | Use Case vs User Story |
 | 39 | 9 | Acceptance Criteria |
 | 40 | 9 | BDD / Example |
-| 41 | 25~30 | **[실습] Place Order Use Case Diagram + Specification** |
+| 41 | 11 | **요구사항 정의와 Analysis의 분리 문제** |
+| 42 | 25~30 | **[실습] Place Order Use Case Diagram + Specification** |
 | A1 | 별첨 | **[별첨] 실습 해설 — Place Order Use Case Diagram** |
 | A2 | 별첨 | **[별첨] 실습 해설 — Place Order Use Case Specification** |
-| 42 | 11 | **요구사항 정의와 Analysis의 분리 문제** |
 | 43 | Closing | 과정 요약 + S03 연결 |

@@ -1168,7 +1168,72 @@ AccountingPeriod
 
 ---
 
-# 33. [실습] Order Conceptual Domain Model 작성 (25~30분)
+# 33. Anchor / Reference 사용
+
+## Brooks — Essence / Accident
+
+**위치:** Opening, Analysis/Solution 경계, 구현 요소 제거
+
+**역할:**
+Problem Domain의 essential conceptual complexity와 accidental/premature solution detail을 구분한다.
+
+---
+
+## Booch — OOA
+
+**위치:** Static Analysis Model 정의
+
+**역할:**
+
+OOA가 구현 Class 설계가 아니라 **문제영역의 용어와 의미 관점에서 Requirement를 이해하는 활동**임을 고정한다.
+
+---
+
+## Rumbaugh — Aggregation
+
+**위치:** Whole–Part
+
+**역할:**
+
+Notation이 Domain Meaning을 대신하지 못한다는 경계를 제공한다.
+
+---
+
+## Larman — Domain Model / Conceptual Class
+
+**위치:** Concept 식별, Conceptual Domain Model, Analysis Concept ≠ Software Class
+
+**역할:**
+
+Domain Model을 conceptual perspective에서 설명하고 implementation class와 분리한다.
+
+---
+
+## Brooks + OOAD + MDD/MDA
+
+**위치:** 초반 모델링 좌표
+
+**역할:**
+
+Model이 단순 documentation artifact가 아니라 문제 이해에서 설계·구현으로 이어지는 engineering artifact임을 설명한다.
+
+MDD/MDA 상세 자체는 가르치지 않는다.
+
+---
+
+## DDD — Domain
+
+**위치:** `Domain이란 무엇인가`, 모델링 좌표
+
+**역할:**
+
+OOAD의 Domain/Domain Model과 DDD의 Domain Model 중심 접근 사이의 연결을 보여준다.
+
+DDD Pattern은 다루지 않는다.
+
+---
+
+# 34. [실습] Order Conceptual Domain Model 작성 · 25~30분
 
 > **본편 실습 슬라이드는 1장만 사용한다.** 모델 작성 단계·힌트는 Slide Notes에 두고, 예시 답안은 Session 마지막 `[별첨]`으로 분리한다.
 
@@ -1176,10 +1241,12 @@ AccountingPeriod
 
 **입력**
 
-- S02 `Place Order` Use Case Diagram + Specification
-- S02에서 유지한 용어집
+- 수강생 자신의 S02 `Place Order` Use Case Diagram
+- 수강생 자신의 S02 `Place Order` Use Case Specification
 - 기본 범위: **Place Order → Payment**
 - `Shipment`, `Order Cancellation`, `Refund`는 이번 실습의 필수 범위가 아니다.
+
+S02 실습을 완료하지 못한 수강생에게만 강사가 S02 `[별첨]` Diagram/Specification 2개를 Recovery Baseline으로 제공할 수 있다. 이는 기본 Input이 아니다.
 
 **과제**
 
@@ -1194,8 +1261,6 @@ AccountingPeriod
 - Multiplicity
 - 의미 있는 경우 Whole–Part
 
-LLM에는 자신의 모델을 먼저 제시한 뒤 Use Case/용어집에서 놓친 Concept/Relationship, Concept-vs-Attribute 대안, 근거 부족 Multiplicity/Constraint, Solution Detail 혼입 여부만 검토하게 한다.
-
 **필수 산출물**
 
 - **Conceptual / Analysis Domain Model 1개**
@@ -1206,6 +1271,18 @@ LLM에는 자신의 모델을 먼저 제시한 뒤 Use Case/용어집에서 놓�
 - 모든 Concept/Attribute/Relationship/Multiplicity에 Requirement 또는 용어집 근거가 있는가?
 - Analysis Concept와 Software Class를 혼동하지 않았는가?
 - 모르는 Multiplicity를 임의로 만들지 않았는가?
+
+**LLM용 추천 프롬프트**
+
+```text
+내 Use Case에서 실제 근거를 찾을 수 없는 Concept이 Domain Model에 있는가?
+Use Case에서 중요한데 Domain Model에서 빠진 Concept은 무엇인가?
+Attribute로 둘 것과 별도 Concept으로 모델링할 것을 다시 검토하라.
+Association과 Multiplicity가 Use Case의 Event Flow와 일치하는가?
+Whole-Part로 표현한 관계가 실제 의미상 전체-부분 관계인가?
+UI, Controller, Repository, API 같은 Solution Concept이 섞였는가?
+...
+```
 
 ## Slide Notes — 진행 가이드
 
@@ -1220,10 +1297,10 @@ LLM에는 자신의 모델을 먼저 제시한 뒤 Use Case/용어집에서 놓�
 예시 정답은 다음 의미를 포함한다.
 
 ```text
-Customer 1 -------- 0..* Order
-Order    1 -------- 1..* OrderItem
-OrderItem * ------- 1 Product
-Order    1 -------- 0..1 Payment
+Customer 1 -------- 0..* Order     : Customer가 Order를 요청/소유 이력으로 가진다
+Order    1 -------- 1..* OrderItem : Order는 하나 이상의 주문 항목으로 구성된다
+OrderItem * ------- 1 Product     : 각 OrderItem은 주문한 Product 하나를 참조한다
+Order    1 -------- 0..1 Payment   : 현재 baseline에서 Order는 최대 하나의 결제 결과와 연결된다
 ```
 
 예시 Attribute / Value Domain:
@@ -1253,6 +1330,7 @@ Payment
 해설 포인트:
 
 - `Order`와 `OrderItem`은 Whole–Part 의미가 있는지 확인한다.
+- Whole–Part는 OrderItem이 현재 Order의 구성 항목이라는 업무 의미를 나타내며, UML filled-diamond나 물리적 lifecycle 정책을 자동 확정하지 않는다.
 - `Payment` Multiplicity는 Requirement의 결제 정책에 따라 달라질 수 있다. 예시 답안은 현재 단순화된 baseline의 한 선택일 뿐이다.
 - 계산된 `total`을 Attribute로 둘지 derived value로 볼지는 모델 목적과 요구에 따라 설명할 수 있다.
 - 구현 method/Controller/Repository/DB relation은 넣지 않는다.
@@ -1322,72 +1400,7 @@ Method나 Responsibility를 미리 결정하지 않았는가?
 
 ---
 
-# 37. Anchor / Reference 사용
-
-## Brooks — Essence / Accident
-
-**위치:** Opening, Analysis/Solution 경계, 구현 요소 제거
-
-**역할:**  
-Problem Domain의 essential conceptual complexity와 accidental/premature solution detail을 구분한다.
-
----
-
-## Booch — OOA
-
-**위치:** Static Analysis Model 정의
-
-**역할:**
-
-OOA가 구현 Class 설계가 아니라 **문제영역의 용어와 의미 관점에서 Requirement를 이해하는 활동**임을 고정한다.
-
----
-
-## Rumbaugh — Aggregation
-
-**위치:** Whole–Part
-
-**역할:**
-
-Notation이 Domain Meaning을 대신하지 못한다는 경계를 제공한다.
-
----
-
-## Larman — Domain Model / Conceptual Class
-
-**위치:** Concept 식별, Conceptual Domain Model, Analysis Concept ≠ Software Class
-
-**역할:**
-
-Domain Model을 conceptual perspective에서 설명하고 implementation class와 분리한다.
-
----
-
-## Brooks + OOAD + MDD/MDA
-
-**위치:** 초반 모델링 좌표
-
-**역할:**
-
-Model이 단순 documentation artifact가 아니라 문제 이해에서 설계·구현으로 이어지는 engineering artifact임을 설명한다.
-
-MDD/MDA 상세 자체는 가르치지 않는다.
-
----
-
-## DDD — Domain
-
-**위치:** `Domain이란 무엇인가`, 모델링 좌표
-
-**역할:**
-
-OOAD의 Domain/Domain Model과 DDD의 Domain Model 중심 접근 사이의 연결을 보여준다.
-
-DDD Pattern은 다루지 않는다.
-
----
-
-# 38. Session Summary
+# 37. Session Summary
 
 ```text
 S01
@@ -1440,7 +1453,7 @@ Static Problem Understanding
 
 ---
 
-# 39. S04로 넘기는 질문
+# 38. S04로 넘기는 질문
 
 S03에서 다음은 설명할 수 있다.
 

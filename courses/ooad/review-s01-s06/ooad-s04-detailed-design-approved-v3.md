@@ -1071,116 +1071,7 @@ Draft → Placed → Paid
 
 이 세 Diagram은 **수강생 실습 산출물이 아니다.** 모델 선택과 표현 차이를 이해시키기 위한 강사 제공 예제다.
 
-# 37. [실습] Place Order Analysis Sequence Diagram 작성 (20~25분)
-
-> **본편 실습 슬라이드는 1장만 사용한다.** 단계별 모델링 가이드는 Slide Notes에 두고 예시 답안은 Session 마지막 `[별첨]`으로 분리한다.
-
-## 실습 슬라이드 — 수강생에게 보이는 내용
-
-**입력**
-
-- S02 `Place Order` Use Case Specification
-- S03 Order Conceptual / Analysis Domain Model
-- 기본 범위: **Place Order → Payment**
-
-**과제**
-
-`Place Order`의 핵심 흐름을 **Analysis Sequence Diagram**으로 표현한다.
-
-- 문제영역에서 의미 있는 participant를 선택한다.
-- 시간 순서에 따라 의미 있는 message를 표현한다.
-- 필요한 조건/대안만 표현한다.
-- 전체 시스템 E2E가 아니라 현재 Use Case를 이해하는 데 필요한 범위까지만 모델링한다.
-- LLM에게 누락 interaction, 과도한 participant, UI/API/DB 등 Solution Detail 혼입 여부를 검토하게 한다.
-
-**필수 산출물**
-
-- **Analysis Sequence Diagram 1개**
-
-**판단 기준**
-
-- participant가 Analysis/Domain 의미를 가지는가?
-- message가 method call syntax가 아니라 의미 있는 interaction인가?
-- S03 Static Model과 모순되지 않는가?
-- 불필요한 Controller/Repository/API/DB 구현 요소가 들어오지 않았는가?
-
-## Slide Notes — 진행 가이드
-
-- 권장 시간: participant/핵심 message 10분 → 조건/대안 보완 5분 → LLM 검토 5~8분.
-- State/Communication/Activity를 다시 작성하게 하지 않는다. 이들은 본편 제공 예제로 비교한다.
-- 기본 실습 흐름은 `Place Order → Payment`로 유지한다.
-- 분석 수준에서 필요한 외부 결제 역할을 participant로 표현할지는 시스템 경계 정의에 따라 판단하게 한다.
-- message name을 `createOrder()`, `save()` 같은 구현 operation으로 빨리 고정하지 않게 한다.
-
-## [별첨] 실습 해설 — Place Order Analysis Sequence Diagram
-
-가능한 해설 흐름:
-
-```text
-Customer
-  → Order Context : Place Order
-  → Order         : Create/establish order
-  → Order         : Add selected item(s)
-  → Order         : Determine total
-  → Payment       : Request payment
-  ← Payment       : Payment confirmed
-  → Order         : Reflect payment completion
-```
-
-해설 포인트:
-
-- participant는 분석 목적에 따라 더 추상적이거나 구체적일 수 있다.
-- `Order Context` 같은 경계 역할을 넣을지는 Analysis model의 목적과 System Event 표현 방식에 따라 달라질 수 있으며 framework Controller를 뜻하지 않는다.
-- `Payment confirmed`는 Domain-semantic 의미로 표현하고 API callback, HTTP response 같은 mechanism으로 바꾸지 않는다.
-- Static Model에 없는 새로운 participant가 등장하면 실제 Concept인지 단순 interaction role인지 재검토한다.
-- 답안은 하나의 가능한 interaction 구조이며 message 의미와 Static/Dynamic 일관성이 더 중요하다.
-
-# 50. Feedback 기준
-
-1. **Event가 Domain-semantic한가?**
-2. UI/API/message/DB mechanism을 Analysis Event로 사용하지 않았는가?
-3. 용어집과 Event/State 이름이 일관되는가?
-4. 전체 E2E를 무리하게 모델링하지 않았는가?
-5. 복잡·모호·위험한 Analysis Slice를 선택했는가?
-6. 질문에 맞는 Dynamic Model을 선택했는가?
-7. Sequence를 Software Call Flow로 만들지 않았는가?
-8. Communication/Activity/State의 역할을 구분하는가?
-9. State와 단순 Status 값을 혼동하지 않았는가?
-10. Trigger/Guard/Constraint가 Requirement에 근거하는가?
-11. Static/Dynamic이 일관되는가?
-12. 발견한 문제를 Requirement/용어집으로 feedback했는가?
-13. 현재 판단에 필요한 만큼만 모델링했는가?
-
----
-
-# 51. Failure Conditions
-
-- 기능 이름에서 Dynamic Model을 시작한다.
-- UI Event를 Domain Event처럼 취급한다.
-- API 호출을 Analysis Event로 사용한다.
-- message broker event를 그대로 Domain Event라고 부른다.
-- DB update를 business state change와 동일시한다.
-- Event를 사람 Actor의 요청으로만 한정한다.
-- 용어집과 다른 이름을 Diagram에서 임의로 만든다.
-- 전체 Use Case를 하나의 E2E Diagram으로 완전하게 표현하려 한다.
-- 긴 Activity Diagram이 completeness를 보장한다고 생각한다.
-- 모든 participant를 하나의 Sequence Diagram에 넣는다.
-- 모든 Concept의 State Machine을 작성한다.
-- Sequence Diagram을 Controller/Service/Repository call graph로 만든다.
-- Communication Diagram을 최종 object network로 확정한다.
-- Activity Diagram을 모든 Use Case에 의무적으로 만든다.
-- State를 단순 enum 값 목록으로만 본다.
-- Event/State/Transition/Guard를 혼동한다.
-- Static/Dynamic 충돌을 무시한다.
-- 새 Event를 발견하고도 Requirement로 feedback하지 않는다.
-- 용어 모호성을 발견하고도 용어집을 수정하지 않는다.
-- Dynamic Analysis 중 Responsibility를 조기에 배치한다.
-- Analysis Model을 고정된 lifecycle phase의 mandatory artifact로 본다.
-- 모델이 클수록 더 완전하고 좋은 모델이라고 생각한다.
-
----
-
-# 52. Anchor / Reference
+# 37. Anchor / Reference
 
 ## Brooks — Essence / Accident
 
@@ -1212,7 +1103,141 @@ Customer
 
 ---
 
-# 53. Session Summary
+# 38. [실습] Place Order Analysis Sequence Diagram 작성 · 20~25분
+
+> **본편 실습 슬라이드는 1장만 사용한다.** 단계별 모델링 가이드는 Slide Notes에 두고 예시 답안은 Session 마지막 `[별첨]`으로 분리한다.
+
+## 실습 슬라이드 — 수강생에게 보이는 내용
+
+**입력**
+
+- 수강생 자신의 S02 `Place Order` Use Case Diagram
+- 수강생 자신의 S02 `Place Order` Use Case Specification
+- 수강생 자신의 S03 Order Conceptual Domain Model
+- 기본 범위: **Place Order → Payment**
+
+앞 실습을 완료하지 못해 진행이 어려운 수강생에게만 강사가 이전 `[별첨]`을 Recovery Baseline으로 제공할 수 있다.
+
+**과제**
+
+`Place Order`의 핵심 흐름을 **Analysis Sequence Diagram**으로 표현한다.
+
+- 문제영역에서 의미 있는 participant를 선택한다.
+- 시간 순서에 따라 의미 있는 message를 표현한다.
+- 필요한 조건/대안만 표현한다.
+- 전체 시스템 E2E가 아니라 현재 Use Case를 이해하는 데 필요한 범위까지만 모델링한다.
+- S02 Main Success Flow의 ordering과 S03 Static Model의 Concept/Relationship을 교차 검토한다.
+
+**필수 산출물**
+
+- **Analysis Sequence Diagram 1개**
+
+**판단 기준**
+
+- participant가 Analysis/Domain 의미를 가지는가?
+- message가 method call syntax가 아니라 의미 있는 interaction인가?
+- S03 Static Model과 모순되지 않는가?
+- 불필요한 Controller/Repository/API/DB 구현 요소가 들어오지 않았는가?
+
+**LLM용 추천 프롬프트**
+
+```text
+Use Case Main Success Flow의 Event가 Sequence Diagram에 빠짐없이 반영되었는가?
+participant 중 Problem Understanding에 필요하지 않은 Solution Detail이 있는가?
+Message 순서가 Use Case와 일치하는가?
+S03 Domain Model에는 없는데 Sequence에 새로 등장한 Concept이 있는가? 필요한지 검토하라.
+Static Model과 Dynamic Model 사이에 모순이 있는가?
+Design Object나 Responsibility를 너무 일찍 확정한 부분이 있는가?
+...
+```
+
+## Slide Notes — 진행 가이드
+
+- 권장 시간: participant/핵심 message 10분 → 조건/대안 보완 5분 → LLM 검토 5~8분.
+- State/Communication/Activity를 다시 작성하게 하지 않는다. 이들은 본편 제공 예제로 비교한다.
+- 기본 실습 흐름은 `Place Order → Payment`로 유지한다.
+- 분석 수준에서 필요한 외부 결제 역할을 participant로 표현할지는 시스템 경계 정의에 따라 판단하게 한다.
+- message name을 `createOrder()`, `save()` 같은 구현 operation으로 빨리 고정하지 않게 한다.
+
+## [별첨] 실습 해설 — Place Order Analysis Sequence Diagram
+
+가능한 해설 흐름:
+
+```text
+Participant
+- Customer: Place Order를 시작하는 Primary Actor
+- Order Context: System Boundary 안에서 Use Case interaction을 나타내는 analysis role
+- Order: 주문과 주문 항목·총액이라는 problem-domain 상태의 중심 Concept
+- Payment: 결제 요청과 결과를 나타내는 problem-domain Concept/role
+
+Ordering
+1. Customer → Order Context : Place Order(selected items)
+2. Order Context → Order : establish order
+3. Order Context → Order : include selected item(s)
+4. Order Context → Order : determine total
+5. Order Context → Payment : request payment(total, selected method)
+6. Payment → Order Context : payment confirmed
+7. Order Context → Order : reflect payment completion
+
+Condition
+- alt payment failed: 주문 완료로 확정하지 않고 실패 결과를 Customer에게 제공한다.
+```
+
+해설 포인트:
+
+- participant는 분석 목적에 따라 더 추상적이거나 구체적일 수 있다.
+- `Order Context` 같은 경계 역할을 넣을지는 Analysis model의 목적과 System Event 표현 방식에 따라 달라질 수 있으며 framework Controller를 뜻하지 않는다.
+- `Payment confirmed`는 Domain-semantic 의미로 표현하고 API callback, HTTP response 같은 mechanism으로 바꾸지 않는다.
+- Static Model에 없는 새로운 participant가 등장하면 실제 Concept인지 단순 interaction role인지 재검토한다.
+- `Order Context`는 analysis interaction role이며 최종 Controller/Service Class로 확정하지 않는다. Message 역시 Software method signature가 아니다.
+- 답안은 하나의 가능한 interaction 구조이며 message 의미와 Static/Dynamic 일관성이 더 중요하다.
+
+# 39. Feedback 기준
+
+1. **Event가 Domain-semantic한가?**
+2. UI/API/message/DB mechanism을 Analysis Event로 사용하지 않았는가?
+3. 용어집과 Event/State 이름이 일관되는가?
+4. 전체 E2E를 무리하게 모델링하지 않았는가?
+5. 복잡·모호·위험한 Analysis Slice를 선택했는가?
+6. 질문에 맞는 Dynamic Model을 선택했는가?
+7. Sequence를 Software Call Flow로 만들지 않았는가?
+8. Communication/Activity/State의 역할을 구분하는가?
+9. State와 단순 Status 값을 혼동하지 않았는가?
+10. Trigger/Guard/Constraint가 Requirement에 근거하는가?
+11. Static/Dynamic이 일관되는가?
+12. 발견한 문제를 Requirement/용어집으로 feedback했는가?
+13. 현재 판단에 필요한 만큼만 모델링했는가?
+
+---
+
+# 40. Failure Conditions
+
+- 기능 이름에서 Dynamic Model을 시작한다.
+- UI Event를 Domain Event처럼 취급한다.
+- API 호출을 Analysis Event로 사용한다.
+- message broker event를 그대로 Domain Event라고 부른다.
+- DB update를 business state change와 동일시한다.
+- Event를 사람 Actor의 요청으로만 한정한다.
+- 용어집과 다른 이름을 Diagram에서 임의로 만든다.
+- 전체 Use Case를 하나의 E2E Diagram으로 완전하게 표현하려 한다.
+- 긴 Activity Diagram이 completeness를 보장한다고 생각한다.
+- 모든 participant를 하나의 Sequence Diagram에 넣는다.
+- 모든 Concept의 State Machine을 작성한다.
+- Sequence Diagram을 Controller/Service/Repository call graph로 만든다.
+- Communication Diagram을 최종 object network로 확정한다.
+- Activity Diagram을 모든 Use Case에 의무적으로 만든다.
+- State를 단순 enum 값 목록으로만 본다.
+- Event/State/Transition/Guard를 혼동한다.
+- Static/Dynamic 충돌을 무시한다.
+- 새 Event를 발견하고도 Requirement로 feedback하지 않는다.
+- 용어 모호성을 발견하고도 용어집을 수정하지 않는다.
+- Dynamic Analysis 중 Responsibility를 조기에 배치한다.
+- Analysis Model을 고정된 lifecycle phase의 mandatory artifact로 본다.
+- 모델이 클수록 더 완전하고 좋은 모델이라고 생각한다.
+
+---
+
+# 41. Session Summary
 
 ```text
 S02
@@ -1267,7 +1292,7 @@ Static ↔ Dynamic ↔ Requirement ↔ 용어집
 
 ---
 
-# 54. S05로 넘기는 질문
+# 42. S05로 넘기는 질문
 
 S04까지는 다음을 이해했다.
 
