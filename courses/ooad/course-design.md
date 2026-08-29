@@ -104,6 +104,8 @@ Brooks의 Essence / Accident 관점에서 Analysis는 problem-domain의 essentia
 8. 여러 설계 대안을 change impact·cohesion/coupling·dependency·abstraction cost·SOLID·pattern·trade-off 관점에서 종합 판단한다
 9. 코드와 test evidence로 설계를 개선하고 DDD/Architecture 경계를 확인한다
 
+이 progression에서 S07은 실제 change에 대한 **local refinement**, S08은 **여러 Design Alternative를 평가하고 선택하는 판단**, S09는 앞선 분석·설계 판단을 통합하는 workshop을 소유한다. S08의 기본 판단 흐름은 `Change Impact → Cohesion/Coupling → Dependency → Abstraction Cost → SOLID/Pattern → Trade-off → Design Decision`이다. SOLID와 Pattern은 적용 개수나 checklist가 아니라 대안을 설명·평가하는 판단 언어로 사용한다. Abstraction·interface·Pattern을 추가하는 선택에도 이해·구현·협력 비용이 있으므로 실제 change evidence와 얻는 효과를 함께 비교한다.
+
 이는 Session 구조가 아니다. Curriculum LLM은 16h 안에서 중요도·난이도·실습과 feedback 필요성에 따라 시간을 비균등 배분한다.
 
 ## Running Example Strategy
@@ -121,6 +123,7 @@ Curriculum은 하나의 공통 progression을 기본 예로 사용해 Requiremen
 | Order 책임 재배치 | 정상 흐름(주문→결제)에서 분산되기 쉬운 책임을 어떤 객체 책임과 계약으로 옮길지 판단 | 책임표·계약·협력 sketch | 클래스 이름만 늘거나 규칙 owner가 여전히 여러 곳인 경우 |
 | Just-enough 모델 선택 | 변경 질문에 필요한 정적·동적 모델을 선택 | 선택한 모델과 제외 이유 | 모든 UML을 만들거나 표기 자체가 목적이 되는 경우 |
 | 설계 feedback | Order Cancellation/Refund 같은 change request와 test failure에서 최소 책임 이동/refactoring 결정 | before/after 책임과 근거 | SOLID·pattern 이름만으로 변경을 정당화하는 경우 |
+| 설계 대안 평가 | S07 설계를 바탕으로 두 Design Alternative의 비용·효과와 trade-off를 비교해 선택 | 선택한 설계 + 짧은 판단 근거 | 원칙 이름이나 추상화 수만으로 대안을 선택하는 경우 |
 
 세부 절차, 시간, 자료 공개 순서와 평가 rubric은 Curriculum 단계에서 완성한다.
 
