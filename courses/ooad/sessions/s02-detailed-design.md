@@ -1,8 +1,8 @@
 # S02. 문제 발견과 요구 이해
 
 - **시간:** 90분
-- **권장 슬라이드:** 43장 전후
-- **허용 범위:** 40~46장
+- **권장 슬라이드:** 44장 전후
+- **허용 범위:** 41~47장
 
 ## 과정 목표
 
@@ -16,7 +16,7 @@
 - 요구사항 문장뿐 아니라 필요한 정적·동적 분석 관점이 Problem Understanding의 신뢰도를 높인다는 것을 이해한다.
 - 좋은 요구사항의 자격과 주요 요구사항 유형을 구분한다.
 - 기능 요구사항과 품질 요구사항을 함께 고려한다.
-- Interview, Observation, Workshop, Prototype을 목적에 맞게 선택한다.
+- Interview, Observation, Workshop, Prototype, EventStorming을 목적에 맞게 선택한다.
 - Requirement Discovery부터 **용어집**을 만들고 용어의 의미·동의어·금칙어·경계를 합의하며 지속적으로 갱신한다.
 - **Event-centered requirement analysis**로 의미 있는 Event → Context / Condition → Required Response → Observable Outcome / Domain State Change → Stakeholder Value를 추적하고, Event–Response List·Use Case·User Story·Domain Event가 이 관점을 서로 다른 방식으로 활용한다는 것을 설명한다.
 - Use Case의 본질과 구성요소를 이해하고 Diagram과 Specification을 작성한다.
@@ -457,6 +457,26 @@ Static / Dynamic Analysis
 ```
 
 따라서 S03·S04에서 모델이 새로운 의미 차이 또는 모호함을 드러내면 용어집도 다시 수정한다.
+
+## EventStorming — 함께 Event를 발견한다
+
+EventStorming은 업무를 아는 사람과 개발자가 함께 모여 **Domain에서 의미 있는 Event를 시간 흐름에 놓고, 빠진 사건·규칙·질문을 발견하는 collaborative requirement discovery technique**이다.
+
+```text
+서로 기억하는 업무 사건을 제시한다
+        ↓
+시간 순서와 인과관계를 함께 맞춘다
+        ↓
+Trigger / Actor / Rule / Question을 확인한다
+        ↓
+누락·충돌·불확실성을 드러낸다
+        ↓
+Event-centered analysis와 Use Case 후보로 연결한다
+```
+
+예를 들어 `Customer placed order → Order total determined → Payment requested → Payment completed`를 함께 배열하면서, 누가 무엇을 시작하고 어떤 조건과 결과가 필요한지 질문한다. 결과를 곧바로 설계 Class나 최종 요구사항으로 확정하지 않고, 다음 Event-centered analysis에서 `Event → Context → Required Response → Outcome / State Change → Value`로 정제하고 Actor Goal에 따라 Use Case로 조직한다.
+
+S02에서는 EventStorming의 workshop 활용과 요구 발견 연결까지만 다룬다. Aggregate·Bounded Context·Context Map 등 DDD 전문 내용으로 확장하지 않는다.
 
 
 ## Event-centered requirement analysis — Event에서 요구를 구조화한다
@@ -1161,7 +1181,7 @@ Domain State Change
 
 ---
 
-# 권장 43~45장 구성
+# 권장 44~46장 구성
 
 추가된 내용은 `Analysis ≠ Phase`, Brooks `Essence / Accident`, Problem Understanding을 기존 요구분석 흐름에 연결하기 위한 핵심 설명이다. 실습은 본편 1장으로 통합하고 예시 답안은 별첨으로 분리했으므로 권장 slide 수는 Deck 단계에서 본문 밀도를 기준으로 다시 산정한다. ISO 29148/25010 상세 목록과 수집 방법 소개 bullet는 표/요약 문장으로 축약했고, Boehm/Standish/Bezos/von Neumann/Lean은 개별 section 대신 `공통 결론` 1개 슬라이드로 통합해 밀도를 낮췄다.
 
@@ -1184,31 +1204,32 @@ Domain State Change
 | 15 | 4 | Prototype — 보여주면서 발견한다 |
 | 16 | 4 | Wireframe + 복잡한 업무 화면 |
 | 17 | 4 | Report Prototype |
-| 18 | 5 | 왜 Use Case인가 — Actor Goal에서 필요한 기능을 찾는다 |
-| 19 | 5 | Use Case 정의 |
-| 20 | 5 | Use Case의 본질은 Text다 — Larman |
-| 21 | 5 | Actor — 정의와 식별 |
-| 22 | 5 | System Boundary |
-| 23 | 5 | Association |
-| 24 | 5 | Use Case Diagram |
-| 25 | 5 | Order Use Case Diagram |
-| 26 | 5 | Use Case Diagram 작성 방법 |
-| 27 | 5 | 좋은 Use Case를 찾는 질문 |
-| 28 | 6 | Use Case Specification |
-| 29 | 6 | Main Success Scenario + 좋은 Scenario 작성법 |
-| 30 | 6 | Alternative / Exception Flow |
-| 31 | 6 | Flow와 Scenario 구분 |
-| 32 | 7 | **Domain — 문제와 업무의 세계** |
-| 33 | 7 | SSD — System Sequence Diagram |
-| 34 | 7 | System Event → System Operation |
-| 35 | 7 | Operation Contract — What changed, not how |
-| 36 | 7 | **Domain State Change → Static / Dynamic Analysis View** |
-| 37 | 8 | User Story |
-| 38 | 8 | Use Case vs User Story |
-| 39 | 9 | Acceptance Criteria |
-| 40 | 9 | BDD / Example |
-| 41 | 11 | **요구사항 정의와 Analysis의 분리 문제** |
-| 42 | 25~30 | **[실습] Place Order Use Case Diagram + Specification** |
+| 18 | 4 | **EventStorming — 함께 Event를 발견한다** |
+| 19 | 5 | 왜 Use Case인가 — Actor Goal에서 필요한 기능을 찾는다 |
+| 20 | 5 | Use Case 정의 |
+| 21 | 5 | Use Case의 본질은 Text다 — Larman |
+| 22 | 5 | Actor — 정의와 식별 |
+| 23 | 5 | System Boundary |
+| 24 | 5 | Association |
+| 25 | 5 | Use Case Diagram |
+| 26 | 5 | Order Use Case Diagram |
+| 27 | 5 | Use Case Diagram 작성 방법 |
+| 28 | 5 | 좋은 Use Case를 찾는 질문 |
+| 29 | 6 | Use Case Specification |
+| 30 | 6 | Main Success Scenario + 좋은 Scenario 작성법 |
+| 31 | 6 | Alternative / Exception Flow |
+| 32 | 6 | Flow와 Scenario 구분 |
+| 33 | 7 | **Domain — 문제와 업무의 세계** |
+| 34 | 7 | SSD — System Sequence Diagram |
+| 35 | 7 | System Event → System Operation |
+| 36 | 7 | Operation Contract — What changed, not how |
+| 37 | 7 | **Domain State Change → Static / Dynamic Analysis View** |
+| 38 | 8 | User Story |
+| 39 | 8 | Use Case vs User Story |
+| 40 | 9 | Acceptance Criteria |
+| 41 | 9 | BDD / Example |
+| 42 | 11 | **요구사항 정의와 Analysis의 분리 문제** |
+| 43 | 25~30 | **[실습] Place Order Use Case Diagram + Specification** |
 | A1 | 별첨 | **[별첨] 실습 해설 — Place Order Use Case Diagram** |
 | A2 | 별첨 | **[별첨] 실습 해설 — Place Order Use Case Specification** |
-| 43 | Closing | 과정 요약 + S03 연결 |
+| 44 | Closing | 과정 요약 + S03 연결 |

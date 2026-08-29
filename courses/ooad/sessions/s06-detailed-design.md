@@ -152,6 +152,18 @@ CRC는 Class, Responsibility, Collaborator를 함께 본다.
 
 S06에서는 CRC Card 자체를 별도 산출물로 만들지 않는다. Class Diagram과 Sequence Diagram을 보완하기 위한 사고 관점으로 사용한다.
 
+### CRC Card 예 — Place Order
+
+| Class | Responsibility | Collaborator |
+|---|---|---|
+| `Order` | OrderItem을 관리하고 총액을 계산하며 주문 상태의 일관성을 지킨다 | `OrderItem`, `Payment` |
+| `OrderItem` | 수량과 단가를 바탕으로 subtotal을 계산한다 | `Product` |
+| `Payment` | 주문 총액에 대한 결제를 요청하고 결과를 표현한다 | `Order` |
+
+이 Card는 Class 이름만 적는 목록이 아니라 **누가 무엇을 책임지고, 그 책임을 수행하기 위해 누구와 협력하는지** 한눈에 검토하는 예다. 책임이 한 Class에 몰리거나 Collaborator가 과도하게 늘어나면 이후 GRASP와 Class↔Sequence feedback에서 배치를 다시 검토한다.
+
+> CRC Card는 설명용 사고 도구이며 Formal artifact나 추가 실습 산출물이 아니다.
+
 ---
 
 ## 10. GRASP 기본 — 실습에 사용할 판단 언어
