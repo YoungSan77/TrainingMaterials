@@ -220,6 +220,14 @@ Design Class
 
 로 변환하지 않는다.
 
+> **Model-centered positioning bridge**
+>
+> - **OOAD:** Analysis Model의 Problem Understanding을 Object Design의 책임·협력·계약 판단으로 전환한다.
+> - **Evans Model-Driven Design:** Domain Model을 Design/Code와 연결하고 구현 feedback으로 함께 진화시킨다.
+> - **MDD / MDE / MDA:** Model을 중심 engineering artifact로 두고 technical realization 또는 transformation과의 연결을 강조한다.
+>
+> 이 접근들은 **의미와 Model을 기술적 realization과 구분하면서 연결한다**는 문제의식을 일부 공유하지만 계보·목적·coverage가 다르다. 교육적으로 유사 대응을 설명할 수는 있어도 `PIM = Analysis Model`, `PSM = Design Model`로 동일시하지 않는다. OOAD에서는 이 위치 관계만 확인하고 각 접근의 상세 기법으로 확장하지 않는다.
+
 더 정확한 흐름:
 
 ```text
