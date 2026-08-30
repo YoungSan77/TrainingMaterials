@@ -1,8 +1,8 @@
 # S01. OOAD 개요
 
 - **시간:** 60분
-- **권장 슬라이드:** 22장 전후
-- **허용 범위:** 20~24장
+- **권장 슬라이드:** 24장 전후
+- **허용 범위:** 22~26장
 
 ## 과정 목표
 
@@ -15,6 +15,9 @@
 - 문제영역을 정적·동적 관점으로 이해하는 이유를 설명한다.
 - 왜 객체지향이라는 접근이 필요한가.
 - OOA와 OOD가 무엇이며 어떻게 연결되는가.
+- Analysis/Architecture/Design/Technical Design이 서로 다른 Engineering Judgment이며, 독립된 lifecycle phase가 아니라는 것을 설명한다.
+- 이 과정의 Session 순서(Learning Sequence)가 실제 개발의 Engineering Lifecycle을 의미하지 않는다는 것을 구분한다.
+- 실제 delivery가 `Define ↔ Build ↔ Test`처럼 반복되며, Test/구현 evidence가 앞선 판단을 다시 열 수 있다는 것을 설명한다.
 - 이후 OOAD 과정이 어떤 흐름으로 진행되는가.
 
 ---
@@ -158,15 +161,17 @@ Implementation
 Analyze → Design → Implement
 ```
 
-### Iterative / Incremental / Agile
+### Iterative / Incremental / Agile — Define ↔ Build ↔ Test
 
 ```text
-Understand
-   ↕
-Analyze ↔ Design ↔ Implement ↔ Test
-   ↑                         ↓
-   └──────── Feedback ───────┘
+Define ↔ Build ↔ Test
 ```
+
+- **Define** — 문제/요구 이해, 필요한 Analysis/Architecture/Design 판단
+- **Build** — Technical Design·구현·통합, 그 과정에서 재발생하는 Analysis/Architecture/Design 재판단
+- **Test** — 실행 결과와 evidence 확인, 필요하면 Define 또는 Build로 되돌리는 feedback
+
+`Analysis = Define`, `Design = Build`, `Test = 마지막 단계`처럼 1:1로 고정하지 않는다. Build 중에도 Analysis/Design 판단이 다시 필요할 수 있고, Test evidence가 Define/Build의 판단을 다시 열 수 있다.
 
 따라서:
 
@@ -345,6 +350,44 @@ Larman의 `Design Principles over UML` Anchor를 여기에서 사용한다.
 
 ---
 
+# 5. Engineering Judgment / Abstraction Map
+
+**목표:** Analysis/Architecture/Design/Technical Design이 서로 다른 질문을 판단하는 Engineering Judgment이며, 이 과정의 Session 순서가 실제 개발 lifecycle과 같지 않다는 것을 구분한다.
+
+## Engineering Judgment / Abstraction Map
+
+```text
+Intent            — 무엇을 이루려는가
+        ↓
+Requirement       — 무엇이 필요한가
+        ↓
+Analysis          — 문제·의미·규칙을 어떻게 이해하는가
+        ↓
+Architecture      — 시스템 수준 경계·구조·제약을 어떻게 판단하는가
+        ↓
+Design            — 책임·협력·구조를 어떻게 배치하는가
+        ↓
+Technical Design  — 기술 환경과 구현 제약에 맞게 어떻게 구체화하는가
+        ↓
+Code              — 실행 가능한 구현
+```
+
+> **이 Map은 lifecycle phase diagram이 아니라 서로 다른 질문을 구분하는 Engineering Judgment 지도다.** 화살표는 순서를 강제하지 않으며, 실제 개발에서는 필요한 시점에 반복하고 판단 수준 사이를 왕복한다.
+
+Architecture는 이 과정이 새로 가르치는 주제가 아니다. OOAD는 Analysis와 Design에 집중하며, Architecture의 상세 판단(구조 대안, quality trade-off)은 SW Architecture 과정이 소유한다. 이 Map에서는 Architecture가 Analysis와 Design 사이에 존재하는 별개의 judgment라는 위치만 확인한다.
+
+Define ↔ Build ↔ Test(§2)는 이 Map과 다른 관점이다. Judgment Map은 **어떤 질문을 판단하는가**를 구분하고, Define ↔ Build ↔ Test는 **그 판단들이 실제 delivery에서 어떻게 반복되는가**를 보여준다. 두 관점을 `Analysis=Define`처럼 1:1로 대응시키지 않는다.
+
+## Course Sequence ≠ Engineering Lifecycle
+
+다음 절 "과정 지도"는 위 Engineering Judgment Map 전체를 다시 그리는 것이 아니다.
+
+> **이 과정의 Session 순서는 Analysis와 Design 중심으로 판단 유형을 나누어 가르치기 위한 Learning Sequence다. 실제 개발이 밟아야 하는 Engineering Lifecycle을 의미하지 않는다.**
+
+Learning Sequence 안에서는 앞선 Session의 판단으로 되돌아가지 않고 다음 Session으로 진행하지만, 실제 engineering에서는 후속 evidence가 앞선 Analysis/Architecture/Design 판단을 다시 열 수 있다.
+
+---
+
 # 과정 지도
 
 아래 흐름은 고정된 lifecycle phase를 뜻하지 않는다. 과정에서 익힐 **사고와 판단의 논리적 흐름**이다.
@@ -405,6 +448,10 @@ S01은 이 전체 과정에서 **왜 이 사고 흐름이 필요한가**를 이�
 **OOA와 OOD란?**  
 문제영역을 객체 관점에서 이해하고, 그 이해를 책임 있는 객체 설계로 전환하는 활동.
 
+**Engineering Judgment Map과 이 과정의 Session 순서는 같은가?**
+
+아니다. Map은 Analysis/Architecture/Design/Technical Design이라는 서로 다른 judgment를 구분하고, Session 순서는 그중 Analysis와 Design을 가르치기 위한 Learning Sequence다. 실제 delivery는 `Define ↔ Build ↔ Test`로 반복되며, Test/구현 evidence가 앞선 판단을 다시 열 수 있다.
+
 다음 질문:
 
 > **그렇다면 우리가 해결해야 할 문제와 요구를 어떻게 제대로 발견하고 정의할 것인가?**
@@ -413,9 +460,9 @@ S01은 이 전체 과정에서 **왜 이 사고 흐름이 필요한가**를 이�
 
 ---
 
-# 권장 22장 구성
+# 권장 24장 구성
 
-추가된 `Essence / Accident`, `Analysis ≠ Phase`, 정적·동적 관점은 별도 지식 항목이 아니라 기존 논증을 명확히 하는 핵심 Anchor다. 60분 안에서 설명을 압축하여 **22장 전후**, 허용 범위 **20~24장**을 권장한다.
+추가된 `Essence / Accident`, `Analysis ≠ Phase`, 정적·동적 관점, `Engineering Judgment / Abstraction Map`, `Define ↔ Build ↔ Test`는 별도 지식 항목이 아니라 기존 논증을 명확히 하는 핵심 Anchor다. §2의 Iterative/Agile 설명을 Define/Build/Test로 통합해 별도 slide를 늘리지 않았고, §5(Engineering Judgment Map, Course Sequence ≠ Engineering Lifecycle)만 신규 2장으로 추가했다. 60분 안에서 설명을 압축하여 **24장 전후**, 허용 범위 **22~26장**을 권장한다.
 
 | # | Block | Slide |
 |---:|---|---|
@@ -428,7 +475,7 @@ S01은 이 전체 과정에서 **왜 이 사고 흐름이 필요한가**를 이�
 | 7 | 2 | 분석이란 무엇인가 |
 | 8 | 2 | 설계란 무엇인가 |
 | 9 | 2 | **Analysis ≠ Phase — 질문을 구분한다** |
-| 10 | 2 | Predictive vs Iterative / Agile — Process에서는 통합, 사고에서는 구분 |
+| 10 | 2 | Predictive vs Iterative / Agile — **Define ↔ Build ↔ Test 반복 flow** |
 | 11 | 3 | 왜 객체지향인가 |
 | 12 | 3 | 복잡성 → 구조화 → 모듈화 |
 | 13 | 3 | Information Hiding |
@@ -440,4 +487,6 @@ S01은 이 전체 과정에서 **왜 이 사고 흐름이 필요한가**를 이�
 | 19 | 4 | **Static View + Dynamic View** |
 | 20 | 4 | OOD — 객체 설계 |
 | 21 | 4 | **OOA → OOD / UML보다 솔루션 분석과 설계** |
-| 22 | Closing | **과정 지도 + 과정 요약** |
+| 22 | 5 | **Engineering Judgment / Abstraction Map** |
+| 23 | 5 | **Course Sequence ≠ Engineering Lifecycle** |
+| 24 | Closing | **과정 지도 + 과정 요약** |

@@ -71,8 +71,28 @@ S03과 S04는 단계가 아니라 같은 Problem Understanding의 상호보완 �
 - Event, State, Transition, Guard를 구분한다.
 - Static/Dynamic Model을 상호 검증한다.
 - 모델에서 발견한 불확실성을 Requirement와 용어집으로 feedback한다.
+- Scenario를 따라가며 발견한 Static Model의 문제(누락된 Concept, 잘못된 Relationship, 빠진 Attribute/State)를 실제로 수정하고 다시 Scenario로 확인한다.
 - Dynamic Analysis와 S05 이후 Responsibility Design의 경계를 지킨다.
 - 모델의 목적이 충족되면 Just-enough 수준에서 멈춘다.
+
+---
+
+## Session Timebox (총 75분)
+
+| 구간 | 포함 섹션 | 시간 |
+|---|---|---:|
+| Dynamic Analysis Teaching | §3~§28, §34~§37 (Event 정의, Analysis Slice, Dynamic Model Landscape, Sequence 중심 설명, Communication/Activity 제공 예제, State Machine, Just-enough, Anchor) | 36분 |
+| Formal Practice | §38 Place Order Analysis Sequence Diagram 작성 | 22분(20~25분 범위) |
+| Static↔Dynamic Integration Exercise | §42 Static ↔ Dynamic Model Refinement | 12분(10~15분 범위) |
+| Session Summary + S05 Handoff | §39~§41, §43 | 5분 |
+| **합계** |  | **75분** |
+
+Formal Practice와 Integration Exercise는 시간을 중복 계산하지 않으며 목적이 다르다.
+
+- **Formal Practice(§38):** Dynamic Model/Sequence Diagram을 처음부터 적용해 작성한다.
+- **Integration Exercise(§42):** 이미 만든 Static Model을 Dynamic Scenario로 검증하고, 발견된 문제를 실제로 수정·재확인한다.
+
+Dynamic Analysis Teaching 36분은 §6~§9(Event Source/Constraint/용어집 recap), §19~§22(Communication/Activity 제공 예제), §29~§33(Static↔Dynamic Cross-check) 구간을 압축해 반영한 값이다. 이 Timebox는 상세설계 완료 후 Integration Review에서 실제 slide/전달 속도로 최종 검증한다.
 
 ---
 
@@ -189,28 +209,15 @@ Analysis 단계에서 중요한 것은 UI가 아니라:
 
 # 6. 단, 실제 Constraint는 제거하지 않는다
 
-기술적 요소라고 해서 무조건 제거하는 것은 아니다.
-
-예:
-
-- 법률상 특정 방식의 confirmation이 필수
-- 특정 의료장치에서 physical switch 사용이 안전 요건
-- 외부 표준 protocol 자체가 계약상의 제약
-- 시간 제한이 외부 시스템과의 계약조건
-
-이라면 Problem을 실제로 제약한다.
-
-따라서:
+법률상 필수 confirmation, 의료장치 안전 요건, 외부 표준 protocol, 계약상 시간 제한처럼 Problem을 실제로 제약하는 기술 요소는 무조건 제거하지 않는다.
 
 ```text
 Technology Detail?
         ↓
-Chosen Solution인가?
-        또는
-Legitimate Constraint인가?
+Chosen Solution인가? 또는 Legitimate Constraint인가?
 ```
 
-를 판단한다.
+를 판단한다(S02·S03과 같은 기준).
 
 ---
 
@@ -218,67 +225,21 @@ Legitimate Constraint인가?
 
 Event는 사람 Actor에 한정되지 않는다.
 
-### Human / Business Event
-
 ```text
-Customer places order
+Human/Business Event    — Customer places order
+External System Event   — Payment provider confirms payment, Inventory system confirms stock reserved
+Temporal Event          — Payment deadline expires, Reservation expires
 ```
 
-### External System Event
-
-```text
-Payment provider confirms payment
-Inventory system confirms stock reserved
-```
-
-### Temporal Event
-
-```text
-Payment deadline expires
-Reservation expires
-```
-
-따라서 질문은:
-
-> **Who triggered?**
-
-가 아니라 더 넓게:
-
-> **Who or What caused this meaningful Event?**
-
-이다.
+따라서 질문은 **Who triggered?**가 아니라 **Who or What caused this meaningful Event?**다.
 
 ---
 
 # 8. 용어집과 Dynamic Analysis
 
-S04에서도 새로운 이름을 임의로 만들지 않는다.
+S04에서도 새 이름을 임의로 만들지 않는다. S02·S03의 용어집을 계속 사용한다.
 
-S02·S03에서 유지한 용어집을 계속 사용한다.
-
-예:
-
-```text
-Order Requested
-Payment Confirmed
-Order Paid
-Order Confirmed
-```
-
-Dynamic Model을 그리다가:
-
-```text
-Payment Confirmed
-Payment Completed
-Payment Succeeded
-Payment Settled
-```
-
-같은 표현이 섞였다면 먼저 물어야 한다.
-
-> **같은 의미인가, 다른 의미인가?**
-
-Diagram을 고치기 전에 용어집을 확인한다.
+`Payment Confirmed`를 그리다가 `Payment Completed`, `Payment Succeeded`, `Payment Settled`처럼 표현이 섞이면, Diagram을 고치기 전에 **같은 의미인가, 다른 의미인가?**를 용어집으로 먼저 확인한다.
 
 ---
 
@@ -547,25 +508,11 @@ Payment
 
 # 19. Communication Diagram
 
-핵심 질문:
-
-> **어떤 participant들이 연결되어 있고 어떤 message 관계가 존재하는가?**
-
-Sequence와 같은 interaction을 표현할 수 있지만 강조점이 다르다.
-
-```text
-Sequence
-→ Time Ordering 중심
-
-Communication
-→ Participant Connection + Message Structure 중심
-```
+핵심 질문: **어떤 participant들이 연결되어 있고 어떤 message 관계가 존재하는가?** Sequence와 같은 interaction을 표현하지만 강조점이 다르다(Sequence → Time Ordering 중심, Communication → Participant Connection + Message Structure 중심).
 
 ---
 
 # 20. Communication Diagram의 위치
-
-예:
 
 ```text
 Customer
@@ -577,23 +524,13 @@ Order
 OrderItem Payment
 ```
 
-S04에서는 이것을 상세 설계도로 발전시키지 않는다.
-
-목적:
-
-> **같은 Interaction을 관계 구조 관점에서 볼 수 있다는 것을 이해한다.**
-
-직접 실습의 중심은 Sequence로 둔다.
+같은 Interaction을 관계 구조 관점에서 보여줄 뿐 상세 설계도로 발전시키지 않는다. 실습의 중심은 Sequence다.
 
 ---
 
 # 21. Activity Diagram
 
-핵심 질문:
-
-> **Flow가 어떻게 진행되고 어디에서 분기·병합·병렬화되는가?**
-
-예:
+핵심 질문: **Flow가 어떻게 진행되고 어디에서 분기·병합·병렬화되는가?**
 
 ```text
 Order Requested
@@ -613,19 +550,7 @@ Reject      Payment Attempted
 
 # 22. Activity Diagram의 Guardrail
 
-Activity Diagram은 특히 E2E Process Map으로 팽창하기 쉽다.
-
-따라서:
-
-> **Activity Diagram은 전체 Business Process를 완전하게 문서화하기 위한 기본 산출물이 아니다.**
-
-현재 질문이:
-
-- branching
-- parallelism
-- workflow dependency
-
-일 때만 필요한 구간을 모델링한다.
+Activity Diagram은 E2E Process Map으로 팽창하기 쉽다. **전체 Business Process 문서화가 기본 산출물이 아니다** — branching/parallelism/workflow dependency 질문이 있을 때만 필요한 구간을 모델링한다.
 
 ---
 
@@ -797,163 +722,39 @@ Diagram 종류가 출발점이 아니다.
 
 # 29. Static + Dynamic Cross-check
 
-S03:
-
 ```text
-Order
-OrderItem
-Product
-Payment
+Static Structure (S03: Order/OrderItem/Product/Payment)
+        ↕
+Dynamic Behavior (S04: Order Requested/Payment Confirmed/Order Paid/Order Confirmed)
+        ↕
+Requirement ↕ 용어집
 ```
 
-S04:
-
-```text
-Order Requested
-Payment Confirmed
-Order Paid
-Order Confirmed
-```
-
-두 모델을 연결한다.
-
-```text
-Static Structure
-        ↕
-Dynamic Behavior
-        ↕
-Requirement
-        ↕
-용어집
-```
+두 모델은 서로의 근거이자 검증 대상이다. 아래 세 절은 이 상호 검증이 실제로 어떻게 작동하는지 보여준다. (신규 통합 실습 §42에서 이 상호 검증을 직접 손으로 수행한다.)
 
 ---
 
 # 30. Dynamic이 Static을 수정한다
 
-예:
-
-S03에서는:
-
-```text
-Order — Payment
-```
-
-관계를 단순하게 봤다.
-
-S04에서 분할 결제(split payment) 사례를 보면:
-
-```text
-Order
-    ↓
-Payment #1
-Payment #2
-```
-
-가 가능하다는 사실이 드러날 수 있다.
-
-그러면:
-
-- Multiplicity
-- Concept
-- Constraint
-- Requirement
-
-를 다시 검토한다.
+S03은 `Order — Payment`를 단순 관계로 봤다. S04에서 분할 결제(split payment) 사례(`Order → Payment #1, Payment #2`)를 보면 이 관계가 부족했다는 사실이 드러날 수 있다. 그러면 Multiplicity, Concept, Constraint, Requirement를 다시 검토한다.
 
 ---
 
 # 31. Static이 Dynamic을 수정한다
 
-반대도 가능하다.
-
-Dynamic Model에서:
-
-```text
-Split Payment Requested
-```
-
-를 표현했는데 Static Model에:
-
-```text
-Order — Payment의 1..* Multiplicity
-```
-
-이 전혀 없다면 질문해야 한다.
-
-> 새 Concept인가?  
-> Requirement 누락인가?  
-> 모델이 잘못됐는가?
+반대도 성립한다. Dynamic Model에 `Split Payment Requested`가 있는데 Static Model에 `Order — Payment`의 `1..*` Multiplicity가 없다면, 새 Concept인지 Requirement 누락인지 모델이 잘못됐는지 질문해야 한다.
 
 ---
 
 # 32. 용어집 Feedback
 
-Dynamic Analysis 중 다음이 발견됐다고 하자.
-
-```text
-Payment Confirmed
-Payment Authorized
-Payment Completed
-```
-
-이들은 같을 수도 있고 다를 수도 있다.
-
-Diagram 안에서 임의로 합치지 않는다.
-
-```text
-Dynamic Model
-        ↓
-Semantic Ambiguity
-        ↓
-용어집
-        ↓
-Meaning / Boundary 재합의
-```
+Dynamic Analysis 중 `Payment Confirmed`, `Payment Authorized`, `Payment Completed`처럼 표현이 섞여 나타날 수 있다. Diagram 안에서 임의로 합치지 않고 `Dynamic Model → Semantic Ambiguity → 용어집 → Meaning/Boundary 재합의` 순서로 확인한다.
 
 ---
 
 # 33. Requirement Feedback
 
-예:
-
-Dynamic Analysis 중:
-
-```text
-Payment Declined by Provider
-```
-
-라는 Event가 새로 드러났다.
-
-S02에는 이 Requirement가 없었다.
-
-그러면:
-
-```text
-Payment Declined by Provider
-        ↓
-Context?
-        ↓
-Required Response?
-        ↓
-Outcome?
-        ↓
-Stakeholder Value?
-```
-
-를 다시 분석한다.
-
-즉:
-
-```text
-S02 Requirement
-        ↕
-S03 Static Model
-        ↕
-S04 Dynamic Model
-```
-
-은 pipeline이 아니라 feedback loop다.
+Dynamic Analysis 중 `Payment Declined by Provider`라는 Event가 새로 드러났는데 S02에는 이 Requirement가 없었다면, `Context? → Required Response? → Outcome? → Stakeholder Value?`를 다시 분석한다. `S02 Requirement ↕ S03 Static Model ↕ S04 Dynamic Model`은 pipeline이 아니라 feedback loop다.
 
 ---
 
@@ -1234,6 +1035,7 @@ Condition
 - Dynamic Analysis 중 Responsibility를 조기에 배치한다.
 - Analysis Model을 고정된 lifecycle phase의 mandatory artifact로 본다.
 - 모델이 클수록 더 완전하고 좋은 모델이라고 생각한다.
+- 통합 실습에서 Method/Responsibility/GRASP/Object Contract 등 S05 이후에 배울 개념을 미리 끌어와 사용한다.
 
 ---
 
@@ -1288,11 +1090,169 @@ Static ↔ Dynamic ↔ Requirement ↔ 용어집
 
 > **Static과 Dynamic은 서로 검증하며 Requirement와 용어집까지 수정할 수 있다.**
 
+> **Dynamic Model은 그 자체가 목적이 아니라 Static Model이 실제 Scenario를 설명할 수 있는지 검증하는 evidence다.**
+
 > **가장 큰 모델이 아니라 현재 판단에 충분한 모델이 좋은 모델이다.**
 
 ---
 
-# 42. S05로 넘기는 질문
+# 42. [통합 실습] Static ↔ Dynamic Model Refinement · 10~15분
+
+> **본편 실습 슬라이드는 1장만 사용한다.** 위치는 Session Summary(§41) 직후, S05 Handoff(§43) 이전이다. 이 실습은 §38 Formal Practice(Place Order Analysis Sequence Diagram 작성)를 대체하지 않는 별도의 최소 실습이며, §38의 Input/Task/Time/산출물은 변경되지 않는다.
+
+## 목적
+
+S03/S04에서 이미 배운 내용만 사용해 다음 흐름을 직접 수행한다.
+
+```text
+Static Model
+        ↓
+Scenario/Interaction
+        ↓
+설명되지 않는 정보·상태·관계 발견
+        ↓
+Static Model 보완
+        ↓
+Scenario로 재확인
+```
+
+새로운 개념을 배우지 않는다. §29~§33에서 서술로 다룬 Static↔Dynamic Cross-check를 손으로 직접 수행해 보는 것이 유일한 목적이다.
+
+## Boundary
+
+다음은 이 실습에서 다루지 않는다. S05 이후 ownership이다.
+
+- Method allocation
+- Responsibility allocation
+- GRASP
+- Object Contract
+- SOLID
+- Pattern
+
+## 실습 슬라이드 — 수강생에게 보이는 내용
+
+**제공 자료 (강사 제공, 의도적으로 일부 정보가 빠진 Static Model)**
+
+```text
+Order
+--------------------------
+orderNumber : Text
+orderDate   : Date
+status      : OrderStatus
+    |
+    | contains
+    v
+OrderItem
+--------------------------
+quantity : WholeNumber
+    |
+    | refers to
+    v
+Product
+--------------------------
+productId : Identifier
+name      : Text
+
+Order
+    |
+    | paid by
+    v
+Payment
+--------------------------
+amount : Money
+status : PaymentStatus
+```
+
+**제공 Scenario**
+
+```text
+1. Customer가 상품 A 2개를 주문한다.
+2. System은 상품 A의 현재 가격을 확인해 주문 총액을 계산한다.
+3. Customer가 결제를 완료한다.
+4. 다음날 상품 A의 가격이 인상된다.
+5. Customer가 자신의 지난 주문 내역을 다시 확인한다.
+6. System은 주문 당시 결제된 금액을 그대로 보여준다(가격 인상 이전 금액).
+```
+
+**과제**
+
+1. 제공된 Static Model을 읽는다.
+2. Scenario를 순서대로 따라간다.
+3. 이 Static Model로 설명할 수 없는 지점을 찾는다.
+4. 누락되었거나 잘못된 Concept, Attribute, Relationship 또는 State를 수정한다(전체 모델을 새로 그리지 않는다. 문제가 있는 부분만 고친다).
+5. 수정된 Static Model로 Scenario 6번을 다시 설명할 수 있는지 확인한다.
+
+**필수 산출물 (최소화)**
+
+```text
+발견한 문제:
+
+수정된 Static Model (해당 부분만):
+
+수정 이유:
+
+Scenario 재확인 결과:
+```
+
+**판단 기준**
+
+- 새로운 개념(Method/Responsibility/GRASP/Object Contract)을 끌어오지 않았는가?
+- 문제를 Concept/Attribute/Relationship/State 중 정확히 어떤 것으로 짚었는가?
+- 수정이 최소한인가(전체 모델 재작성이 아닌가)?
+- 수정된 모델로 Scenario 6번을 실제로 설명할 수 있는가?
+
+**LLM용 추천 프롬프트**
+
+```text
+이 Static Model로 Scenario 6번을 설명할 수 있는가? 설명할 수 없다면 어디가 부족한가?
+내가 수정한 부분이 Concept/Attribute/Relationship/State 중 무엇에 해당하는지 명확한가?
+Method나 Responsibility, GRASP 이름을 앞당겨 사용한 부분이 있는가?
+더 최소한의 수정으로 같은 문제를 해결할 수 있는가?
+...
+```
+
+## Slide Notes — 진행 가이드
+
+- 권장 시간: Static Model + Scenario 읽기 3분 → 문제 발견 3~4분 → 모델 수정 3~4분 → 재확인 2~3분.
+- 새 Diagram을 그리는 실습이 아니라 제공된 Static Model 조각을 수정하는 실습이다.
+- 학습자가 `unitPrice`를 `Order`에 추가하려 한다면 S03 §22의 flat model 문제로 되돌아가는 것이므로, `OrderItem`에 있어야 함을 상기시킨다.
+- Method나 Responsibility 이름을 붙이려는 시도가 나오면 "그건 S05 이후에 다룬다"고 안내한다.
+- 이 실습의 10~15분은 Session Timebox(§2 뒤 표)에서 §6~§9/§19~§22/§29~§33 압축으로 이미 흡수했으므로 총 75분을 넘기지 않는다.
+
+## [별첨] 실습 해설
+
+```text
+발견한 문제
+OrderItem에 unitPrice가 없다.
+quantity만으로는 "주문 당시 가격"을 표현할 수 없고,
+Product.price를 그대로 참조하면
+가격 인상 이후 과거 주문 금액을 재현할 수 없다.
+
+수정된 Static Model
+OrderItem
+--------------------------
+quantity  : WholeNumber
+unitPrice : Money         ← 추가
+
+수정 이유
+OrderItem.unitPrice는 주문 시점 가격의 snapshot이다(S03 §23).
+Scenario 4~6번은 Product.price가 바뀐 뒤에도
+과거 주문 금액이 보존되어야 함을 보여준다.
+
+Scenario 재확인
+6. System은 OrderItem.unitPrice를 사용해
+   주문 당시 결제된 금액을 그대로 보여준다. (설명 가능)
+```
+
+해설 포인트:
+
+- 이 문제는 S03 §22~§23에서 이미 배운 snapshot/temporal 판단을 새 Scenario에 그대로 적용한 것이다. 새 개념이 아니다.
+- `Product`에 `price`를 추가하는 대안도 가능하지만, 그것만으로는 Scenario 6번(과거 금액 보존)을 설명하지 못한다. `OrderItem.unitPrice`처럼 확정 시점에 값을 고정하는 Attribute가 필요하다.
+- 이 실습에서 "누가 unitPrice를 계산해서 넣어야 하는가"(Responsibility)는 다루지 않는다. S06에서 다룬다.
+
+---
+
+# 43. S05로 넘기는 질문
 
 S04까지는 다음을 이해했다.
 

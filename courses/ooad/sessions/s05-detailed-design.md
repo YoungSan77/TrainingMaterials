@@ -47,6 +47,8 @@ S05부터 질문이 바뀐다.
 
 즉 S05가 **Analysis → Object Design의 명시적 전환점**이다.
 
+이 전환은 **learning sequence 안에서의 명시적 전환점**이며, 실제 engineering에서 Analysis가 완료·동결된다는 뜻은 아니다. Design/Implementation 중 발견한 evidence가 Concept/Relationship/Requirement 이해를 다시 열 수 있다.
+
 ---
 
 ## S05의 교육적 역할 — 경험 기반 Initial Design

@@ -70,11 +70,14 @@ S03은 여기서 출발한다.
 - 필요한 경우 Attribute에 **analysis-level type / value domain**을 정의한다.
 - Relationship과 Multiplicity를 업무 의미와 제약으로 해석한다.
 - Whole–Part 관계를 의미 중심으로 판단하고 Aggregation/Composition 표기를 남용하지 않는다.
+- 하나의 Concept에 서로 다른 cardinality를 가진 정보를 몰아넣은 flat model이 실제 Scenario에서 왜 깨지는지 설명한다.
+- N:M 관계 자체가 의미 있는 attribute를 가질 때 Association Object가 필요한 이유를 판단하고 적용한다.
+- 구조가 비슷해 보이는 Concept(`ShoppingCartItem`과 `OrderItem`)을 시점과 확정 여부로 구분하고, `Product.price`와 `OrderItem.unitPrice`처럼 snapshot 의미가 필요한 Attribute를 식별한다.
 - Conceptual/Analysis Domain Model을 작성한다.
 - Analysis Concept와 Software Class를 구분한다.
 - 모델을 통해 Requirement의 누락·모순·불확실성을 발견한다.
 - 현재 문제에 필요한 만큼만 모델링하고 멈출 수 있다.
-- 정적 모델이 답하는 질문과 동적 모델이 필요한 질문을 구분한다.
+- 정적 모델이 답하는 질문과 동적 모델이 필요한 질문을 구분하고, 정적 모델이 확정본이 아니라 S04에서 다시 검증될 잠정적 결과임을 설명한다.
 
 ---
 
@@ -157,9 +160,7 @@ Analyze → Design → Implement
 ### Iterative / Incremental / Agile
 
 ```text
-Analyze ↔ Design ↔ Implement ↔ Test
-            ↑                 ↓
-            └── Feedback ─────┘
+Define ↔ Build ↔ Test  (S01)
 ```
 
 처럼 수행될 수 있다.
@@ -362,6 +363,8 @@ Place Order → Payment에서 다음 단어가 나타날 수 있다.
 
 ```text
 Customer
+Shopping Cart
+Shopping Cart Item
 Order
 Order Item
 Product
@@ -475,6 +478,8 @@ Order 사례:
 
 ```text
 Customer
+ShoppingCart
+ShoppingCartItem
 Order
 OrderItem
 Product
@@ -814,7 +819,268 @@ Order 하나에 OrderItem은 몇 개까지 가능한가?
 
 ---
 
-# 22. 모르면 그리지 않는다
+# 22. Concept Boundary가 깨지는 이유 — Flat Model에서 Association Object까지
+
+지금까지의 질문(§12~§21)을 실제로 깨지는 모델에 적용해 본다.
+
+## Flat Model — 하나의 Order에 모든 것을 담으면
+
+S02 Use Case의 Requirement 문장을 다시 본다.
+
+> **고객은 하나 이상의 물건을 고르고 Card 또는 Bank Transfer로 결제하여 주문한다.**
+
+다음처럼 Order를 정의했다고 하자.
+
+```text
+Order
+--------------------------
+orderNumber : Text
+orderDate   : Date
+status      : OrderStatus
+product     : Product
+quantity    : WholeNumber
+unitPrice   : Money
+```
+
+고객이 상품 A 2개와 상품 B 1개를 함께 주문하면 이 모델은 깨진다.
+
+```text
+product   : Product      ← 값을 하나만 가질 수 있다
+quantity  : WholeNumber
+unitPrice : Money
+```
+
+Order 하나에 product/quantity/unitPrice를 각각 하나씩만 둘 수 있는데, Requirement는 **여러 개의 (product, quantity, unitPrice) 조합**을 요구한다.
+
+## 왜 깨지는가
+
+Order라는 하나의 Concept 안에 서로 다른 cardinality를 가진 정보가 섞여 있기 때문이다.
+
+```text
+Order 전체에 하나만 존재하는 정보
+orderNumber
+orderDate
+status
+
+선택된 상품 개수만큼 반복되어야 하는 정보
+product
+quantity
+unitPrice
+```
+
+## 판단 기준
+
+> **이 정보가 Concept 전체에 대해 하나만 존재하는가, 아니면 그 Concept 안에서 여러 번 반복될 수 있는가?**
+
+반복되는 정보를 Attribute로 붙잡아 두면 개수가 고정되지 않는 요구를 표현할 수 없다. 반복 가능한 단위 자체를 별도 Concept으로 분리해야 한다.
+
+## 개선된 모델 — Order와 OrderItem 분리
+
+```text
+Order
+--------------------------
+orderNumber : Text
+orderDate   : Date
+status      : OrderStatus
+    |
+    | 1 : 1..*
+    v
+OrderItem                    ← 개별 상품 선택을 표현하는 반복 단위
+--------------------------
+quantity  : WholeNumber
+unitPrice : Money
+```
+
+**왜 1:N인가:** 하나의 Order가 여러 OrderItem을 가질 수 있다는 사실 자체가 product/quantity/unitPrice를 Order에 flat하게 둘 수 없는 이유다. Multiplicity(§21)에서 이미 "Order 하나에 OrderItem은 몇 개까지 가능한가?"라는 질문을 다뤘다. 이 절은 그 질문이 실제로 모델 구조를 바꾸는 지점임을 보여준다.
+
+## OrderItem은 Product를 어떻게 참조하는가
+
+이제 OrderItem이 어떤 Product를 선택했는지 표현해야 한다. Order와 Product의 관계를 다시 본다.
+
+```text
+Order 입장에서
+한 Order는 여러 Product를 포함할 수 있다.
+
+Product 입장에서
+한 Product는 여러 Order에 나타날 수 있다
+(같은 상품을 여러 고객이 각자 주문한다).
+```
+
+즉 Order와 Product는 **N:M** 관계다.
+
+## N:M을 선 하나로 그리면 부족하다
+
+```text
+Order *-------* Product
+```
+
+이 표현만으로는 다음을 담을 곳이 없다.
+
+- 이 주문에서 이 상품을 몇 개 샀는가? (quantity)
+- 이 주문에서 이 상품을 얼마에 샀는가? (unitPrice)
+
+이 정보는 Order의 속성도, Product의 속성도 아니다.
+
+- Order에 quantity/unitPrice를 하나만 두면 상품마다 다른 수량과 가격을 표현할 수 없다(§Flat Model 문제로 되돌아간다).
+- Product에 quantity를 두면 "이 주문에서 몇 개 팔렸는가"가 아니라 전체 재고처럼 보인다.
+
+이 정보는 **Order와 Product 사이의 관계 자체**에 속한다.
+
+## 판단 기준 — N:M + Association Object
+
+> **N:M 관계 자체가 의미 있는 attribute를 가지는가?**
+
+그렇다면 그 관계를 Association Object로 승격한다. 그 순간 N:M 관계는 두 개의 1:N 관계로 풀린다.
+
+```text
+Order 1 ----- 1..* OrderItem *----- 1 Product
+
+OrderItem
+--------------------------
+quantity  : WholeNumber
+unitPrice : Money
+```
+
+## 왜 개선됐는가
+
+`OrderItem`은 두 문제를 동시에 해결한다.
+
+```text
+Order 입장에서
+Order가 여러 개의 개별 상품 선택을
+가지게 하는 반복 단위 (1:N 문제)
+
+Order-Product 관계 입장에서
+둘 사이 N:M 관계가 가지는
+고유한 정보(quantity, unitPrice)를
+담는 Association Object (N:M 문제)
+```
+
+이는 우연이 아니다. Association Object는 항상 관계에 참여하는 대상 하나를 가리키는 반복 가능한 개별 항목이므로, N:M을 푸는 Association Object는 한쪽에서 보면 항상 1:N의 "N" 쪽이 된다.
+
+## 일반화
+
+이 판단은 Order-Product에만 해당하지 않는다.
+
+> **두 Concept 사이의 관계가 몇 개, 언제, 얼마에 같은 자기만의 의미 있는 정보를 가지는가?**
+
+이 질문으로 다른 N:M 관계에서도 Association Object가 필요한지 판단한다. 다음 절의 `ShoppingCartItem`도 같은 질문에서 출발한다.
+
+> **"N:M은 중간 클래스로 푼다"를 암기하지 않는다. 관계 자체가 의미를 가지는지 먼저 확인한다.**
+
+---
+
+# 23. ShoppingCartItem과 OrderItem — 같은 구조, 다른 의미
+
+## 왜 ShoppingCart가 필요한가
+
+S02 Use Case Specification의 Precondition은 다음과 같다.
+
+> **하나 이상의 물건이 선택되어 있다.**
+
+이 Precondition은 Place Order Use Case가 시작되기 전에 이미 '선택된 상태'가 존재한다고 전제한다. 이 상태를 표현할 Concept이 아직 없다.
+
+## 손쉬운 유혹
+
+방금 만든 `OrderItem`을 이 선택 단계에도 그대로 재사용하고 싶어질 수 있다.
+
+```text
+"선택된 상품" = OrderItem?
+"주문된 상품" = OrderItem?
+```
+
+## 왜 문제인가
+
+두 시점은 의미가 다르다.
+
+```text
+선택 중 (아직 결제 전)
+- quantity는 언제든 바뀔 수 있다.
+- 가격은 확정되지 않았다.
+  "지금 이 순간의 Product.price"를 그대로 보여줘야 한다.
+  Product.price가 바뀌면 화면의 예상 총액도 함께 바뀌어야 한다.
+
+주문 확정 후
+- quantity와 가격이 더 이상 바뀌면 안 된다.
+- Product.price가 나중에 바뀌어도
+  이미 확정된 주문 금액은 그대로 유지되어야 한다.
+  (예: 상품 가격이 다음 날 인상되어도
+   어제 이미 주문한 고객의 결제 금액은 바뀌지 않는다.)
+```
+
+같은 구조(quantity + Product 참조)처럼 보이지만 **독립적인 의미와 lifecycle**을 가진다.
+
+## 판단 기준
+
+> **이 정보가 "현재를 그대로 참조"하는가, 아니면 "특정 시점에 확정되어 보존"되는가?**
+
+## 개선된 모델 — ShoppingCart / ShoppingCartItem을 별도 Concept으로
+
+```text
+Customer
+    |
+    | has
+    v
+ShoppingCart
+    |
+    | contains
+    v
+ShoppingCartItem *----- 1 Product
+--------------------------
+quantity : WholeNumber
+                              ← unitPrice가 없다.
+                                Product.price를 그때그때 참조한다.
+
+
+Customer
+    |
+    | places
+    v
+Order
+    |
+    | contains
+    v
+OrderItem *----- 1 Product
+--------------------------
+quantity  : WholeNumber
+unitPrice : Money             ← 주문 시점 가격 snapshot
+```
+
+## Product.price vs OrderItem.unitPrice
+
+```text
+Product.price
+현재 판매 중인 가격. 계속 바뀔 수 있다.
+
+OrderItem.unitPrice
+그 주문이 확정된 순간의 가격.
+이후 Product.price가 바뀌어도 그대로 유지되어야 하는 snapshot이다.
+```
+
+`ShoppingCartItem`이 `unitPrice`를 갖지 않는 이유도 같은 원리다. 아직 아무것도 확정되지 않았으므로 `Product.price`를 그대로 참조하는 것이 자연스럽다. **같은 구조라도 필요한 Attribute는 그 Concept이 어떤 시점을 표현하는가에 따라 달라진다.**
+
+## Concept 식별 질문(§14)으로 재확인
+
+`ShoppingCartItem`과 `OrderItem`은 겉보기엔 구조가 같아 보이지만:
+
+- 서로 다른 상태 변화의 대상이다 (하나는 자유롭게 바뀌고, 하나는 확정되면 불변이다).
+- 서로 다른 lifecycle을 가진다 (하나는 결제 전 소멸 가능, 하나는 거래 기록으로 보존된다).
+
+따라서 하나로 합치지 않고 **독립된 Concept**으로 모델링한다.
+
+## ShoppingCart–Product도 같은 질문을 받는다
+
+`ShoppingCart`와 `Product`의 관계도 N:M이다(하나의 장바구니에 여러 상품, 하나의 상품은 여러 고객의 장바구니에 담길 수 있다). §22의 질문을 그대로 적용하면 quantity라는 관계 고유 정보 때문에 `ShoppingCartItem`이 Association Object로 필요하다는 결론이 다시 나온다.
+
+> **같은 판단 기준이 다른 Concept 쌍에도 반복 적용된다는 것을 확인하는 것이 중요하다.**
+
+## 용어집 Feedback
+
+이 구분이 드러나면 S02 용어집에서 "선택"과 "주문"이 같은 단어로 섞여 쓰이고 있지 않은지 다시 확인한다. 용어집은 S03에서도 계속 정제되는 산출물이다(§9).
+
+---
+
+# 24. 모르면 그리지 않는다
 
 예:
 
@@ -843,7 +1109,7 @@ Need clarification
 
 ---
 
-# 23. 모델은 Requirement를 다시 질문하게 한다
+# 25. 모델은 Requirement를 다시 질문하게 한다
 
 정적 모델을 만들면 Requirement가 충분하지 않다는 사실이 드러날 수 있다.
 
@@ -881,7 +1147,7 @@ Requirement Refinement
 
 ---
 
-# 24. Whole–Part
+# 26. Whole–Part
 
 Order와 OrderItem은 Whole–Part 후보가 될 수 있다.
 
@@ -901,7 +1167,7 @@ Order
 
 ---
 
-# 25. Rumbaugh — Aggregation Anchor
+# 27. Rumbaugh — Aggregation Anchor
 
 Rumbaugh의 Aggregation에 대한 문제의식을 여기서 사용한다.
 
@@ -925,13 +1191,33 @@ Relationship Understanding
 
 ---
 
-# 26. Conceptual / Analysis Domain Model
+# 28. Conceptual / Analysis Domain Model
 
 이제 지금까지 발견한 것을 통합한다.
 
 예:
 
 ```text
+Customer
+    |
+    | has
+    v
+ShoppingCart
+    |
+    | contains
+    v
+ShoppingCartItem
+----------------
+quantity : WholeNumber
+    |
+    | refers to
+    v
+Product
+----------------
+productId : Identifier
+name      : Text
+
+
 Customer
     |
     | places
@@ -946,7 +1232,8 @@ status      : OrderStatus
     v
 OrderItem
 ----------------
-quantity : WholeNumber
+quantity  : WholeNumber
+unitPrice : Money
     |
     | refers to
     v
@@ -967,9 +1254,11 @@ status : PaymentStatus
 
 > **현재 Problem을 이해하는 데 필요한 Concept·Attribute·Value Domain·Relationship을 하나의 일관된 구조로 표현한다.**
 
+`ShoppingCart`/`ShoppingCartItem`과 `Order`/`OrderItem`이 같은 `Product`를 참조하면서도 서로 다른 Attribute 구성을 가지는 것은 우연이 아니라 §23에서 다룬 시점·확정 여부 차이의 결과다.
+
 ---
 
-# 27. Domain Model이라는 용어
+# 29. Domain Model이라는 용어
 
 S03의 `Domain Model`은:
 
@@ -1000,7 +1289,7 @@ DDD의:
 
 ---
 
-# 28. Analysis Concept ≠ Software Class
+# 30. Analysis Concept ≠ Software Class
 
 가장 중요한 경계 중 하나다.
 
@@ -1038,7 +1327,7 @@ class Payment
 
 ---
 
-# 29. Operation/Method를 넣지 않는 이유
+# 31. Operation/Method를 넣지 않는 이유
 
 다음과 같이 그리면:
 
@@ -1083,7 +1372,7 @@ Constraint
 
 ---
 
-# 30. 구현 요소 제거
+# 32. 구현 요소 제거
 
 다음은 S03 모델에서 제거 대상이다.
 
@@ -1115,7 +1404,7 @@ OrderStatus
 
 ---
 
-# 31. Just-enough Static Model
+# 33. Just-enough Static Model
 
 목표는 현실 전체의 완전한 Domain Dictionary를 만드는 것이 아니다.
 
@@ -1126,6 +1415,8 @@ OrderStatus
 라면 다음은 필요할 수 있다.
 
 ```text
+ShoppingCart
+ShoppingCartItem
 Order
 OrderItem
 Product
@@ -1150,7 +1441,7 @@ AccountingPeriod
 
 ---
 
-# 32. 언제 모델링을 멈출 것인가
+# 34. 언제 모델링을 멈출 것인가
 
 다음 질문에 충분히 답할 수 있다면 멈출 수 있다.
 
@@ -1158,6 +1449,8 @@ AccountingPeriod
 - 필요한 Attribute와 Value Domain은 무엇인가?
 - 핵심 Relationship은 무엇인가?
 - 중요한 Multiplicity/Constraint는 무엇인가?
+- N:M 관계가 있다면 관계 고유의 의미 정보를 Association Object로 표현했는가?
+- 구조가 비슷한 Concept을 시점/확정 여부로 구분했는가?
 - Operation Contract의 Domain State Change를 설명할 수 있는가?
 - 중요한 미결정 Requirement가 드러났는가?
 - Implementation Decision이 섞이지 않았는가?
@@ -1168,7 +1461,7 @@ AccountingPeriod
 
 ---
 
-# 33. Anchor / Reference 사용
+# 35. Anchor / Reference 사용
 
 ## Brooks — Essence / Accident
 
@@ -1201,11 +1494,11 @@ Notation이 Domain Meaning을 대신하지 못한다는 경계를 제공한다.
 
 ## Larman — Domain Model / Conceptual Class
 
-**위치:** Concept 식별, Conceptual Domain Model, Analysis Concept ≠ Software Class
+**위치:** Concept 식별, Conceptual Domain Model, Analysis Concept ≠ Software Class, N:M/Association Object
 
 **역할:**
 
-Domain Model을 conceptual perspective에서 설명하고 implementation class와 분리한다.
+Domain Model을 conceptual perspective에서 설명하고 implementation class와 분리한다. N:M 관계가 의미 있는 attribute를 가질 때 Association Class/Object로 표현하는 판단도 이 관점의 연장이다.
 
 ---
 
@@ -1233,7 +1526,7 @@ DDD Pattern은 다루지 않는다.
 
 ---
 
-# 34. [실습] Order Conceptual Domain Model 작성 · 25~30분
+# 36. [실습] Order Conceptual Domain Model 작성 · 25~30분
 
 > **본편 실습 슬라이드는 1장만 사용한다.** 모델 작성 단계·힌트는 Slide Notes에 두고, 예시 답안은 Session 마지막 `[별첨]`으로 분리한다.
 
@@ -1260,6 +1553,7 @@ S02 실습을 완료하지 못한 수강생에게만 강사가 S02 `[별첨]` Di
 - Association / Relationship와 의미
 - Multiplicity
 - 의미 있는 경우 Whole–Part
+- N:M 관계가 있다면 관계 고유 정보를 담는 Association Object
 
 **필수 산출물**
 
@@ -1271,6 +1565,8 @@ S02 실습을 완료하지 못한 수강생에게만 강사가 S02 `[별첨]` Di
 - 모든 Concept/Attribute/Relationship/Multiplicity에 Requirement 또는 용어집 근거가 있는가?
 - Analysis Concept와 Software Class를 혼동하지 않았는가?
 - 모르는 Multiplicity를 임의로 만들지 않았는가?
+- N:M 관계가 있다면 관계 자체의 의미 있는 정보(quantity, 가격 등)를 Association Object로 표현했는가?
+- ShoppingCartItem/OrderItem처럼 구조가 비슷한 Concept을 시점과 확정 여부로 구분했는가?
 
 **LLM용 추천 프롬프트**
 
@@ -1280,6 +1576,8 @@ Use Case에서 중요한데 Domain Model에서 빠진 Concept은 무엇인가?
 Attribute로 둘 것과 별도 Concept으로 모델링할 것을 다시 검토하라.
 Association과 Multiplicity가 Use Case의 Event Flow와 일치하는가?
 Whole-Part로 표현한 관계가 실제 의미상 전체-부분 관계인가?
+선택 단계와 확정 주문 단계를 같은 Concept으로 뭉뚱그린 부분이 있는가?
+N:M 관계인데 단순 선으로만 표현하고 관계 고유 정보를 담을 곳이 없는 부분이 있는가?
 UI, Controller, Repository, API 같은 Solution Concept이 섞였는가?
 ...
 ```
@@ -1287,9 +1585,10 @@ UI, Controller, Repository, API 같은 Solution Concept이 섞였는가?
 ## Slide Notes — 진행 가이드
 
 - 권장 시간: Concept/Attribute 8분 → Relationship/Multiplicity 8분 → Diagram 정리 5분 → LLM 검토 5~8분.
-- Concept 후보를 미리 정답처럼 제시하지 않는다. 막힌 경우 `Customer`, `Order`, `OrderItem`, `Product`, `Payment`가 Use Case에서 어떤 의미로 등장하는지 질문한다.
+- Concept 후보를 미리 정답처럼 제시하지 않는다. 막힌 경우 `Customer`, `ShoppingCart`, `Order`, `OrderItem`, `Product`, `Payment`가 Use Case에서 어떤 의미로 등장하는지 질문한다.
 - 속성은 의미 수준에서 판단하되 기술 타입으로 내려가지 않는다.
 - `Order–OrderItem`의 Whole–Part와 Multiplicity처럼 모델 의미에 중요한 요소는 생략하지 않게 한다.
+- `ShoppingCart`/`ShoppingCartItem` 포함 여부는 학습자 선택이지만, 포함한다면 `Product.price`와 `OrderItem.unitPrice`의 의미 차이를 설명하게 한다.
 - `Shipment`는 이번 공통 baseline에서 강제하지 않는다.
 
 ## [별첨] 실습 해설 — Order Conceptual Domain Model
@@ -1297,6 +1596,10 @@ UI, Controller, Repository, API 같은 Solution Concept이 섞였는가?
 예시 정답은 다음 의미를 포함한다.
 
 ```text
+Customer 1 -------- 0..1 ShoppingCart      : Customer는 하나의 진행 중인 장바구니를 가진다
+ShoppingCart 1 ----- 0..* ShoppingCartItem : 장바구니는 여러 선택 항목을 포함한다
+ShoppingCartItem * -- 1 Product           : 각 선택 항목은 Product 하나를 참조한다
+
 Customer 1 -------- 0..* Order     : Customer가 Order를 요청/소유 이력으로 가진다
 Order    1 -------- 1..* OrderItem : Order는 하나 이상의 주문 항목으로 구성된다
 OrderItem * ------- 1 Product     : 각 OrderItem은 주문한 Product 하나를 참조한다
@@ -1308,6 +1611,12 @@ Order    1 -------- 0..1 Payment   : 현재 baseline에서 Order는 최대 하�
 ```text
 Customer
 - customerId : Identifier
+
+ShoppingCart
+- (없음 — Customer와 ShoppingCartItem을 묶는 역할)
+
+ShoppingCartItem
+- quantity : WholeNumber
 
 Order
 - orderNo : Identifier
@@ -1321,6 +1630,7 @@ OrderItem
 Product
 - productId : Identifier
 - name : Text
+- price : Money
 
 Payment
 - amount : Money
@@ -1331,12 +1641,14 @@ Payment
 
 - `Order`와 `OrderItem`은 Whole–Part 의미가 있는지 확인한다.
 - Whole–Part는 OrderItem이 현재 Order의 구성 항목이라는 업무 의미를 나타내며, UML filled-diamond나 물리적 lifecycle 정책을 자동 확정하지 않는다.
+- `Order`와 `Product`는 N:M 관계이며, quantity/unitPrice라는 관계 고유 정보가 있기 때문에 `OrderItem`이라는 Association Object가 필요하다(§22). `ShoppingCart`와 `Product`도 같은 이유로 `ShoppingCartItem`이 필요하다.
+- `ShoppingCartItem`과 `OrderItem`은 구조가 비슷하지만 `ShoppingCartItem`은 아직 확정되지 않은 선택이라 `unitPrice`를 갖지 않고 `Product.price`를 그대로 참조하며, `OrderItem`은 주문 시점 가격을 `unitPrice`로 snapshot 보존한다(§23).
 - `Payment` Multiplicity는 Requirement의 결제 정책에 따라 달라질 수 있다. 예시 답안은 현재 단순화된 baseline의 한 선택일 뿐이다.
 - 계산된 `total`을 Attribute로 둘지 derived value로 볼지는 모델 목적과 요구에 따라 설명할 수 있다.
 - 구현 method/Controller/Repository/DB relation은 넣지 않는다.
-- 답안은 하나의 가능한 모델이며 다른 모델도 Requirement 근거와 의미 일관성이 있으면 허용한다.
+- 답안은 하나의 가능한 모델이며 다른 모델도 Requirement 근거와 의미 일관성이 있으면 허용한다. `ShoppingCart`/`ShoppingCartItem`을 포함하지 않고 `Place Order → Payment` 범위만 모델링한 답안도, Concept 판단 근거가 명확하다면 인정한다.
 
-# 35. Feedback 기준
+# 37. Feedback 기준
 
 ### 1. Domain 중심인가?
 
@@ -1376,9 +1688,17 @@ Method나 Responsibility를 미리 결정하지 않았는가?
 
 모델이 새로운 질문을 만들었는가?
 
+### 10. N:M 관계에 의미 있는 정보가 있다면 Association Object로 표현했는가?
+
+관계를 단순 선으로만 남겨 두지 않았는가?
+
+### 11. 구조가 비슷한 Concept을 시점/확정 여부로 구분했는가?
+
+`ShoppingCartItem`과 `OrderItem`처럼 구조가 같아 보여도 의미가 다른 Concept을 하나로 합치지 않았는가?
+
 ---
 
-# 36. Failure Conditions
+# 38. Failure Conditions
 
 다음을 실패로 본다.
 
@@ -1392,6 +1712,8 @@ Method나 Responsibility를 미리 결정하지 않았는가?
 - Association의 의미를 설명하지 못한다.
 - Multiplicity를 근거 없이 채운다.
 - 모든 Whole–Part에 Aggregation/Composition을 붙인다.
+- N:M 관계를 단순 선으로만 표현하고 관계 고유 정보를 방치한다.
+- 구조가 비슷하다는 이유로 서로 다른 시점의 Concept(예: 선택 중 항목과 확정 주문 항목)을 하나로 합친다.
 - 모델을 완전한 현실 사전으로 만들려 한다.
 - 모델에서 발견한 Requirement 문제를 되돌리지 않는다.
 - Agile이라는 이유로 Analysis 사고를 생략한다.
@@ -1400,7 +1722,7 @@ Method나 Responsibility를 미리 결정하지 않았는가?
 
 ---
 
-# 37. Session Summary
+# 39. Session Summary
 
 ```text
 S01
@@ -1428,13 +1750,15 @@ Domain
 → Relationship
 → Multiplicity
 → Whole–Part
+→ Association Object (N:M)
+→ 시점에 따른 Concept 구분 (ShoppingCartItem / OrderItem)
 → Conceptual / Analysis Domain Model
         ↓
 Solution Detail 제거
         ↓
 Requirement 재질문
         ↓
-Static Problem Understanding
+Static Problem Understanding (잠정적, S04에서 재검증)
 ```
 
 핵심 Claim:
@@ -1447,13 +1771,17 @@ Static Problem Understanding
 
 > **Static Model은 Requirement를 복사하는 그림이 아니라 누락·모순·불확실성을 발견하는 사고 도구다.**
 
+> **관계 자체가 의미 있는 정보를 가지면 Association Object로 승격한다.**
+
+> **구조가 같아 보여도 시점과 확정 여부가 다르면 다른 Concept이다.**
+
 > **Analysis Concept은 Software Class가 아니다.**
 
 > **가장 상세한 모델이 아니라 현재 판단에 충분한 모델이 좋은 모델이다.**
 
 ---
 
-# 38. S04로 넘기는 질문
+# 40. S04로 넘기는 질문
 
 S03에서 다음은 설명할 수 있다.
 
@@ -1487,6 +1815,8 @@ S03에서 다음은 설명할 수 있다.
 
 이 질문까지만 남기고 S04 내용을 S03에서 해결하지 않는다.
 
+다만 한 가지는 미리 밝혀 둔다. **이 Static Model은 확정본이 아니다.** S04에서 Scenario를 따라가다 보면 지금 놓친 Concept, 잘못 그은 Relationship, 빠진 Attribute/State가 드러날 수 있다. 그것을 발견하면 이 Static Model을 다시 고친다. 이는 S03이 실패했다는 뜻이 아니라 분석이 정상적으로 진행되고 있다는 뜻이다. 어떻게 확인하고 고치는지는 S04에서 다룬다.
+
 ---
 
 ## Whole-Curriculum Integration 단계로 이관한 조정 항목
@@ -1501,4 +1831,4 @@ S03에서 다음은 설명할 수 있다.
    현재 승인본에는 포함하지 않는다. 전체 Curriculum 완료 후 Integration Review에서 필요성을 다시 판단한다. 포함하더라도 inheritance/reuse 설계가 아니라 conceptual classification으로 한정한다.
 
 4. **75분 실제 teaching progression**  
-   전체 Curriculum 완료 후 Integration Review에서 설명·interaction·practice 밀도를 함께 검토하고, 그 결과에서 권장 slide 범위를 최종 산정한다.
+   전체 Curriculum 완료 후 Integration Review에서 설명·interaction·practice 밀도를 함께 검토하고, 그 결과에서 권장 slide 범위를 최종 산정한다. §22/§23 신규 콘텐츠 추가분(N:M/Association Object, ShoppingCartItem/OrderItem)이 슬라이드 수에 미치는 영향도 이 재산정에 포함한다.

@@ -102,10 +102,17 @@ Postcondition
 - Order total이 각 OrderItem subtotal의 합으로 확정된다.
 - Order는 placed 상태가 된다.
 
+Failure (Precondition 미충족)
+- OrderItem이 없거나 quantity가 0 이하인 항목이 있으면, 또는 이미 placed 상태이면 상태를 바꾸지 않는다.
+- Order는 place 이전 상태를 그대로 유지한다.
+
 Invariant
 - Order total은 OrderItem subtotal 합과 일치한다.
 - placed Order의 item 구성과 확정 total은 서로 모순되지 않는다.
+- Failure 시에도 이 일관성은 깨지지 않는다. 상태를 바꾸지 않는 것 자체가 invariant를 지키는 방법이다.
 ```
+
+Precondition을 보장하는 owner와 Failure를 판단하는 owner는 같다. 성공 경로만 계약을 지키고 실패 시 상태를 임의로 바꾸면 이 Object Contract는 무너진다.
 
 이는 S02의 **System Operation Contract**와 수준이 다르다. S02는 System을 black box로 보고 `placeOrder` 완료 뒤 문제영역에서 무엇이 달라져야 하는지를 기록했다. S06의 **Object Contract**는 설계 안의 특정 수신 객체와 Message가 협력에서 무엇을 요구하고 보장하는지 기록한다.
 

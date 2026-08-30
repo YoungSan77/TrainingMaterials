@@ -221,11 +221,7 @@ Elicit → Analyze → Specify → Validate → Baseline → Design / Build
 Iterative / Agile에서는 분석·설계·구현이 작은 범위에서 함께 반복된다.
 
 ```text
-Discover
-   ↓
-Analyze ↔ Design ↔ Build ↔ Test / Use
-   ↑                         ↓
-   └──── Feedback / Learn ───┘
+Define ↔ Build ↔ Test  (S01)
 ```
 
 여기서 중요한 것은 `Analysis Phase`의 존재 여부가 아니다.
