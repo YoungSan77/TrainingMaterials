@@ -19,6 +19,25 @@
 | P-AI-01 | Guardrail before autonomy | 허용 범위·권한·승인·복구를 정한 뒤 자율성을 넓힌다. |
 | P-AI-02 | Harness determines operational reliability | 확률적 생성은 가능한 부분에서 재현 가능한 evidence와 gate로 통제한다. |
 
+### Shared Abstraction & System Improvement Principle
+
+Software engineering은 복잡한 문제를 한 수준에서 한꺼번에 해결하지 않고 `Intent → Requirement → Analysis → Architecture → Design → Technical Design → Code`의 서로 다른 abstraction level에서 서로 다른 종류의 판단을 수행한다. 이 흐름은 rigid waterfall lifecycle이나 고정된 선형 순서를 뜻하지 않는다. 팀은 각 level에서 무엇을 판단하는지 공통으로 이해하고, 현재 판단을 적절한 level에서 다룬다. Abstraction level이 섞이면 의미 불일치와 재작업이 증가한다.
+
+필요한 explicitness는 완벽한 분석·설계나 모든 구현 세부사항의 모델화가 아니라 현재 판단, 협업과 검증에 필요한 의미·경계·책임·제약·evidence를 충분히 드러내는 수준이다. Model은 Code를 복제하지 않으며 상세 implementation logic처럼 Code가 더 적합한 영역까지 억지로 표현하지 않는다.
+
+표준화의 핵심은 동일한 문서 양식이나 artifact 수가 아니라 같은 abstraction level과 판단 기준에 대한 shared understanding이다. 교육과 실제 업무 적용을 통해 팀의 공통 눈높이를 정렬한다. 표준은 영구적인 정답이 아니라 현재 조직의 `best-known way`이며 실제 evidence와 feedback에 따라 개선한다.
+
+생산성과 품질은 개별 활동의 local optimization보다 전체 engineering/value flow 관점에서 평가한다. 현재 전체 성과를 제한하는 constraint 또는 weak link를 찾아 우선 보강하고, 모든 영역의 성숙도를 동시에 높이려 하지 않으며, 개선 후 전체 system을 다시 평가한다.
+
+AI가 Requirement, Analysis, Architecture, Design 등의 engineering judgment 자체를 제거한다고 가정하지 않는다. AI의 주요 역할 중 하나는 abstraction 사이의 반복적인 translation, expansion, generation, synchronization과 verification 비용을 낮추는 것이다. Human은 Intent, Meaning, Boundary, Decision, Trade-off와 Acceptance에 대한 책임을 유지한다. AI는 기존 engineering capability와 판단 체계를 증폭할 수 있으므로 explicit context와 검증이 중요하다.
+
+**Portfolio boundary**
+
+- 이 principle은 11개 과정의 기존 Course Thesis를 대체하지 않으며 Concept Ownership을 변경하지 않는다.
+- 각 과정은 자신의 Primary Question을 강화하는 범위에서만 이 principle을 `RECAP` / `APPLY` / `BRIDGE` / `FORWARD` 한다.
+- 이 cross-course principle 자체를 별도 syllabus나 새로운 curriculum spine으로 만들지 않는다.
+- 모든 과정에 동일한 내용을 반복 삽입하지 않는다.
+
 ## 2. Course-owned Principle Families
 
 | Owner course | Owned principle family |
