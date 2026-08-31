@@ -631,17 +631,23 @@ Evidence → 기존 abstraction과의 의미 경계 확인 → 두 Alternative
 
 # 12. S10 Handoff
 
-S09에서 세 Exercise 모두 "지금 evidence로 무엇이 최선인가"를 판단했다.
+S09까지 Requirement·Analysis·Object Design·change response·alternative evaluation을 하나의 OOAD 판단으로 통합했다.
 
 다음 질문:
 
-> **설계는 한 번 개선하면 끝나는가, 아니면 구현과 테스트의 evidence가 다시 설계를 바꾸는가?**
+> **이 OOAD 결과는 실제 개발에서 어떻게 자연스럽게 Code로 구체화되고, 개발 중 검증과 Commit 이후 통합 검증을 거쳐 운영 이관까지 어떻게 이어지는가?**
 
-S09는 여기까지만 답한다. Design Decision이 evidence에 의해 다시 열릴 수 있다는 원칙(Exercise 3에서 이미 확인)은 유지하되, S10이 소유할 다음 내용은 여기서 먼저 가르치지 않는다.
+S09는 OOAD Core를 여기서 마무리한다. Design Decision은 구현 중 evidence에 의해 다시 열릴 수 있으며, 문제가 발견되면 Code에 국한할지 Requirement·Analysis·Architecture·Design 수준까지 다시 판단할지 결정한다. 실제 산출물을 항상 갱신한다는 뜻은 아니지만, 필요한 경우 해당 수준의 사고와 판단은 반복한다.
 
-- TDD
-- Refactoring
-- Test as Design Feedback
-- Implementation evidence로부터의 구체적 재판단 절차
+S10이 소유할 다음 내용은 여기서 먼저 가르치지 않는다.
 
-→ **S10. Test·Refactoring과 설계 Feedback**
+- Model → Code Mapping
+- 구현 중 Feedback 범위(Code / Design / Analysis / Architecture 중 어디까지 재판단할지)
+- 개발 중 Test(Debugging/Developer Test/Local Regression 포함)와 Commit 이후 Test/Verification의 구분
+- TDD와 Red → Green → Refactor
+- Refactoring과 Rework의 경계
+- Why CI / Why CD와 CI/CD 전제조건
+- CI Quality Gate가 확인하는 품질 관점과 대표 도구 예시
+- DevOps의 flow·feedback·shared responsibility·culture positioning
+
+→ **S10. OOAD Next Step ① — 개발·검증·DevOps**

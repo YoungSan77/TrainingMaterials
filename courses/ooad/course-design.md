@@ -34,7 +34,7 @@
 - 정적·동적 관점으로 Problem Understanding을 명시하고 검토한다
 - 상태와 행위를 소유할 객체 경계를 찾는다
 - 책임·협력·계약을 통해 변경 영향을 국소화한다
-- 정적·동적 모델과 코드 evidence로 설계를 검토·개선한다
+- 정적·동적 모델과 Code evidence로 설계를 검토·개선하고, OOAD 결과가 개발·검증·운영 이관과 이후 전문 설계 영역의 출발점이 됨을 설명한다
 
 ## Course Thesis
 
@@ -58,7 +58,10 @@ Brooks의 Essence / Accident 관점에서 Analysis는 problem-domain의 essentia
 - 협력·sequence·state를 위한 just-enough modeling
 - precondition·postcondition·invariant와 객체 계약
 - composition/interface/dependency 원칙의 압력 기반 적용
-- test와 refactoring evidence를 통한 설계 feedback
+- OOAD 모델이 객체·상태·책임·협력·계약에서 Code의 class·state·method·message·executable rule로 자연스럽게 구체화되는 연결
+- 구현 중 Debugging·Developer Test·TDD·Refactoring을 통한 빠른 feedback과, 필요 시 Requirement·Analysis·Architecture·Design 판단의 재검토(재작업을 Refactoring이라는 이름으로 미화하지 않는다)
+- Commit 이후 통합 검증과 CI/CD의 역할, 그리고 DevOps를 도구 도입이 아닌 Dev·Ops의 flow·feedback·shared responsibility를 만드는 문화로 positioning
+- OOAD를 기반으로 Software Architecture·MSA·DDD·AI-Native가 추가로 다루는 문제와 경계
 
 객체에 메시지를 요청하기 전에 무엇이 참이어야 하고, 수행 뒤 무엇을 보장하며, 객체가 계속 지켜야 할 일관성이 무엇인지 객체 계약(precondition/postcondition/invariant)으로 먼저 명시한다. 그 계약을 누가 소유하고 보장해야 하는지 물으며 책임 할당 판단(정보 전문가·응집도·결합도·정보 은닉)으로 이어가고, 이후 실제 change가 기존 계약에 주는 압력을 관찰해 composition/interface/dependency 같은 변화 대응 원칙을 필요한 만큼 적용한다. **GRASP는 서로 배타적인 해결책 목록이 아니라 Responsibility Assignment를 검토하는 중첩 가능한 판단 관점으로 사용하며, 하나의 설계 결정이 여러 GRASP 관점에서 동시에 설명될 수 있다. GoF Design Pattern은 반복되는 특정 설계 문제에 대한 재사용 가능한 solution structure로 다루며, 문제·책임·협력·계약과 change pressure를 먼저 이해한 뒤 그 해결 구조와 Pattern vocabulary를 연결한다.** 원칙과 Pattern을 checklist나 이름 맞히기로 사용하지 않으며, Pattern별 상세 적용·비교·조합은 현재 과정의 completeness를 위해 확장하지 않는다. 개별 GRASP/Pattern 항목의 적용 절차는 Curriculum·Session Detailed Design이 결정한다.
 
@@ -73,13 +76,18 @@ Brooks의 Essence / Accident 관점에서 Analysis는 problem-domain의 essentia
 - MSA 서비스 분할
 - 특정 언어·framework 숙련
 - pattern catalog 암기 및 GoF Pattern별 상세 적용·비교·조합을 완결적으로 가르치기
+- CI/CD pipeline 구축·자동화 도구 사용법(예: GitHub Actions/Jenkins pipeline 작성), container/orchestration 상세(Docker/Kubernetes/ArgoCD 등), DevOps 전문 과정 수준의 delivery flow·recovery·operational learning
 
 ### Cross-course Boundary / Handoff
+
+> **OOAD는 객체 수준의 분석·설계에서 끝나는 독립 기술이 아니라, 이후 개발·검증·운영 이관과 Software Architecture·MSA·DDD·AI-Native로 이어지는 출발점이다.** 다음 영역들은 OOAD의 하위 개념이 아니라, OOAD가 제공한 problem understanding·responsibility·collaboration·contract·change judgment를 기반으로 더 큰 범위와 새로운 관심사를 다룬다.
 
 - OOAD에서 Domain은 SW가 해결하려는 문제와 업무의 세계로 사용하고, Conceptual/Analysis Domain Model을 통해 필요한 의미 구조를 다룬다. Domain Model의 지속적 정제, Ubiquitous Language, Aggregate·Bounded Context 등 DDD 전문 판단은 DDD로 넘긴다
 - MDD/MDA는 OOAD와 무관한 별도 흐름으로 다루지 않는다. OOAD의 Analysis Model → Design Model → Implementation이라는 모델 기반 흐름이 이후 더 체계화·정형화·표준화된 관계만 필요한 맥락에서 연결하고, MDD/MDA 자체의 상세 기법은 이 과정의 필수 scope로 확장하지 않는다
 - 구조적 품질 선택과 architecture evaluation은 SW Architecture로 넘긴다
 - 분산 경계와 운영 실패는 MSA로 넘긴다
+- CI/CD와 DevOps는 S10에서 OOAD 결과가 개발·검증·운영으로 이어지는 next step으로 positioning하되, CI/CD 도구 숙련이나 DevOps 조직·운영 전문 내용으로 확장하지 않는다. CI Quality Gate는 무엇을 검증하는지 이해시키기 위한 품질 관점과 대표 도구 예시까지만 다루고, 실제 pipeline 구축·YAML 작성·container/orchestration 상세는 CI/CD·DevOps 과정으로 넘긴다
+- AI-Native는 OOAD의 problem/model/boundary/responsibility judgment를 전제로 Human과 Agent의 역할 분담, Context·Guardrail·Harness 등 다음 수준의 개발 방식을 다루는 영역으로 S11에서 handoff한다
 
 다른 과정의 내용을 현재 과정의 completeness를 위해 복제하지 않는다. 필요한 최소 맥락만 recap하고 전문 판단은 owner 과정으로 넘긴다.
 
@@ -102,9 +110,10 @@ Brooks의 Essence / Accident 관점에서 Analysis는 problem-domain의 essentia
 6. 그 initial design의 핵심 메시지에 객체 계약을 명시하고, 그 계약을 누가 보장할지 RDD·응집도·결합도 같은 공학적 판단 기준으로 검토해 책임 배치를 정제한다(refined design)
 7. 새로운 change request가 기존 계약과 협력에 주는 압력을 관찰해 필요한 variation mechanism으로 local refinement하고, Pattern 이름 없이 설계 문제와 해결 구조를 먼저 이해한 뒤 대표 GoF Pattern vocabulary와 연결한다
 8. 여러 설계 대안을 change impact·cohesion/coupling·dependency·abstraction cost·SOLID·pattern·trade-off 관점에서 종합 판단한다
-9. 코드와 test evidence로 설계를 개선하고 DDD/Architecture 경계를 확인한다
+9. S02~S09에서 통합한 OOAD 결과가 Code로 자연스럽게 구체화되는 모습을 확인하고, 구현 중 문제를 Code에 국한할지 Requirement·Analysis·Architecture·Design 수준까지 다시 판단할지 구분한다. 개발 중 Debugging·Developer Test·TDD·Refactoring과 Commit 이후 통합 검증을 구분하고, 품질이 개발 단계에서 먼저 확보된 뒤 CI/CD와 DevOps로 이어지는 흐름을 이해한다
+10. OOAD가 Software Architecture·MSA·DDD·AI-Native의 출발점임을 확인하고, OOAD가 이미 해결한 문제와 각 전문 영역이 추가로 소유하는 문제를 구분한다
 
-이 progression에서 S07은 실제 change에 대한 **local refinement**, S08은 **여러 Design Alternative를 평가하고 선택하는 판단**, S09는 앞선 분석·설계 판단을 통합하는 workshop을 소유한다. S08의 기본 판단 흐름은 `Change Impact → Cohesion/Coupling → Dependency → Abstraction Cost → SOLID/Pattern → Trade-off → Design Decision`이다. SOLID와 Pattern은 적용 개수나 checklist가 아니라 대안을 설명·평가하는 판단 언어로 사용한다. Abstraction·interface·Pattern을 추가하는 선택에도 이해·구현·협력 비용이 있으므로 실제 change evidence와 얻는 효과를 함께 비교한다.
+이 progression에서 **S02~S09는 OOAD Core**를 구성한다. S07은 실제 change에 대한 **local refinement**, S08은 **여러 Design Alternative를 평가하고 선택하는 판단**, S09는 앞선 분석·설계 판단을 통합하는 workshop을 소유한다. **S10과 S11은 OOAD Core 이후의 Next Steps**다. S10은 OOAD 결과가 개발·개발 중 Test·TDD·Refactoring·Commit 이후 검증·CI/CD·DevOps로 이어지는 연결을 소유하고, S11은 OOAD를 출발점으로 Software Architecture·MSA·DDD·AI-Native가 추가로 다루는 문제와 경계를 소유한다. S08의 기본 판단 흐름은 `Change Impact → Cohesion/Coupling → Dependency → Abstraction Cost → SOLID/Pattern → Trade-off → Design Decision`이다. SOLID와 Pattern은 적용 개수나 checklist가 아니라 대안을 설명·평가하는 판단 언어로 사용한다. Abstraction·interface·Pattern을 추가하는 선택에도 이해·구현·협력 비용이 있으므로 실제 change evidence와 얻는 효과를 함께 비교한다.
 
 이는 Session 구조가 아니다. Curriculum LLM은 16h 안에서 중요도·난이도·실습과 feedback 필요성에 따라 시간을 비균등 배분한다.
 
@@ -122,7 +131,8 @@ Curriculum은 하나의 공통 progression을 기본 예로 사용해 Requiremen
 |---|---|---|---|
 | Order 책임 재배치 | 정상 흐름(주문→결제)에서 분산되기 쉬운 책임을 어떤 객체 책임과 계약으로 옮길지 판단 | 책임표·계약·협력 sketch | 클래스 이름만 늘거나 규칙 owner가 여전히 여러 곳인 경우 |
 | Just-enough 모델 선택 | 변경 질문에 필요한 정적·동적 모델을 선택 | 선택한 모델과 제외 이유 | 모든 UML을 만들거나 표기 자체가 목적이 되는 경우 |
-| 설계 feedback | Order Cancellation/Refund 같은 change request와 test failure에서 최소 책임 이동/refactoring 결정 | before/after 책임과 근거 | SOLID·pattern 이름만으로 변경을 정당화하는 경우 |
+| OOAD Next-Step 판단 평가 A — Development Feedback Scope | 구현 중 문제 상황에서 Code/Design/Analysis/Architecture 중 어디까지 다시 판단할지, 개발 중 Test와 Commit 이후 검증 중 어디서 발견해야 할 문제인지 판단 | 재판단 수준 분류 + 근거 | 모든 문제를 Code 수준 수정으로만 보거나, 산출물을 반드시 다시 써야 한다고 오해하는 경우 |
+| OOAD Next-Step 판단 평가 B — CI/CD·DevOps Readiness | Dev/Ops 성숙도가 낮은 상황 자료를 주고 CI/CD 연결의 우선순위, Dev/Ops 중 먼저 안정화할 대상, CI가 반복 확인할 품질을 판단 | 판단 + 근거(둘 중 하나는 discussion으로 축소 가능) | 코딩 자체를 요구하거나, CI/CD를 품질 생성 장치로 보거나, DevOps를 도구 도입으로 축소하거나, 재작업을 Refactoring 이름으로 미화하거나, SA·MSA·DDD·AI-Native를 OOAD와 단절된 별도 기술로 설명하는 경우 |
 | 설계 대안 평가 | S07 설계를 바탕으로 두 Design Alternative의 비용·효과와 trade-off를 비교해 선택 | 선택한 설계 + 짧은 판단 근거 | 원칙 이름이나 추상화 수만으로 대안을 선택하는 경우 |
 
 세부 절차, 시간, 자료 공개 순서와 평가 rubric은 Curriculum 단계에서 완성한다.
