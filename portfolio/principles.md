@@ -21,13 +21,15 @@
 
 ### Shared Abstraction & System Improvement Principle
 
-Software engineering은 복잡한 문제를 한 수준에서 한꺼번에 해결하지 않고 `Intent → Requirement → Analysis → Architecture → Design → Technical Design → Code`의 서로 다른 abstraction level에서 서로 다른 종류의 판단을 수행한다. 이 흐름은 rigid waterfall lifecycle이나 고정된 선형 순서를 뜻하지 않는다. 팀은 각 level에서 무엇을 판단하는지 공통으로 이해하고, 현재 판단을 적절한 level에서 다룬다. Abstraction level이 섞이면 의미 불일치와 재작업이 증가한다.
+지속적인 문제 해결은 개인이 필요한 knowledge를 갖추고 그것으로 실제 practice를 수행할 수 있는 데서 출발한다. Knowledge 없는 practice는 기계적 적용이 되기 쉽고, practice 없는 knowledge는 실제 문제 해결 역량으로 이어지지 않는다. 다만 개인 역량은 지속 가능한 조직 성과의 필요조건이지 충분조건은 아니다. Principle, Process, Tool, Teamwork는 개인의 기본 역량 자체를 대체하지 않지만, 개인에게만 머무는 knowledge·practice·judgment는 그 사람의 이동과 함께 사라질 수 있다.
+
+Software engineering은 복잡한 문제를 한 수준에서 한꺼번에 해결하지 않고 `Intent → Requirement → Analysis → Architecture → Design → Technical Design → Code`의 서로 다른 abstraction level에서 서로 다른 종류의 판단을 수행한다. 이 흐름은 rigid waterfall lifecycle이나 고정된 선형 순서를 뜻하지 않는다. 팀은 각 level에서 무엇을 판단하는지 공통으로 이해하고, 현재 판단을 적절한 level에서 다룬다. Abstraction level이 섞이면 의미 불일치와 재작업이 증가한다. 같은 이유로 Engineering이 무엇을 바꿔야 하는지를 판단하는 것과, Management가 변경을 scope·resource·schedule·baseline 관점에서 통제하는 것과, Governance/Contract가 누가 결정·승인하고 비용과 책임을 부담하는지를 다루는 것도 서로 다른 질문이다. 변경의 engineering 필요성과 변경의 책임 귀속을 혼동하지 않는다.
 
 필요한 explicitness는 완벽한 분석·설계나 모든 구현 세부사항의 모델화가 아니라 현재 판단, 협업과 검증에 필요한 의미·경계·책임·제약·evidence를 충분히 드러내는 수준이다. Model은 Code를 복제하지 않으며 상세 implementation logic처럼 Code가 더 적합한 영역까지 억지로 표현하지 않는다.
 
-표준화의 핵심은 동일한 문서 양식이나 artifact 수가 아니라 같은 abstraction level과 판단 기준에 대한 shared understanding이다. 교육과 실제 업무 적용을 통해 팀의 공통 눈높이를 정렬한다. 표준은 영구적인 정답이 아니라 현재 조직의 `best-known way`이며 실제 evidence와 feedback에 따라 개선한다.
+표준화의 핵심은 동일한 문서 양식이나 artifact 수가 아니라 같은 abstraction level과 판단 기준에 대한 shared understanding이다. 교육과 실제 업무 적용을 통해 팀의 공통 눈높이를 정렬한다. 표준은 영구적인 정답이 아니라 현재 조직의 `best-known way`이며 실제 evidence와 feedback에 따라 개선한다. `best-known way`(표준)와 `best-known baseline`(현재 합의된 판단·범위의 기준 상태)은 같은 개념이 아니다. Baseline은 영구적으로 고정된 truth가 아니라 특정 시점의 best-known state이며, 새로운 evidence가 기존 assumption이나 판단을 바꾸면 impact를 확인하고 필요한 결정을 다시 연 뒤 baseline을 조정한다. 재사용 가치가 있는 판단 근거, 반복되는 문제와 해결 경험, 검증된 practice, 실패에서 얻은 learning은 개인에게 종속되지 않고 팀이 다시 사용할 수 있는 수준으로 옮겨 둔다. 이때도 모든 정보를 문서화하는 것이 목적이 아니라 앞의 explicitness 기준을 그대로 적용한다.
 
-생산성과 품질은 개별 활동의 local optimization보다 전체 engineering/value flow 관점에서 평가한다. 현재 전체 성과를 제한하는 constraint 또는 weak link를 찾아 우선 보강하고, 모든 영역의 성숙도를 동시에 높이려 하지 않으며, 개선 후 전체 system을 다시 평가한다.
+생산성과 품질은 개별 활동의 local optimization보다 전체 engineering/value flow 관점에서 평가한다. 현재 전체 성과를 제한하는 constraint 또는 weak link를 찾아 우선 보강하고, 모든 영역의 성숙도를 동시에 높이려 하지 않으며, 개선 후 전체 system을 다시 평가한다. 같은 문제를 뛰어난 개인이 반복해서 해결하는 것은 시스템 개선이 아니다. 실제 constraint가 knowledge, practice, principle, standard, tool, process, role 중 어디에 있는지 찾아 그 원인을 개선하고 다시 evidence로 확인한다.
 
 AI가 Requirement, Analysis, Architecture, Design 등의 engineering judgment 자체를 제거한다고 가정하지 않는다. AI의 주요 역할 중 하나는 abstraction 사이의 반복적인 translation, expansion, generation, synchronization과 verification 비용을 낮추는 것이다. Human은 Intent, Meaning, Boundary, Decision, Trade-off와 Acceptance에 대한 책임을 유지한다. AI는 기존 engineering capability와 판단 체계를 증폭할 수 있으므로 explicit context와 검증이 중요하다.
 
