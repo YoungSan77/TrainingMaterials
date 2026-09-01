@@ -1,7 +1,7 @@
 # S10. OOAD Next Step ① — 개발·검증·DevOps
 
 - **시간:** 70분
-- **상태:** 검토용 초안 v0.2
+- **상태:** 사용자 승인본
 - **핵심 질문:**  
   **S02~S09에서 만든 OOAD 결과는 구현에서 어떻게 구체화되고, 구현 중 얻은 evidence를 필요한 수준의 판단에 feedback하며, 개발 중 Test·Pre-commit Verification·CI/CD를 거쳐 운영으로 이어지는가?**
 
@@ -780,17 +780,17 @@ OOAD
 System 전체 구조와 quality attribute는?
 → Software Architecture
 
-어디를 독립적인 service boundary로 나눌 것인가?
-→ MSA
-
 복잡한 domain의 language·model·boundary를 어떻게 지속적으로 관리할 것인가?
 → DDD
+
+어디를 독립적인 service boundary로 나눌 것인가?
+→ MSA
 
 Human과 Agent가 분석·설계·구현·검증을 어떻게 나누고 통제할 것인가?
 → AI-Native
 ```
 
-> **OOAD가 제공한 판단 기반 위에서 Software Architecture·MSA·DDD·AI-Native는 무엇을 추가로 다루는가?**
+> **OOAD가 제공한 판단 기반 위에서 Software Architecture·DDD·MSA·AI-Native는 무엇을 추가로 다루는가?**
 
 → **S11. OOAD Next Step ② — 고급 설계와 AI-Native**
 

@@ -1,7 +1,7 @@
 # S06. 책임 설계 ① — RDD로 책임과 협력 보완
 
 - **시간:** 85분
-- **상태:** 검토용 초안 v0.2
+- **상태:** 사용자 승인본
 - **핵심 질문:**  
   **S05에서 자신의 경험으로 만든 Initial Design을 Responsibility-Driven Design 관점에서 어떻게 설명·검증·재배치하고, 객체 간 Message와 Collaboration으로 정제할 것인가?**
 

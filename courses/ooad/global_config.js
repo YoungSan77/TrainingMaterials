@@ -5,5 +5,5 @@ module.exports = {
   curriculum: [
     { day: 'Day 1 — OOAD 개요와 분석', items: ['OOAD 개요'] }
   ],
-  meta: { quotes: 'ooad-curriculum.md' },
+  meta: {},
 };

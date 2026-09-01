@@ -1,8 +1,8 @@
 # S01. OOAD 개요
 
 - **시간:** 60분
-- **권장 슬라이드:** 24장 전후
-- **허용 범위:** 22~26장
+- **권장 슬라이드:** content stabilization 이후 재산정
+- **허용 범위:** 최종 integration에서 확정
 
 ## 과정 목표
 
@@ -32,7 +32,11 @@
 
 SW 개발의 문제는 코드에서만 시작되지 않는다. 요구 자체를 잘못 이해하면 구현을 아무리 잘해도 잘못된 결과를 만들 수 있다.
 
-## Boehm — 재작업과 늦은 수정 비용
+## Evidence — Boehm / Standish / Brooks
+
+세 근거는 별도의 긴 논증이 아니라 `왜 Analysis / Design이 필요한가`를 설명하는 하나의 evidence structure로 사용한다. 각 근거의 역할은 구분하되 한 teaching unit 안에서 연결한다.
+
+### Boehm — 재작업과 늦은 수정 비용
 
 Boehm과 Basili는 당시 SW 프로젝트에서 약 **40~50%의 노력이 avoidable rework에 사용된다**고 보고했으며, delivery 이후 문제 수정 비용이 requirements/design 단계보다 **종종 100배까지 높아질 수 있다**고 정리했다.
 
@@ -42,7 +46,7 @@ Boehm과 Basili는 당시 SW 프로젝트에서 약 **40~50%의 노력이 avoida
 
 > **재작업 자체가 상당한 개발 노력을 소비하며, 문제를 늦게 발견할수록 그 재작업 비용은 더 커질 수 있다.**
 
-## Standish — 사용되지 않는 기능
+### Standish — 사용되지 않는 기능
 
 2002년 Jim Johnson이 소개한 Standish 자료에서는 기능의 **45%가 never used**, 그리고 **20%만 often 또는 always used**된 것으로 제시됐다.
 
@@ -52,7 +56,7 @@ Boehm과 Basili는 당시 SW 프로젝트에서 약 **40~50%의 노력이 avoida
 
 따라서 분석의 목적은 요구사항을 많이 만드는 것이 아니라 **실제로 해결해야 할 문제와 필요한 기능을 이해하는 것**이다.
 
-## Brooks — Essence와 Accident
+### Brooks — Essence와 Accident
 
 Brooks의 *No Silver Bullet* 문제의식을 과정 전체의 상위 Anchor로 사용한다.
 
@@ -460,33 +464,31 @@ S01은 이 전체 과정에서 **왜 이 사고 흐름이 필요한가**를 이�
 
 ---
 
-# 권장 24장 구성
+# Slide Architecture — content stabilization 이후 최종 범위 재산정
 
-추가된 `Essence / Accident`, `Analysis ≠ Phase`, 정적·동적 관점, `Engineering Judgment / Abstraction Map`, `Define ↔ Build ↔ Test`는 별도 지식 항목이 아니라 기존 논증을 명확히 하는 핵심 Anchor다. §2의 Iterative/Agile 설명을 Define/Build/Test로 통합해 별도 slide를 늘리지 않았고, §5(Engineering Judgment Map, Course Sequence ≠ Engineering Lifecycle)만 신규 2장으로 추가했다. 60분 안에서 설명을 압축하여 **24장 전후**, 허용 범위 **22~26장**을 권장한다.
+추가된 `Essence / Accident`, `Analysis ≠ Phase`, 정적·동적 관점, `Engineering Judgment / Abstraction Map`, `Define ↔ Build ↔ Test`는 별도 지식 항목이 아니라 기존 논증을 명확히 하는 핵심 Anchor다. Boehm·Standish·Brooks는 하나의 evidence slide에서 역할을 구분한다. 아래 순서는 content architecture이며 최종 slide 수와 허용 범위는 전체 content stabilization 이후 재산정한다.
 
 | # | Block | Slide |
 |---:|---|---|
 | 1 | Opening | 과정 목표 |
 | 2 | 1 | 왜 분석·설계가 필요한가 |
 | 3 | 1 | 잘못 이해한 문제의 연쇄 |
-| 4 | 1 | **Boehm — Avoidable Rework + 늦은 수정 비용** |
-| 5 | 1 | Standish — 요구된 기능 ≠ 필요한 기능 |
-| 6 | 1 | **Brooks — Essence vs Accident** |
-| 7 | 2 | 분석이란 무엇인가 |
-| 8 | 2 | 설계란 무엇인가 |
-| 9 | 2 | **Analysis ≠ Phase — 질문을 구분한다** |
-| 10 | 2 | Predictive vs Iterative / Agile — **Define ↔ Build ↔ Test 반복 flow** |
-| 11 | 3 | 왜 객체지향인가 |
-| 12 | 3 | 복잡성 → 구조화 → 모듈화 |
-| 13 | 3 | Information Hiding |
-| 14 | 3 | 상태와 행위를 어디에 둘 것인가 |
-| 15 | 3 | 객체 = 상태 + 행위 + 책임 |
-| 16 | 3 | Message와 Collaboration |
-| 17 | 3 | Order Mini Exercise |
-| 18 | 4 | OOA — 문제영역의 이해 |
-| 19 | 4 | **Static View + Dynamic View** |
-| 20 | 4 | OOD — 객체 설계 |
-| 21 | 4 | **OOA → OOD / UML보다 솔루션 분석과 설계** |
-| 22 | 5 | **Engineering Judgment / Abstraction Map** |
-| 23 | 5 | **Course Sequence ≠ Engineering Lifecycle** |
-| 24 | Closing | **과정 지도 + 과정 요약** |
+| 4 | 1 | **Evidence — Boehm / Standish / Brooks** |
+| 5 | 2 | 분석이란 무엇인가 |
+| 6 | 2 | 설계란 무엇인가 |
+| 7 | 2 | **Analysis ≠ Phase — 질문을 구분한다** |
+| 8 | 2 | Predictive vs Iterative / Agile — **Define ↔ Build ↔ Test 반복 flow** |
+| 9 | 3 | 왜 객체지향인가 |
+| 10 | 3 | 복잡성 → 구조화 → 모듈화 |
+| 11 | 3 | Information Hiding |
+| 12 | 3 | 상태와 행위를 어디에 둘 것인가 |
+| 13 | 3 | 객체 = 상태 + 행위 + 책임 |
+| 14 | 3 | Message와 Collaboration |
+| 15 | 3 | Order Mini Exercise |
+| 16 | 4 | OOA — 문제영역의 이해 |
+| 17 | 4 | **Static View + Dynamic View** |
+| 18 | 4 | OOD — 객체 설계 |
+| 19 | 4 | **OOA → OOD / UML보다 솔루션 분석과 설계** |
+| 20 | 5 | **Engineering Judgment / Abstraction Map** |
+| 21 | 5 | **Course Sequence ≠ Engineering Lifecycle** |
+| 22 | Closing | **과정 지도 + 과정 요약** |

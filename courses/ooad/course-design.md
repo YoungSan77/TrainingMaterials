@@ -61,7 +61,7 @@ Brooks의 Essence / Accident 관점에서 Analysis는 problem-domain의 essentia
 - OOAD 모델이 객체·상태·책임·협력·계약에서 Code의 class·state·method·message·executable rule로 자연스럽게 구체화되는 연결
 - 구현 중 Debugging·Developer Test·TDD·Refactoring을 통한 빠른 feedback과, 필요 시 Requirement·Analysis·Architecture·Design 판단의 재검토(재작업을 Refactoring이라는 이름으로 미화하지 않는다)
 - Commit 이후 통합 검증과 CI/CD의 역할, 그리고 DevOps를 도구 도입이 아닌 Dev·Ops의 flow·feedback·shared responsibility를 만드는 문화로 positioning
-- OOAD를 기반으로 Software Architecture·MSA·DDD·AI-Native가 추가로 다루는 문제와 경계
+- OOAD를 기반으로 Software Architecture·DDD·MSA·AI-Native가 추가로 다루는 문제와 경계
 
 객체에 메시지를 요청하기 전에 무엇이 참이어야 하고, 수행 뒤 무엇을 보장하며, 객체가 계속 지켜야 할 일관성이 무엇인지 객체 계약(precondition/postcondition/invariant)으로 먼저 명시한다. 그 계약을 누가 소유하고 보장해야 하는지 물으며 책임 할당 판단(정보 전문가·응집도·결합도·정보 은닉)으로 이어가고, 이후 실제 change가 기존 계약에 주는 압력을 관찰해 composition/interface/dependency 같은 변화 대응 원칙을 필요한 만큼 적용한다. **GRASP는 서로 배타적인 해결책 목록이 아니라 Responsibility Assignment를 검토하는 중첩 가능한 판단 관점으로 사용하며, 하나의 설계 결정이 여러 GRASP 관점에서 동시에 설명될 수 있다. GoF Design Pattern은 반복되는 특정 설계 문제에 대한 재사용 가능한 solution structure로 다루며, 문제·책임·협력·계약과 change pressure를 먼저 이해한 뒤 그 해결 구조와 Pattern vocabulary를 연결한다.** 원칙과 Pattern을 checklist나 이름 맞히기로 사용하지 않으며, Pattern별 상세 적용·비교·조합은 현재 과정의 completeness를 위해 확장하지 않는다. 개별 GRASP/Pattern 항목의 적용 절차는 Curriculum·Session Detailed Design이 결정한다.
 
@@ -80,7 +80,7 @@ Brooks의 Essence / Accident 관점에서 Analysis는 problem-domain의 essentia
 
 ### Cross-course Boundary / Handoff
 
-> **OOAD는 객체 수준의 분석·설계에서 끝나는 독립 기술이 아니라, 이후 개발·검증·운영 이관과 Software Architecture·MSA·DDD·AI-Native로 이어지는 출발점이다.** 다음 영역들은 OOAD의 하위 개념이 아니라, OOAD가 제공한 problem understanding·responsibility·collaboration·contract·change judgment를 기반으로 더 큰 범위와 새로운 관심사를 다룬다.
+> **OOAD는 객체 수준의 분석·설계에서 끝나는 독립 기술이 아니라, 이후 개발·검증·운영 이관과 Software Architecture·DDD·MSA·AI-Native로 이어지는 출발점이다.** 다음 영역들은 OOAD의 하위 개념이 아니라, OOAD가 제공한 problem understanding·responsibility·collaboration·contract·change judgment를 기반으로 더 큰 범위와 새로운 관심사를 다룬다.
 
 - OOAD에서 Domain은 SW가 해결하려는 문제와 업무의 세계로 사용하고, Conceptual/Analysis Domain Model을 통해 필요한 의미 구조를 다룬다. Domain Model의 지속적 정제, Ubiquitous Language, Aggregate·Bounded Context 등 DDD 전문 판단은 DDD로 넘긴다
 - MDD/MDA는 OOAD와 무관한 별도 흐름으로 다루지 않는다. OOAD의 Analysis Model → Design Model → Implementation이라는 모델 기반 흐름이 이후 더 체계화·정형화·표준화된 관계만 필요한 맥락에서 연결하고, MDD/MDA 자체의 상세 기법은 이 과정의 필수 scope로 확장하지 않는다
@@ -111,15 +111,15 @@ Brooks의 Essence / Accident 관점에서 Analysis는 problem-domain의 essentia
 7. 새로운 change request가 기존 계약과 협력에 주는 압력을 관찰해 필요한 variation mechanism으로 local refinement하고, Pattern 이름 없이 설계 문제와 해결 구조를 먼저 이해한 뒤 대표 GoF Pattern vocabulary와 연결한다
 8. 여러 설계 대안을 change impact·cohesion/coupling·dependency·abstraction cost·SOLID·pattern·trade-off 관점에서 종합 판단한다
 9. S02~S09에서 통합한 OOAD 결과가 Code로 자연스럽게 구체화되는 모습을 확인하고, 구현 중 문제를 Code에 국한할지 Requirement·Analysis·Architecture·Design 수준까지 다시 판단할지 구분한다. 개발 중 Debugging·Developer Test·TDD·Refactoring과 Commit 이후 통합 검증을 구분하고, 품질이 개발 단계에서 먼저 확보된 뒤 CI/CD와 DevOps로 이어지는 흐름을 이해한다
-10. OOAD가 Software Architecture·MSA·DDD·AI-Native의 출발점임을 확인하고, OOAD가 이미 해결한 문제와 각 전문 영역이 추가로 소유하는 문제를 구분한다
+10. OOAD가 Software Architecture·DDD·MSA·AI-Native의 출발점임을 확인하고, OOAD가 이미 해결한 문제와 각 전문 영역이 추가로 소유하는 문제를 구분한다
 
-이 progression에서 **S02~S09는 OOAD Core**를 구성한다. S07은 실제 change에 대한 **local refinement**, S08은 **여러 Design Alternative를 평가하고 선택하는 판단**, S09는 앞선 분석·설계 판단을 통합하는 workshop을 소유한다. **S10과 S11은 OOAD Core 이후의 Next Steps**다. S10은 OOAD 결과가 개발·개발 중 Test·TDD·Refactoring·Commit 이후 검증·CI/CD·DevOps로 이어지는 연결을 소유하고, S11은 OOAD를 출발점으로 Software Architecture·MSA·DDD·AI-Native가 추가로 다루는 문제와 경계를 소유한다. S08의 기본 판단 흐름은 `Change Impact → Cohesion/Coupling → Dependency → Abstraction Cost → SOLID/Pattern → Trade-off → Design Decision`이다. SOLID와 Pattern은 적용 개수나 checklist가 아니라 대안을 설명·평가하는 판단 언어로 사용한다. Abstraction·interface·Pattern을 추가하는 선택에도 이해·구현·협력 비용이 있으므로 실제 change evidence와 얻는 효과를 함께 비교한다.
+이 progression에서 **S02~S09는 OOAD Core**를 구성한다. S07은 실제 change에 대한 **local refinement**, S08은 **여러 Design Alternative를 평가하고 선택하는 판단**, S09는 앞선 분석·설계 판단을 통합하는 workshop을 소유한다. **S10과 S11은 OOAD Core 이후의 Next Steps**다. S10은 OOAD 결과가 개발·개발 중 Test·TDD·Refactoring·Commit 이후 검증·CI/CD·DevOps로 이어지는 연결을 소유하고, S11은 OOAD를 출발점으로 Software Architecture·DDD·MSA·AI-Native가 추가로 다루는 문제와 경계를 소유한다. S08의 기본 판단 흐름은 `Change Impact → Cohesion/Coupling → Dependency → Abstraction Cost → SOLID/Pattern → Trade-off → Design Decision`이다. SOLID와 Pattern은 적용 개수나 checklist가 아니라 대안을 설명·평가하는 판단 언어로 사용한다. Abstraction·interface·Pattern을 추가하는 선택에도 이해·구현·협력 비용이 있으므로 실제 change evidence와 얻는 효과를 함께 비교한다.
 
 이는 Session 구조가 아니다. Curriculum LLM은 16h 안에서 중요도·난이도·실습과 feedback 필요성에 따라 시간을 비균등 배분한다.
 
 ## Running Example Strategy
 
-Curriculum은 하나의 공통 progression을 기본 예로 사용해 Requirement → Static Problem Understanding → Dynamic Problem Understanding → Initial Design → Refined Design을 관통한다. Shipment는 이 기본 흐름의 필수 concept으로 강제하지 않는다. Order Cancellation/Refund는 기본 설계가 끝난 뒤 투입하는 variation/change request로 사용하며, 기본 설계 자체의 대상으로 앞당기지 않는다. 구체적인 시나리오 명칭과 실습 산출물은 Session Architecture/Detailed Design이 정한다.
+Curriculum은 하나의 공통 progression을 기본 예로 사용해 Requirement → Static Problem Understanding → Dynamic Problem Understanding → Initial Design → Refined Design을 관통한다. Shipment는 이 기본 흐름의 필수 concept으로 강제하지 않는다. Order Cancellation/Refund는 기본 설계가 끝난 뒤 투입하는 variation/change request로 사용하며, 기본 설계 자체의 대상으로 앞당기지 않는다. 구체적인 시나리오 명칭과 실습 산출물은 Curriculum/Session Detailed Design이 정한다.
 
 ## Change as Learning Device
 

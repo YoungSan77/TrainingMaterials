@@ -1,4 +1,4 @@
-# S03. 분석 정적 모델 — 상세 설계 초안 v0.3
+# S03. 분석 정적 모델
 
 - **시간:** 75분
 - **상태:** 사용자 승인본
@@ -129,7 +129,9 @@ Domain State Change
 
 ---
 
-# 4. Analysis는 Phase가 아니라 사고 프로세스다
+# 4. S01/S02 Recap — 현재 정적 모델링 질문에 연결한다
+
+이 구간은 S01/S02의 Why와 Definition을 다시 가르치는 네 개의 독립 teaching unit이 아니다. 아래 내용을 하나의 짧은 visual recap으로 묶고, S03의 정적 모델링 질문으로 바로 전환한다.
 
 S03에서 `Analysis Static Model`이라는 표현을 사용하지만 다음을 명확히 한다.
 
@@ -171,7 +173,7 @@ Define ↔ Build ↔ Test  (S01)
 
 ---
 
-# 5. Problem Understanding — Static + Dynamic
+### Problem Understanding — Static + Dynamic
 
 Requirement text 하나로 복잡한 문제를 모두 이해하기 어렵다.
 
@@ -199,7 +201,7 @@ S04에서는 Dynamic View를 다룬다.
 
 ---
 
-# 6. Requirement Baseline과의 관계
+### Requirement Baseline과의 관계
 
 Formal baseline을 만드는 방법을 가르치는 것이 이 세션의 목적은 아니다.
 
@@ -237,7 +239,7 @@ Implementation Commitment
 
 ---
 
-# 7. Brooks — Essence / Accident
+### Brooks — Essence / Accident
 
 S01과 S02에서 사용한 Brooks Anchor를 S03에서 다시 적용한다.
 

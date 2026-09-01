@@ -1226,7 +1226,7 @@ Requirement
 
 ### Slide Density 판단
 
-18장은 Session Architecture의 초기 추정 `14~17`보다 1장 많다.
+18장은 상세 설계 이전의 초기 추정 `14~17`보다 1장 많다.
 
 증가 이유는 DIP와 별개로 **DI / IoC의 역할과 dependency wiring 판단을 명확히 구분할 필요가 있기 때문**이다.
 

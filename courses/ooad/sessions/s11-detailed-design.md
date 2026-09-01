@@ -3,7 +3,7 @@
 - **상태:** 최종 승인 상세설계
 - **Teaching Order:** Software Architecture → DDD → MSA → AI-Native
 - **Positioning:** 네 전문과정의 축약본이 아니라, 각 전문영역의 Big Picture와 OOAD에서 확보한 Engineering Judgment가 어떻게 재사용·확장되는지를 보여주는 handoff session
-- **현재 시간 기준:** Session Architecture의 35분을 유지하되, 실제 instructional time은 Whole-Curriculum Integration Review에서 재산정한다.
+- **현재 시간 기준:** 승인된 35분을 임시 유지하되, 실제 instructional time은 content integration 이후 별도 단계에서 재산정한다.
 - **권장 Main Slides:** 26~30장. 숫자를 quota로 사용하지 않고 Keyword / Core Concept 하나당 대략 Main Slide 한 장 수준의 밀도를 기본으로 한다.
 
 ---
