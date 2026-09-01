@@ -51,7 +51,7 @@ Brooks의 Essence / Accident 관점에서 Analysis는 problem-domain의 essentia
 - 요구와 black-box scenario에서 Problem Understanding을 정제하고 설계 질문 추출
 - Analysis activity/concern과 lifecycle phase의 구분
 - Brooks Essence / Accident를 이용한 essential problem과 premature solution detail의 구분
-- 객체 = 상태·행위·책임·메시지
+- 객체는 상태와 행위를 캡슐화하고, 책임을 맡아 메시지로 협력한다 — Responsibility는 어떤 상태·행위를 그 객체가 소유·수행해야 하는지를 정하는 설계 판단이며 Behavior와 동의어가 아니다
 - 분석 모델과 설계 모델의 구분
 - 정적·동적 모델을 동일한 Problem Understanding의 상호보완적 관점으로 사용
 - 책임 할당, information expert, cohesion/coupling, information hiding

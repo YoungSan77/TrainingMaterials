@@ -173,9 +173,11 @@ Define ↔ Build ↔ Test
 
 - **Define** — 문제/요구 이해, 필요한 Analysis/Architecture/Design 판단
 - **Build** — Technical Design·구현·통합, 그 과정에서 재발생하는 Analysis/Architecture/Design 재판단
-- **Test** — 실행 결과와 evidence 확인, 필요하면 Define 또는 Build로 되돌리는 feedback
+- **Test** — 실행 결과와 evidence로 앞선 판단을 검증하는 활동
 
-`Analysis = Define`, `Design = Build`, `Test = 마지막 단계`처럼 1:1로 고정하지 않는다. Build 중에도 Analysis/Design 판단이 다시 필요할 수 있고, Test evidence가 Define/Build의 판단을 다시 열 수 있다.
+어느 활동에서든 새로운 evidence는 그것과 관련된 판단을 다시 연다. 이는 정해진 마지막 단계에서 앞 단계로 되돌아가는 rollback이 아니라, **evidence가 관련된 판단을 다시 여는 feedback**이다.
+
+`Analysis = Define`, `Design = Build`, `Test = 마지막 단계`처럼 1:1로 고정하지 않는다. Build 중에도 Analysis/Design 판단이 다시 필요할 수 있고, Define 중에 얻은 evidence가 이미 진행한 Build의 판단을 다시 열 수도 있다.
 
 따라서:
 
@@ -213,14 +215,16 @@ Message / Collaboration
 
 문제의 규모와 변화가 커질수록:
 
-- 데이터와 이를 다루는 행위가 여러 곳으로 분산되고,
-- 동일한 업무 판단이 여러 호출부에 반복되고,
-- 상태 변경 규칙의 owner가 불명확해지며,
+- 상태·행위·업무 규칙이 여러 곳으로 분산되고,
+- 동일한 업무 판단이 여러 호출부에 반복되며,
+- 그 결과 책임 소유자(owner)가 불명확해지고,
 - 작은 변경도 넓은 영역으로 전파될 수 있다.
 
 따라서 중요한 설계 질문은 다음으로 이동한다.
 
-> **상태와 행위를 어디에 두어야 하는가?**
+> **어떤 객체에 어떤 책임을 할당할 것인가?**
+
+이는 상태와 행위를 어디에 둘 것인가라는 질문이기도 하지만, 더 정확히는 **Responsibility Assignment** — 그 상태와 행위를 누가 소유하고 책임져야 하는가라는 질문이다.
 
 ## Information Hiding
 
@@ -234,7 +238,9 @@ Parnas의 Information Hiding 관점에서는 **변경될 가능성이 있는 설
 
 이 과정에서 객체는 단순한 데이터 구조나 현실의 명사에 대응하는 Class가 아니다.
 
-> **객체는 상태와 행위를 소유하고 책임을 수행하며, 다른 객체와 메시지로 협력하는 설계 단위다.**
+> **객체는 상태와 행위를 캡슐화하고, 책임을 맡아 메시지로 협력하는 설계 단위다.**
+
+State와 Behavior는 객체가 경계 안에 두는 것이고, Responsibility는 그 State·Behavior를 해당 객체가 소유·수행해야 하는지를 정하는 설계 판단이며, Message는 객체들이 각자의 Responsibility를 수행하며 협력하는 방식이다. Behavior와 Responsibility를 같은 뜻으로 쓰지 않는다 — Behavior는 Responsibility를 수행하는 구체적인 행위이고, Responsibility는 그보다 높은 수준의 설계 의미다.
 
 Alan Kay의 OOP Anchor는 객체지향의 중심을 Class hierarchy가 아니라 **messaging과 local state**에 두는 근거로 사용한다.
 
@@ -243,32 +249,28 @@ Alan Kay의 OOP Anchor는 객체지향의 중심을 Class hierarchy가 아니라
 상황:
 
 ```text
+OrderService
+    ↓ uses
 Order
-- items
-- totalAmount
-
-OrderService.calculateTotal()
-CheckoutService.calculateTotal()
-PaymentService.validateAmount()
+    ↓ contains
+OrderItem
 ```
 
-여러 Service가 `OrderItem.quantity`와 금액 정보를 읽어 주문 총액을 각각 계산하고 있다.
-
-문제:
-
-> **같은 주문 총액 규칙이 여러 곳에 퍼져 있어 한 규칙 변경이 여러 Service에 파급된다.**
+- `OrderItem`은 자기 항목에 필요한 정보(예: `price`, `quantity`)를 가진다.
+- `Order`는 여러 `OrderItem`을 가진다.
+- `OrderService`는 `Order`를 사용한다.
 
 질문:
 
-> **주문 총액을 알고 계산하는 책임은 어디에 있어야 하는가?**
+> **주문 총액 계산 책임은 `OrderItem`, `Order`, `OrderService` 중 누구에게 있어야 하는가?**
 
-이 단계에서는 해결책을 설계하지 않는다.
+이 단계에서는 정답을 확정하지 않는다.
 
-학습자가 다음 문제를 발견하면 충분하다.
+학습자가 다음 질문까지 도달하면 충분하다.
 
-> **동일한 업무 판단의 owner가 불명확하면 변경이 여러 곳으로 퍼질 수 있다.**
+> **필요한 상태와 규칙을 알고 있는 위치와 responsibility를 어디까지 함께 둘 것인가?**
 
-Pattern이나 Class를 먼저 추가하는 것은 이 실습의 목적이 아니다.
+Information Expert나 GRASP의 formal teaching은 여기서 다루지 않는다 — 책임 있는 owner Session(S06)이 소유한다. Pattern이나 Class를 먼저 추가하는 것도 이 실습의 목적이 아니다.
 
 ---
 
@@ -376,7 +378,7 @@ Technical Design  — 기술 환경과 구현 제약에 맞게 어떻게 구체�
 Code              — 실행 가능한 구현
 ```
 
-> **이 Map은 lifecycle phase diagram이 아니라 서로 다른 질문을 구분하는 Engineering Judgment 지도다.** 화살표는 순서를 강제하지 않으며, 실제 개발에서는 필요한 시점에 반복하고 판단 수준 사이를 왕복한다.
+> **이 Map은 lifecycle phase diagram이 아니라 서로 다른 질문을 구분하는 Engineering Judgment 지도다.** 화살표는 순서를 강제하지 않으며, 실제 개발에서는 필요한 시점에 반복하고 판단 수준 사이를 왕복한다. 새로운 evidence가 나타나면 그 evidence와 관련된 판단 수준을 다시 연다 — 특정 마지막 단계에서 앞 단계로 돌아가는 고정된 경로가 아니다.
 
 Architecture는 이 과정이 새로 가르치는 주제가 아니다. OOAD는 Analysis와 Design에 집중하며, Architecture의 상세 판단(구조 대안, quality trade-off)은 SW Architecture 과정이 소유한다. 이 Map에서는 Architecture가 Analysis와 Design 사이에 존재하는 별개의 judgment라는 위치만 확인한다.
 
@@ -482,7 +484,7 @@ S01은 이 전체 과정에서 **왜 이 사고 흐름이 필요한가**를 이�
 | 10 | 3 | 복잡성 → 구조화 → 모듈화 |
 | 11 | 3 | Information Hiding |
 | 12 | 3 | 상태와 행위를 어디에 둘 것인가 |
-| 13 | 3 | 객체 = 상태 + 행위 + 책임 |
+| 13 | 3 | 객체는 상태·행위를 캡슐화하고 책임을 맡아 메시지로 협력한다 |
 | 14 | 3 | Message와 Collaboration |
 | 15 | 3 | Order Mini Exercise |
 | 16 | 4 | OOA — 문제영역의 이해 |
