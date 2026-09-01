@@ -867,6 +867,8 @@ Order는 data만 유지
 - **Rule Duplication** — UI/Service/Batch/API가 각자 총액을 계산한다.
 - **State Exposure** — 외부가 객체 내부 상태 조합을 직접 알아야 한다.
 
+**Rule Duplication**이 특히 중요한 이유는 단순한 코드 중복이 아니라, 같은 business knowledge·rule이 여러 위치에서 독립적으로 표현되기 때문이다. 지식이 여러 곳에 흩어지면(Knowledge Duplication) 그 지식을 실질적으로 아는 owner도 여러 곳이 되고(Multiple Owners), 규칙 하나가 바뀔 때 그 여러 곳을 함께 수정해야 하며(Change Propagation), 이 신호는 그 지식을 하나의 책임으로 모을 필요가 있는지 검토하게 만든다(Responsibility Ownership). 비슷해 보이는 코드를 모두 즉시 abstraction해야 한다는 뜻은 아니다 — 같은 rule을 표현하고 있는지가 핵심이지 코드 형태의 유사성 자체가 핵심은 아니다.
+
 좋은 후보는 대체로 자신의 상태와 직접 관련된 Rule을 알고, 유효한 상태 전이를 통제하며, 변경 이유가 비교적 응집돼 있다. 다만 모든 behavior를 Entity 하나에 몰아넣는다는 뜻은 아니다. 더 정교한 평가(Cohesion/Coupling 지표, GRASP 적용)는 S06·S08에서 이어간다.
 
 ---

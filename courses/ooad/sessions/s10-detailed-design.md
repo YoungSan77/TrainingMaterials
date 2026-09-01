@@ -462,6 +462,8 @@ Evidence 예:
 - 지나치게 복잡한 method
 - 안전한 변경을 어렵게 하는 구조
 
+`duplicated logic`은 문법적으로 비슷한 코드 자체(Duplicate Syntax)가 아니라 같은 business rule이 여러 곳에서 각자 표현되고 있는지(Duplicate Knowledge)를 본다. 우연히 비슷해 보이는 코드까지 기계적으로 통합하지 않는다.
+
 필요하면 설계 모델도 판단 evidence로 사용할 수 있다.
 
 그러나 Model–Code 차이 자체가 Refactoring trigger는 아니다.

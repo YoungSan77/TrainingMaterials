@@ -933,6 +933,18 @@ Evidence
 
 > **설계 품질은 한 특성을 최대화하는 문제가 아니라 현재 문제에서 감당할 trade-off를 선택하는 문제다.**
 
+### KISS / DRY / YAGNI — practical sanity check
+
+최종 결정 전에 다음 세 질문으로 점검한다.
+
+- **KISS** — 이 복잡성이 현재 문제 해결에 정말 필요한가?
+- **DRY** — 같은 knowledge·business rule이 여러 owner에 존재하는가?
+- **YAGNI** — evidence 없는 미래 요구를 위해 지금 비용을 지불하고 있는가?
+
+KISS/DRY/YAGNI는 checklist가 아니며 서로 충돌할 수 있다. DRY가 요구하는 abstraction이 KISS가 원하는 단순성과 부딪히거나, 아직 없는 variation에 대비한 abstraction이 YAGNI를 위반할 수 있다. 실제 change evidence, 효과, 비용, trade-off를 기준으로 판단하며 세 원칙 중 하나를 기계적으로 우선하지 않는다.
+
+비슷한 코드가 있다고 즉시 abstraction하는 것은 DRY의 기계적 적용이며, premature abstraction으로 KISS·YAGNI를 해칠 수 있다.
+
 ---
 
 ## 15. Design Decision — 판단 구조
