@@ -148,13 +148,25 @@ module.exports = (ctx) => {
     // 질문 + 리드(라벨 문장) — 정본 패턴: 모든 본문 슬라이드 상단
     // 질문 + 리드를 하나의 배경 밴드에 내장한다(독립 텍스트 개체를 만들지 않는다).
 
+    // lead.text가 rich-run 배열(Anchor Citation)이면 한글은 F_BODY, small:true인 run(영어 원문·
+    //   저자)은 F_SRC(10pt)로 같은 문단 안에서 섞어 그린다 — 하위호환: 평문이면 기존 그대로.
+    // lead.label이 빈 문자열이면 'label: ' prefix를 그리지 않는다(Anchor Message가 저자명을
+    //   문장 끝에 이미 포함하면 앞쪽 label이 중복이다 — 기존 decks는 항상 비지 않은 label을
+    //   쓰므로 하위호환이다).
     const addContext = (s, q, lead) => {
         const parts = []; let ln = 0;
         if (q) { parts.push({ text: q, options: { bold: true, fontSize: F_BODY, fontFace: FF, color: C.navy, breakLine: !!lead, paraSpaceAfter: SP } }); ln += lines(q, CW, false, F_BODY); }
         if (lead) {
-            parts.push({ text: lead.label + `: `, options: { bold: true, fontSize: F_BODY, fontFace: FF, color: C.teal, paraSpaceBefore: SP } });
-            parts.push({ text: lead.text, options: { fontSize: F_BODY, fontFace: FF, color: C.dark, paraSpaceBefore: SP } });
-            ln += lines(lead.label + ': ' + lead.text, CW, false, F_BODY);
+            const hasLabel = !!lead.label;
+            const labelPrefix = hasLabel ? `${lead.label}: ` : '';
+            if (hasLabel) parts.push({ text: labelPrefix, options: { bold: true, fontSize: F_BODY, fontFace: FF, color: C.teal, paraSpaceBefore: SP } });
+            if (Array.isArray(lead.text)) {
+                lead.text.forEach((run) => parts.push({ text: String(run.text), options: { fontSize: run.small ? F_SRC : F_BODY, fontFace: FF, color: C.dark, paraSpaceBefore: hasLabel ? undefined : SP } }));
+                ln += LO.richLineCount(lead.text, CW - PAD * 2, labelPrefix);
+            } else {
+                parts.push({ text: lead.text, options: { fontSize: F_BODY, fontFace: FF, color: C.dark, paraSpaceBefore: hasLabel ? undefined : SP } });
+                ln += lines(labelPrefix + lead.text, CW, false, F_BODY);
+            }
         }
         if (!parts.length) return CTX_TOP;
         const h = Math.max(0.52, ln * 0.28 + PAD * 2 + 0.10);
@@ -215,7 +227,9 @@ module.exports = (ctx) => {
                 { text: '다음: ', options: { bold: true, fontSize: F_BODY, fontFace: FF, color: C.teal, paraSpaceBefore: SP } },
                 { text: slide.next, options: { fontSize: F_BODY, fontFace: FF, color: C.dark, breakLine: true, paraSpaceBefore: SP, paraSpaceAfter: SP } },
             ] : [];
-            s.addText([...K(slide.foot.kw, C[slide.foot.color] || C.navy, slide.foot.body), ...nextRun], { x: LM, y: Y_BOT, w: CW, h: 1.0, valign: 'top', margin: 0 });
+            // foot은 선택 필드다(skeleton.js 2026-09 완화) — 없으면 그리지 않는다. next만 있으면 그것만 그린다.
+            const footRun = slide.foot ? K(slide.foot.kw, C[slide.foot.color] || C.navy, slide.foot.body) : [];
+            if (footRun.length || nextRun.length) s.addText([...footRun, ...nextRun], { x: LM, y: Y_BOT, w: CW, h: 1.0, valign: 'top', margin: 0 });
         }
         addNotes(s, slide);
     };

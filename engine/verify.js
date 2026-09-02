@@ -152,7 +152,7 @@ const SLACK = 0.06;
 // 엔진과 같은 측정 함수를 넘긴다 → 엔진이 그리는 치수 = 여기서 재는 치수.
 const LO = require('./layout.js')({ CW, LM, PAD, SP, SLACK, CTX_TOP, VB, Y_LINE, LOOP_IN,
     F_IN, F_HEAD, F_BODY, F_ELAB, F_STMT, F_SRC, F_CAP, CAP_LH, CAP_MAX,
-    lines: L, textH, textW, lineCount, IN });
+    lines: L, textH, textW, lineCount, IN, avail });
 
 const quoteH = (q) => Math.max(0.78,
     L(`“${q.ko}”`, CW, false, F_QKO) * 0.24 + L(`${q.en} — ${q.author}`, CW, false, F_QEN) * 0.18 + PAD * 2);
@@ -271,7 +271,10 @@ function verifyDeck(DECK, opts = {}) {
         //   (GLOBAL_FORBIDDEN_PATTERNS 주석 참조) — '생애 주기'·'반복 주기' 같은 도메인 용어는
         //   숫자도 '이후'도 붙지 않으므로 걸리지 않는다. notes(강사 노트)는 학습자 노출이 아니므로 검사하지 않는다.
         {
-            const learnerText = [sl.title, sl.sub, sl.lead && sl.lead.text, sl.foot && sl.foot.body, sl.next]
+            // lead.text가 rich-run 배열(Anchor Citation)이면 각 run.text를 펼쳐서 잇는다 —
+            //   그대로 join하면 배열 원소가 "[object Object]"로 뭉개져 검사가 조용히 빠진다.
+            const leadText = sl.lead && (Array.isArray(sl.lead.text) ? sl.lead.text.map(r => r.text).join(' ') : sl.lead.text);
+            const learnerText = [sl.title, sl.sub, leadText, sl.foot && sl.foot.body, sl.next]
                 .filter(Boolean).join(' ');
             GLOBAL_FORBIDDEN_PATTERNS.forEach(({ re, label }) => {
                 const m = learnerText.match(re);

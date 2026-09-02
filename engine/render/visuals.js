@@ -297,15 +297,28 @@ module.exports = (ctx) => {
     // takeaways: 세션 요약 번호 리스트 (요약 슬라이드 전용)
 
     // 근거 나열. 거버닝 메시지는 이미 lead에 있으므로 여기엔 본문만 그린다.
+    //   item.text가 배열(run: {text, small?, break?})이면 Anchor Citation rich-text다 — 한글(본문
+    //   크기)과 영어 원문·저자(small:true, F_SRC 10pt)를 같은 문단 안에서 섞어 그린다. small이
+    //   아닌 run은 F_BODY. 이전에는 이 능력이 없어 영어·저자를 별도 caption(visual 아래, 8pt)으로
+    //   분리할 수밖에 없었고, 그 결과 "하나의 Anchor Message"가 slide 위·아래로 찢어졌다.
+    //   item.head가 있으면 section label처럼 그 자체로 한 줄(bold navy)이고 본문은 다음 줄부터
+    //   시작한다(더 이상 'head — text' 한 줄로 붙이지 않는다 — box/card 없이도 근거 그룹을
+    //   구분해야 했다). run.break는 그 run 뒤에서 강제 줄바꿈한다 — text가 빈 run과 함께 쓰면
+    //   같은 item 안에 빈 줄(그룹 사이 여백)을 만들 수 있다.
     const renderBullets = (s, items) => {
         const g = LO.bullets(items, band);
         const parts = [];
         items.forEach((it, i) => {
             const last = i === items.length - 1;
-            if (it.head) parts.push({ text: `${it.head} — `, options: { bold: true, color: C.navy, fontSize: F_BODY, fontFace: FF,
-                bullet: { indent: g.bullet }, paraSpaceBefore: SP, paraSpaceAfter: SP } });
-            parts.push({ text: String(it.text), options: { color: C.dark, fontSize: F_BODY, fontFace: FF,
-                bullet: it.head ? undefined : { indent: g.bullet }, breakLine: !last, paraSpaceBefore: SP, paraSpaceAfter: SP } });
+            const runs = Array.isArray(it.text) ? it.text : [{ text: String(it.text) }];
+            if (it.head) parts.push({ text: it.head, options: { bold: true, color: C.navy, fontSize: F_BODY, fontFace: FF,
+                breakLine: true, paraSpaceBefore: SP, paraSpaceAfter: 0 } });
+            runs.forEach((run, ri) => {
+                const firstRun = ri === 0, lastRun = ri === runs.length - 1;
+                parts.push({ text: String(run.text || ''), options: { color: C.dark, fontSize: run.small ? F_SRC : F_BODY, fontFace: FF,
+                    bullet: (!it.head && firstRun) ? { indent: g.bullet } : undefined,
+                    breakLine: !!run.break || (lastRun && !last), paraSpaceBefore: SP, paraSpaceAfter: SP } });
+            });
         });
         s.addText(parts, { x: g.x, y: g.top, w: g.w, h: g.h, align: 'left', valign: 'top', margin: 0 });
     };

@@ -67,7 +67,7 @@ const CASES = [
   //   기준으로 갱신했다(예: 필드별 개별 메시지처럼 verify 쪽이 더 정밀한 경우가 있었다).
   //   케이스 자체는 남겨 둔다 — "engine 직접 실행 경로가 이 결함들을 여전히 fatal로 잡는가"는
   //   lint.js가 사라진 지금도 유효한 회귀 방어다.
-  { file: '19-lint-required-field.js',              name: '[lint] 필수 필드 누락',        expect: '필수 필드 누락: foot',           runner: 'engine', exitCode: 1 },
+  { file: '19-lint-required-field.js',              name: '[lint] 필수 필드 누락',        expect: '필수 필드 누락: visual',           runner: 'engine', exitCode: 1 },
   { file: '20-lint-statement-empty.js',             name: '[lint] 빈 statement(전용)',    expect: 'statement에 text도 quote도 없다', runner: 'engine', exitCode: 1 },
   { file: '21-lint-quote-fields.js',                name: '[lint] 인용 필드 누락',        expect: '인용 1번 author 누락',          runner: 'engine', exitCode: 1 },
   { file: '22-lint-quote-dup-slide.js',             name: '[lint] 인용 슬라이드 내 중복', expect: '같은 슬라이드에서 두 번 쓴다',   runner: 'engine', exitCode: 1 },
@@ -114,6 +114,12 @@ const CASES = [
   { file: '49-claim-many-to-one.js', name: '[claim] N:1 mapping', expect: '커리큘럼 명제: 2/2 반영' },
   { file: '50-claim-one-to-many.js', name: '[claim] 1:N mapping', expect: '커리큘럼 명제: 1/1 반영' },
   { file: '51-notes-budget-density.js', name: '[밀도] notes 시간 우선', expect: 'notes 배분 10분이 세션 분량 10분과 일치', detail: true },
+  // ── S01 역반영: Anchor Citation rich-text run(한글 본문 + 영어/저자 F_SRC 10pt, 같은 문단). ──
+  { file: '53-richtext-bullets-render.js', name: '[richtext] bullets rich-run 렌더', expect: '[성공]', runner: 'engine' },
+  { file: '54-richtext-bad-run.js', name: '[richtext] rich-run 형태 오류', expect: '각 run은 { text, small?, break? } 형태여야 한다' },
+  // ── S01 역반영: sub/question/lead/foot 선택 필드 완화(engine/skeleton.js) — placeholder 없이 생략 가능. ──
+  { file: '55-optional-context-fields.js', name: '[골격] sub/question/lead/foot 생략', expect: '[성공]', runner: 'engine' },
+  { file: '56-richtext-head-break.js', name: '[richtext] head 자기 줄 + break 빈 줄', expect: '[성공]', runner: 'engine' },
   { file: '57-richtext-multiple-breaks.js', name: '[richtext] break 여러 개(3개 이상)', expect: '[성공]', runner: 'engine' },
   { file: '58-richtext-bad-break.js', name: '[richtext] break 없는 빈 run 거부', expect: '각 run은 { text, small?, break? } 형태여야 한다' },
   { file: '59-plain-text-head-geometry.js', name: '[골격] head + 평문 문자열 geometry', expect: '[성공]', runner: 'engine' },

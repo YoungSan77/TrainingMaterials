@@ -34,7 +34,7 @@ const SHAPES = {
     //   head는 선택 — 이름이 붙는 항목이면 head, 그냥 근거면 text만.
     //   boxes와의 구분은 커리큘럼의 '시각 지정'이 정한다(기계는 '명확한 앞머리'를 못 잰다).
     //   2줄 미만은 목록이 아니고(한 줄이면 lead나 statement가 맡는다), 6줄 초과는 슬라이드가 아니라 문서다.
-    bullets:   { data: 'list', min: 2, max: 6, item: { text: 'text' }, opt: { head: 'text' } },
+    bullets:   { data: 'list', min: 2, max: 6, item: { text: 'richtext' }, opt: { head: 'text' } },
     table:     { data: 'rows' },
     // 단문 — data가 없다(text 또는 quote가 내용이다)
     statement: { data: 'none' },
@@ -99,6 +99,35 @@ function conformField(host, key, kind, where, out) {
         if (!isFinite(n)) { out.errors.push(`${where}.${key}가 숫자가 아니다: ${JSON.stringify(val)}`); return; }
         host[key] = n;
         out.fixes.push(`${where}.${key}가 문자열 숫자다 — 숫자로 읽었다`);
+        return;
+    }
+
+    // richtext — 'text'의 상위호환. 평문 문자열(기존 동작 그대로)이거나,
+    //   [{ text, small?, break? }] run 배열이면 한 문단 안에서 run별로 다른 폰트 크기를 허용하고,
+    //   break:true인 run 뒤에서 강제 줄바꿈한다(같은 bullet item 안에서 여러 줄로 나눌 때 — 예:
+    //   section label을 본문과 분리하거나, 두 항목 사이에 빈 줄로 여백을 둘 때). break:true인
+    //   run은 text를 생략하거나 빈 문자열로 둘 수 있다(빈 줄 전용 run).
+    //   small:true인 run만 작게 그린다(엔진이 정확한 pt를 정한다 — 데이터는 pt를 지정하지 않는다).
+    //   Anchor Citation(한글 정상 크기 + 영어 원문·저자 10pt)이 같은 논리적 text block이어야 하는데
+    //   이전에는 이 능력이 없어 영어·저자를 별도 caption(8pt, visual 아래)으로 쪼갤 수밖에 없었다
+    //   — 그 결과 caption·label 규칙과 무관하게 "하나의 Anchor Message"라는 요구 자체를 못 지켰다.
+    if (kind === 'richtext') {
+        if (isStr(val)) return;                              // 기존 평문 동작과 100% 동일
+        if (Array.isArray(val)) {
+            if (val.every(isStr)) {                           // 기존 'text'의 배열 auto-fix와 동일하게 처리
+                host[key] = val.join('\n');
+                out.fixes.push(`${where}.${key}가 문자열 배열이다 — 줄바꿈으로 이어 그린다`);
+                return;
+            }
+            const bad = val.find(r => {
+                if (!isObj(r)) return true;
+                if (r.text !== undefined && !isStr(r.text)) return true;
+                return !(r.text || r.break);                   // text 없으면 break:true(빈 줄 전용)여야 한다
+            });
+            if (bad !== undefined) { out.errors.push(`${where}.${key}의 각 run은 { text, small?, break? } 형태여야 한다(text는 비어있지 않은 문자열이거나, break:true인 빈 줄이어야 한다)`); return; }
+            return;                                            // 유효한 run 배열 — 그대로 둔다
+        }
+        out.errors.push(`${where}.${key}의 형태를 알 수 없다(${typeof val}) — 문자열 또는 { text, small? } run 배열이어야 한다`);
     }
 }
 
