@@ -48,6 +48,8 @@ Anchor Citation의 목적은 원문에 없는 설명을 추가하는 것이 아�
 
 원문은 반드시 실제 source에서 확인된 문장만 사용하며, 수치나 기존 paraphrase를 보고 문장을 역으로 구성해 원문으로 제시하지 않는다 — 널리 인용되는 내용이라도 마찬가지다.
 
+Evidence 단계(Boehm/Standish)와 Essence/Accident 단계(Brooks)는 서로 다른 teaching unit이며 각각 필요한 근거만 사용한다 — Brooks 인용을 Evidence 단계에서 반복하지 않는다. 두 단계의 anchor citation 역할은 다르다: Evidence 단계에서 citation은 본문 통계 주장을 뒷받침하는 **하단 보조 근거**이고, Essence/Accident 단계에서 Brooks 인용은 개념을 여는 **본문 도입**(질문·정의보다 먼저 나오는 anchor) 역할이다. 모든 anchor citation의 위치를 하나의 규칙으로 통일하지 않는다 — teaching 역할에 따라 본문 도입인지 하단 보조 근거인지를 판단한다.
+
 ### Boehm — 재작업과 늦은 수정 비용
 
 Boehm과 Basili는 당시 SW 프로젝트에서 약 **40~50%의 노력이 avoidable rework에 사용된다**고 보고했으며, delivery 이후 문제 수정 비용이 requirements/design 단계보다 **종종 100배까지 높아질 수 있다**고 정리했다.
@@ -58,15 +60,22 @@ Boehm과 Basili는 당시 SW 프로젝트에서 약 **40~50%의 노력이 avoida
 
 > **재작업 자체가 상당한 개발 노력을 소비하며, 문제를 늦게 발견할수록 그 재작업 비용은 더 커질 수 있다.**
 
+확인된 원문: "Finding and fixing a software problem after delivery is often 100 times more expensive than finding and fixing it during the requirements and design phase." / "Current software projects spend about 40 to 50 percent of their effort on avoidable rework."
+확인된 상세 출처(DD/notes 전용): Barry Boehm and Victor R. Basili, "Software Defect Reduction Top 10 List," *IEEE Computer*, Vol. 34, No. 1, January 2001, pp. 135–137.
+learner-facing 간결 출처: Boehm & Basili, *Software Defect Reduction Top 10 List*, 2001.
+
 ### Standish — 사용되지 않는 기능
 
-2002년 Jim Johnson이 소개한 Standish 자료에서는 기능의 **45%가 never used**, 그리고 **20%만 often 또는 always used**된 것으로 제시됐다.
+2002년 Jim Johnson이 소개한 Standish 자료에서는 기능 사용 빈도가 **always 7% / often 13% / sometimes 16% / rarely 19% / never 45%**로 제시됐다(often+always 합산 시 약 20%).
 
 교육적 핵심은 특정 비율 자체가 아니다.
 
 > **요구된 기능 ≠ 실제로 필요한 기능**
 
 따라서 분석의 목적은 요구사항을 많이 만드는 것이 아니라 **실제로 해결해야 할 문제와 필요한 기능을 이해하는 것**이다.
+
+출처 상태: Jim Johnson(Standish Group)이 XP2002(2002년 5월, Alghero, Sardinia, Italy)에서 발표한 것으로 여러 2차 자료(Martin Fowler, Mike Cohn 등)가 일관되게 인용하나, 발표 제목이 자료마다 다르게 기록되어 있고("ROI, It's Your Job" / "It's a New World! And it's Called ROI!" 등) 검증 가능한 1차 원문 문장을 확인하지 못했다. 이 수치는 발표 중 chart/slide로 제시된 것으로 보이며 인용 가능한 저자 prose가 아니다.
+learner-facing 처리: 원문 자리에 `원문 미확인`을 표시하고, 확인되지 않은 발표 제목은 만들어 넣지 않는다. 출처는 `Jim Johnson / Standish Group, XP2002 keynote, 2002 — 원문 미확인` 수준으로 간결하게 표시한다.
 
 ### Brooks — Essence와 Accident
 
@@ -81,9 +90,9 @@ SW의 어려움에는 서로 다른 두 종류가 있다.
 
 핵심 질문은 다음이다.
 
-> **지금 어려운 이유가 문제 자체를 충분히 이해하지 못했기 때문인가, 아니면 선택한 구현 방식 때문에 추가된 것인가?**
+> **지금 문제가 요구사항을 충분히 이해하지 못했기 때문인가, 아니면 선택한 구현 방식 때문인가?**
 
-OOAD에서 Analysis의 우선 과제는 **essential problem을 구현 결정과 분리하여 이해하는 것**이다.
+이 slide의 semantic flow는 다음 순서를 따른다: 판단 질문 → Brooks의 Essence/Accident 구분 → Essence/Accident 구체화 → 따라서 Analysis는 무엇을 하는가 → 분석 모델은 무엇을 경계해야 하는가.
 
 ```text
 Problem / Requirement
@@ -97,9 +106,15 @@ Design Decisions
 Implementation
 ```
 
-분석 모델은 essential complexity를 없애는 도구가 아니다.
+따라서 분석은 구현 기술과 독립적으로 본질적 문제와 요구사항을 이해하는 활동이다.
 
-> **본질적 복잡성을 명시적으로 드러내고 이해하여, accidental solution detail이 문제 이해를 대신하지 않게 하는 도구다.**
+분석 모델은 특정 구현 기술이나 구현 결정 같은 accidental detail이 문제 자체의 의미를 대신하지 않도록 해야 한다. (절대적으로 accidental detail을 배제해야 한다는 뜻이 아니다 — 구현 기술·구현 결정이 문제 자체의 의미를 대신하거나 오염시키지 않도록 경계하는 것이 핵심이다.)
+
+확인된 원문: "Following Aristotle, I divide them into essence—the difficulties inherent in the nature of the software—and accidents—those difficulties that today attend its production but that are not inherent."
+확인된 상세 출처(DD/notes 전용): Frederick P. Brooks, Jr., "No Silver Bullet: Essence and Accidents of Software Engineering," *IEEE Computer*, Vol. 20, No. 4, April 1987, pp. 10–19.
+learner-facing 간결 출처: Brooks, *No Silver Bullet*, 1987.
+
+이 원문·간결 출처는 Essence/Accident 판단질문 slide에서 Essence/Accident 정의보다 먼저(위에) 배치해 Brooks anchor가 개념 해석을 선행하도록 한다.
 
 ## Block 1 결론
 
