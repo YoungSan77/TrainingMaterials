@@ -67,10 +67,28 @@ const UML_BOTTOM_MARGIN_MIN = 8;                 // px — PNG 하단 배경 여
 //   전역(Tier 1)에 두지 않는 이유: 화살표(-->)는 클래스(도메인 모델)에서는 금지지만 시퀀스
 //   다이어그램에서는 정상 표기다 — 노테이션마다 뜻이 다른 규칙은 프로파일로 격리한다.
 // ============================================================================
+//   usecase의 structural은 forbiddenTokens로 못 잡는 containment 오류(Boundary 누락·Actor가
+//   Boundary 안에 있음·Use Case가 Boundary 밖에 있음)를 잡는다. 완전한 PlantUML 파서가 아니라
+//   첫 '{'~마지막 '}' 구간을 Boundary 본문으로 보는 휴리스틱이다 — Use Case Diagram은 Boundary가
+//   하나뿐이라 이 가정으로 충분하다(2026-09, S02 Deck에서 Boundary 누락·방향 화살표 실측).
 const PROFILES = {
     class: {
         match: (v) => !!(v && v.type === 'uml' && v.data && v.data.kind === 'class'),
         forbiddenTokens: ['-->', '<--', '..>', '<..'],   // 방향 화살표 — 도메인 모델 연관은 양방향, 방향은 설계 결정(OOD)의 몫
+    },
+    usecase: {
+        match: (v) => !!(v && v.type === 'uml' && v.data && v.data.kind === 'usecase'),
+        forbiddenTokens: ['-->', '<--', '..>', '<..'],   // 방향 화살표 — Actor-Use Case는 참여 관계이지 workflow/순서가 아니다
+        structural: (src, push) => {
+            const bIdx = src.search(/\b(rectangle|package|frame)\s+"[^"]+"\s*\{/);
+            if (bIdx < 0) { push('System Boundary가 없다 — rectangle/package "System명" { ... }로 Use Case를 감싼다'); return; }
+            const open = src.indexOf('{', bIdx), close = src.lastIndexOf('}');
+            if (close < open) { push('System Boundary의 닫는 중괄호가 없다'); return; }
+            const inside = src.slice(open + 1, close), outside = src.slice(0, bIdx) + src.slice(close + 1);
+            if (/\bactor\b/.test(inside)) push('actor가 System Boundary 내부에 선언되어 있다 — Actor는 Boundary 밖이어야 한다');
+            if (!/\busecase\b/.test(inside)) push('System Boundary 내부에 Use Case(usecase 선언)가 없다');
+            if (!/\bactor\b/.test(outside)) push('actor 선언이 없다 — Use Case Diagram에는 최소 하나의 Actor가 필요하다');
+        },
     },
     // 시퀀스·협업·상태 프로파일은 동적 모델 세션이 세울 때 여기에 추가한다.
 };
@@ -580,6 +598,10 @@ function verifyDeck(DECK, opts = {}) {
                             err.push(`${tag} 프로파일 '${name}' 금지 토큰 "${tok}"가 uml source에 있다`);
                             gate.profileViolations.push({ slide: tag, profile: name, token: tok });
                         }
+                    });
+                    if (prof.structural) prof.structural(src, (msg) => {
+                        err.push(`${tag} 프로파일 '${name}' ${msg}`);
+                        gate.profileViolations.push({ slide: tag, profile: name, issue: msg });
                     });
                 });
             } catch (e) {

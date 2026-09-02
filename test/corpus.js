@@ -114,6 +114,8 @@ const CASES = [
   { file: '49-claim-many-to-one.js', name: '[claim] N:1 mapping', expect: '커리큘럼 명제: 2/2 반영' },
   { file: '50-claim-one-to-many.js', name: '[claim] 1:N mapping', expect: '커리큘럼 명제: 1/1 반영' },
   { file: '51-notes-budget-density.js', name: '[밀도] notes 시간 우선', expect: 'notes 배분 10분이 세션 분량 10분과 일치', detail: true },
+  // ── S02 역반영: usecase 프로파일 — System Boundary 누락·방향 화살표(workflow처럼 보이는 association). ──
+  { file: '52-uml-usecase-boundary-missing.js', name: '[uml] usecase Boundary 누락', expect: 'System Boundary가 없다' },
   // ── S01 역반영: Anchor Citation rich-text run(한글 본문 + 영어/저자 F_SRC 10pt, 같은 문단). ──
   { file: '53-richtext-bullets-render.js', name: '[richtext] bullets rich-run 렌더', expect: '[성공]', runner: 'engine' },
   { file: '54-richtext-bad-run.js', name: '[richtext] rich-run 형태 오류', expect: '각 run은 { text, small?, break? } 형태여야 한다' },
