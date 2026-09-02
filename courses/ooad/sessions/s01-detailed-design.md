@@ -36,6 +36,18 @@ SW 개발의 문제는 코드에서만 시작되지 않는다. 요구 자체를 
 
 세 근거는 별도의 긴 논증이 아니라 `왜 Analysis / Design이 필요한가`를 설명하는 하나의 evidence structure로 사용한다. 각 근거의 역할은 구분하되 한 teaching unit 안에서 연결한다.
 
+### Source Presentation
+
+Anchor Citation을 어떻게 시각적으로 표현하는가(rich-text typography, semantic grouping, whitespace, optional question/lead/foot 판단, box/card 회피)는 `guides/교재_작성_지침.md`의 Presentation 절이 정한다. 이 절은 이 Evidence slide가 어떤 Anchor를 왜 필요로 하는지, 정확한 message가 무엇인지, semantic flow가 무엇인지만 정한다 — 표현 규칙을 여기서 다시 정의하지 않는다.
+
+Anchor Citation의 목적은 원문에 없는 설명을 추가하는 것이 아니라, 원문의 핵심 메시지를 학습자에게 직접 전달하는 것이다. Anchor Message 자체가 충분히 설명력이 있으면 별도의 lead/summary 문장을 새로 생성하지 않는다.
+
+- **Boehm/Standish는 서로 다른 근거이므로 각각 독립된 Anchor Keyword + Anchor Message로 표현한다**: `재작업 비용`(Boehm & Basili) — `기능 사용 비율`(Standish). 같은 `왜 Analysis/Design이 필요한가` evidence structure 안에서 연결되지만 내용은 독립적이므로 하나로 뭉치지 않는다.
+- Standish의 5개 사용 빈도 구간은 그중 일부만 뽑아 다시 요약하지 않고 확인된 수치를 모두 개별적으로 표시한다. 원문은 확인되지 않았으므로 `원문 미확인`으로 표시하고 발표 제목·영어 문장을 만들어 넣지 않는다.
+- **이 slide의 semantic flow는 `Title → Anchor Keyword(재작업 비용) → Anchor Message → whitespace → Anchor Keyword(기능 사용 비율) → Anchor Message`다.** 두 Anchor 자체가 이 slide의 전부이므로 별도 question/lead/conclusion을 만들지 않는다.
+
+원문은 반드시 실제 source에서 확인된 문장만 사용하며, 수치나 기존 paraphrase를 보고 문장을 역으로 구성해 원문으로 제시하지 않는다 — 널리 인용되는 내용이라도 마찬가지다.
+
 ### Boehm — 재작업과 늦은 수정 비용
 
 Boehm과 Basili는 당시 SW 프로젝트에서 약 **40~50%의 노력이 avoidable rework에 사용된다**고 보고했으며, delivery 이후 문제 수정 비용이 requirements/design 단계보다 **종종 100배까지 높아질 수 있다**고 정리했다.

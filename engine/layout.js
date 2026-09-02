@@ -21,7 +21,7 @@
 module.exports = function makeLayout(env) {
     const { lines, textH, textW, lineCount, IN, SLACK, CW, LM, PAD, SP,
             F_IN, F_HEAD, F_BODY, F_ELAB, F_STMT, F_SRC, F_CAP,
-            CAP_LH, CAP_MAX, CTX_TOP, VB, Y_LINE, LOOP_IN } = env;
+            CAP_LH, CAP_MAX, CTX_TOP, VB, Y_LINE, LOOP_IN, avail } = env;
 
     // ── 항목 계열(boxes·steps·versus) ──
     const ITEM = {
@@ -64,15 +64,54 @@ module.exports = function makeLayout(env) {
                  top: band.VT + (band.VH - blockH) / 2 };
     };
 
+    // ── rich-run 문단 줄 수 ── Anchor Citation처럼 한 문단 안에서 run마다 폰트 크기가 다를 때
+    //   (본문 크기 한글 + F_SRC 10pt 영어/저자) 실제 줄 수를 잰다. lineCount()는 균일 폰트 한
+    //   문자열만 재므로, run별 textW를 폭 단위로 먼저 합산한 뒤 같은 보정 계수로 나눈다 — 실제
+    //   word-wrap과 픽셀 단위로 같지는 않지만 lineCount 자체도 이미 근사(측정 오차 보정 계수 적용)
+    //   이므로 같은 정밀도 수준을 유지한다. small:true가 아닌 run은 F_BODY로 잰다.
+    //   headText가 있으면 그 자체로 한 줄(own line)을 강제한다 — 더 이상 본문에 붙지 않는다.
+    //   run.break가 있으면 그 run까지를 한 segment로 닫고 강제 줄바꿈한다(measure.js의 lines()가
+    //   '\n'로 문단을 나눠 따로 재는 것과 같은 방식 — break 없는 빈 run은 빈 줄 하나로 센다).
+    const RICH_SAFE = 1.05;   // measure.js의 SAFE와 같은 값 — 폰트 대체·자간 오차 흡수(그 모듈은 export하지 않아 여기서 같은 상수를 다시 선언한다)
+    const richLineCount = (runs, av, headText) => {
+        const segments = [];
+        if (headText) segments.push([{ text: headText, small: false }]);
+        let cur = [];
+        runs.forEach((r) => { cur.push(r); if (r.break) { segments.push(cur); cur = []; } });
+        if (cur.length) segments.push(cur);
+        if (!segments.length) return 1;
+        return segments.reduce((total, seg) => {
+            const w = seg.reduce((acc, r) => acc + textW(String(r.text || ''), r.small ? F_SRC : F_BODY), 0);
+            return total + Math.max(1, Math.ceil(w * RICH_SAFE / av));
+        }, 0);
+    };
+
     // ── bullets ── 거버닝 메시지(lead)를 받치는 근거 나열.
     //   전폭을 쓰고 불릿 들여쓰기만 준다. 줄 사이 간격은 전 슬라이드 공통 SP.
-    //   head가 있으면 'head — text' 한 문단으로 붙인다(줄을 따로 잡지 않는다).
+    //   head가 있으면 그 자체로 한 줄(section label, bold navy)로 그리고 본문은 다음 줄부터 시작한다.
+    //   item.text가 배열(run: {text, small?, break?})이면 Anchor Citation rich-text로 본다 — 한글은
+    //   기준 크기, small:true인 run(영어 원문·저자)만 F_SRC(10pt)로 같은 문단 안에서 섞고, break:true인
+    //   run 뒤에서 강제 줄바꿈한다(같은 item 안에서 label/본문 분리, 또는 항목 사이 빈 줄 여백에 쓴다).
     const BUL = { bullet: 14, lineH: 0.30, pad: 0.30 };
     const bullets = (items, band) => {
         const w = CW - BUL.pad * 2;
+        const av = avail(w, BUL.bullet);
+        const avNoBullet = w - PAD * 2;   // head가 있는 item은 불릿 마커를 그리지 않으므로 그만큼 폭이 더 넓다
         const per = items.map((it) => {
-            const t = it.head ? `${it.head} — ${it.text}` : String(it.text);
-            return { text: t, ln: lines(t, w, BUL.bullet, F_BODY) };
+            if (Array.isArray(it.text)) {
+                const preview = it.text.map(r => r.text).join('');   // 진단 메시지 미리보기용(verify.js) — 렌더에는 안 쓴다
+                return { text: preview, ln: richLineCount(it.text, it.head ? avNoBullet : av, it.head || '') };
+            }
+            const bodyText = String(it.text);
+            if (it.head) {
+                // head는 렌더에서 항상 자기 줄이다(render/visuals.js) — 'head — text' 한 줄로
+                // 합쳐 재면 실제 줄 수보다 적게 나올 수 있다. 불릿 마커도 없으므로(head가 있으면
+                // 마커를 그리지 않는다) 폭도 avail()이 아니라 PAD만 뺀 폭으로 잰다.
+                const headLn = lines(it.head, w, false, F_BODY);
+                const bodyLn = lines(bodyText, w, false, F_BODY);
+                return { text: `${it.head}\n${bodyText}`, ln: headLn + bodyLn };
+            }
+            return { text: bodyText, ln: lines(bodyText, w, BUL.bullet, F_BODY) };
         });
         const ln = per.reduce((a, p) => a + p.ln, 0);
         const need = ln * BUL.lineH + items.length * (2 * SP / 72) + PAD * 2;
@@ -341,9 +380,18 @@ module.exports = function makeLayout(env) {
     // ── 슬라이드 밴드 ── 질문/리드 밴드 아래 ~ 하단 구분선 위. 인용·caption이 먼저 가져간다.
     const BAND = { ctxMin: 0.52, ctxLH: 0.28, ctxPad: 0.10, gapFree: 0.10, gap: 0.16,
                    freeBottom: 0.20, min: 0.8 };
+    // lead.text가 rich-run 배열(Anchor Citation — 한글 기준 크기 + 영어/저자 F_SRC 10pt)이면
+    //   richLineCount로 재고, 평문이면 기존 그대로 lines()로 잰다(하위호환).
+    //   lead.label이 빈 문자열이면 'label: ' prefix 없이 잰다(render/pages.js addContext와 동일 규칙).
+    const leadLines = (lead) => {
+        const prefix = lead.label ? `${lead.label}: ` : '';
+        return Array.isArray(lead.text)
+            ? richLineCount(lead.text, CW - PAD * 2, prefix)
+            : lines(`${prefix}${lead.text}`, CW, false, F_BODY);
+    };
     const contextH = (question, lead) => {
         const ln = (question ? lines(question, CW, false, F_BODY) : 0)
-                 + (lead ? lines(`${lead.label}: ${lead.text}`, CW, false, F_BODY) : 0);
+                 + (lead ? leadLines(lead) : 0);
         if (!ln) return 0;
         return Math.max(BAND.ctxMin, ln * BAND.ctxLH + PAD * 2 + BAND.ctxPad);
     };
@@ -360,5 +408,6 @@ module.exports = function makeLayout(env) {
     return { ITEM, isItem, colWidth, item, takeaways, bullets, table, statement,
              chain, loop, share, magnitude, pyramid, quadrant, codepair, uml,
              nodesOf, chainEdges, loopEdges, cellText, capLines, capH, contextH, band,
+             richLineCount,
              CHAIN, LOOP, SHARE, MAG, PYR, QUAD, STMT, TBL, TAKE, BUL, BAND, CODE, UML };
 };

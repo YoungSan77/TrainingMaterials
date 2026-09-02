@@ -114,6 +114,9 @@ const CASES = [
   { file: '49-claim-many-to-one.js', name: '[claim] N:1 mapping', expect: '커리큘럼 명제: 2/2 반영' },
   { file: '50-claim-one-to-many.js', name: '[claim] 1:N mapping', expect: '커리큘럼 명제: 1/1 반영' },
   { file: '51-notes-budget-density.js', name: '[밀도] notes 시간 우선', expect: 'notes 배분 10분이 세션 분량 10분과 일치', detail: true },
+  { file: '57-richtext-multiple-breaks.js', name: '[richtext] break 여러 개(3개 이상)', expect: '[성공]', runner: 'engine' },
+  { file: '58-richtext-bad-break.js', name: '[richtext] break 없는 빈 run 거부', expect: '각 run은 { text, small?, break? } 형태여야 한다' },
+  { file: '59-plain-text-head-geometry.js', name: '[골격] head + 평문 문자열 geometry', expect: '[성공]', runner: 'engine' },
 ];
 
 // 검사기를 돌려 { out, code }를 돌려준다(오류 시 exit≠0로 throw → e.stdout/e.status에서 회수).
