@@ -9,6 +9,8 @@ TrainingMaterials/
 ├── portfolio/
 │   └── shared-cases/
 ├── guides/
+├── references/
+│   └── sw-engineering/
 ├── courses/
 │   ├── <11 course>/course-design.md
 │   └── ooad/
@@ -65,6 +67,14 @@ TrainingMaterials/
 | `guides/커리큘럼_작성_지침.md` | Controlled annex | Curriculum stage 저작 계약 | Governance | Curriculum LLM | REQUIRED |
 | `guides/교재_작성_지침.md` | Controlled annex | Deck stage 저작 계약 | Governance | Deck LLM | REQUIRED |
 
+## Shared Software Engineering References
+
+| Path | Type | Role | Owner | Consumer | Lifecycle Status |
+|---|---|---|---|---|---|
+| `references/sw-engineering/modeling-conventions.md` | Shared domain reference | 공통 modeling 선택·표현 convention 정본 | Shared SW Engineering Reference | Software Engineering Curriculum·DD·Deck LLM | REQUIRED |
+| `references/sw-engineering/uml/*.md` | Shared UML reference set | UML static·dynamic notation 정본 | Shared SW Engineering Reference | Software Engineering Curriculum·DD·Deck LLM | REQUIRED |
+| `references/sw-engineering/larman/*.md` | Shared Larman reference set | OOAD analysis notation 정본 | Shared SW Engineering Reference | Software Engineering Curriculum·DD·Deck LLM | REQUIRED |
+
 ## Courses
 
 | Path | Type | Role | Owner | Consumer | Lifecycle Status |
@@ -75,6 +85,7 @@ TrainingMaterials/
 | `courses/ooad/sessions/s08-detailed-design.md` | Session Detailed Design | 승인된 OOAD S08 교육 설계 정본 | OOAD Curriculum | Curriculum 통합·Deck LLM | REQUIRED |
 | `courses/ooad/sessions/s09-detailed-design.md`–`s11-detailed-design.md` | Session Detailed Design set | 승인된 OOAD S09–S11 교육 설계 정본 | OOAD Curriculum | Curriculum 통합·Deck LLM | REQUIRED |
 | `courses/ooad/ooad-curriculum.md` | Curriculum | OOAD course-level entry point·Session progression·narrative·경계 정본 | OOAD Curriculum | Curriculum Harness·Deck LLM | REQUIRED |
+| `courses/ooad/references/s02-notation-references.md` | Course-local reference application | Shared UML·Larman reference의 S02 running-example 적용값 | OOAD S02 Detailed Design | S02 Deck LLM·Teaching Contract check | REQUIRED |
 | `courses/ooad/global_config.js` | Regression adapter | 기존 OOAD Deck fixture runtime config | Regression Harness | Deck loader | WORKING |
 | `courses/ooad/decks/01.js` | Regression fixture | 승인 전 기존 geometry baseline의 render input | Regression Harness | Snapshot runner | WORKING |
 
