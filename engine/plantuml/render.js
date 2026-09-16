@@ -44,7 +44,7 @@ const ADD_OPENS = '--add-opens=java.desktop/com.sun.imageio.plugins.png=ALL-UNNA
 // 지원 6종 — 협업(커뮤니케이션)은 PlantUML에 전용 다이어그램 타입이 없어(Larman의 UML1
 // 유물에 가깝다) 객체+번호 붙인 메시지로 표현한다. 문서(authoring-convention 확장)에서
 // 저자에게 안내한다. 전부 스메타나 pragma가 필요하거나(무해하게) 필요없는 부류다.
-const KINDS = new Set(['class', 'usecase', 'sequence', 'collaboration', 'state', 'package']);
+const KINDS = new Set(['class', 'usecase', 'sequence', 'communication', 'collaboration', 'state', 'package']);
 
 function ensureCacheDir() { fs.mkdirSync(DIAG_CACHE, { recursive: true }); }
 
