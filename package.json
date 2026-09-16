@@ -12,9 +12,13 @@
     "snap": "node test/snapshot.js",
     "snap:update": "node test/snapshot.js --update",
     "corpus": "node test/corpus.js",
-    "test": "node test/corpus.js && node test/snapshot.js"
+    "test": "node test/corpus.js && node test/snapshot.js",
+    "produce": "node engine/production/cli.js"
   },
   "dependencies": {
+    "jsdom": "^30.0.1",
+    "jszip": "^3.10.1",
+    "mermaid": "^12.0.0",
     "pptxgenjs": "^4.0.1"
   }
 }
