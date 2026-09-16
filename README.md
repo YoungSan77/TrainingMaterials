@@ -1,38 +1,34 @@
 # TrainingMaterials
 
-Portfolio Guardrail에서 Course Design, Curriculum과 Deck을 생성하고 Harness와 Engine으로 검증·렌더링하는 교육자료 저작 시스템이다.
+Course Design에서 시작해 Session을 저작하고 Production으로 PPTX를 생성하는 교재 저작 시스템이다.
 
-## Authoritative Workflow
+## Structure
 
 ```text
-User Intent
-→ Portfolio ↔ Current Course Design
-→ Curriculum LLM → Curriculum Harness
-→ Deck LLM → Deck Harness
-→ Engine / PPT
+Course Design (courses/<course>/course-design.md)
+→ Session Authoring (미착수)
+→ Production (engine/production/**)
 ```
 
-Workflow, authority와 artifact lifecycle의 정본은 `portfolio/governance.md`, 현재 패키지 등록부는 `REPOSITORY_MANIFEST.md`다. 저작 방법은 `guides/`의 controlled annex를 따른다.
+Course Design은 과정별 semantic authority다. Session Authoring은 `course-design.md`에서 시작하는 저작 단계이며 아직 산출물이 없다. Production은 Markdown을 입력받아 PPTX를 생성하는 실행 엔진이며, semantic content를 변경하지 않는다.
 
 ## Main Areas
 
-- `portfolio/`: Governance와 Portfolio Common Standards
-- `courses/<course>/course-design.md`: 과정별 Curriculum Guardrail
-- `guides/`: Course Design, Curriculum, Deck stage annex
-- `engine/`: executable validation과 PPTX rendering
-- `test/`: regression harness와 승인된 baseline
+- `courses/<course>/course-design.md`: 과정별 Course Design (11개)
+- `engine/production/`: Markdown → PPTX Production 엔진
+- `engine/measure.js`, `engine/plantuml/`: Production이 사용하는 저수준 측정·PlantUML 렌더링
+- `references/sw-engineering/`: 공통 소프트웨어 공학 참고 자료(UML, Larman 등)
 
-Curriculum, Deck과 generated output은 Manifest의 lifecycle status에 따라 존재한다. 과거 구조나 Git history는 live authority가 아니다.
-
-## Commands
+## Production 실행
 
 ```bash
-npm run doctor
-npm run check -- <deck>
-npm run build -- <deck>
-npm run course -- <course-directory>
-npm run corpus
-npm test
+npm run produce -- <input.md> --output <output.pptx> [--title <제목>] [--source <출처>]
 ```
 
-PPTX·PDF·PNG 등 재생성 가능한 output은 승인된 regression baseline이 아니면 커밋하지 않는다.
+Diagram/Chart는 Markdown 코드 펜스로 지정한다.
+
+- UML: ` ```plantuml:<kind> `
+- 일반 구조/흐름/관계: ` ```mermaid `
+- 정량 Chart(bar/line): ` ```chart ` (JSON spec)
+
+생성 실패 또는 검증 실패 시 기존 출력 파일은 덮어써지지 않는다(atomic replace). 재현 생성 가능한 output(PPTX 등)은 커밋하지 않는다.
