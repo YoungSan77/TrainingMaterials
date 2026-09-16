@@ -26,7 +26,7 @@ donor(저수준 재사용): `engine/measure.js`, `engine/plantuml/**`
 
 - UML → PlantUML
 - 일반 구조/흐름/관계 → Mermaid
-- 정량 Chart(bar/line) → Python/matplotlib
+- 정량 Chart → Python/matplotlib
 
 ## Behavior
 
