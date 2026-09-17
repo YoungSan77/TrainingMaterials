@@ -21,9 +21,10 @@ const PAD = 0.07;                             // box 내부 여백(in)
 const FS_TITLE = 22, FS_TITLE_SMALL = 18;
 const FS_SUB = 13;                            // subheading
 const FS_BODY = 14;                           // paragraph/bullets
-const FS_CODE = 11;                           // monospace
+const FS_CODE = 10;                           // Golden CODE/TREE baseline (맑은 고딕)
 const FS_TABLE = 10;
 const FS_FOOTER = 8;
+const FS_CITATION = 10;                       // citation/출처 — 본문(14)보다 작게, 압도하지 않는다.
 
 const titleFS = (t) => (textW(t, FS_TITLE) <= CW ? FS_TITLE : FS_TITLE_SMALL);
 const lineHIn = (fs) => IN(fs * 1.2);
@@ -41,13 +42,23 @@ function paraHeight(text, fs, opts = {}) {
   const n = paraLines(text, availIn, fs);
   return n * lineHIn(fs);
 }
+// paraHeight의 폭-매개변수화 버전 — split(좌/우 2단) 레이아웃처럼 CW 전체가 아니라 더 좁은
+// column 폭에서 실제로 몇 줄이 되는지 재야 할 때 쓴다. 측정 로직(measure.js 문자폭 모델)은
+// 완전히 동일하다 — "무엇을 폭으로 쓰는지"만 호출자가 명시한다.
+function paraHeightW(text, fs, availW, opts = {}) {
+  const bulletIndentIn = opts.bullet ? IN(BULLET_INDENT_PT) : 0;
+  const availIn = availW - PAD * 2 - bulletIndentIn;
+  const n = paraLines(text, availIn, fs);
+  return n * lineHIn(fs);
+}
 
-// ── monospace(code) 폭 모델 ──────────────────────────────────────────────
-// Consolas 등 고정폭 글꼴은 measure.js의 가변폭(맑은 고딕 기준) 모델과 다르다.
-// 문자당 폭 = 0.60em로 근사(고정폭 글꼴의 실측 평균에 가까운 보수적 상수 — SAFE 마진 포함).
-const MONO_EM = 0.60;
-function monoCharWidthIn(fs) { return IN(fs) * MONO_EM; }
-function monoLineWidthIn(line, fs) { return [...String(line)].length * monoCharWidthIn(fs); }
+// ── code/tree 폭 모델 ────────────────────────────────────────────────────
+// [Phase 2/4 정정] Golden 실측으로 code/tree 글꼴이 Consolas 등 고정폭이 아니라 본문과
+// 같은 맑은 고딕(가변폭)임이 확인됐다(Phase 2 archetype inventory). 그래서 별도의 monospace
+// 상수를 쓰지 않고, measure.js의 textW(donor, 본문과 동일한 문자폭 모델)를 그대로 재사용한다
+// — "엔진이 재는 폭과 검증기가 재는 폭이 갈라지면 안 된다"는 이 파일의 기존 원칙을 code에도
+// 동일하게 적용한 것뿐이다(이전의 monoCharWidthIn=0.60em 고정값은 폐기 — 실측과 맞지 않았다).
+function monoLineWidthIn(line, fs) { return textW(line, fs); }
 const CODE_LINE_SPACING_IN = IN(FS_CODE * 1.15);
 
 function codeBlockHeight(lines, fs = FS_CODE) {
@@ -91,12 +102,52 @@ function rowHeight(row, widths, fs = FS_TABLE) {
   return maxLines * lineHIn(fs) + PAD * 2;
 }
 
+// ── citation(출처) footer ──────────────────────────────────────────────
+// slide 하단 별도 영역에 본문보다 작은 글자로 모아 놓는다(citation footer). 여러 개면 세로로 쌓는다.
+const CITATION_GAP_IN = 0.04;
+function citationFooterHeight(texts) {
+  if (!texts || !texts.length) return 0;
+  let h = CITATION_GAP_IN; // footer 상단 여백 한 번
+  for (const t of texts) h += paraHeight(t, FS_CITATION) + CITATION_GAP_IN;
+  return h;
+}
+
+// ── TOC(목차) ────────────────────────────────────────────────────────────
+const TOC_TITLE = '목차';
+const TOC_FS = 16;
+const TOC_PARA_BEFORE_PT = 3;
+const TOC_PARA_AFTER_PT = 3;
+const TOC_LEFT_COUNT = 15;     // TOC 규칙: 좌측 01~15(고정 개수), 우측 16 이상 — 동적 반분이 아니다.
+const TOC_GUTTER = 0.3;
+const TOC_COL_W = (CW - TOC_GUTTER) / 2;
+
+// 한 컬럼(entries 배열)이 실제로 필요한 세로 높이 — overflow 검증에 쓴다(silent shrink 금지).
+function tocColumnHeight(entries, colW = TOC_COL_W, fs = TOC_FS, beforePt = TOC_PARA_BEFORE_PT, afterPt = TOC_PARA_AFTER_PT) {
+  let h = 0;
+  for (const e of entries) {
+    const n = paraLines(e, colW, fs);
+    h += n * lineHIn(fs) + IN(beforePt) + IN(afterPt);
+  }
+  return h;
+}
+
+// ── text+diagram / text+chart split 레이아웃 ────────────────────────────
+const SPLIT_GUTTER = 0.3;
+const SPLIT_TEXT_RATIO = 0.45;
+const SPLIT_VISUAL_RATIO = 0.55;
+const SPLIT_TEXT_W = CW * SPLIT_TEXT_RATIO - SPLIT_GUTTER / 2;
+const SPLIT_VISUAL_W = CW * SPLIT_VISUAL_RATIO - SPLIT_GUTTER / 2;
+
 module.exports = {
   SLIDE_W, SLIDE_H, MARGIN, CW, TITLE_Y, TITLE_H, DIVIDER_Y,
   CONTENT_TOP, CONTENT_BOTTOM, CONTENT_H, FOOTER_DIVIDER_Y, FOOTER_TEXT_Y, PAD,
-  FS_TITLE, FS_TITLE_SMALL, FS_SUB, FS_BODY, FS_CODE, FS_TABLE, FS_FOOTER,
-  titleFS, lineHIn, paraLines, paraHeight, BULLET_INDENT_PT,
-  monoCharWidthIn, monoLineWidthIn, CODE_LINE_SPACING_IN, codeBlockHeight, codeLineOverflows,
+  FS_TITLE, FS_TITLE_SMALL, FS_SUB, FS_BODY, FS_CODE, FS_TABLE, FS_FOOTER, FS_CITATION,
+  titleFS, lineHIn, paraLines, paraHeight, paraHeightW, BULLET_INDENT_PT,
+  monoLineWidthIn, CODE_LINE_SPACING_IN, codeBlockHeight, codeLineOverflows,
   computeColWidths, cellLines, rowHeight,
+  citationFooterHeight, CITATION_GAP_IN,
+  TOC_TITLE, TOC_FS, TOC_PARA_BEFORE_PT, TOC_PARA_AFTER_PT, TOC_LEFT_COUNT, TOC_GUTTER, TOC_COL_W,
+  tocColumnHeight,
+  SPLIT_GUTTER, SPLIT_TEXT_RATIO, SPLIT_VISUAL_RATIO, SPLIT_TEXT_W, SPLIT_VISUAL_W,
   IN, textW, lineCount,
 };
