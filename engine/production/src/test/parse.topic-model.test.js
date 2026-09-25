@@ -20,7 +20,7 @@ function fenceCount(lang) {
 const { session, sections } = parse(raw);
 
 assert.equal(session, "01. OOAD 개요");
-assert.equal(sections.length, 25);
+assert.equal(sections.length, 26);
 // "## 목차" is the manuscript's manual TOC heading, not a topic -- parse() correctly excludes it
 // from `sections` (see parse.js's TOC_HEADING handling), so this raw-regex scan of "## " headings
 // must exclude it too, or the two lists differ by one entry regardless of any real topic drift.
@@ -29,7 +29,7 @@ assert.deepEqual(sections.map((s) => s.heading), expectedHeadings);
 assert.deepEqual(sections.map((s) => s.title), expectedHeadings, "legacy title alias remains compatible");
 
 // Every topic must carry a non-empty notes list (s01.md has exactly one "강사 노트" marker
-// per topic, confirmed by `grep -c '강사 노트' s01.md` == 24 == topic count).
+// per topic, confirmed by `grep -c '강사 노트' s01.md` == 26 == topic count).
 const notesMarkerCount = (raw.match(/^\*\*강사 노트\*\*$/gm) || []).length;
 assert.equal(notesMarkerCount, sections.length);
 let topicsWithNotes = 0;

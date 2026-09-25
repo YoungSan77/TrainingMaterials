@@ -77,7 +77,7 @@ test("real prose overflow still creates continuation slides without content loss
 test("s01 composes current topics without visual or notes slides", async () => {
   const source = fs.readFileSync(path.join(ROOT, "courses/ooad/sessions/s01.md"), "utf8");
   const { session, sections, toc } = parse(source);
-  assert.equal(sections.length, 25);
+  assert.equal(sections.length, 26);
   const output = path.join(os.tmpdir(), `tm-phase2-s01-${process.pid}-${Date.now()}.pptx`);
   try {
     const m = await render(sections, TEMPLATE, output, session, toc);
@@ -86,7 +86,7 @@ test("s01 composes current topics without visual or notes slides", async () => {
     // These figures track s01.md's actual current content (it's the Session Authoring baseline --
     // see AGENTS.md -- so this test follows it, rather than pinning it to old numbers and fighting
     // legitimate edits).
-    assert.equal(m.pages.length, 26, "TOC 1 + 25 content slides, one per topic");
+    assert.equal(m.pages.length, 27, "TOC 1 + 26 content slides, one per topic");
     assert.equal(m.unsupportedVisuals.length, 0);
     assert.equal(m.images, 10);
     assert.deepEqual(m.imageCounts, { mermaid: 8, plantuml: 1, chart: 1, svg: 0 });
