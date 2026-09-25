@@ -1,0 +1,20 @@
+{
+  "name": "@trainingmaterials/production",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "TM Production v1 renderer, behavior-ported from lecture-ppt-java (Java reference implementation).",
+  "main": "src/cli.js",
+  "bin": {
+    "tm-production": "src/cli.js"
+  },
+  "scripts": {
+    "generate": "node src/cli.js"
+  },
+  "dependencies": {
+    "@mermaid-js/mermaid-cli": "^11.17.0",
+    "@xmldom/xmldom": "^0.9.6",
+    "fontkit": "^2.0.2",
+    "jszip": "^3.10.1"
+  }
+}
