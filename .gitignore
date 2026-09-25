@@ -3,3 +3,4 @@ courses/*/out/
 .DS_Store
 courses/swqm/output/
 engine/.cache/
+engine/production/.cache/

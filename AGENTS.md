@@ -1,13 +1,64 @@
-# Repository Operating Guide
+# TrainingMaterials Agent Rules
 
-## Rules
+## Architecture
 
-1. Course Design(`courses/<course>/course-design.md`)은 과정 수준 authority다.
-2. Session Authoring은 `course-design.md`에서 시작한다. 다른 semantic source는 없다.
-3. Production은 semantic content를 변경하지 않는다.
-4. 기존 session/DD/curriculum artifact는 존재하지 않으며 다시 만들지 않는다.
-5. `engine/production`은 presentation realization(레이아웃·페이지 분할·렌더링)만 담당한다.
-6. UML → PlantUML.
-7. 일반 구조/흐름/관계 → Mermaid.
-8. 정량 Chart → Python/matplotlib.
-9. Renderer가 새로운 의미 판단을 요구하면 authoring 문제이지 Renderer 문제가 아니다.
+Course Design → Session Authoring → Production
+
+세 단계 모두 현재 repository에 실제로 구현되어 있다.
+
+- **Course Design**: `courses/<course>/course-design.md`. 여러 과정(ooad, ddd, msa, devops 등)에 존재한다.
+- **Session Authoring**: Session Source Markdown. `courses/ooad/sessions/s01.md`가 목표 품질의 기준 예시다.
+- **Production**: `engine/production/`. Session Source Markdown을 실제 PowerPoint(.pptx)로 렌더링하는 Node.js 파이프라인이며, 자동 테스트(`engine/production/src/test/`)를 갖추고 있다.
+
+세 지침 파일이 각 단계의 상세 계약을 정의한다: `guides/course-design-guide.md`, `guides/session-authoring-guide.md`, `guides/production-guide.md`.
+
+## Course Design Authority
+
+각 `courses/<course>/course-design.md`는 다음을 정의한다.
+
+- 총 교육시간
+- 대상 / 선수지식
+- 과정 목표
+- 목차 / 세부 목차
+- 세션별 시간
+- 세션별 목표
+- Anchor Message
+
+별도 Curriculum artifact를 만들지 않는다.
+Session DD를 만들지 않는다.
+
+## Session Authoring Baseline
+
+`courses/ooad/sessions/s01.md`는
+Session Authoring의 목표 품질을 보여주는 현재 기준 예시다.
+
+삭제하거나 renderer에 맞춰 수정하지 않는다.
+
+Session Authoring은 Course Design을 입력으로
+최종 Session Source를 직접 작성한다.
+
+불필요한 중간 artifact를 만들지 않는다.
+
+## Production
+
+`engine/production/`이 현재 사용 중인 renderer다.
+
+```bash
+cd engine/production
+node src/cli.js ../../courses/ooad/sessions/s01.md
+```
+
+Session Source Markdown 하나를 입력받아 같은 디렉터리에 같은 basename의 `.pptx`를 생성한다. 상세 계약(Typography, TOC 생성, visual 처리, pagination, 검증 절차 등)은 `guides/production-guide.md`를 따른다.
+
+`references/production/lecture-java-baseline/`은 `~/dev/lecture-ppt-java`(검증된 Markdown → PowerPoint 동작을 가진 Java 원본)에서 이식한 behavior를 regression baseline으로 보존한 것이다. 새 기능을 추가할 때 이 baseline이 깨지지 않는지 확인한다.
+
+Content drives Renderer.
+Renderer must not drive Content.
+
+renderer 한계 때문에 Session Source를 수정하지 않는다. 지원되지 않는 Markdown/visual type이 필요하면 renderer를 확장한다.
+
+## 변경 시 확인할 것
+
+- `engine/production/`을 수정하면 `cd engine/production && node --test src/test/*.test.js`로 전체 테스트를 통과시킨다.
+- `guides/*.md` 중 하나의 내용(수동 목차 정책, 의미 표식 문법, typography 규칙 등)을 바꾸면, 그 계약을 실제로 구현하는 `engine/production/src/`의 코드와 테스트도 함께 갱신한다. 지침 문서 수정만으로 구현이 완료됐다고 간주하지 않는다.
+- 세 지침 파일은 서로를 파일명으로 참조한다(`course-design-guide.md`, `session-authoring-guide.md`, `production-guide.md`). 파일을 이동·rename하면 상호 참조도 함께 갱신한다.
