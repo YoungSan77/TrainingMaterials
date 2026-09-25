@@ -843,10 +843,10 @@ class Builder {
           runParen(par, lines[li], li === 0 ? 24 : 11, true);
         }
       }
-      // Shape 5 (top-right, idx=11) is the session name -- expected.pptx shows the same value on
-      // every slide, never the slide's own topic title. Shapes 6/7 are blank in expected.pptx
-      // (no source/copyright string); the approved.pptx template bakes a default into shape 7
-      // ("Gemini, 2026/09"), so it must be explicitly cleared here rather than left untouched.
+      // Shape 5 (top-right, idx=11) is the session name -- production-guide.md ("Session 명")
+      // requires the same value on every slide, never the slide's own topic title. Shapes 6/7
+      // stay blank (no source/copyright string); the approved.pptx template bakes a default into
+      // shape 7 ("Gemini, 2026/09"), so it must be explicitly cleared here rather than left as-is.
       setText(shape(p.doc, 5), p.isToc ? "" : this.session);
       setText(shape(p.doc, 6), "");
       setText(shape(p.doc, 7), "");
