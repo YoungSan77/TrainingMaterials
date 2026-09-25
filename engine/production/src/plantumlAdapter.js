@@ -3,6 +3,8 @@ const fs = require("fs");
 const path = require("path");
 const https = require("https");
 const crypto = require("crypto");
+const { textWidths, maxEntityRectWidth, uniformClassSource, uniformLabelSource } = require("./uniformSize");
+const { shrinkUsecaseActors, fitUsecaseEllipses, fixAssociationClasses } = require("./umlSvgFix");
 const { execFileSync } = require("child_process");
 
 const VERSION = "1.2026.0";
@@ -101,6 +103,9 @@ function assembled(source, kind) {
     // diagrams -- sequence diagrams have their own native left-to-right lifeline renderer and
     // don't need (or benefit from) a graph layout pass.
     ...(kind === "sequence" ? [] : ["!pragma layout smetana"]),
+    // A sequence diagram shows each participant once, at the top; PlantUML's default footbox
+    // (every participant repeated under the lifelines) is not part of the standard reading.
+    ...(kind === "sequence" ? ["hide footbox"] : []),
     `scale ${SCALE}`,
     "skinparam backgroundColor white", "skinparam defaultFontName 맑은 고딕", `skinparam defaultFontSize ${FONT_SIZE}`,
     // Bold by default (box/entity text), but not the flow itself -- sequence messages and
@@ -112,42 +117,140 @@ function assembled(source, kind) {
   ].join("\n");
 }
 
-async function renderPlantUml({ kind, source }) {
-  kind = kind || "sequence";
-  if (!KINDS.has(kind)) throw new Error(`PlantUML kind가 지원 범위 밖이다: ${kind}`);
-  if (!source || !String(source).trim()) throw new Error("PlantUML source가 비어 있다");
-  const jar = await ensureJar();
-  const content = assembled(source, kind);
+// Runs PlantUML on `content` into CACHE_DIR as `format` ("png" | "svg"), cached by content hash.
+function runPlantUml(jar, kind, content, format) {
   const hash = crypto.createHash("sha1").update(`${VERSION}\nscale${SCALE}\n${kind}\n${content}`).digest("hex").slice(0, 16);
-  const pngPath = path.join(CACHE_DIR, hash + ".png");
-  const pumlPath = path.join(CACHE_DIR, hash + ".puml");
-  // A cache hit is only trusted if the file is actually a non-empty PNG -- a run interrupted
-  // mid-write (killed process, disk full) can leave a zero-byte or truncated file at pngPath,
-  // and without this check every future call would see "exists" and permanently reuse the
-  // broken cache entry instead of ever regenerating it.
-  if (fs.existsSync(pngPath) && (!fs.statSync(pngPath).size || !pngSize(fs.readFileSync(pngPath)).width)) {
-    fs.unlinkSync(pngPath);
+  const outPath = path.join(CACHE_DIR, hash + "." + format);
+  // Per-process temp name (PlantUML names its output after the .puml): concurrent renders of the
+  // same diagram share `hash`, so each writes its own file and renames the result into place.
+  const tmpBase = `${hash}.${process.pid}.${crypto.randomBytes(4).toString("hex")}`;
+  const pumlPath = path.join(CACHE_DIR, tmpBase + ".puml");
+  const tmpOut = path.join(CACHE_DIR, tmpBase + "." + format);
+  // A cache hit is only trusted if the file is actually non-empty (and, for PNG, a valid PNG) --
+  // a run interrupted mid-write (killed process, disk full) can leave a zero-byte or truncated
+  // file at outPath, and without this check every future call would see "exists" and permanently
+  // reuse the broken cache entry instead of ever regenerating it.
+  if (fs.existsSync(outPath) && (!fs.statSync(outPath).size
+    || (format === "png" && !pngSize(fs.readFileSync(outPath)).width))) {
+    fs.unlinkSync(outPath);
   }
-  if (!fs.existsSync(pngPath)) {
+  if (!fs.existsSync(outPath)) {
     fs.writeFileSync(pumlPath, content, "utf8");
     try {
       execFileSync("java", [
         "--add-opens=java.desktop/com.sun.imageio.plugins.png=ALL-UNNAMED",
         "-DPLANTUML_LIMIT_SIZE=8192", "-Djava.awt.headless=true", "-jar", jar,
-        "-failfast2", "-tpng", "-charset", "UTF-8", pumlPath, "-o", CACHE_DIR,
+        "-failfast2", "-t" + format, "-charset", "UTF-8", pumlPath, "-o", CACHE_DIR,
       ], { stdio: ["ignore", "pipe", "pipe"], timeout: 60000 });
+      if (fs.existsSync(tmpOut)) fs.renameSync(tmpOut, outPath);
     } catch (error) {
       const detail = String(error.stderr || error.stdout || error.message || error).trim().slice(0, 2000);
       throw new Error(`PlantUML 렌더 실패(kind=${kind}): ${detail}`);
     } finally {
       if (fs.existsSync(pumlPath)) fs.unlinkSync(pumlPath);
+      if (fs.existsSync(tmpOut)) fs.unlinkSync(tmpOut);
     }
   }
-  if (!fs.existsSync(pngPath)) throw new Error(`PlantUML이 PNG를 만들지 않았다(kind=${kind})`);
+  if (!fs.existsSync(outPath)) throw new Error(`PlantUML이 ${format.toUpperCase()}를 만들지 않았다(kind=${kind})`);
+  return outPath;
+}
+
+// Uniform box size (production-guide.md "Visual layout 및 가독성"): measure the diagram once as
+// SVG, then rewrite the source so every class/state/usecase/participant box takes the widest
+// (and, for classes, tallest) box's size. See uniformSize.js.
+function uniformSource(jar, source, kind) {
+  const inner = innerSource(source);
+  if (!["class", "state", "usecase", "sequence"].includes(kind)) return inner;
+  const svg = fs.readFileSync(runPlantUml(jar, kind, assembled(inner, kind), "svg"), "utf8");
+  if (kind === "class") return uniformClassSource(inner, maxEntityRectWidth(svg), SCALE, FONT_SIZE);
+  return uniformLabelSource(inner, kind, textWidths(svg), FONT_SIZE * SCALE);
+}
+
+// PlantUML draws the sequence-diagram stick-figure actor at a fixed size (ActorStickMan's
+// hard-coded head/body lengths, no skinparam/style), which reads oversized next to participant
+// boxes. The figure (head <ellipse> + body <path> inside the actor's `participant-head` group) is
+// scaled by ACTOR_SCALE about its feet so it stays attached to its name label, and the drawing's
+// now-empty top band is cropped off.
+const ACTOR_SCALE = 0.5;
+function shrinkSequenceActors(svg, factor = ACTOR_SCALE) {
+  let top = Infinity;
+  let changed = false;
+  let out = String(svg).replace(/(<g class="participant participant-head"[^>]*>)([\s\S]*?)(<\/g>)/g, (whole, open, body, close) => {
+    const figure = /(<ellipse\b[^>]*\/>\s*<path\b[^>]*\/>)/.exec(body);
+    if (!figure) {
+      const y = /<rect\b[^>]*\by="([\d.]+)"/.exec(body);
+      if (y) top = Math.min(top, Number(y[1]));
+      return whole;
+    }
+    const ellipse = /<ellipse\b[^>]*\bcx="([\d.]+)"[^>]*\bcy="([\d.]+)"[^>]*\bry="([\d.]+)"/.exec(figure[1]);
+    const ys = [...figure[1].matchAll(/[ML]\s*[\d.]+,([\d.]+)/g)].map((m) => Number(m[1]));
+    if (!ellipse || !ys.length) return whole;
+    const cx = Number(ellipse[1]);
+    const feet = Math.max(...ys);
+    const headTop = Number(ellipse[2]) - Number(ellipse[3]);
+    top = Math.min(top, feet - (feet - headTop) * factor);
+    changed = true;
+    const g = `<g transform="translate(${cx},${feet}) scale(${factor}) translate(${-cx},${-feet})">${figure[1]}</g>`;
+    return open + body.replace(figure[1], g) + close;
+  });
+  if (!changed || !Number.isFinite(top)) return out;
+  const vb = /viewBox="([\d.-]+) ([\d.-]+) ([\d.]+) ([\d.]+)"/.exec(out);
+  if (!vb) return out;
+  const cut = Math.max(0, top - 20 - Number(vb[2]));
+  if (cut <= 0) return out;
+  const h = Number(vb[4]) - cut;
+  out = out.replace(vb[0], `viewBox="${vb[1]} ${Number(vb[2]) + cut} ${vb[3]} ${h}"`)
+    .replace(/(<svg\b[^>]*?\sheight=")[\d.]+px"/, `$1${h}px"`)
+    .replace(/(<svg\b[^>]*?style="[^"]*?height:)[\d.]+px/, `$1${h}px`);
+  return out;
+}
+
+// SVG corrections a diagram needs (umlSvgFix.js); any at all routes it through SVG -> rsvg.
+function svgFixes(kind, inner) {
+  const hasActor = /^\s*actor\b/m.test(inner);
+  const fixes = [];
+  if (kind === "sequence" && hasActor) fixes.push((svg) => shrinkSequenceActors(svg));
+  if (kind === "usecase") fixes.push(fitUsecaseEllipses);
+  if (kind === "usecase" && hasActor) fixes.push((svg) => shrinkUsecaseActors(svg, ACTOR_SCALE));
+  if (kind === "class" && /^\s*\([^)]*,[^)]*\)\s*\.\./m.test(inner)) fixes.push(fixAssociationClasses);
+  return fixes;
+}
+
+const RSVG_CONVERT = "/opt/homebrew/bin/rsvg-convert";
+function rasterizeSvg(svg, kind) {
+  const hash = crypto.createHash("sha1").update(`svgfix-v4\n${svg}`).digest("hex").slice(0, 16);
+  const pngPath = path.join(CACHE_DIR, hash + ".actors.png");
+  if (fs.existsSync(pngPath) && pngSize(fs.readFileSync(pngPath)).width) return pngPath;
+  if (!fs.existsSync(RSVG_CONVERT)) throw new Error("PlantUML 액터 축소용 rsvg-convert가 없다: " + RSVG_CONVERT);
+  const tmp = path.join(CACHE_DIR, `${hash}.${process.pid}.${crypto.randomBytes(4).toString("hex")}`);
+  try {
+    fs.writeFileSync(tmp + ".svg", svg, "utf8");
+    execFileSync(RSVG_CONVERT, ["-b", "white", "-o", tmp + ".png", tmp + ".svg"], { stdio: ["ignore", "pipe", "pipe"], timeout: 30000 });
+    fs.renameSync(tmp + ".png", pngPath);
+  } catch (error) {
+    const detail = String(error.stderr || error.message || error).trim().slice(0, 2000);
+    throw new Error(`PlantUML 액터 축소 렌더 실패(kind=${kind}): ${detail}`);
+  } finally {
+    for (const f of [tmp + ".svg", tmp + ".png"]) if (fs.existsSync(f)) fs.unlinkSync(f);
+  }
+  return pngPath;
+}
+
+async function renderPlantUml({ kind, source }) {
+  kind = kind || "sequence";
+  if (!KINDS.has(kind)) throw new Error(`PlantUML kind가 지원 범위 밖이다: ${kind}`);
+  if (!source || !String(source).trim()) throw new Error("PlantUML source가 비어 있다");
+  const jar = await ensureJar();
+  fs.mkdirSync(CACHE_DIR, { recursive: true });
+  const content = assembled(uniformSource(jar, source, kind), kind);
+  const fixes = svgFixes(kind, innerSource(source));
+  const pngPath = fixes.length
+    ? rasterizeSvg(fixes.reduce((svg, fix) => fix(svg), fs.readFileSync(runPlantUml(jar, kind, content, "svg"), "utf8")), kind)
+    : runPlantUml(jar, kind, content, "png");
   const data = stripPngMetadata(fs.readFileSync(pngPath));
   const size = pngSize(data);
   if (!size.width || !size.height) throw new Error(`PlantUML 출력이 유효한 PNG가 아니다(kind=${kind})`);
   return { path: pngPath, data, width: size.width, height: size.height };
 }
 
-module.exports = { renderPlantUml, pngSize, stripPngMetadata, CACHE_DIR, JAR_PATH, KINDS, styleLabel, styleSource, innerSource, assembled };
+module.exports = { renderPlantUml, uniformSource, shrinkSequenceActors, svgFixes, ACTOR_SCALE, pngSize, stripPngMetadata, CACHE_DIR, JAR_PATH, KINDS, styleLabel, styleSource, innerSource, assembled };

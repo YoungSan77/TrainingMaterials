@@ -27,6 +27,12 @@ const ARCH_TERMS = new Set(["domain", "application", "presentation", "adapter", 
 // carried a "*** 16번 부터는 여기에서 계속함" authoring note in exactly this spot, confirming this
 // split was the intended design). Geometry (EMU) copied from that reference slide's shapes.
 const TOC_FONT_SIZE = 16;
+// production-guide.md "Session 명": the TOC slide title uses only the session name before its
+// " — " subtitle ("03. 정적 모델 — 도메인 개념과 관계" -> "03. 정적 모델"); every other slide's
+// top-right session name keeps the full name.
+function tocSessionName(session) {
+  return String(session).split(/\s+—\s+/)[0].trim();
+}
 const TOC_LEFT_MAX = 15;
 const TOC_LEFT_XFRM = { x: -8822, y: 949064, cx: 4580822, cy: 5530862 };
 const TOC_RIGHT_XFRM = { x: 4426820, y: 949064, cx: 4195811, cy: 5530862 };
@@ -141,12 +147,32 @@ function naturalSize(image, pt) {
 // spare (a small diagram stretched to fill its panel was reading oversized). Only when that
 // natural size overflows `bounds` does it shrink, in 10% steps (90%, 80%, ...) rather than
 // pushing the topic onto a second slide -- body text/pagination is never touched for this.
+// Exception (production-guide.md "Visual layout 및 가독성"): a PlantUML (UML) diagram grows to
+// fill the free band below the text, up to UML_MAX_PT, since a UML diagram left at TARGET_PT sat
+// small in a mostly empty slide.
+const UML_MAX_PT = 16;
 function fitTarget(bounds, image) {
   const natural = naturalSize(image, TARGET_PT);
+  if (image.kind === "plantuml") {
+    const grow = Math.min(bounds.w / natural.w, bounds.h / natural.h, UML_MAX_PT / TARGET_PT);
+    if (grow >= 1) return center(bounds, natural.w * grow, natural.h * grow);
+  }
   const maxScale = Math.min(1, bounds.w / natural.w, bounds.h / natural.h);
   let scale = 1;
   while (scale - 0.1 >= maxScale - 1e-9 && scale > 0.1) scale -= 0.1;
   return center(bounds, natural.w * scale, natural.h * scale);
+}
+
+// The panel a topic's visual(s) are placed in: centered in the free band [top, top+availableH]
+// between the text's estimated end and the footer. Mermaid/SVG/chart keep the layout's design
+// panel height; an all-PlantUML panel takes the whole free band at the widest body width so
+// fitTarget() can grow the UML diagram into it (see UML_MAX_PT).
+const UML_PANEL = { x: 0.5, w: 9.0 };
+function visualPanel(layout, top, availableH, images) {
+  const uml = images.length > 0 && images.every((image) => image.kind === "plantuml");
+  const panelH = uml ? availableH : Math.min(layout.panel.h, availableH);
+  const y = top + (availableH - panelH) / 2;
+  return uml ? { ...layout.panel, ...UML_PANEL, y, h: panelH } : { ...layout.panel, y, h: panelH };
 }
 
 function visualPolicy(rendered) {
@@ -544,7 +570,7 @@ class Builder {
     for (let i = 0; i < toc.length; i += perPage) chunks.push(toc.slice(i, i + perPage));
     for (let ci = 0; ci < chunks.length; ci++) {
       const suffix = chunks.length > 1 ? ` (${ci + 1}/${chunks.length})` : "";
-      const p = this.page(0, session + " 목차" + suffix);
+      const p = this.page(0, tocSessionName(session) + " 목차" + suffix);
       // Per direct instruction: the TOC slide does not carry the top-right session name (it is
       // not a "일반 슬라이드" in the production-guide.md sense -- session name is topic-slide-only).
       p.isToc = true;
@@ -591,6 +617,11 @@ class Builder {
         return { ...png, source: b.text, kind: b.kind };
       }));
       const layout = visualPolicy(renderedVisuals);
+      // Text budget for the pages being composed. It starts as the visual layout's reduced
+      // capacity (the visual shares the page), but once an explicit "**페이지 분할**" comes after
+      // the topic's last visual, every visual is already placed on an earlier page -- the pages
+      // after the split are text-only and get the full-page budget.
+      let capacity = layout.capacity;
       let pending = [];
       let governingSeen = false;
       let quoteKind = null;
@@ -628,7 +659,7 @@ class Builder {
         if (["mermaid", "plantuml", "chart", "svg"].includes(b.kind)) {
           if (multiVisual) {
             const before = this.pages.length;
-            this.flush(pending, section.title, layout.width, layout.capacity);
+            this.flush(pending, section.title, layout.width, capacity);
             let target;
             if (this.pages.length > before) {
               target = this.pages[this.pages.length - 1];
@@ -676,7 +707,8 @@ class Builder {
           continue;
         }
         if (b.kind === "pagebreak") {
-          this.flush(pending, section.title, layout.width, layout.capacity);
+          this.flush(pending, section.title, layout.width, capacity);
+          if (visuals.length && visualIndex >= visuals.length) capacity = visualPolicy([]).capacity;
           governingSeen = true;
           continue;
         }
@@ -690,7 +722,7 @@ class Builder {
           const tableContentH = b.rows.reduce((sum, row) => sum + this.rowHeight(row, tableWidths), 0);
           const leadCap = Math.max(0, (PAGE_NUM_Y - 1.05) * 72 - 8 - Math.min(tableContentH, 365));
           const lead = pending.length && this.tableLeadHeight(pending, leadCap) < leadCap ? pending.slice() : [];
-          if (!lead.length) this.flush(pending, section.title, layout.width, layout.capacity);
+          if (!lead.length) this.flush(pending, section.title, layout.width, capacity);
           this.table(b, section.title, lead, leadCap);
           pending = [];
           governingSeen = true;
@@ -698,7 +730,7 @@ class Builder {
         }
         need(b.kind === "code" || b.kind === "tree", "Unknown block");
         const paired = b.kind === "tree" && pending.length === 1 && pending[0].kind === "text" && !governingSeen;
-        if (!paired) this.flush(pending, section.title, layout.width, layout.capacity);
+        if (!paired) this.flush(pending, section.title, layout.width, capacity);
         const index = b.kind === "tree" ? 4 : 5;
         const id = b.kind === "tree" ? 30 : 31;
         const size = b.kind === "tree" && !paired
@@ -732,7 +764,7 @@ class Builder {
         pending = [];
         governingSeen = true;
       }
-      this.flush(pending, section.title, layout.width, layout.capacity);
+      this.flush(pending, section.title, layout.width, capacity);
       // Single-visual attachment (below) needs some page in range carrying shape id=8 to attach
       // the picture to. Normally the topic's own prose does that; but now that a table's lead can
       // absorb pending text that used to be the topic's only prose page (see the table branch
@@ -770,9 +802,7 @@ class Builder {
           const textEndY = layout.text.y + layout.text.h * Math.min(1, (target.textCost || 0) / layout.capacity);
           const margin = 0.15;
           const availableH = Math.max(0.6, PAGE_NUM_Y - margin - (textEndY + margin));
-          const panelH = Math.min(layout.panel.h, availableH);
-          const panelY = textEndY + margin + (availableH - panelH) / 2;
-          const panel = { ...layout.panel, y: panelY, h: panelH };
+          const panel = visualPanel(layout, textEndY + margin, availableH, [png]);
           target.pictures = [{ ...png, bounds: fitTarget({ x: panel.x, y: panel.y, w: panel.w, h: panel.h }, png) }];
           target.visualLayout = layout.name;
         }
@@ -788,9 +818,7 @@ class Builder {
           const textEndY = layout.text.y + layout.text.h * Math.min(1, (target.textCost || 0) / layout.capacity);
           const margin = 0.15;
           const availableH = Math.max(0.6, PAGE_NUM_Y - margin - (textEndY + margin));
-          const panelH = Math.min(layout.panel.h, availableH);
-          const panelY = textEndY + margin + (availableH - panelH) / 2;
-          const panel = { ...layout.panel, y: panelY, h: panelH };
+          const panel = visualPanel(layout, textEndY + margin, availableH, renderedVisuals);
           const gap = 0.12;
           const slotH = (panel.h - gap * (renderedVisuals.length - 1)) / renderedVisuals.length;
           target.pictures = renderedVisuals.map((png, index) => ({
@@ -903,4 +931,4 @@ async function render(sections, templatePath, outputPath, session, toc) {
   return b.render(sections, outputPath, toc);
 }
 
-module.exports = { Builder, render, geometry, naturalSize, fitTarget, TARGET_PT, PAGE_NUM_Y };
+module.exports = { Builder, render, geometry, naturalSize, fitTarget, visualPanel, tocSessionName, TARGET_PT, UML_MAX_PT, PAGE_NUM_Y };

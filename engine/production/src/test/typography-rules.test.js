@@ -18,7 +18,7 @@ const path = require("path");
 const { parseXml, A, shape, body, kids, child, paragraph } = require("../xml");
 const { rich, run, runParen } = require("../richText");
 const { paragraphs } = require("../paragraphs");
-const { render, naturalSize, fitTarget, TARGET_PT } = require("../builder");
+const { render, naturalSize, fitTarget, visualPanel, tocSessionName, TARGET_PT, UML_MAX_PT } = require("../builder");
 const { styleSource: mermaidStyleSource } = require("../mermaidAdapter");
 const { styleSource: plantumlStyleSource, innerSource, assembled } = require("../plantumlAdapter");
 
@@ -262,6 +262,36 @@ test("fitTarget never enlarges past the 10pt target even with a huge panel", () 
   assert.ok(Math.abs(b.w - full.w) < 1e-6);
 });
 
+test("fitTarget grows a PlantUML diagram into free space, capped at UML_MAX_PT", () => {
+  const image = { kind: "plantuml", width: 764, height: 327 };
+  const full = naturalSize(image, TARGET_PT);
+  const roomy = fitTarget({ x: 0, y: 0, w: full.w * 10, h: full.h * 10 }, image);
+  const estimatedPt = (39 * roomy.w * 96) / image.width;
+  assert.ok(Math.abs(estimatedPt - UML_MAX_PT) < 1e-6, "a roomy panel grows the UML diagram only up to UML_MAX_PT");
+  const snug = fitTarget({ x: 0, y: 0, w: full.w * 1.2, h: full.h * 10 }, image);
+  assert.ok(Math.abs(snug.w - full.w * 1.2) < 1e-6, "growth stops at the panel edge");
+  const tight = fitTarget({ x: 0, y: 0, w: full.w * 0.85, h: full.h * 10 }, image);
+  assert.ok(Math.abs(tight.w - full.w * 0.9) < 1e-6, "an overflowing UML diagram still shrinks in 10% steps");
+});
+
+test("visualPanel gives an all-PlantUML topic the whole free band; other visuals keep the design panel", () => {
+  const layout = { panel: { x: 1.4, y: 4.25, w: 7.2, h: 1.8 } };
+  const uml = visualPanel(layout, 2.0, 4.0, [{ kind: "plantuml" }]);
+  assert.equal(uml.h, 4.0);
+  assert.equal(uml.w, 9.0);
+  const mermaid = visualPanel(layout, 2.0, 4.0, [{ kind: "mermaid" }]);
+  assert.equal(mermaid.h, 1.8);
+  assert.equal(mermaid.w, 7.2);
+  assert.ok(Math.abs(mermaid.y - (2.0 + (4.0 - 1.8) / 2)) < 1e-9);
+});
+
+test("tocSessionName drops the ' — ' subtitle only", () => {
+  assert.equal(tocSessionName("03. 정적 모델 — 도메인 개념과 관계"), "03. 정적 모델");
+  assert.equal(tocSessionName("13. OOAD에서 전문영역으로 — Architecture · DDD · MSA"), "13. OOAD에서 전문영역으로");
+  assert.equal(tocSessionName("02. 요구 분석과 유스케이스"), "02. 요구 분석과 유스케이스");
+  assert.equal(tocSessionName("07. 책임·협력·계약"), "07. 책임·협력·계약");
+});
+
 // -- 6. diagram labels: "-" splits + shrinks, whole label is bold ----------
 
 test("mermaid styleSource bolds every quoted label and splits it at the first '-'", () => {
@@ -306,4 +336,25 @@ test("plantuml innerSource still strips a genuine same-line title", () => {
   const source = "@startuml My Title\nparticipant A\n@enduml";
   const inner = innerSource(source);
   assert.equal(inner, "participant A");
+});
+
+test("text after an explicit page split that follows the topic's only visual gets the full-page budget", async () => {
+  // A tall class diagram forces the deep-stacked layout (small text capacity on the visual's page).
+  const uml = 'class "가" as A {\n  a\n  b\n  c\n  d\n  e\n  f\n}';
+  const lines = ["첫째 설명 문장입니다", "둘째 설명 문장입니다", "셋째 설명 문장입니다", "넷째 설명 문장입니다",
+    "다섯째 설명 문장입니다", "여섯째 설명 문장입니다", "일곱째 설명 문장입니다"];
+  const sections = [{
+    heading: "01. 도식", title: "01. 도식",
+    blocks: [
+      textBlock("도식을 소개한다."),
+      { kind: "plantuml", text: uml, rows: [], depth: 0, meta: { uml: "class" } },
+      { kind: "pagebreak", text: "", rows: [], depth: 0, meta: null },
+      ...lines.map(bulletBlock),
+    ],
+    notes: [],
+  }];
+  const toc = [bulletBlock("01. 도식")];
+  const m = await renderOnce(sections, toc, "split-budget");
+  const topicPages = m.pages.filter((pg) => pg.heading && pg.heading.startsWith("01. 도식"));
+  assert.equal(topicPages.length, 2, "visual page + one text-only page, not a third continuation");
 });
