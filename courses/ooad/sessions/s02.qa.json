@@ -1,7 +1,8 @@
 {
   "status": "PASS",
-  "slides": 70,
-  "checked_blocks": 97,
+  "slides": 78,
+  "checked_blocks": 116,
   "visual_status": "NOT_VERIFIED",
-  "errors": []
+  "errors": [],
+  "warnings": []
 }
