@@ -12,7 +12,7 @@ const ARTIFACT = "plantuml-mit-light";
 const URL = `https://repo1.maven.org/maven2/net/sourceforge/plantuml/${ARTIFACT}/${VERSION}/${ARTIFACT}-${VERSION}.jar`;
 const CACHE_DIR = path.resolve(__dirname, "../.cache/plantuml");
 const JAR_PATH = path.join(CACHE_DIR, `${ARTIFACT}-${VERSION}.jar`);
-const KINDS = new Set(["class", "usecase", "sequence", "communication", "collaboration", "state", "package"]);
+const KINDS = new Set(["class", "usecase", "sequence", "communication", "collaboration", "state", "package", "activity"]);
 const SCALE = 4;
 const FONT_SIZE = 13;
 const DASH = "-";
@@ -106,6 +106,9 @@ function assembled(source, kind) {
     // A sequence diagram shows each participant once, at the top; PlantUML's default footbox
     // (every participant repeated under the lifelines) is not part of the standard reading.
     ...(kind === "sequence" ? ["hide footbox"] : []),
+    // A communication diagram's participants are roles in an interaction, not classes: the empty
+    // attribute/method compartments PlantUML's object notation draws would read as class boxes.
+    ...(kind === "communication" || kind === "collaboration" ? ["hide empty members"] : []),
     `scale ${SCALE}`,
     "skinparam backgroundColor white", "skinparam defaultFontName 맑은 고딕", `skinparam defaultFontSize ${FONT_SIZE}`,
     // Bold by default (box/entity text), but not the flow itself -- sequence messages and
@@ -160,9 +163,9 @@ function runPlantUml(jar, kind, content, format) {
 // (and, for classes, tallest) box's size. See uniformSize.js.
 function uniformSource(jar, source, kind) {
   const inner = innerSource(source);
-  if (!["class", "state", "usecase", "sequence"].includes(kind)) return inner;
+  if (!["class", "communication", "collaboration", "state", "usecase", "sequence"].includes(kind)) return inner;
   const svg = fs.readFileSync(runPlantUml(jar, kind, assembled(inner, kind), "svg"), "utf8");
-  if (kind === "class") return uniformClassSource(inner, maxEntityRectWidth(svg), SCALE, FONT_SIZE);
+  if (["class", "communication", "collaboration"].includes(kind)) return uniformClassSource(inner, maxEntityRectWidth(svg), SCALE, FONT_SIZE);
   return uniformLabelSource(inner, kind, textWidths(svg), FONT_SIZE * SCALE);
 }
 
@@ -178,9 +181,18 @@ function shrinkSequenceActors(svg, factor = ACTOR_SCALE) {
   let out = String(svg).replace(/(<g class="participant participant-head"[^>]*>)([\s\S]*?)(<\/g>)/g, (whole, open, body, close) => {
     const figure = /(<ellipse\b[^>]*\/>\s*<path\b[^>]*\/>)/.exec(body);
     if (!figure) {
-      const y = /<rect\b[^>]*\by="([\d.]+)"/.exec(body);
-      if (y) top = Math.min(top, Number(y[1]));
-      return whole;
+      const rect = /<rect\b[^>]*\bwidth="([\d.]+)"[^>]*\bx="([\d.]+)"[^>]*\by="([\d.]+)"/.exec(body);
+      if (!rect) return whole;
+      top = Math.min(top, Number(rect[3]));
+      // Center the participant name in its box: the no-break-space padding added for uniform
+      // box width (uniformSize.js) is measured by PlantUML's font but not reproduced exactly by
+      // rsvg, which left names shifted toward the box's left edge.
+      const cx = Number(rect[2]) + Number(rect[1]) / 2;
+      return open + body.replace(/<text\b([^>]*)>([^<]*)<\/text>/g, (w, attrs, text) => {
+        const trimmed = text.replace(/^(?:&#160;|\u00a0)+|(?:&#160;|\u00a0)+$/g, "");
+        const a = attrs.replace(/\s(?:textLength|lengthAdjust)="[^"]*"/g, "").replace(/\bx="[\d.]+"/, `x="${cx}" text-anchor="middle"`);
+        return `<text${a}>${trimmed}</text>`;
+      }) + close;
     }
     const ellipse = /<ellipse\b[^>]*\bcx="([\d.]+)"[^>]*\bcy="([\d.]+)"[^>]*\bry="([\d.]+)"/.exec(figure[1]);
     const ys = [...figure[1].matchAll(/[ML]\s*[\d.]+,([\d.]+)/g)].map((m) => Number(m[1]));
@@ -193,6 +205,14 @@ function shrinkSequenceActors(svg, factor = ACTOR_SCALE) {
     const g = `<g transform="translate(${cx},${feet}) scale(${factor}) translate(${-cx},${-feet})">${figure[1]}</g>`;
     return open + body.replace(figure[1], g) + close;
   });
+  // A participant created mid-interaction is drawn inside its creation message's group, not a
+  // participant-head group: center any padded box label that directly follows its box.
+  out = out.replace(/(<rect\b[^>]*\bwidth="([\d.]+)"[^>]*\bx="([\d.]+)"[^>]*\/>\s*)<text\b([^>]*)>((?:&#160;)+[^<]*?(?:&#160;)+)<\/text>/g,
+    (w, rectPart, width, x, attrs, text) => {
+      const cx = Number(x) + Number(width) / 2;
+      const a = attrs.replace(/\s(?:textLength|lengthAdjust)="[^"]*"/g, "").replace(/\bx="[\d.]+"/, `x="${cx}" text-anchor="middle"`);
+      return `${rectPart}<text${a}>${text.replace(/^(?:&#160;)+|(?:&#160;)+$/g, "")}</text>`;
+    });
   if (!changed || !Number.isFinite(top)) return out;
   const vb = /viewBox="([\d.-]+) ([\d.-]+) ([\d.]+) ([\d.]+)"/.exec(out);
   if (!vb) return out;
@@ -218,7 +238,7 @@ function svgFixes(kind, inner) {
 
 const RSVG_CONVERT = "/opt/homebrew/bin/rsvg-convert";
 function rasterizeSvg(svg, kind) {
-  const hash = crypto.createHash("sha1").update(`svgfix-v4\n${svg}`).digest("hex").slice(0, 16);
+  const hash = crypto.createHash("sha1").update(`svgfix-v6\n${svg}`).digest("hex").slice(0, 16);
   const pngPath = path.join(CACHE_DIR, hash + ".actors.png");
   if (fs.existsSync(pngPath) && pngSize(fs.readFileSync(pngPath)).width) return pngPath;
   if (!fs.existsSync(RSVG_CONVERT)) throw new Error("PlantUML 액터 축소용 rsvg-convert가 없다: " + RSVG_CONVERT);

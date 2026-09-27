@@ -92,6 +92,12 @@ function parse(input) {
     // whatever's pending on the current page to close right there, so a topic's multi-page split
     // lands exactly where the author intends instead of wherever the estimate happens to overflow.
     if (line.trim() === "**페이지 분할**") { push(block("pagebreak", "", 0)); continue; }
+    // TM parser extension: "**다이어그램 — 시퀀스 다이어그램**" names the diagram a topic explains
+    // when the topic title itself doesn't. It is slide-title metadata, not body content: the
+    // builder shows it as an 11pt second title line, and the TOC (matched 1:1 against the
+    // heading) is unaffected.
+    const diagramMarker = /^\*\*다이어그램\s*[—:-]\s*(.+?)\*\*$/.exec(line.trim());
+    if (diagramMarker) { current.diagram = diagramMarker[1].trim(); continue; }
     if (h) {
       push(block("heading", h[2], 0));
       continue;

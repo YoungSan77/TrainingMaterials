@@ -12,6 +12,22 @@ const builder = require("./builder");
 const { inspect } = require("./inspect");
 const { readZip } = require("./zip");
 const { parseXml } = require("./xml");
+const { checkReferences } = require("./references");
+
+// A continuation slide that carries only a line or two of text (no table, visual or code) is a
+// layout smell the author should look at (production-guide.md, "continuation"). Warning only.
+function sparseContinuations(m) {
+  const warnings = [];
+  m.pages.forEach((p, i) => {
+    const heading = String(p.heading || "").split("\n")[0];
+    if (p.isToc || !/\(\d+\/\d+\)$/.test(heading)) return;
+    if ((p.pictures || []).length) return;
+    if (p.items.some((it) => ["table", "code", "tree"].includes(it.kind))) return;
+    if ((p.textCost || 0) >= 0.25 * 450) return;
+    warnings.push("슬라이드 " + (i + 1) + ": \"" + heading + "\" continuation에 본문이 한두 줄뿐이다.");
+  });
+  return warnings;
+}
 
 async function reloadForCompactValidate(outputPath, expected) {
   const data = await readZip(outputPath);
@@ -48,6 +64,20 @@ async function generateFile(inputPath, outputPath, templatePath, title, source, 
     } else throw new Error("--layout: reference, auto \uB610\uB294 compact");
 
     let report = await inspect(tmp, m);
+    let warnings = [];
+    if (layoutMode === "auto") {
+      const refs = checkReferences(inputPath, fs.readFileSync(inputPath, "utf-8"));
+      warnings = refs.warnings.concat(sparseContinuations(m));
+      if (refs.errors.length) {
+        const { reportJson } = require("./inspect");
+        const errors = report.errors.concat(refs.errors);
+        report = { errors, slides: report.slides, blocks: report.blocks, json: () => reportJson(errors, report.slides, report.blocks, warnings) };
+      } else {
+        const { reportJson } = require("./inspect");
+        const r = report;
+        report = { errors: r.errors, slides: r.slides, blocks: r.blocks, json: () => reportJson(r.errors, r.slides, r.blocks, warnings) };
+      }
+    }
     if (layoutMode === "compact") {
       const reloaded = await reloadForCompactValidate(tmp, m);
       const extra = compactRenderer.validate(reloaded);
@@ -61,10 +91,11 @@ async function generateFile(inputPath, outputPath, templatePath, title, source, 
     need(report.errors.length === 0, report.errors.join("\n"));
     fs.renameSync(tmp, outputPath);
     console.log("생성: " + outputPath + " (" + report.slides + "장), 자동 검사 PASS. PowerPoint 시각 검토 필요.");
+    for (const w of warnings) console.log("경고: " + w);
     return { manifest: m, report };
   } finally {
     if (fs.existsSync(tmp)) fs.unlinkSync(tmp);
   }
 }
 
-module.exports = { generateFile };
+module.exports = { generateFile, sparseContinuations };

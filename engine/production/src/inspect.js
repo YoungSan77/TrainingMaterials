@@ -6,12 +6,14 @@ const { A, P, all, shape, text, body, kids, child, children } = require("./xml")
 const { readZip } = require("./zip");
 const { slideParts } = require("./referenceRenderer");
 
-function reportJson(errors, slides, blocks) {
+// `warnings` is only passed by the general Session Production path; the lecture-java baseline
+// layouts keep the original report shape byte for byte.
+function reportJson(errors, slides, blocks, warnings) {
   const q = (s) => JSON.stringify(s);
   return (
     "{\n  \"status\": " + q(errors.length === 0 ? "PASS" : "FAIL") + ",\n  \"slides\": " + slides +
     ",\n  \"checked_blocks\": " + blocks + ",\n  \"visual_status\": \"NOT_VERIFIED\",\n  \"errors\": [" +
-    errors.map(q).join(",") + "]\n}\n"
+    errors.map(q).join(",") + "]" + (warnings ? ",\n  \"warnings\": [" + warnings.map(q).join(",") + "]" : "") + "\n}\n"
   );
 }
 

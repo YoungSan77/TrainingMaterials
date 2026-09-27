@@ -132,6 +132,10 @@ function center(bounds, w, h) {
 // Inverse of visualPolicy()'s legibility estimate: the display width at which the image's
 // diagram text renders at exactly `pt`.
 const TARGET_PT = 11;
+// Orphan control for flush(): a remainder costing at most ORPHAN_SHARE of a page stays on the
+// current page as long as the page total stays within ORPHAN_TOLERANCE of its budget.
+const ORPHAN_SHARE = 0.2;
+const ORPHAN_TOLERANCE = 1.2;
 function naturalSize(image, pt) {
   const w = image.kind === "mermaid" ? (pt * image.width) / (24 * 96)
     : image.kind === "plantuml" ? (pt * image.width) / (39 * 96)
@@ -380,10 +384,17 @@ class Builder {
     let chunk = [];
     let cost = 0;
     let pageCapacity = capacity;
-    for (const b of pending) {
-      const c = this.blockCost(b);
+    const costs = pending.map((b) => this.blockCost(b));
+    for (let i = 0; i < pending.length; i++) {
+      const b = pending[i];
+      const c = costs[i];
       need(c <= Math.max(capacity, 450), "본문 한 문단이 너무 길다. 원고에서 나눠라.");
-      if (cost + c > pageCapacity && chunk.length) {
+      // production-guide.md: a short trailing remainder (a line or two) must not become its own
+      // continuation slide. If everything left fits within ORPHAN_TOLERANCE of this page's budget,
+      // keep it here (the visual panel is placed below the actual text end -- see textEndY).
+      const remaining = costs.slice(i).reduce((s, x) => s + x, 0);
+      const keep = remaining <= pageCapacity * ORPHAN_SHARE && cost + remaining <= pageCapacity * ORPHAN_TOLERANCE;
+      if (!keep && cost + c > pageCapacity && chunk.length) {
         const p = this.page(1, heading);
         paragraphs(p, 8, chunk, false);
         p.textCost = cost;
@@ -423,12 +434,12 @@ class Builder {
     return Math.min(cost / 1.087 + 10, cap);
   }
 
-  table(block, heading, lead = [], leadCap = 160) {
-    const rows = block.rows;
-    const cols = rows[0].length;
-    need(cols >= 2 && cols <= 6, "표는 2~6열을 지원한다.");
-    const widths = columnWidths(rows, cols);
+  // Height (pt) a run of text blocks needs in a full-width text box on a table page.
+  textHeightPt(blocks) {
+    return blocks.length ? blocks.reduce((sum, b) => sum + this.blockCost(b), 0) / 1.087 + 10 : 0;
+  }
 
+  tableGroups(rows, widths) {
     const groups = [];
     let chunk = [rows[0]];
     let total = this.rowHeight(rows[0], widths);
@@ -444,52 +455,135 @@ class Builder {
       total += h;
     }
     groups.push(chunk);
+    return groups;
+  }
 
-    const leadHeightPt = this.tableLeadHeight(lead, leadCap);
+  // A copy of a template shape on the same slide, under a fresh unique id.
+  cloneShape(page, id) {
+    const src = shape(page.doc, id);
+    const c = src.cloneNode(true);
+    const next = Math.max(...all(page.doc, P, "cNvPr").map((e) => parseInt(e.getAttribute("id"), 10) || 0)) + 1;
+    first(c, P, "cNvPr").setAttribute("id", String(next));
+    src.parentNode.appendChild(c);
+    return next;
+  }
+
+  // Free band (pt) left below whatever is already stacked on a table page.
+  roomBelowPt(page) {
+    return (PAGE_NUM_Y - 0.15) * 72 - (page.tableBottom * 72 + 8);
+  }
+
+  // Stack text below the content already on a table page (a second lead-style text box).
+  appendTextBelow(page, blocks) {
+    const h = this.textHeightPt(blocks);
+    const id = this.cloneShape(page, 13);
+    setShapeBounds(shape(page.doc, id), { x: 0.4, y: page.tableBottom + 8 / 72, w: 9.2, h: h / 72 });
+    paragraphs(page, id, blocks, false);
+    page.tableBottom += (8 + h) / 72;
+  }
+
+  // Fill a table graphicFrame with one row group, top at yPt; returns the content height (pt).
+  fillTable(page, gf, group, widths, yPt) {
+    const cols = group[0].length;
+    const tableWidth = widths.reduce((a, b) => a + b, 0);
+    const gfXf = child(gf, P, "xfrm");
+    child(gfXf, A, "off").setAttribute("x", String(Math.round((TABLE_BAND_X + (TABLE_BAND_CX - tableWidth) / 2) * EMU / 72)));
+    child(gfXf, A, "ext").setAttribute("cx", String(Math.round(tableWidth * EMU / 72)));
+    if (yPt != null) child(gfXf, A, "off").setAttribute("y", String(Math.round(yPt * EMU / 72)));
+    const tbl = first(gf, A, "tbl");
+    const prototypes = kids(tbl, A, "tr");
+    for (const row of prototypes) tbl.removeChild(row);
+    const grid = child(tbl, A, "tblGrid");
+    for (const e of children(grid)) grid.removeChild(e);
+    for (const w of widths) grid.appendChild(el(page.doc, A, "gridCol", "w", String(Math.round(w * 12700))));
+    for (let ri = 0; ri < group.length; ri++) {
+      const row = el(page.doc, A, "tr", "h", String(this.rowHeight(group[ri], widths) * 12700));
+      const cells = kids(prototypes[Math.min(ri, prototypes.length - 1)], A, "tc");
+      for (let ci = 0; ci < cols; ci++) {
+        const cell = copy(page.doc, cells[Math.min(ci, cells.length - 1)]);
+        setText(cell, group[ri][ci]);
+        for (const rp of all(cell, A, "rPr")) rp.setAttribute("sz", "1000");
+        row.appendChild(cell);
+      }
+      tbl.appendChild(row);
+    }
+    const idAttr = first(gf, P, "cNvPr").getAttribute("id");
+    page.items.push({ id: parseInt(idAttr, 10), kind: "table", text: "", rows: group });
+    const contentHeightPt = group.reduce((sum, row) => sum + this.rowHeight(row, widths), 0);
+    page.tableBottom = Number(child(gfXf, A, "off").getAttribute("y")) / EMU + contentHeightPt / 72;
+    return contentHeightPt;
+  }
+
+  // Can [lead text][visual][mid text][table] share one fresh table page? Returns the visual's
+  // height budget (pt) when it can, else 0. Only single-group tables qualify.
+  leadVisualBudgetPt(block, lead, png, mid) {
+    const widths = columnWidths(block.rows, block.rows[0].length);
+    if (this.tableGroups(block.rows, widths).length !== 1) return 0;
+    const tableH = block.rows.reduce((sum, row) => sum + this.rowHeight(row, widths), 0);
+    const band = (PAGE_NUM_Y - 0.15 - 1.05) * 72;
+    const used = (lead.length ? this.textHeightPt(lead) + 8 : 0) + (mid.length ? this.textHeightPt(mid) + 8 : 0) + tableH + 8;
+    const room = band - used;
+    const natural = naturalSize(png, TARGET_PT);
+    const needH = Math.min(natural.h * 72 * 0.8, natural.h * 72 * (TABLE_BAND_CX / 72) / natural.w);
+    return room >= Math.max(0.9 * 72, needH) ? room : 0;
+  }
+
+  // Append a whole (single-group) table, with its lead text, below the content already on a
+  // table page. Returns false (nothing changed) when it doesn't fit.
+  appendTableBelow(page, block, lead, widthsOverride) {
+    const widths = widthsOverride || columnWidths(block.rows, block.rows[0].length);
+    const groups = this.tableGroups(block.rows, widths);
+    if (groups.length !== 1) return false;
+    const tableH = groups[0].reduce((sum, row) => sum + this.rowHeight(row, widths), 0);
+    const leadH = lead.length ? this.textHeightPt(lead) + 8 : 0;
+    if (leadH + tableH > this.roomBelowPt(page)) return false;
+    if (lead.length) this.appendTextBelow(page, lead);
+    const id = this.cloneShape(page, 11);
+    this.fillTable(page, shape(page.doc, id), groups[0], widths, page.tableBottom * 72 + 8);
+    return true;
+  }
+
+  table(block, heading, lead = [], leadCap = 160, opts = {}) {
+    const rows = block.rows;
+    const cols = rows[0].length;
+    need(cols >= 2 && cols <= 6, "표는 2~6열을 지원한다.");
+    const widths = opts.widths || columnWidths(rows, cols);
+    const groups = this.tableGroups(rows, widths);
+    const leadHeightPt = opts.visual ? this.textHeightPt(lead) : this.tableLeadHeight(lead, leadCap);
     for (let gi = 0; gi < groups.length; gi++) {
-      const group = groups[gi];
       const page = this.page(this.origins.length - 1, heading);
       const gf = shape(page.doc, 11);
+      let yPt = null;
+      if (gi === 0 && (lead.length || opts.visual)) {
+        yPt = 1.05 * 72;
+        if (lead.length) {
+          setShapeBounds(shape(page.doc, 13), { x: 0.4, y: 1.05, w: 9.2, h: leadHeightPt / 72 });
+          paragraphs(page, 13, lead, false);
+          yPt += leadHeightPt + 8;
+        }
+        if (opts.visual) {
+          // A legend-style visual between the lead text and the table (same slide).
+          const box = { x: TABLE_BAND_X / 72, y: yPt / 72, w: TABLE_BAND_CX / 72, h: opts.visualBudgetPt / 72 };
+          const bounds = fitTarget(box, opts.visual);
+          bounds.y = yPt / 72;
+          page.pictures = [{ ...opts.visual, bounds }];
+          page.visualLayout = "table-leading";
+          yPt += bounds.h * 72 + 8;
+          if (opts.mid && opts.mid.length) {
+            const midH = this.textHeightPt(opts.mid);
+            const id = this.cloneShape(page, 13);
+            setShapeBounds(shape(page.doc, id), { x: 0.4, y: yPt / 72, w: 9.2, h: midH / 72 });
+            paragraphs(page, id, opts.mid, false);
+            yPt += midH + 8;
+          }
+        }
+      }
       // Center a narrower-than-max table within the template's original table band, rather than
       // always stretching it to fill the full width regardless of how little the content needs.
-      const tableWidth = widths.reduce((a, b) => a + b, 0);
-      const gfXf = child(gf, P, "xfrm");
-      child(gfXf, A, "off").setAttribute("x", String(Math.round((TABLE_BAND_X + (TABLE_BAND_CX - tableWidth) / 2) * EMU / 72)));
-      child(gfXf, A, "ext").setAttribute("cx", String(Math.round(tableWidth * EMU / 72)));
-      if (gi === 0 && lead.length) {
-        const leadSh = shape(page.doc, 13);
-        setShapeBounds(leadSh, { x: 0.4, y: 1.05, w: 9.2, h: leadHeightPt / 72 });
-        paragraphs(page, 13, lead, false);
-        const xf = child(gf, P, "xfrm");
-        const off = child(xf, A, "off");
-        off.setAttribute("y", String(Math.round((1.05 * 72 + leadHeightPt + 8) * EMU / 72)));
-      }
-      const tbl = first(gf, A, "tbl");
-      const prototypes = kids(tbl, A, "tr");
-      for (const row of prototypes) tbl.removeChild(row);
-      const grid = child(tbl, A, "tblGrid");
-      for (const e of children(grid)) grid.removeChild(e);
-      for (const w of widths) grid.appendChild(el(page.doc, A, "gridCol", "w", String(Math.round(w * 12700))));
-      for (let ri = 0; ri < group.length; ri++) {
-        const row = el(page.doc, A, "tr", "h", String(this.rowHeight(group[ri], widths) * 12700));
-        const cells = kids(prototypes[Math.min(ri, prototypes.length - 1)], A, "tc");
-        for (let ci = 0; ci < cols; ci++) {
-          const cell = copy(page.doc, cells[Math.min(ci, cells.length - 1)]);
-          setText(cell, group[ri][ci]);
-          for (const rp of all(cell, A, "rPr")) rp.setAttribute("sz", "1000");
-          row.appendChild(cell);
-        }
-        tbl.appendChild(row);
-      }
-      page.items.push({ id: 11, kind: "table", text: "", rows: group });
-      // Where this group's actual rendered content ends, in inches -- the graphicFrame's own
-      // ext.cy is a stale template value PowerPoint autofits away, not the real row-height sum, so
-      // a caller that wants to know how much band is left below the table (to place a small
-      // single-topic visual there instead of stranding it on its own near-blank page) needs this,
-      // not ext.cy.
-      const contentHeightPt = group.reduce((sum, row) => sum + this.rowHeight(row, widths), 0);
-      const topY = Number(child(gfXf, A, "off").getAttribute("y")) / EMU;
-      page.tableBottom = topY + contentHeightPt / 72;
+      // page.tableBottom (set by fillTable) is where this group's rendered content ends, in inches:
+      // the graphicFrame's own ext.cy is a stale template value PowerPoint autofits away, so later
+      // content stacked below the table (text, a second table, a small visual) needs this instead.
+      this.fillTable(page, gf, groups[gi], widths, yPt);
     }
   }
 
@@ -617,11 +711,30 @@ class Builder {
         return { ...png, source: b.text, kind: b.kind };
       }));
       const layout = visualPolicy(renderedVisuals);
-      // Text budget for the pages being composed. It starts as the visual layout's reduced
-      // capacity (the visual shares the page), but once an explicit "**페이지 분할**" comes after
-      // the topic's last visual, every visual is already placed on an earlier page -- the pages
-      // after the split are text-only and get the full-page budget.
-      let capacity = layout.capacity;
+      // Explicit "**페이지 분할**" markers cut the topic into segments. Text budget is per segment:
+      // a segment that holds a visual shares its page with it (the layout's reduced capacity);
+      // every other segment is text-only and gets the full-page budget -- whether it comes before
+      // or after the visual. A single visual is likewise attached inside its own segment, never
+      // pulled back onto an earlier segment's page.
+      const isVisualBlock = (blk) => ["mermaid", "plantuml", "chart", "svg"].includes(blk.kind);
+      const segOf = [];
+      let segCount = 0;
+      for (const blk of section.blocks) { segOf.push(segCount); if (blk.kind === "pagebreak") segCount++; }
+      // A visual shares a *prose* page (and so shrinks that segment's text budget) unless it is
+      // stacked with a table instead: preceded by a table in its segment, or sitting right before
+      // one (a legend and its usage table).
+      const tableStacked = (i) => {
+        for (let k = i - 1; k >= 0 && segOf[k] === segOf[i]; k--) if (section.blocks[k].kind === "table") return true;
+        let k = i + 1;
+        while (k < section.blocks.length && ["text", "heading", "bullet"].includes(section.blocks[k].kind)) k++;
+        return k < section.blocks.length && section.blocks[k].kind === "table";
+      };
+      const visualSegs = new Set(section.blocks.map((blk, i) => (isVisualBlock(blk) && !tableStacked(i) ? segOf[i] : -1)).filter((s) => s >= 0));
+      const fullCapacity = visualPolicy([]).capacity;
+      const capacityFor = (s) => (visualSegs.has(s) ? layout.capacity : fullCapacity);
+      let seg = 0;
+      const segStart = [this.pages.length];
+      let capacity = capacityFor(0);
       let pending = [];
       let governingSeen = false;
       let quoteKind = null;
@@ -646,6 +759,61 @@ class Builder {
       const multiVisual = visuals.length > 1;
       const visualTargets = [];
       let visualIndex = 0;
+      // Stacking on a table page: `open` is the table page just composed in this segment. Text,
+      // a second table or a visual that follows it in the same segment is stacked below the table
+      // when it fits, instead of always starting a new slide. `deferred` is a visual that sits
+      // right before a table (only text between) -- e.g. a notation legend and its usage table --
+      // and is placed between the lead text and the table on the same slide when they fit.
+      let open = null;
+      let deferred = null;
+      // Consecutive tables in one segment with the same column count share column widths, so a
+      // stacked pair (or a pair split across slides) reads as one aligned grid.
+      let carryWidths = null;
+      const sharedWidths = (i) => {
+        const a = section.blocks[i];
+        let j = i + 1;
+        while (j < section.blocks.length && ["text", "heading", "bullet"].includes(section.blocks[j].kind)) j++;
+        const b2 = section.blocks[j];
+        if (!b2 || b2.kind !== "table" || b2.rows[0].length !== a.rows[0].length) return null;
+        return columnWidths(a.rows.concat(b2.rows.slice(1)), a.rows[0].length);
+      };
+      let visualInline = false;
+      const flushPending = () => {
+        if (open && pending.length && this.textHeightPt(pending) <= this.roomBelowPt(open)) {
+          this.appendTextBelow(open, pending);
+          pending.length = 0;
+          return;
+        }
+        const before = this.pages.length;
+        this.flush(pending, section.title, layout.width, capacity);
+        if (this.pages.length > before) open = null;
+      };
+      const placeBelowTable = (page, png) => {
+        const margin = 0.15;
+        const y = page.tableBottom + margin;
+        const bounds = fitTarget({ x: TABLE_BAND_X / 72, y, w: TABLE_BAND_CX / 72, h: PAGE_NUM_Y - margin - y }, png);
+        page.pictures = (page.pictures || []).concat([{ ...png, bounds }]);
+        page.visualLayout = "table-trailing";
+        page.tableBottom = bounds.y + bounds.h;
+      };
+      const claimVisualPage = (vi) => {
+        const before = this.pages.length;
+        this.flush(pending, section.title, layout.width, capacity);
+        let target;
+        if (this.pages.length > before) {
+          target = this.pages[this.pages.length - 1];
+        } else {
+          const last = this.pages[this.pages.length - 1];
+          if (last && last.items.some((it) => it.id === 8) && !visualTargets.includes(last)) {
+            target = last;
+          } else {
+            target = this.page(1, section.title);
+            paragraphs(target, 8, [], false);
+          }
+        }
+        open = null;
+        visualTargets[vi] = target;
+      };
       for (let blockIndex = 0; blockIndex < section.blocks.length; blockIndex++) {
         const b = section.blocks[blockIndex];
         if (visuals.length && b.kind === "text" && /^\*\*(?:도식\s*[—:-]\s*(?:Mermaid|PlantUML|SVG)|Chart\s*[—:-]\s*matplotlib)\*\*$/i.test(b.text.trim())) continue;
@@ -657,29 +825,38 @@ class Builder {
         // prose pages are composed (or, for a multi-visual topic, right here -- each visual
         // claims the page its own preceding caption text just flushed onto).
         if (["mermaid", "plantuml", "chart", "svg"].includes(b.kind)) {
+          let j = blockIndex + 1;
+          while (j < section.blocks.length && ["text", "heading", "bullet"].includes(section.blocks[j].kind)) j++;
+          if (!open && j < section.blocks.length && section.blocks[j].kind === "table") {
+            deferred = { vi: visualIndex, png: renderedVisuals[visualIndex], split: pending.length };
+            visualIndex++;
+            continue;
+          }
+          if (!multiVisual && open) {
+            // The topic's only visual follows a table in this segment: stack it below the table
+            // (after any text in between), not on an earlier prose page.
+            flushPending();
+            if (open && this.roomBelowPt(open) >= 0.9 * 72) {
+              placeBelowTable(open, renderedVisuals[visualIndex]);
+              visualInline = true;
+            }
+            visualIndex++;
+            continue;
+          }
           if (multiVisual) {
-            const before = this.pages.length;
-            this.flush(pending, section.title, layout.width, capacity);
-            let target;
-            if (this.pages.length > before) {
-              target = this.pages[this.pages.length - 1];
-            } else {
-              // `.pictures` isn't assigned until the loop below (after every visual has picked
-              // its target), so a page already claimed by an earlier visual in *this* loop can't
-              // be detected that way yet -- checking visualTargets directly is what actually
-              // catches it. Without this, two visuals back to back with no separating text (no
-              // flush in between) both silently resolved to the same reused page, and the second
-              // one's `target.pictures = [...]` assignment clobbered the first's instead of the
-              // two ever sharing a panel.
-              const last = this.pages[this.pages.length - 1];
-              if (last && last.items.some((it) => it.id === 8) && !visualTargets.includes(last)) {
-                target = last;
-              } else {
-                target = this.page(1, section.title);
-                paragraphs(target, 8, [], false);
+            // `.pictures` isn't assigned until after the loop (after every visual has picked its
+            // target), so a page already claimed by an earlier visual in *this* loop is detected by
+            // checking visualTargets directly (see claimVisualPage).
+            if (open) {
+              flushPending();
+              if (open && this.roomBelowPt(open) >= 0.9 * 72) {
+                placeBelowTable(open, renderedVisuals[visualIndex]);
+                visualTargets[visualIndex] = "placed";
+                visualIndex++;
+                continue;
               }
             }
-            visualTargets[visualIndex] = target;
+            claimVisualPage(visualIndex);
           }
           visualIndex++;
           continue;
@@ -707,12 +884,41 @@ class Builder {
           continue;
         }
         if (b.kind === "pagebreak") {
-          this.flush(pending, section.title, layout.width, capacity);
-          if (visuals.length && visualIndex >= visuals.length) capacity = visualPolicy([]).capacity;
+          flushPending();
+          open = null;
+          seg++;
+          segStart[seg] = this.pages.length;
+          capacity = capacityFor(seg);
           governingSeen = true;
           continue;
         }
         if (b.kind === "table") {
+          const widths = carryWidths || sharedWidths(blockIndex);
+          carryWidths = sharedWidths(blockIndex) || null;
+          if (deferred) {
+            const d = deferred;
+            deferred = null;
+            const before = pending.slice(0, d.split);
+            const mid = pending.slice(d.split);
+            const budget = this.leadVisualBudgetPt(b, before, d.png, mid);
+            if (budget > 0) {
+              this.table(b, section.title, before, 0, { visual: d.png, visualBudgetPt: budget, mid, widths });
+              pending = [];
+              if (multiVisual) visualTargets[d.vi] = "placed"; else visualInline = true;
+              open = this.pages[this.pages.length - 1];
+              governingSeen = true;
+              continue;
+            }
+            // Doesn't fit on one slide: the visual goes with its preceding text, as before.
+            pending = before;
+            if (multiVisual) claimVisualPage(d.vi); else this.flush(pending, section.title, layout.width, capacity);
+            pending = mid;
+          }
+          if (open && this.appendTableBelow(open, b, pending, widths)) {
+            pending = [];
+            governingSeen = true;
+            continue;
+          }
           // The lead budget isn't a fixed constant -- it's whatever the page's vertical band has
           // left over once THIS table's own rows are accounted for (rows are usually well under
           // the 365pt group-split ceiling, so small tables leave real room above them). Capping at
@@ -723,14 +929,16 @@ class Builder {
           const leadCap = Math.max(0, (PAGE_NUM_Y - 1.05) * 72 - 8 - Math.min(tableContentH, 365));
           const lead = pending.length && this.tableLeadHeight(pending, leadCap) < leadCap ? pending.slice() : [];
           if (!lead.length) this.flush(pending, section.title, layout.width, capacity);
-          this.table(b, section.title, lead, leadCap);
+          this.table(b, section.title, lead, leadCap, { widths });
+          open = this.pages[this.pages.length - 1];
           pending = [];
           governingSeen = true;
           continue;
         }
         need(b.kind === "code" || b.kind === "tree", "Unknown block");
         const paired = b.kind === "tree" && pending.length === 1 && pending[0].kind === "text" && !governingSeen;
-        if (!paired) this.flush(pending, section.title, layout.width, capacity);
+        if (!paired) flushPending();
+        open = null;
         const index = b.kind === "tree" ? 4 : 5;
         const id = b.kind === "tree" ? 30 : 31;
         const size = b.kind === "tree" && !paired
@@ -764,7 +972,7 @@ class Builder {
         pending = [];
         governingSeen = true;
       }
-      this.flush(pending, section.title, layout.width, capacity);
+      flushPending();
       // Single-visual attachment (below) needs some page in range carrying shape id=8 to attach
       // the picture to. Normally the topic's own prose does that; but now that a table's lead can
       // absorb pending text that used to be the topic's only prose page (see the table branch
@@ -775,8 +983,13 @@ class Builder {
       // slide. Falls back to the blank page when there isn't enough room (page.tableBottom unset,
       // or too close to the footer already).
       let tableVisualPlaced = false;
-      if (!multiVisual && visuals.length && !this.pages.slice(firstIdx).some((p) => p.items.some((it) => it.id === 8))) {
-        const lastPage = this.pages[this.pages.length - 1];
+      // The single visual lives in its own segment: [segStart[vSeg], segEnd).
+      const vSeg = visuals.length ? segOf[section.blocks.findIndex(isVisualBlock)] : 0;
+      const vSegStart = segStart[vSeg] != null ? segStart[vSeg] : firstIdx;
+      const vSegEnd = () => (segStart[vSeg + 1] != null ? segStart[vSeg + 1] : this.pages.length);
+      if (!multiVisual && visuals.length && !visualInline && !this.pages.slice(vSegStart, vSegEnd()).some((p) => p.items.some((it) => it.id === 8))) {
+        const segPages = this.pages.slice(vSegStart, vSegEnd());
+        const lastPage = segPages[segPages.length - 1];
         const margin = 0.15;
         const availableH = lastPage && lastPage.tableBottom != null ? PAGE_NUM_Y - margin - (lastPage.tableBottom + margin) : 0;
         if (lastPage && availableH >= 0.9) {
@@ -786,8 +999,13 @@ class Builder {
           lastPage.visualLayout = "table-trailing";
           tableVisualPlaced = true;
         } else {
+          // A blank carrier page, placed at the end of the visual's own segment (not the topic's).
+          const at = vSegEnd();
           const p = this.page(1, section.title);
           paragraphs(p, 8, [], false);
+          this.pages.splice(this.pages.length - 1, 1);
+          this.pages.splice(at, 0, p);
+          for (let s = vSeg + 1; s < segStart.length; s++) if (segStart[s] != null) segStart[s]++;
         }
       }
       const end = this.pages.length;
@@ -796,10 +1014,11 @@ class Builder {
         // there alone, with the full panel height to itself rather than sharing a slot.
         for (let vi = 0; vi < renderedVisuals.length; vi++) {
           const target = visualTargets[vi];
+          if (target === "placed") continue;
           need(target, "Visual composition unsupported for topic without a prose slide: " + section.title);
           const png = renderedVisuals[vi];
           setShapeBounds(shape(target.doc, 8), layout.text);
-          const textEndY = layout.text.y + layout.text.h * Math.min(1, (target.textCost || 0) / layout.capacity);
+          const textEndY = layout.text.y + layout.text.h * Math.min(ORPHAN_TOLERANCE, (target.textCost || 0) / layout.capacity);
           const margin = 0.15;
           const availableH = Math.max(0.6, PAGE_NUM_Y - margin - (textEndY + margin));
           const panel = visualPanel(layout, textEndY + margin, availableH, [png]);
@@ -807,15 +1026,15 @@ class Builder {
           target.visualLayout = layout.name;
         }
       } else {
-        if (visuals.length && !tableVisualPlaced) {
-          const target = this.pages.slice(firstIdx, end).find((p) => p.items.some((item) => item.id === 8));
+        if (visuals.length && !tableVisualPlaced && !visualInline) {
+          const target = this.pages.slice(vSegStart, end).find((p) => p.items.some((item) => item.id === 8));
           need(target, "Visual composition unsupported for topic without a prose slide: " + section.title);
           setShapeBounds(shape(target.doc, 8), layout.text);
           // Panel Y is dynamic, not the layout bucket's fixed design value: textCost/capacity (see
           // flush()) estimates how far down the actual text ran, and the panel is centered in
           // whatever's left between that point and the footer -- instead of always sitting glued to
           // the text box's full design height, which left the panel crowding short text blocks.
-          const textEndY = layout.text.y + layout.text.h * Math.min(1, (target.textCost || 0) / layout.capacity);
+          const textEndY = layout.text.y + layout.text.h * Math.min(ORPHAN_TOLERANCE, (target.textCost || 0) / layout.capacity);
           const margin = 0.15;
           const availableH = Math.max(0.6, PAGE_NUM_Y - margin - (textEndY + margin));
           const panel = visualPanel(layout, textEndY + margin, availableH, renderedVisuals);
@@ -835,7 +1054,8 @@ class Builder {
         let main = p.heading, english = "";
         if (m) { main = m[1]; english = m[2]; }
         if (end - firstIdx > 1) main += " (" + (k - firstIdx + 1) + "/" + (end - firstIdx) + ")";
-        p.heading = main + (english === "" ? "" : "\n" + english);
+        const second = [english, section.diagram || ""].filter((s) => s !== "").join(" · ");
+        p.heading = main + (second === "" ? "" : "\n" + second);
       }
     }
 

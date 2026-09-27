@@ -15,7 +15,7 @@ const assert = require("node:assert/strict");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
-const { parseXml, A, shape, body, kids, child, paragraph } = require("../xml");
+const { parseXml, A, all, shape, body, kids, child, paragraph } = require("../xml");
 const { rich, run, runParen } = require("../richText");
 const { paragraphs } = require("../paragraphs");
 const { render, naturalSize, fitTarget, visualPanel, tocSessionName, TARGET_PT, UML_MAX_PT } = require("../builder");
@@ -357,4 +357,106 @@ test("text after an explicit page split that follows the topic's only visual get
   const m = await renderOnce(sections, toc, "split-budget");
   const topicPages = m.pages.filter((pg) => pg.heading && pg.heading.startsWith("01. 도식"));
   assert.equal(topicPages.length, 2, "visual page + one text-only page, not a third continuation");
+});
+
+test("an explicit page split between a table and the topic's only visual puts the visual on its own page", async () => {
+  const uml = 'class "가" as A {\n  a\n}';
+  const table = { kind: "table", text: "", rows: [["표기", "의미"], ["개념", "문제영역의 것"]], depth: 0, meta: null };
+  const build = (withSplit) => [{
+    heading: "01. 표기", title: "01. 표기",
+    blocks: [
+      textBlock("표기를 소개한다."),
+      table,
+      ...(withSplit ? [{ kind: "pagebreak", text: "", rows: [], depth: 0, meta: null }] : []),
+      { kind: "plantuml", text: uml, rows: [], depth: 0, meta: { uml: "class" } },
+    ],
+    notes: [],
+  }];
+  const toc = [bulletBlock("01. 표기")];
+  const count = async (withSplit) => {
+    const m = await renderOnce(build(withSplit), toc, `table-split-${withSplit}`);
+    return m.pages.filter((pg) => pg.heading && pg.heading.startsWith("01. 표기")).length;
+  };
+  assert.equal(await count(false), 1, "without a split a small diagram shares the table page");
+  assert.equal(await count(true), 2, "with a split the diagram gets its own page");
+});
+
+test("a **다이어그램 — …** marker becomes an 11pt second title line and stays out of the body and TOC", async () => {
+  const { parse } = require("../parse");
+  const source = [
+    "--------------------", "Session 명: 01. 테스트", "--------------------", "",
+    "## 목차", "", "01. 결제 흐름", "",
+    "## 01. 결제 흐름", "", "**다이어그램 — 시퀀스 다이어그램**", "", "결제를 펼친다.", "",
+  ].join("\n");
+  const { sections, toc } = parse(source);
+  assert.equal(sections[0].diagram, "시퀀스 다이어그램");
+  assert.equal(sections[0].blocks.some((b) => /다이어그램 —/.test(b.text)), false, "marker is not body content");
+  const m = await renderOnce(sections, toc, "diagram-subtitle");
+  const page = m.pages.find((pg) => pg.heading.startsWith("01. 결제 흐름"));
+  assert.equal(page.heading, "01. 결제 흐름\n시퀀스 다이어그램");
+  const pars = kids(body(shape(page.doc, 2)), A, "p");
+  assert.equal(pars.length, 2);
+  const second = kids(pars[1], A, "r").map((r) => ({ text: textOf(r), sz: child(r, A, "rPr").getAttribute("sz") }));
+  assert.deepEqual(second, [{ text: "시퀀스 다이어그램", sz: "1100" }]);
+});
+
+test("a visual after an explicit page split stays in its own segment, and the text-only page before it gets the full budget", async () => {
+  const uml = 'class "가" as A {\n  a\n  b\n  c\n  d\n  e\n  f\n}';
+  const lines = ["첫째 설명 문장입니다", "둘째 설명 문장입니다", "셋째 설명 문장입니다", "넷째 설명 문장입니다",
+    "다섯째 설명 문장입니다", "여섯째 설명 문장입니다", "일곱째 설명 문장입니다"];
+  const sections = [{
+    heading: "01. 도식", title: "01. 도식",
+    blocks: [
+      textBlock("도식을 소개한다."),
+      ...lines.map(bulletBlock),
+      { kind: "pagebreak", text: "", rows: [], depth: 0, meta: null },
+      bulletBlock("도식의 설명이다"),
+      { kind: "plantuml", text: uml, rows: [], depth: 0, meta: { uml: "class" } },
+    ],
+    notes: [],
+  }];
+  const toc = [bulletBlock("01. 도식")];
+  const m = await renderOnce(sections, toc, "segment-visual");
+  const topicPages = m.pages.filter((pg) => pg.heading && pg.heading.startsWith("01. 도식"));
+  assert.equal(topicPages.length, 2, "text-only page + visual page, no continuation");
+  assert.equal((topicPages[0].pictures || []).length, 0, "the visual is not pulled back onto the first segment");
+  assert.equal((topicPages[1].pictures || []).length, 1);
+});
+
+test("table-page stacking: text after a table, a second table and a leading legend share one slide when they fit", async () => {
+  const table = (a) => ({ kind: "table", text: "", rows: [["표기", "의미"], [a, "설명"]], depth: 0, meta: null });
+  const uml = 'class "가" as A';
+  const sections = [
+    { heading: "01. 두 표", title: "01. 두 표", notes: [],
+      blocks: [textBlock("두 표를 비교한다."), table("가"), bulletBlock("둘째 표의 설명이다"), table("나")] },
+    { heading: "02. 표와 설명", title: "02. 표와 설명", notes: [],
+      blocks: [textBlock("표를 본다."), table("가"), bulletBlock("표 뒤의 짧은 설명이다")] },
+    { heading: "03. 범례와 표", title: "03. 범례와 표", notes: [],
+      blocks: [textBlock("범례를 본다."), { kind: "plantuml", text: uml, rows: [], depth: 0, meta: { uml: "class" } },
+        bulletBlock("표기와 사용법"), table("가")] },
+  ];
+  const toc = ["01. 두 표", "02. 표와 설명", "03. 범례와 표"].map(bulletBlock);
+  const m = await renderOnce(sections, toc, "stacking");
+  const pagesOf = (h) => m.pages.filter((pg) => pg.heading && pg.heading.startsWith(h));
+  assert.equal(pagesOf("01. 두 표").length, 1);
+  assert.equal(pagesOf("01. 두 표")[0].items.filter((it) => it.kind === "table").length, 2);
+  assert.equal(pagesOf("02. 표와 설명").length, 1);
+  const legend = pagesOf("03. 범례와 표");
+  assert.equal(legend.length, 1);
+  assert.equal((legend[0].pictures || []).length, 1, "legend sits on the table slide");
+  const pic = legend[0].pictures[0].bounds;
+  assert.ok(pic.y + pic.h <= legend[0].tableBottom, "legend is above the table");
+});
+
+test("two tables with the same column count in one segment share column widths", async () => {
+  const sections = [{ heading: "01. 두 계약", title: "01. 두 계약", notes: [], blocks: [
+    textBlock("두 계약을 비교한다."),
+    { kind: "table", text: "", rows: [["항목", "결제"], ["사전조건", "짧다"]], depth: 0, meta: null },
+    { kind: "table", text: "", rows: [["항목", "주문 취소"], ["관련 유스케이스", "훨씬 더 긴 설명이 들어가는 셀이다 훨씬 더 긴 설명이 들어가는 셀이다"]], depth: 0, meta: null },
+  ] }];
+  const m = await renderOnce(sections, [bulletBlock("01. 두 계약")], "shared-widths");
+  const page = m.pages.find((pg) => pg.heading.startsWith("01. 두 계약"));
+  const grids = all(page.doc, A, "tblGrid").map((g) => kids(g, A, "gridCol").map((c) => c.getAttribute("w")).join(","));
+  assert.equal(grids.length, 2);
+  assert.equal(grids[0], grids[1]);
 });

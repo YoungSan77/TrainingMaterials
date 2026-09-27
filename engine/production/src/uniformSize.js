@@ -52,7 +52,7 @@ function maxEntityRectWidth(svg) {
 
 // -- PlantUML class/enum ---------------------------------------------------------------------
 
-const DECL = /^(\s*)((?:abstract\s+class|abstract|class|interface|enum|entity))\s+("[^"]*"|[^\s{]+)(\s+as\s+[^\s{]+)?(\s*<<[^>]*>>)?\s*(\{)?\s*$/;
+const DECL = /^(\s*)((?:abstract\s+class|abstract|class|interface|enum|entity|object))\s+("[^"]*"|[^\s{]+)(\s+as\s+[^\s{]+)?(\s*<<[^>]*>>)?\s*(\{)?\s*$/;
 
 // A method line has a name directly followed by "(" -- `취소()`, `저장(주문)`. A parenthesis after
 // a space is a label annotation on a field (`고객번호 (FK)`), not a method.
@@ -126,7 +126,7 @@ function uniformClassSource(source, maxRectWidth, scale, fontSize) {
 const LABEL_DECL = {
   state: /^(\s*state\s+)"([^"]*)"(.*)$/,
   usecase: /^(\s*usecase\s+)"([^"]*)"(.*)$/,
-  sequence: /^(\s*(?:participant|boundary|control|entity|database|collections|queue)\s+)"([^"]*)"(.*)$/,
+  sequence: /^(\s*(?:create\s+)?(?:participant|boundary|control|entity|database|collections|queue)\s+)"([^"]*)"(.*)$/,
 };
 
 // Labels that are one plain line; a "-" label is split into two differently sized lines by
