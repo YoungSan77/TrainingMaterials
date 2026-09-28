@@ -4,10 +4,8 @@
 // original performs before ever declaring PASS.
 const { A, P, all, shape, text, body, kids, child, children } = require("./xml");
 const { readZip } = require("./zip");
-const { slideParts } = require("./referenceRenderer");
+const { slideParts } = require("./template");
 
-// `warnings` is only passed by the general Session Production path; the lecture-java baseline
-// layouts keep the original report shape byte for byte.
 function reportJson(errors, slides, blocks, warnings) {
   const q = (s) => JSON.stringify(s);
   return (

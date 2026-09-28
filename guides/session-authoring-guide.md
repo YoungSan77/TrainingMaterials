@@ -309,7 +309,7 @@ Session 명: 01. OOAD 개요
 ### 하지 말아야 할 것
 
 - 별도 Curriculum artifact·Session DD 생성
-- 사용자가 요청하지 않은 요약 slide·notation 종합 slide 추가
+- 세션 끝의 `요약` topic 말고 따로 만드는 중간 정리·요약 slide, notation 종합 slide
 - 개념 설명보다 visual을 먼저 만들고 그 visual에 맞춰 내용을 왜곡
 - 표준이나 원전에 없는 용어·판본·분류의 창작
 - 이벤트 흐름에 내부 처리 단계와 가능한 모든 예외 삽입

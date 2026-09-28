@@ -8,8 +8,7 @@ const { parse } = require("../parse");
 const { render } = require("../builder");
 const { inspect } = require("../inspect");
 
-const ROOT = path.resolve(__dirname, "../../../..");
-const TEMPLATE = path.join(ROOT, "references/production/lecture-java-baseline/templates/approved.pptx");
+const { TEMPLATE_DIR: TEMPLATE } = require("../template");
 
 // validateToc() requires one numbered-bullet TOC entry per section, text-identical to that
 // section's own title -- these synthetic tests build sections directly (never through parse()),

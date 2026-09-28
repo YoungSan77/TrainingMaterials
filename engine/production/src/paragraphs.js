@@ -1,12 +1,10 @@
 "use strict";
-// Port of LecturePpt.paragraphs(): rewrites a placeholder shape's paragraphs from Block list,
-// used by both Builder (auto mode, not exercised in this baseline) and ReferenceRenderer's
-// "prose" fallback when a section's body text no longer matches the approved placeholder verbatim.
+// Port of LecturePpt.paragraphs(): rewrites a placeholder shape's paragraphs from a Block list.
 const { A, el, kids, body, shape, spacing } = require("./xml");
 const { rich, richInline, run, runParen } = require("./richText");
 const { plain } = require("./text");
 
-// The approved.pptx layout's own list style for the body placeholder (idx=1, "내용 개체 틀 2"),
+// The template layout's own list style for the body placeholder (idx=1, "내용 개체 틀 2"),
 // read directly from ppt/slideLayouts/slideLayout1.xml -- lvl 1..5's marL/indent/buChar/buSzPct.
 // A real placeholder shape (id=8) renders bullets correctly by INHERITING this through the
 // slide -> layout -> master chain from just the "lvl" attribute alone. But a plain, non-placeholder

@@ -1,15 +1,15 @@
 "use strict";
 // Regression coverage for the "auto" (builder.js) pipeline against the original
-// lecture-java-baseline manuscript (references/production/lecture-java-baseline/input.md) -- the
+// lecture-java-baseline manuscript (fixtures/lecture-java-baseline/input.md) -- the
 // content this whole renderer was ported from (see parse.js/builder.js's "Direct port of
 // LecturePpt..." comments). That file predates the Session/TOC header convention the "auto"
 // pipeline now requires, so this test wraps it with a synthetic header + TOC derived from its own
 // "### N. Title" headings, rather than editing the reference file itself.
 //
 // This test exists because manually exercising this manuscript surfaced a real defect: the
-// checked-in approved.pptx template's "code" slide (origin index 5) carried a leftover shape
-// (id=50, "Code continuation 50") baked in from a stale compactRenderer.js run against this exact
-// input -- every code block rendered via the auto pipeline silently inherited that garbage text
+// checked-in template's code prototype slide once carried a leftover shape (id=50, "Code
+// continuation 50") baked in from a stale renderer run against this exact input -- every code
+// block silently inherited that garbage text
 // alongside its real content. See the "no stray shapes" test below, which guards against that
 // class of template corruption recurring.
 const test = require("node:test");
@@ -22,9 +22,8 @@ const { parse } = require("../parse");
 const { readZip } = require("../zip");
 const { parseXml, all, P, A, shape, text } = require("../xml");
 
-const ROOT = path.resolve(__dirname, "../../../..");
-const TEMPLATE = path.join(ROOT, "references/production/lecture-java-baseline/templates/approved.pptx");
-const RAW_INPUT = fs.readFileSync(path.join(ROOT, "references/production/lecture-java-baseline/input.md"), "utf8");
+const { TEMPLATE_DIR: TEMPLATE } = require("../template");
+const RAW_INPUT = fs.readFileSync(path.join(__dirname, "fixtures/lecture-java-baseline/input.md"), "utf8");
 
 // The known-good set of shape ids/names for each template origin page, captured from a template
 // with no stray shapes. Anything beyond this on a rendered "code" page is leftover corruption
@@ -111,15 +110,13 @@ test("lecture-java-baseline input.md renders end to end through the auto pipelin
   }
 });
 
-test("approved.pptx's code template origin (index 5) carries no leftover shapes beyond the ones the renderer writes to", async () => {
+test("the template's code prototype carries no leftover shapes beyond the ones the renderer writes to", () => {
   // A direct check on the checked-in template itself (not just a rendered clone of it), so this
   // fails immediately and specifically if the corruption described in the header comment recurs,
   // rather than only showing up indirectly via the end-to-end test above.
-  const { readZip: readZipFile } = require("../zip");
-  const { slideParts } = require("../referenceRenderer");
-  const data = await readZipFile(TEMPLATE);
-  const origins = slideParts(data);
-  const codeOriginKey = origins[5];
+  const { readTemplate, slideParts, ORIGIN } = require("../template");
+  const data = readTemplate(TEMPLATE);
+  const codeOriginKey = slideParts(data)[ORIGIN.code];
   const doc = parseXml(data.get(codeOriginKey));
   const ids = all(doc, P, "sp").map((sp) => sp.getElementsByTagNameNS(P, "cNvPr")[0].getAttribute("id"));
   for (const id of ids) {

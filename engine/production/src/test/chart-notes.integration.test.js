@@ -11,8 +11,7 @@ const { readZip } = require("../zip");
 const { parseXml, all, children, P, A } = require("../xml");
 const { plain } = require("../text");
 
-const ROOT = path.resolve(__dirname, "../../../..");
-const TEMPLATE = path.join(ROOT, "references/production/lecture-java-baseline/templates/approved.pptx");
+const { TEMPLATE_DIR: TEMPLATE } = require("../template");
 
 test("matplotlib chart adapter emits a valid PNG and rejects bad specifications", async () => {
   const png = await renderChart({ type: "bar", labels: ["A", "B"], series: [{ name: "Count", values: [1, 2] }], title: "Test" });

@@ -2,7 +2,7 @@
 // Phase 1 verification (logical topic model): parse.js must classify Mermaid/PlantUML/Chart as
 // explicit block kinds (never "code"), must route "**강사 노트**" content into section.notes
 // (never section.blocks), and must not lose or reorder any topic/content while doing so. This is
-// a parse-only check -- it never touches generate.js/builder.js/referenceRenderer.js, since Phase
+// a parse-only check -- it never touches generate.js/builder.js, since Phase
 // 1 does not modify any renderer.
 const fs = require("fs");
 const path = require("path");

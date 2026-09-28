@@ -10,8 +10,7 @@ const { parse, block } = require("../parse");
 const { render, fitTarget, naturalSize, visualPanel, TARGET_PT, UML_MAX_PT } = require("../builder");
 const { checkCodeSources, runs } = require("../codeSource");
 
-const ROOT = path.resolve(__dirname, "../../../..");
-const TEMPLATE = path.join(ROOT, "references/production/lecture-java-baseline/templates/approved.pptx");
+const { TEMPLATE_DIR: TEMPLATE } = require("../template");
 
 function session(java, source) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "tm-code-"));

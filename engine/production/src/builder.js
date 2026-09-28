@@ -1,18 +1,15 @@
 "use strict";
-// Port of LecturePpt.Builder (--layout auto): computes its own pagination from content size
-// instead of following templates/layout-profile.xml's fixed 16-slide contract. It still reuses
-// specific slides of templates/approved.pptx as shape/geometry templates (TOC=slide1, prose=slide2,
-// tree=slide5, code=slide6, table=slide16) via cloneNode — it does not invent new shape layouts.
-// This module is additive only: it does not modify referenceRenderer.js / compactRenderer.js,
-// so the existing compact/reference regression baseline is unaffected.
+// Port of LecturePpt.Builder: computes its own pagination from content size. Every page is a
+// cloneNode of one of the template's prototype slides (template.js ORIGIN: TOC, prose, tree,
+// code, table), whose shapes it fills and repositions.
 const {
   A, P, R, REL, CT, need, xmlOut, children, kids, child, all, first, el, copy, shape, paragraph, text, body, setText, spacing,
 } = require("./xml");
-const { readZip, writeZip } = require("./zip");
+const { writeZip } = require("./zip");
 const { plain, wide, estimate, splitCode, codePoints } = require("./text");
 const { rich, runParen, richDeclarations } = require("./richText");
 const { paragraphs } = require("./paragraphs");
-const { slideParts } = require("./referenceRenderer");
+const { TEMPLATE_DIR, ORIGIN, readTemplate, slideParts } = require("./template");
 const { renderMermaid } = require("./mermaidAdapter");
 const { renderPlantUml } = require("./plantumlAdapter");
 const { renderChart } = require("./chartAdapter");
@@ -23,9 +20,7 @@ const ARCH_TERMS = new Set(["domain", "application", "presentation", "adapter", 
 // TOC per guides/production-guide.md ("목차 생성 및 검증"): Production uses `## 목차`'s own
 // items verbatim (validated 1:1 against body headings), never derives a TOC from body headings.
 // Layout is two fixed columns on one slide -- left = items 1-15 (the template's own placeholder,
-// shape id 10), right = item 16 on (not present in the raw template; the original approved.pptx
-// carried a "*** 16번 부터는 여기에서 계속함" authoring note in exactly this spot, confirming this
-// split was the intended design). Geometry (EMU) copied from that reference slide's shapes.
+// shape id 10), right = item 16 on (a shape the renderer adds at TOC_RIGHT_XFRM).
 const TOC_FONT_SIZE = 16;
 // production-guide.md "Session 명": the TOC slide title uses only the session name before its
 // " — " subtitle ("03. 정적 모델 — 도메인 개념과 관계" -> "03. 정적 모델"); every other slide's
@@ -45,11 +40,11 @@ const STACKED_PANEL = { x: 1.4, y: 4.25, w: 7.2, h: 1.8 };
 // diagram was being blown up to fill the full 3.55in panel just because it landed in this bucket
 // (low aspect ratio), which both wasted space and starved the text above it. 3.0in is the floor
 // that still keeps a real plantuml sequence diagram's smallest label >=8pt at this panel width
-// (verified against references/production -- see visualPolicy()); mermaid diagrams clear 8pt with
+// (verified against the lecture-java-baseline fixture -- see visualPolicy()); mermaid diagrams clear 8pt with
 // more margin at this size since their SCALE (mermaidAdapter.js) is lower than PlantUML's.
 const DEEP_STACKED_TEXT = { x: 0.4, y: 1.05, w: 9.2, h: 2.75 };
 const DEEP_STACKED_PANEL = { x: 0.5, y: 3.35, w: 9.0, h: 3.0 };
-// templates/approved.pptx's sldNum placeholder Y (slideLayout1.xml, 6449625 EMU) -- the floor a
+// The template's sldNum placeholder Y (slideLayout1.xml, 6449625 EMU) -- the floor a
 // diagram panel must clear so it never crowds the footer.
 const PAGE_NUM_Y = 6449625 / EMU;
 const TREE_TEXT = { x: 2.65, y: 1.05, w: 4.7, h: 5.75 };
@@ -58,12 +53,9 @@ const EP = "http://schemas.openxmlformats.org/officeDocument/2006/extended-prope
 const VT = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";
 const DC = "http://purl.org/dc/elements/1.1/";
 
-// docProps/app.xml and docProps/core.xml are cloned verbatim from the template (approved.pptx)
-// into every generated deck -- nobody ever rewrites them, so a deck built from a 13-slide
-// template still reports "<Slides>13</Slides>" and the template's own 13 old slide titles (and
-// core.xml's <dc:title> keeps the template's original session name) no matter how many slides or
-// topics the actual generated deck has. That mismatch between declared and real content is a
-// known trigger for PowerPoint's "needs repair" prompt, and is simply wrong even when it isn't.
+// docProps/app.xml and docProps/core.xml come from the template; they must describe the generated
+// deck (slide count, slide titles, session name), not the template. A mismatch between declared
+// and real content is a known trigger for PowerPoint's "needs repair" prompt.
 function updateDocProps(result, pages, session) {
   const { parseXml } = require("./xml");
   const corePath = "docProps/core.xml";
@@ -338,7 +330,7 @@ function buildNotesSlide(notes, parseXml) {
 // only shrinks below the max footprint, never stretches past it -- short content narrows the
 // table, and only content that's genuinely too wide gets scaled back down to fit.
 const TABLE_MAX_WIDTH = 654;
-// Template's own graphicFrame band (approved.pptx table page, shape id 11): x=33.48pt,
+// Template's own graphicFrame band (table prototype, shape id 11): x=33.48pt,
 // cx=651.97pt -- close enough to TABLE_MAX_WIDTH that centering a narrower table inside this
 // band still reads as "the same table area, just not stretched full-width."
 const TABLE_BAND_X = 33.48;
@@ -397,7 +389,7 @@ function geometry(sh) {
 }
 
 class Builder {
-  constructor(templatePath) {
+  constructor(templatePath = TEMPLATE_DIR) {
     this.templatePath = templatePath;
     this.pages = [];
     this.codes = [];
@@ -408,13 +400,9 @@ class Builder {
   async init(session) {
     need(session && session.trim() !== "", "세션명이 필요하다 (Markdown 상단 'Session 명:' 헤더).");
     this.session = session;
-    this.data = await readZip(this.templatePath);
+    this.data = readTemplate(this.templatePath);
     this.origins = slideParts(this.data);
-    // No fixed slide count: the template just needs to carry the shape/geometry prototypes this
-    // renderer actually reuses (TOC=index 0, prose=index 1, tree/code=index 4/5, table=last
-    // index). "16 raw profile pages" was specific to the old lecture-ppt-java page-plan and is
-    // not a Production requirement (see guides/production-guide.md).
-    need(this.origins.length >= 6, "템플릿에 TOC/prose/tree/code/table 슬롯이 충분하지 않다: " + this.templatePath);
+    need(this.origins.length === Object.keys(ORIGIN).length, "템플릿의 원형 슬라이드는 TOC/prose/tree/code/table 5장이어야 한다: " + this.templatePath);
     const { parseXml } = require("./xml");
     this.roots = this.origins.map((n) => parseXml(this.data.get(n)));
     return this;
@@ -461,7 +449,7 @@ class Builder {
       const remaining = costs.slice(i).reduce((s, x) => s + x, 0);
       const keep = remaining <= pageCapacity * ORPHAN_SHARE && cost + remaining <= pageCapacity * ORPHAN_TOLERANCE;
       if (!keep && cost + c > pageCapacity && chunk.length) {
-        const p = this.page(1, heading);
+        const p = this.page(ORIGIN.prose, heading);
         paragraphs(p, 8, chunk, false);
         p.textCost = cost;
         chunk = [];
@@ -472,7 +460,7 @@ class Builder {
       cost += c;
     }
     if (chunk.length) {
-      const p = this.page(1, heading);
+      const p = this.page(ORIGIN.prose, heading);
       paragraphs(p, 8, chunk, false);
       p.textCost = cost;
     }
@@ -564,7 +552,7 @@ class Builder {
     const parts = [];
     let page = null;
     for (let first = true; remaining !== null; first = false) {
-      page = this.page(5, heading);
+      page = this.page(ORIGIN.code, heading);
       let y = TOP;
       if (first && lead.length) {
         const h = this.textHeightPt(lead);
@@ -738,7 +726,7 @@ class Builder {
     const groups = this.tableGroups(rows, widths);
     const leadHeightPt = opts.visual ? this.textHeightPt(lead) : this.tableLeadHeight(lead, leadCap);
     for (let gi = 0; gi < groups.length; gi++) {
-      const page = this.page(this.origins.length - 1, heading);
+      const page = this.page(ORIGIN.table, heading);
       const gf = shape(page.doc, 11);
       let yPt = null;
       if (gi === 0 && (lead.length || opts.visual)) {
@@ -851,7 +839,7 @@ class Builder {
     for (let i = 0; i < toc.length; i += perPage) chunks.push(toc.slice(i, i + perPage));
     for (let ci = 0; ci < chunks.length; ci++) {
       const suffix = chunks.length > 1 ? ` (${ci + 1}/${chunks.length})` : "";
-      const p = this.page(0, tocSessionName(session) + " 목차" + suffix);
+      const p = this.page(ORIGIN.toc, tocSessionName(session) + " 목차" + suffix);
       // Per direct instruction: the TOC slide does not carry the top-right session name (it is
       // not a "일반 슬라이드" in the production-guide.md sense -- session name is topic-slide-only).
       p.isToc = true;
@@ -1018,7 +1006,7 @@ class Builder {
           if (last && last.items.some((it) => it.id === 8) && !visualTargets.includes(last)) {
             target = last;
           } else {
-            target = this.page(1, section.title);
+            target = this.page(ORIGIN.prose, section.title);
             paragraphs(target, 8, [], false);
           }
         }
@@ -1170,7 +1158,7 @@ class Builder {
         const paired = b.kind === "tree" && pending.length === 1 && pending[0].kind === "text" && !governingSeen;
         if (!paired) flushPending();
         open = null;
-        const index = b.kind === "tree" ? 4 : 5;
+        const index = b.kind === "tree" ? ORIGIN.tree : ORIGIN.code;
         const id = b.kind === "tree" ? 30 : 31;
         const size = b.kind === "tree" && !paired
           ? [TREE_TEXT.w * 72, TREE_TEXT.h * 72]
@@ -1178,7 +1166,7 @@ class Builder {
         const pieces = splitCode(b.text, size[0], size[1]);
         for (let j = 0; j < pieces.length; j++) {
           const p = this.page(index, section.title);
-          if (index === 4) {
+          if (index === ORIGIN.tree) {
             if (paired && j === 0) {
               paragraphs(p, 8, pending, false);
             } else {
@@ -1236,7 +1224,7 @@ class Builder {
         } else {
           // A blank carrier page, placed at the end of the visual's own segment (not the topic's).
           const at = vSegEnd();
-          const p = this.page(1, section.title);
+          const p = this.page(ORIGIN.prose, section.title);
           paragraphs(p, 8, [], false);
           this.pages.splice(this.pages.length - 1, 1);
           this.pages.splice(at, 0, p);
@@ -1336,12 +1324,11 @@ class Builder {
       }
       // Shape 5 (top-right, idx=11) is the session name -- production-guide.md ("Session 명")
       // requires the same value on every slide, never the slide's own topic title. Shapes 6/7
-      // stay blank (no source/copyright string); the approved.pptx template bakes a default into
-      // shape 7 ("Gemini, 2026/09"), so it must be explicitly cleared here rather than left as-is.
+      // stay blank (no source/copyright string).
       setText(shape(p.doc, 5), p.isToc ? "" : this.session);
       setText(shape(p.doc, 6), "");
       setText(shape(p.doc, 7), "");
-      for (const sh of all(p.doc, P, "sp")) if (/^- \d+ -$/.test(text(sh))) setText(sh, "- " + number + " -");
+      for (const sh of all(p.doc, P, "sp")) if (all(sh, P, "ph").some((ph) => ph.getAttribute("type") === "sldNum")) setText(sh, "- " + number + " -");
       const name = "ppt/slides/slide" + number + ".xml";
       const sr = parseXml(this.data.get(relPath(p.origin)));
       for (const rel of children(sr.documentElement).slice()) if (rel.getAttribute("Type").endsWith("/notesSlide")) rel.parentNode.removeChild(rel);

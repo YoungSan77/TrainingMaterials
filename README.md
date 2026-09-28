@@ -9,14 +9,14 @@ Course Design → Session Authoring → Production
 현재 상태:
 
 - Course Design: active
-- Session Authoring: OOAD S01/S02 기준 예시 유지
+- Session Authoring: OOAD S01~S04 기준 예시 유지
 - Production: active — `engine/production/`
 
 Course Design:
 `courses/*/course-design.md`
 
 Session Authoring baseline:
-`courses/ooad/sessions/s01.md`
+`courses/ooad/sessions/s01.md`~`s04.md`
 
 Reference knowledge:
 `references/sw-engineering/`

@@ -10,8 +10,7 @@ const { parse } = require("../parse");
 const { readZip } = require("../zip");
 const { parseXml, all, P, A, children } = require("../xml");
 
-const ROOT = path.resolve(__dirname, "../../../..");
-const TEMPLATE = path.join(ROOT, "references/production/lecture-java-baseline/templates/approved.pptx");
+const { TEMPLATE_DIR: TEMPLATE } = require("../template");
 
 test("reference session PlantUML renders and follows the shared OOXML picture path", async () => {
   const source = fs.readFileSync(path.join(__dirname, "fixtures/reference-session.md"), "utf8");
@@ -31,8 +30,6 @@ test("reference session PlantUML renders and follows the shared OOXML picture pa
     // integration test's comment: the reference session fixture, not a fixed fixture).
     assert.deepEqual([...new Set(manifest.pages.filter((p) => !p.isToc).map((p) => String(p.heading).split("\n")[0].replace(/ \(\d+\/\d+\)$/, "")))], sections.map((s) => s.heading));
     const zip = await readZip(output);
-    const template = await readZip(TEMPLATE);
-    assert.deepEqual(zip.get("ppt/media/image1.png"), template.get("ppt/media/image1.png"));
     assert.equal(Array.from(zip.keys()).filter((name) => /^ppt\/media\/plantuml-\d+\.png$/.test(name)).length, expectedCounts.plantuml);
     assert.equal(Array.from(zip.keys()).filter((name) => /^ppt\/media\/mermaid-\d+\.png$/.test(name)).length, expectedCounts.mermaid);
     let plantumlRelationships = 0, pictures = 0, sourceExposed = false, prosePreserved = false;

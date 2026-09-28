@@ -22,8 +22,7 @@ const { render, naturalSize, fitTarget, visualPanel, tocSessionName, TARGET_PT, 
 const { styleSource: mermaidStyleSource } = require("../mermaidAdapter");
 const { styleSource: plantumlStyleSource, innerSource, assembled } = require("../plantumlAdapter");
 
-const ROOT = path.resolve(__dirname, "../../../..");
-const TEMPLATE = path.join(ROOT, "references/production/lecture-java-baseline/templates/approved.pptx");
+const { TEMPLATE_DIR: TEMPLATE } = require("../template");
 
 // -- helpers ---------------------------------------------------------------
 

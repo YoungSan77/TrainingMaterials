@@ -25,20 +25,16 @@ Session Source가 Content authority이며, Production 제약 때문에 원고를
 node src/cli.js ../../courses/ooad/sessions/s01.md
 ```
 
-일반 실행에서 별도 입력을 요구하지 않는다.
+제목·출처·템플릿 같은 presentation metadata를 따로 받지 않는다. 세션명은 원고의 헤더에서 읽는다.
 
-- `--title`
-- `--source`
-- `--template`
-- `--output`
-- `--layout`
-- 기타 presentation metadata
+출력은 입력 Markdown과 같은 디렉터리에 같은 basename으로 생성한다(`s01.md` → `s01.pptx`). `--output`은 결과를 다른 경로에 두어 비교할 때만 쓴다.
 
-출력은 입력 Markdown과 같은 디렉터리에 같은 basename으로 생성한다.
+## 템플릿
 
-예:
+`engine/production/template/`은 모든 PPT의 뼈대다 — 슬라이드 마스터·레이아웃·테마와 페이지 종류마다 하나의 원형 슬라이드(목차·본문·트리·코드·표, `src/template.js`의 `ORIGIN`). 압축을 푼 OOXML 파일로 두어 변경이 diff로 보인다.
 
-`s01.md` → `s01.pptx`
+- 템플릿은 renderer의 일부다. 사람이 승인하는 별도 자산이 아니며, 지침을 구현하는 데 필요하면 renderer 코드·테스트와 함께 고친다.
+- 원형 슬라이드에는 내용을 남기지 않는다. 위치·크기·글꼴은 지침과 `builder.js`가 정하며, 원형은 도형의 틀만 준다(`src/test/template.test.js`가 검사한다).
 
 ## Session 명
 
@@ -63,15 +59,11 @@ Session Source의 `## 목차`는 `guides/session-authoring-guide.md`에서 정�
 - `## 목차`와 본문 `## NN. 제목`의 번호·제목·순서를 1:1로 비교한다. 첫 항목 `01. 세션 목표`, 연속 번호, 중복·누락 여부도 검증한다.
 - 일치하지 않으면 해당 항목과 불일치 내용을 보고하고, 원고를 묵시적으로 수정하거나 불일치를 감춘 PPT를 정상 완료로 판정하지 않는다. 사용자와 LLM이 Session Authoring에서 원고를 수정한 뒤 다시 검증한다.
 - `## 목차`는 독립적인 내용 topic이 아니다. 목차가 한 슬라이드에 읽기 어렵게 들어가면 목차 슬라이드만 자연스럽게 분할하며 항목을 삭제하거나 축약하지 않는다.
-- Topic 번호는 슬라이드 페이지 번호와 동일하지 않다. 본문과 continuation 슬라이드는 기존 pagination 원칙을 따른다.
+- Topic 번호는 슬라이드 페이지 번호와 동일하지 않다. 본문과 continuation 슬라이드의 분할은 「Visual layout 및 가독성」을 따른다.
 
 ## Visual authority
 
-Production의 시각·배치·가독성 판단에는 이 지침이 우선한다. 현재 TrainingMaterials의 Production reference PPT는 승인된 기준선이 아닌 시각적 초안·참고자료다.
-
-초안과 이 지침이 불일치하면 지침을 적용하고, 해당 슬라이드·항목, 불일치 내용과 처리 결과를 보고한다. 초안이 없거나 확인할 수 없어도 PPT 생성과 지침에 따른 검증은 계속한다. 이 경우 초안과의 비교만 `NOT VERIFIED`로 기록하며, 초안 미확인만으로 지침 준수 여부를 `NOT VERIFIED`로 처리하지 않는다.
-
-Java → TM behavioral parity baseline은 regression 용도로만 유지하며 시각적 초안이나 이 지침을 대신하지 않는다.
+Production의 시각·배치·가독성은 이 지침이 정한다. 예전에 생성한 PPT는 비교 기준이 아니며, 그와 다른 결과를 이유로 지침을 벗어나지 않는다.
 
 ## 기본 원칙
 
@@ -157,9 +149,8 @@ Anchor Message는 Production 전용 시각 타입이 아니다. Course Design의
 - 코드 뒤의 짧은 설명·표는 남은 영역에 들어가면 같은 슬라이드에 이어 쌓는다.
 - 세로로 긴 도식 하나와 도식 위에 다 들어가지 않는 설명은 **좌우 배치**(설명 왼쪽, 도식 오른쪽)로 한 슬라이드에 둔다.
 - 코드 내용은 한 글자도 바꾸거나 빠뜨리지 않는다(자동 검사).
-- 코드에서는 **선언된 이름만 bold**로 한다 — `class`·`record`·`interface`·`enum` 뒤의 타입 이름과, 선언 줄(`{`가 이어지는 머리, 또는 `);`로 끝나는 인터페이스·추상 메서드)의 메서드·생성자 이름. 호출·필드 접근·문장은 bold로 하지 않는다(`richText.js` `declaredNameSpans`). lecture-java-baseline 레이아웃은 기존 규칙을 유지한다.
+- 코드에서는 **선언된 이름만 bold**로 한다 — `class`·`record`·`interface`·`enum` 뒤의 타입 이름과, 선언 줄(`{`가 이어지는 머리, 또는 `);`로 끝나는 인터페이스·추상 메서드)의 메서드·생성자 이름. 호출·필드 접근·문장은 bold로 하지 않는다(`richText.js` `declaredNameSpans`).
 - 원고의 ` ```java ` 블록은 같은 폴더 `code/sNN/*.java` 원본의 **발췌**여야 한다(`engine/production/src/codeSource.js`). `// ... <설명> 생략` 줄은 생략 표시이며, 그 사이의 각 부분이 원본에 그대로 있어야 한다. 다르면 **오류**, 원본 폴더가 없으면 **경고**다.
-- lecture-java-baseline의 reference·compact 레이아웃은 기존 코드 슬라이드 규칙을 유지한다.
 
 ## 검토용 원고
 
@@ -244,7 +235,7 @@ OOXML의 `CT_TextBody`(`<p:txBody>`)는 문단(`<a:p>`)이 **최소 1개** 있�
 - raster 또는 윤곽선화된 글자처럼 정확한 원래 크기를 알 수 없는 경우 제작 기록과 배율을 확보한다. 근거 없이 OCR 높이를 글꼴 크기로 단정하지 않는다. 측정 불가능한 항목은 `NOT VERIFIED`로 남기고 시각 확인 결과와 구분한다.
 - 판정은 `PASS`(확인된 충족), `FAIL`(확인된 위반), `NOT VERIFIED`(미실행·근거 부족)로 기록한다. 실패나 미확인 필수 항목이 있으면 전체 Production 검증 완료로 표시하지 않는다. 테스트 통과는 실제 가독성 통과를 대신하지 않는다.
 - 자동 검사의 결과(판정·슬라이드 수·검사한 블록·visual 상태·오류·경고)는 Production이 입력과 같은 디렉터리의 `[basename].qa.json`에 남긴다(`generate.js`).
-- 실제 렌더 결과를 사람이 검증한 경우에만 입력·출력 파일의 실제 경로·수정 시각, 입력 식별 정보, 실행 시각, 최종 슬라이드 수, 사용한 renderer/버전, 슬라이드·객체 식별자, 측정값과 단위, 검사 방법·판정·근거를 입력과 같은 디렉터리의 `[basename]-production-check.md`에 남긴다. 렌더 증거를 저장했다면 실제 경로를 기록한다. 확인하지 않은 reference PPT 경로나 승인 상태를 지어내지 않는다.
+- 실제 렌더 결과를 사람이 검증한 경우에만 입력·출력 파일의 실제 경로·수정 시각, 입력 식별 정보, 실행 시각, 최종 슬라이드 수, 사용한 renderer/버전, 슬라이드·객체 식별자, 측정값과 단위, 검사 방법·판정·근거를 입력과 같은 디렉터리의 `[basename]-production-check.md`에 남긴다. 렌더 증거를 저장했다면 실제 경로를 기록한다. 확인하지 않은 경로나 승인 상태를 지어내지 않는다.
 
 ## Session Authoring으로의 원고 보완 피드백
 
@@ -261,9 +252,11 @@ Production 검증에서 원고의 **내용·도식 구조·표기법**을 검토
 
 ## Regression
 
-새 기능 추가 시 기존 Java behavioral baseline이 깨지지 않는지 확인한다.
+회귀는 테스트로 막는다. 참조 폴더나 예전 PPT와 눈으로 비교하는 것은 회귀 검증이 아니다.
 
-`references/production/lecture-java-baseline/**`
+- renderer를 바꾸면 `node --test src/test/*.test.js` 전체를 통과시킨다. 이 테스트는 이식 원본(lecture-ppt-java)의 원고(`src/test/fixtures/lecture-java-baseline/input.md`), 고정 fixture 세션(`src/test/fixtures/reference-session.md`)의 렌더 결과와 템플릿을 함께 지킨다.
+- 결함을 고치면 그 결함을 재현하는 테스트를 함께 추가한다. 다음 수정이 같은 결함을 되살리면 테스트가 실패해야 한다.
+- 테스트가 실패하면 기대값을 고쳐 통과시키기 전에, 그 테스트가 지키는 지침 규칙이 바뀌었는지 확인한다. 규칙이 그대로면 코드를 고친다. 규칙을 바꾼다면 지침·코드·테스트를 함께 고친다.
 
 ## 하지 말아야 할 것
 
