@@ -37,6 +37,14 @@ function topLevelSplit(text) {
   return -1;
 }
 
+// Width of an authored list number ("9. ", "(10) ") at `size` pt, in EMU: digits ~0.55em,
+// period/parenthesis ~0.3em, space ~0.25em in the body font.
+function numberWidthEmu(prefix, size) {
+  let em = 0;
+  for (const ch of prefix) em += /\d/.test(ch) ? 0.55 : ch === " " ? 0.25 : 0.3;
+  return Math.round(em * size * 12700);
+}
+
 function paragraphs(page, id, blocks, toc) {
   const b = body(shape(page.doc, id));
   for (const p of kids(b, A, "p")) b.removeChild(p);
@@ -70,6 +78,13 @@ function paragraphs(page, id, blocks, toc) {
       const level = BULLET_LEVELS[Math.min(lvl, BULLET_LEVELS.length) - 1];
       pr.setAttribute("marL", String(level.marL));
       pr.setAttribute("indent", String(level.indent));
+      if (selfNumbered) {
+        // The literal "9. " is the hanging part: a wrapped line starts under the item's text, not
+        // at the bullet glyph's fixed hang, and the first line stays where a bullet's glyph sits.
+        const w = numberWidthEmu(/^(?:\d+\.|\(\d+\))\s/.exec(block.text)[0], [18, 16, 14][Math.min(block.depth, 2)]);
+        pr.setAttribute("marL", String(level.marL + level.indent + w));
+        pr.setAttribute("indent", String(-w));
+      }
       if (noGlyph) {
         pr.appendChild(el(page.doc, A, "buNone"));
       } else {

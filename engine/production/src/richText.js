@@ -135,4 +135,46 @@ function canonical(value) {
   return out;
 }
 
-module.exports = { rich, richInline, run, runParen, canonical, TOKENS };
+// Course source code (production-guide.md "소스 코드"): only declared names are bold -- the name
+// after class/record/interface/enum, and a method or constructor name on its declaration line
+// (a header followed by "{", or an interface/abstract method ending in ");"). Calls, field access
+// and statements stay plain. Returns [start, end) spans within `line`.
+const ID = "[A-Za-z_\\uAC00-\\uD7A3][\\w\\uAC00-\\uD7A3]*";
+const TYPE_DECL = new RegExp("\\b(?:class|record|interface|enum)\\s+(" + ID + ")", "g");
+const STATEMENT = /^\s*(?:if|for|while|switch|return|new|throw|else|catch|try|do|case|var)\b/;
+const METHOD_HEAD = new RegExp("^(\\s*(?:(?:public|private|protected|static|final|abstract|default|synchronized)\\s+)*)"
+  + "((?:[\\w\\uAC00-\\uD7A3<>\\[\\],.?]+\\s+)*)(" + ID + ")\\s*\\(");
+function declaredNameSpans(line) {
+  const spans = [];
+  let m;
+  TYPE_DECL.lastIndex = 0;
+  while ((m = TYPE_DECL.exec(line))) spans.push([m.index + m[0].length - m[1].length, m.index + m[0].length]);
+  if (!STATEMENT.test(line) && !/^\s*(?:class|record|interface|enum)\b/.test(line.replace(/^\s*(?:(?:public|private|protected|static|final|abstract)\s+)*/, ""))) {
+    const h = METHOD_HEAD.exec(line);
+    if (h) {
+      const rest = line.slice(h[0].length);
+      const typed = h[2].trim().length > 0;
+      const body = /\)\s*(?:throws\s+[\w\s,]+)?\{/.test(rest);
+      const abstractDecl = typed && /\);\s*$/.test(rest);
+      if (body || abstractDecl) {
+        const start = h[1].length + h[2].length;
+        spans.push([start, start + h[3].length]);
+      }
+    }
+  }
+  return spans.sort((a, b) => a[0] - b[0]);
+}
+
+function richDeclarations(p, value, size) {
+  for (const c of children(p)) if (c.localName !== "pPr") p.removeChild(c);
+  let pos = 0;
+  for (const [s, e] of declaredNameSpans(value)) {
+    if (s < pos) continue;
+    if (s > pos) run(p, value.slice(pos, s), size, false);
+    run(p, value.slice(s, e), size, true);
+    pos = e;
+  }
+  if (pos < value.length || value.length === 0) run(p, value.slice(pos), size, false);
+}
+
+module.exports = { declaredNameSpans, richDeclarations, rich, richInline, run, runParen, canonical, TOKENS };

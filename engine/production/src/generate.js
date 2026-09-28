@@ -13,6 +13,8 @@ const { inspect } = require("./inspect");
 const { readZip } = require("./zip");
 const { parseXml } = require("./xml");
 const { checkReferences } = require("./references");
+const { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, missingNotes } = require("./structure");
+const { checkCodeSources, checkEnumConsistency } = require("./codeSource");
 
 // A continuation slide that carries only a line or two of text (no table, visual or code) is a
 // layout smell the author should look at (production-guide.md, "continuation"). Warning only.
@@ -67,6 +69,21 @@ async function generateFile(inputPath, outputPath, templatePath, title, source, 
     let warnings = [];
     if (layoutMode === "auto") {
       const refs = checkReferences(inputPath, fs.readFileSync(inputPath, "utf-8"));
+      refs.errors.push(...checkStructure(inputPath, session, sections, m.pages));
+      const code = checkCodeSources(inputPath, fs.readFileSync(inputPath, "utf-8"));
+      refs.errors.push(...code.errors);
+      refs.warnings.push(...code.warnings);
+      refs.warnings.push(...wrappingCells(sections));
+      refs.warnings.push(...numberedDiagramLabels(sections));
+      refs.warnings.push(...unboldedText(sections));
+      if (!/-add\.md$/i.test(inputPath)) refs.warnings.push(...missingNotes(sections));
+      refs.warnings.push(...checkEnumConsistency(inputPath));
+      // Diagram text below MIN_PT (production-guide.md "Visual layout 및 가독성"): the diagram had to
+      // shrink past 7pt to fit, so the source should split or simplify it.
+      m.pages.forEach((p, i) => (p.pictures || []).forEach((pic) => {
+        const pt = builder.TARGET_PT * pic.bounds.w / builder.naturalSize(pic, builder.TARGET_PT).w;
+        if (pt < builder.MIN_PT - 0.05) refs.warnings.push(`슬라이드 ${i + 1}: 도식 글자가 ${pt.toFixed(1)}pt로 ${builder.MIN_PT}pt보다 작다.`);
+      }));
       warnings = refs.warnings.concat(sparseContinuations(m));
       if (refs.errors.length) {
         const { reportJson } = require("./inspect");

@@ -119,7 +119,7 @@ function parse(input) {
       if (/^mermaid$/i.test(info)) { kind = "mermaid"; meta = null; }
       else if (uml) { kind = "plantuml"; meta = { uml: uml[1] ? uml[1].toLowerCase() : null }; }
       else if (/^(chart|matplotlib)$/i.test(info)) { kind = "chart"; meta = null; }
-      else if (/^svg$/i.test(info)) { kind = "svg"; meta = null; }
+      else if (/^svg(?::uml)?$/i.test(info)) { kind = "svg"; meta = /:uml$/i.test(info) ? { uml: "svg" } : null; }
       else if (/^(tree|plaintext|text)$/.test(info) || /[├└]─/.test(value)) { kind = "tree"; meta = null; }
       else { kind = "code"; meta = null; }
       push(block(kind, value, 0, [], meta));

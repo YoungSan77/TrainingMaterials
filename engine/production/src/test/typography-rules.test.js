@@ -158,6 +158,18 @@ test("an authored ordered-list item (\"1. ...\") is indented but doesn't also pi
   assert.equal(pPr.getAttribute("lvl"), "2", "numbered items still get the same lvl-based indentation as a dash bullet, just without the extra glyph");
 });
 
+test("a wrapped numbered item continues under its own text, whatever the number's width", () => {
+  const start = (text) => {
+    const page = fixturePage(8);
+    paragraphs(page, 8, [{ kind: "bullet", text, rows: [], depth: 0, meta: null }], false);
+    const pPr = child(child(body(shape(page.doc, 8)), A, "p"), A, "pPr");
+    return { marL: Number(pPr.getAttribute("marL")), indent: Number(pPr.getAttribute("indent")) };
+  };
+  const nine = start("9. SSD 초안으로 시스템 이벤트를 식별한다."), ten = start("10. 계약을 작성한다.");
+  assert.equal(nine.marL + nine.indent, ten.marL + ten.indent, "the numbers start at the same place");
+  assert.ok(nine.indent < 0 && ten.marL > nine.marL, "the hang is the number's own width: two digits hang further");
+});
+
 test("a real dash-bullet (\"- ...\") still gets the placeholder's bullet glyph, unlike a numbered item", () => {
   const page = fixturePage(8);
   const block = { kind: "bullet", text: "일반 bullet 항목", rows: [], depth: 0, meta: null };
@@ -236,22 +248,22 @@ test("a TOC over 32 items splits into (1/2)/(2/2) pages, and the unused right co
 
 test("fitTarget renders at exactly TARGET_PT when the panel has room to spare", () => {
   const image = { kind: "mermaid", width: 1568, height: 236 };
-  const bounds = { x: 1.4, y: 4.25, w: 7.2, h: 1.8 };
+  const natural = naturalSize(image, TARGET_PT);
+  const bounds = { x: 0, y: 0, w: natural.w * 1.5, h: natural.h * 1.5 };
   const b = fitTarget(bounds, image);
   const estimatedPt = (24 * b.w * 96) / image.width;
   assert.ok(Math.abs(estimatedPt - TARGET_PT) < 1e-6, "must land on exactly 10pt, not stretch to fill the panel");
 });
 
-test("fitTarget shrinks in 10% steps (90%, then 80%) instead of overflowing a tight panel", () => {
+test("fitTarget shrinks in steps to 9, 8, 7pt -- the largest that fits, never past the panel", () => {
   const image = { kind: "mermaid", width: 1568, height: 236 };
   const full = naturalSize(image, TARGET_PT);
-  const tightBounds = { x: 0, y: 0, w: full.w * 0.85, h: full.h * 10 };
-  const b = fitTarget(tightBounds, image);
-  assert.ok(Math.abs(b.w - full.w * 0.9) < 1e-6, "85% of natural width only fits at the 90% step, not 100%");
-
-  const tighterBounds = { x: 0, y: 0, w: full.w * 0.75, h: full.h * 10 };
-  const b2 = fitTarget(tighterBounds, image);
-  assert.ok(Math.abs(b2.w - full.w * 0.8) < 1e-6, "75% of natural width only fits at the 80% step");
+  const b = fitTarget({ x: 0, y: 0, w: full.w * 0.85, h: full.h * 10 }, image);
+  assert.ok(Math.abs(b.w - full.w * 0.8) < 1e-6, "85% room -> the 8pt step, not 9pt past the edge");
+  const b2 = fitTarget({ x: 0, y: 0, w: full.w * 0.75, h: full.h * 10 }, image);
+  assert.ok(Math.abs(b2.w - full.w * 0.7) < 1e-6, "75% room -> 7pt");
+  const b3 = fitTarget({ x: 0, y: 0, w: full.w * 0.5, h: full.h * 10 }, image);
+  assert.ok(Math.abs(b3.w - full.w * 0.5) < 1e-6, "below 7pt it is fitted exactly (and reported by generate.js)");
 });
 
 test("fitTarget never enlarges past the 10pt target even with a huge panel", () => {
@@ -262,16 +274,12 @@ test("fitTarget never enlarges past the 10pt target even with a huge panel", () 
   assert.ok(Math.abs(b.w - full.w) < 1e-6);
 });
 
-test("fitTarget grows a PlantUML diagram into free space, capped at UML_MAX_PT", () => {
+test("a PlantUML diagram is not enlarged either: every diagram reads at 10pt", () => {
   const image = { kind: "plantuml", width: 764, height: 327 };
   const full = naturalSize(image, TARGET_PT);
   const roomy = fitTarget({ x: 0, y: 0, w: full.w * 10, h: full.h * 10 }, image);
-  const estimatedPt = (39 * roomy.w * 96) / image.width;
-  assert.ok(Math.abs(estimatedPt - UML_MAX_PT) < 1e-6, "a roomy panel grows the UML diagram only up to UML_MAX_PT");
-  const snug = fitTarget({ x: 0, y: 0, w: full.w * 1.2, h: full.h * 10 }, image);
-  assert.ok(Math.abs(snug.w - full.w * 1.2) < 1e-6, "growth stops at the panel edge");
-  const tight = fitTarget({ x: 0, y: 0, w: full.w * 0.85, h: full.h * 10 }, image);
-  assert.ok(Math.abs(tight.w - full.w * 0.9) < 1e-6, "an overflowing UML diagram still shrinks in 10% steps");
+  assert.ok(Math.abs(roomy.w - full.w) < 1e-6);
+  assert.equal(UML_MAX_PT, TARGET_PT);
 });
 
 test("visualPanel gives an all-PlantUML topic the whole free band; other visuals keep the design panel", () => {

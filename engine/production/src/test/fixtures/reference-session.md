@@ -446,6 +446,7 @@ flowchart LR
 
 ```plantuml:class
 @startuml
+hide circle
 hide empty methods
 left to right direction
 class "고객" as Customer {

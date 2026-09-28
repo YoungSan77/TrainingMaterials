@@ -84,6 +84,12 @@ test("sequence diagrams hide the footbox", () => {
   assert.ok(!assembled('class "주문" as O', "class").includes("hide footbox"));
 });
 
+test("class and package diagrams hide the C·E·I·A spot; the source does not have to", () => {
+  assert.ok(assembled('class "주문" as O', "class").includes("hide circle"));
+  assert.ok(assembled('package "주문" {\n}', "package").includes("hide circle"));
+  assert.ok(!assembled('state "결제 대기" as A', "state").includes("hide circle"));
+});
+
 test("shrinkSequenceActors scales the stick figure about its feet and crops the empty top band", () => {
   const svg = '<svg height="544px" style="width:464px;height:544px;" viewBox="0 0 464 544">'
     + '<g class="participant participant-head" id="part1-head"><text>고객</text>'

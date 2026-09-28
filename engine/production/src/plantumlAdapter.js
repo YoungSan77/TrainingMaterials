@@ -109,6 +109,9 @@ function assembled(source, kind) {
     // A communication diagram's participants are roles in an interaction, not classes: the empty
     // attribute/method compartments PlantUML's object notation draws would read as class boxes.
     ...(kind === "communication" || kind === "collaboration" ? ["hide empty members"] : []),
+    // A class box shows its name only; the C·E·I·A spot is not UML, so enumerations and
+    // interfaces are told apart by their «enumeration»·«interface» stereotypes instead.
+    ...(kind === "class" || kind === "package" ? ["hide circle"] : []),
     `scale ${SCALE}`,
     "skinparam backgroundColor white", "skinparam defaultFontName 맑은 고딕", `skinparam defaultFontSize ${FONT_SIZE}`,
     // Bold by default (box/entity text), but not the flow itself -- sequence messages and
@@ -116,6 +119,11 @@ function assembled(source, kind) {
     "skinparam defaultFontStyle bold", "skinparam SequenceMessageFontStyle plain", "skinparam ArrowFontStyle plain",
     "skinparam ArrowColor #1B3A6B", "skinparam SequenceLifeLineBorderColor #1B3A6B",
     "skinparam SequenceParticipantBorderColor #1B3A6B", "skinparam SequenceParticipantBackgroundColor white",
+    // UML notation carries no fill colour (production-guide.md "Visual layout 및 가독성"): every
+    // shape is drawn as an outline on white.
+    ...["Usecase", "Actor", "Class", "ClassHeader", "Object", "State", "Activity", "ActivityDiamond", "Note",
+      "Rectangle", "Package", "Partition", "Participant", "SequenceGroup", "SequenceGroupHeader", "SequenceBox",
+      "Entity", "Component", "Interface"].map((e) => `skinparam ${e}BackgroundColor white`),
     styleSource(innerSource(source)), "@enduml",
   ].join("\n");
 }
@@ -163,9 +171,9 @@ function runPlantUml(jar, kind, content, format) {
 // (and, for classes, tallest) box's size. See uniformSize.js.
 function uniformSource(jar, source, kind) {
   const inner = innerSource(source);
-  if (!["class", "communication", "collaboration", "state", "usecase", "sequence"].includes(kind)) return inner;
+  if (!["class", "package", "communication", "collaboration", "state", "usecase", "sequence"].includes(kind)) return inner;
   const svg = fs.readFileSync(runPlantUml(jar, kind, assembled(inner, kind), "svg"), "utf8");
-  if (["class", "communication", "collaboration"].includes(kind)) return uniformClassSource(inner, maxEntityRectWidth(svg), SCALE, FONT_SIZE);
+  if (["class", "package", "communication", "collaboration"].includes(kind)) return uniformClassSource(inner, maxEntityRectWidth(svg), SCALE, FONT_SIZE);
   return uniformLabelSource(inner, kind, textWidths(svg), FONT_SIZE * SCALE);
 }
 

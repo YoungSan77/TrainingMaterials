@@ -67,17 +67,17 @@ test("invalid Mermaid fails explicitly instead of falling back to source text", 
   await assert.rejects(() => renderMermaid({ source: "flowchart LR\n A[broken" }), /Mermaid 렌더 실패/);
 });
 
-test("s01 packages all 14 Mermaid diagrams", async () => {
-  const source = fs.readFileSync(path.join(ROOT, "courses/ooad/sessions/s01.md"), "utf8");
+test("the reference session packages all its Mermaid diagrams", async () => {
+  const source = fs.readFileSync(path.join(__dirname, "fixtures/reference-session.md"), "utf8");
   const { session, sections, toc } = parse(source);
   const output = path.join(os.tmpdir(), `tm-mermaid-s01-${process.pid}-${Date.now()}.pptx`);
   try {
     const manifest = await render(sections, TEMPLATE, output, session, toc);
     const mermaidCount = sections.flatMap((s) => s.blocks).filter((b) => b.kind === "mermaid").length;
     assert.equal(manifest.imageCounts.mermaid, mermaidCount);
-    // TOC(1) + one slide per topic -- s01.md is the Session Authoring baseline (AGENTS.md), so
-    // this tracks its actual current topic count rather than an old fixed number.
-    assert.equal(manifest.pages.length, sections.length + 1);
+    // TOC slides + at least one slide per topic, in order -- the reference session fixture
+    // (AGENTS.md) and may split a topic (**페이지 분할**), so this tracks topics, not a fixed count.
+    assert.deepEqual([...new Set(manifest.pages.filter((p) => !p.isToc).map((p) => String(p.heading).split("\n")[0].replace(/ \(\d+\/\d+\)$/, "")))], sections.map((s) => s.heading));
     const zip = await readZip(output);
     assert.equal(Array.from(zip.keys()).filter((name) => /^ppt\/media\/mermaid-\d+\.png$/.test(name)).length, mermaidCount);
     let imageRelationships = 0, pictures = 0;

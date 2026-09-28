@@ -10,7 +10,7 @@ const {
 } = require("./xml");
 const { readZip, writeZip } = require("./zip");
 const { plain, wide, estimate, splitCode, codePoints } = require("./text");
-const { rich, runParen } = require("./richText");
+const { rich, runParen, richDeclarations } = require("./richText");
 const { paragraphs } = require("./paragraphs");
 const { slideParts } = require("./referenceRenderer");
 const { renderMermaid } = require("./mermaidAdapter");
@@ -131,7 +131,9 @@ function center(bounds, w, h) {
 
 // Inverse of visualPolicy()'s legibility estimate: the display width at which the image's
 // diagram text renders at exactly `pt`.
-const TARGET_PT = 11;
+const TARGET_PT = 10;
+// Smallest diagram text allowed when a diagram must shrink to fit (production-guide.md).
+const MIN_PT = 7;
 // Orphan control for flush(): a remainder costing at most ORPHAN_SHARE of a page stays on the
 // current page as long as the page total stays within ORPHAN_TOLERANCE of its budget.
 const ORPHAN_SHARE = 0.2;
@@ -147,33 +149,30 @@ function naturalSize(image, pt) {
   return { w, h: (w * image.height) / image.width };
 }
 
-// Images are sized to read at exactly TARGET_PT, never larger even when the panel has room to
-// spare (a small diagram stretched to fill its panel was reading oversized). Only when that
-// natural size overflows `bounds` does it shrink, in 10% steps (90%, 80%, ...) rather than
-// pushing the topic onto a second slide -- body text/pagination is never touched for this.
-// Exception (production-guide.md "Visual layout 및 가독성"): a PlantUML (UML) diagram grows to
-// fill the free band below the text, up to UML_MAX_PT, since a UML diagram left at TARGET_PT sat
-// small in a mostly empty slide.
-const UML_MAX_PT = 16;
+// Images are sized so their text reads at TARGET_PT, never larger even when the panel has room to
+// spare (production-guide.md "Visual layout 및 가독성": one text size across all diagrams).
+// UML_MAX_PT is kept equal to TARGET_PT: UML diagrams no longer grow into free space.
+const UML_MAX_PT = TARGET_PT;
+const isUml = (image) => image.kind === "plantuml" || Boolean(image.uml);
 function fitTarget(bounds, image) {
+  // Every diagram's text reads at TARGET_PT (10pt); a diagram is never enlarged. When it does not
+  // fit it steps down to 9, 8, 7pt -- the largest step that fits, never past the panel -- and
+  // below MIN_PT it is fitted exactly and reported (generate.js) for the source to be fixed.
   const natural = naturalSize(image, TARGET_PT);
-  if (image.kind === "plantuml") {
-    const grow = Math.min(bounds.w / natural.w, bounds.h / natural.h, UML_MAX_PT / TARGET_PT);
-    if (grow >= 1) return center(bounds, natural.w * grow, natural.h * grow);
-  }
   const maxScale = Math.min(1, bounds.w / natural.w, bounds.h / natural.h);
   let scale = 1;
-  while (scale - 0.1 >= maxScale - 1e-9 && scale > 0.1) scale -= 0.1;
+  while (scale > maxScale + 1e-9 && scale - 0.1 >= MIN_PT / TARGET_PT - 1e-9) scale = Math.round((scale - 0.1) * 10) / 10;
+  if (scale > maxScale + 1e-9) scale = maxScale;
   return center(bounds, natural.w * scale, natural.h * scale);
 }
 
 // The panel a topic's visual(s) are placed in: centered in the free band [top, top+availableH]
 // between the text's estimated end and the footer. Mermaid/SVG/chart keep the layout's design
-// panel height; an all-PlantUML panel takes the whole free band at the widest body width so
-// fitTarget() can grow the UML diagram into it (see UML_MAX_PT).
+// panel height; an all-UML panel takes the whole free band at the widest body width, so a large
+// UML diagram keeps its 10pt as far as the band allows.
 const UML_PANEL = { x: 0.5, w: 9.0 };
 function visualPanel(layout, top, availableH, images) {
-  const uml = images.length > 0 && images.every((image) => image.kind === "plantuml");
+  const uml = images.length > 0 && images.every(isUml);
   const panelH = uml ? availableH : Math.min(layout.panel.h, availableH);
   const y = top + (availableH - panelH) / 2;
   return uml ? { ...layout.panel, ...UML_PANEL, y, h: panelH } : { ...layout.panel, y, h: panelH };
@@ -344,6 +343,8 @@ const TABLE_MAX_WIDTH = 654;
 // band still reads as "the same table area, just not stretched full-width."
 const TABLE_BAND_X = 33.48;
 const TABLE_BAND_CX = 651.97;
+const TABLE_ROW_PT = 0.8 / 2.54 * 72; // 0.8cm
+const TABLE_LINE_PT = 12;
 const TABLE_MIN_COL_WIDTH = 70;
 const TABLE_PT_PER_UNIT = 11;
 const TABLE_CELL_PADDING = 24;
@@ -359,17 +360,31 @@ function columnWidths(rows, cols) {
   const widths = weights.map((w) => Math.max(TABLE_MIN_COL_WIDTH, w * TABLE_PT_PER_UNIT + TABLE_CELL_PADDING));
   const total = widths.reduce((a, b) => a + b, 0);
   if (total <= TABLE_MAX_WIDTH) return widths;
-  // Too wide even at natural size: scale every column down proportionally, but never below the
-  // legibility floor -- if that alone can't fit, the longest column absorbs the remaining excess.
-  const scale = TABLE_MAX_WIDTH / total;
-  const scaled = widths.map((w) => Math.max(TABLE_MIN_COL_WIDTH, w * scale));
-  const overflow = scaled.reduce((a, b) => a + b, 0) - TABLE_MAX_WIDTH;
-  if (overflow > 0) {
-    let maxIdx = 0;
-    for (let j = 1; j < cols; j++) if (scaled[j] > scaled[maxIdx]) maxIdx = j;
-    scaled[maxIdx] -= overflow;
+  // Too wide even at natural size: of three ways to take width back -- every column in proportion,
+  // a common cap on the widest columns, or the widest column alone -- keep the one that leaves the
+  // fewest wrapping rows, so rows stay at the uniform 0.8cm as far as the content allows
+  // (production-guide.md "표").
+  const fit = (ws) => ws.map((w) => Math.max(TABLE_MIN_COL_WIDTH, w));
+  const proportional = fit(widths.map((w) => w * TABLE_MAX_WIDTH / total));
+  let lo = TABLE_MIN_COL_WIDTH, hi = Math.max(...widths);
+  for (let k = 0; k < 40; k++) {
+    const cap = (lo + hi) / 2;
+    if (widths.reduce((s, w) => s + Math.min(w, cap), 0) > TABLE_MAX_WIDTH) hi = cap; else lo = cap;
   }
-  return scaled;
+  const capped = widths.map((w) => Math.min(w, lo));
+  const widest = widths.indexOf(Math.max(...widths));
+  const absorbed = widths.map((w, i) => (i === widest ? w - (total - TABLE_MAX_WIDTH) : w));
+  const wrapped = (ws) => rows.filter((row) => row.some((cell, i) =>
+    String(cell).split("\v").reduce((n, line) => n + estimate(line, ws[i], 10), 0) > 1)).length;
+  const candidates = [capped, proportional];
+  if (absorbed[widest] >= TABLE_MIN_COL_WIDTH * 1.5) candidates.unshift(absorbed);
+  const fitting = candidates.map((ws) => {
+    const over = ws.reduce((a, b) => a + b, 0) - TABLE_MAX_WIDTH;
+    if (over <= 0) return ws;
+    const k = ws.indexOf(Math.max(...ws));
+    return ws.map((w, i) => (i === k ? w - over : w));
+  });
+  return fitting.reduce((best, ws) => (wrapped(ws) < wrapped(best) ? ws : best));
 }
 
 // Port of LecturePpt.geometry(): reads a template shape's <a:ext> in points, default 630x390.
@@ -464,14 +479,20 @@ class Builder {
     pending.length = 0;
   }
 
+  // Every table row is TABLE_ROW_PT (0.8cm) high (production-guide.md "표"); a cell that still
+  // wraps adds TABLE_LINE_PT per extra line, and the source should be adjusted so it does not.
   rowHeight(row, widths) {
+    return TABLE_ROW_PT + (this.rowLines(row, widths) - 1) * TABLE_LINE_PT;
+  }
+
+  rowLines(row, widths) {
     let h = 1;
     for (let i = 0; i < row.length; i++) {
       let n = 0;
-      for (const line of row[i].split("")) n += estimate(line, widths[i], 10);
+      for (const line of row[i].split("\v")) n += estimate(line, widths[i], 10);
       h = Math.max(h, n);
     }
-    return h * 13 + 12;
+    return h;
   }
 
   // The table template's own "lead" textbox (shape id 13) sits BELOW the table in the raw
@@ -552,31 +573,44 @@ class Builder {
         paragraphs(page, leadId, lead, false);
         y += (h + 8) / 72;
       }
+      const top = y;
       let codeX = X, codeW = W, pictureBottom = y;
-      if (png) {
-        const box = stacked
-          ? { x: X, y, w: W, h: (BOTTOM - y) * 0.45 }
-          : { x: X, y, w: W * 0.42, h: BOTTOM - y };
-        let bounds = fitTarget(box, png);
-        // Beside code the diagram stays at its target size instead of growing into the band
-        // (UML_MAX_PT growth): the room goes to the code, which then keeps its 10pt.
-        const nat = naturalSize(png, TARGET_PT);
-        if (bounds.w > nat.w) bounds = { x: box.x + (box.w - nat.w) / 2, y, w: nat.w, h: nat.h };
-        bounds.y = y;
-        page.pictures = [{ ...png, bounds }];
-        page.visualLayout = stacked ? "code-stacked" : "code-side";
-        pictureBottom = y + bounds.h;
-        if (stacked) y = pictureBottom + GAP;
-        else { codeX = X + box.w + GAP; codeW = W - box.w - GAP; }
-      }
+      // The diagram beside/above code is drawn at a text size of TARGET_PT x step (10, 9, 8, 7pt;
+      // production-guide.md "Visual layout 및 가독성"). Above the code it may use the full width;
+      // beside the code its column is as wide as the diagram needs (at most 55% of the width).
+      const nat = png ? naturalSize(png, TARGET_PT) : null;
+      const STEPS = [1, 0.9, 0.8, 0.7];
+      const place = (step) => {
+        let s = step;
+        const maxW = stacked ? W : W * 0.55, maxH = stacked ? (BOTTOM - top) * 0.7 : BOTTOM - top;
+        s = Math.min(s, maxW / nat.w, maxH / nat.h);
+        const w = nat.w * s, h = nat.h * s;
+        const box = stacked ? { x: X, y: top, w: W, h } : { x: X, y: top, w: Math.max(w, W * 0.3), h: BOTTOM - top };
+        return { box, bounds: { x: box.x + (box.w - w) / 2, y: top, w, h } };
+      };
       // On the first slide, try to keep the whole code (plus the text that follows it) on one
       // slide: 10pt in one column, then two columns side by side, then 9pt and 8pt with tighter
-      // line spacing (production-guide.md "소스 코드"). Otherwise split across slides at 10pt.
-      let cols = null, size = 10, lineH = LINE;
+      // line spacing (production-guide.md "소스 코드"), with the diagram at 10pt, then 9, 8, 7pt.
+      // Only when none fits is the code split across slides (the diagram then stays at 10pt as
+      // far as it fits).
+      let cols = null, size = 10, lineH = LINE, placed = png ? place(1) : null;
       if (first) {
-        const avail = (BOTTOM - y) * 72 - (opts.trailPt ? opts.trailPt + 8 : 0);
-        const plan = planCode(remaining, codeW * 72, avail);
-        if (plan) ({ cols, size, lineH } = plan);
+        for (const step of png ? STEPS : [1]) {
+          const at = png ? place(step) : null;
+          const codeTop = at && stacked ? top + at.bounds.h + GAP : top;
+          const width = at && !stacked ? W - at.box.w - GAP : W;
+          const avail = (BOTTOM - codeTop) * 72 - (opts.trailPt ? opts.trailPt + 8 : 0);
+          const plan = planCode(remaining, width * 72, avail);
+          if (plan) { ({ cols, size, lineH } = plan); placed = at; break; }
+        }
+      }
+      if (png) {
+        const { box, bounds } = placed;
+        page.pictures = [{ ...png, bounds }];
+        page.visualLayout = stacked ? "code-stacked" : "code-side";
+        pictureBottom = top + bounds.h;
+        if (stacked) y = pictureBottom + GAP;
+        else { codeX = X + box.w + GAP; codeW = W - box.w - GAP; }
       }
       if (!cols) {
         const piece = splitCode(remaining, codeW * 72, (BOTTOM - y) * 72)[0];
@@ -602,7 +636,7 @@ class Builder {
           pr.setAttribute("marL", "0");
           pr.setAttribute("indent", "0");
           pr.setAttribute("algn", "l");
-          rich(par, line, size, false, true, this.names);
+          richDeclarations(par, line, size);
           for (const rp of all(par, A, "rPr")) {
             for (const old of kids(rp, A, "latin")) rp.removeChild(old);
             const latin = el(page.doc, A, "latin", "typeface", "Consolas");
@@ -649,7 +683,7 @@ class Builder {
     for (const e of children(grid)) grid.removeChild(e);
     for (const w of widths) grid.appendChild(el(page.doc, A, "gridCol", "w", String(Math.round(w * 12700))));
     for (let ri = 0; ri < group.length; ri++) {
-      const row = el(page.doc, A, "tr", "h", String(this.rowHeight(group[ri], widths) * 12700));
+      const row = el(page.doc, A, "tr", "h", String(Math.round(this.rowHeight(group[ri], widths) * 12700)));
       const cells = kids(prototypes[Math.min(ri, prototypes.length - 1)], A, "tc");
       for (let ci = 0; ci < cols; ci++) {
         const cell = copy(page.doc, cells[Math.min(ci, cells.length - 1)]);
@@ -676,7 +710,8 @@ class Builder {
     const used = (lead.length ? this.textHeightPt(lead) + 8 : 0) + (mid.length ? this.textHeightPt(mid) + 8 : 0) + tableH + 8;
     const room = band - used;
     const natural = naturalSize(png, TARGET_PT);
-    const needH = Math.min(natural.h * 72 * 0.8, natural.h * 72 * (TABLE_BAND_CX / 72) / natural.w);
+    // The legend shares the slide only while it still reads at MIN_PT (production-guide.md).
+    const needH = Math.min(natural.h * 72 * MIN_PT / TARGET_PT, natural.h * 72 * (TABLE_BAND_CX / 72) / natural.w);
     return room >= Math.max(0.9 * 72, needH) ? room : 0;
   }
 
@@ -860,7 +895,7 @@ class Builder {
           : b.kind === "plantuml" ? await renderPlantUml({ kind: b.meta && b.meta.uml, source: b.text })
           : b.kind === "svg" ? await renderSvg(b.text)
           : await renderChart(b.text);
-        return { ...png, source: b.text, kind: b.kind };
+        return { ...png, source: b.text, kind: b.kind, uml: Boolean(b.meta && b.meta.uml) };
       }));
       const layout = visualPolicy(renderedVisuals);
       // Explicit "**페이지 분할**" markers cut the topic into segments. Text budget is per segment:
@@ -957,6 +992,13 @@ class Builder {
         this.flush(pending, section.title, layout.width, capacity);
         if (this.pages.length > before) open = null;
       };
+      // A diagram goes below a table only when it still reads at MIN_PT or more there.
+      const fitsBelow = (page, png) => {
+        if (this.roomBelowPt(page) < 0.9 * 72) return false;
+        const nat = naturalSize(png, TARGET_PT);
+        const h = this.roomBelowPt(page) / 72 - 0.15;
+        return Math.min((TABLE_BAND_CX / 72) / nat.w, h / nat.h) >= MIN_PT / TARGET_PT - 1e-9;
+      };
       const placeBelowTable = (page, png) => {
         const margin = 0.15;
         const y = page.tableBottom + margin;
@@ -1010,7 +1052,7 @@ class Builder {
             // The topic's only visual follows a table in this segment: stack it below the table
             // (after any text in between), not on an earlier prose page.
             flushPending();
-            if (open && this.roomBelowPt(open) >= 0.9 * 72) {
+            if (open && fitsBelow(open, renderedVisuals[visualIndex])) {
               placeBelowTable(open, renderedVisuals[visualIndex]);
               visualInline = true;
             }
@@ -1023,7 +1065,7 @@ class Builder {
             // checking visualTargets directly (see claimVisualPage).
             if (open) {
               flushPending();
-              if (open && this.roomBelowPt(open) >= 0.9 * 72) {
+              if (open && fitsBelow(open, renderedVisuals[visualIndex])) {
                 placeBelowTable(open, renderedVisuals[visualIndex]);
                 visualTargets[visualIndex] = "placed";
                 visualIndex++;
@@ -1181,9 +1223,13 @@ class Builder {
         const lastPage = segPages[segPages.length - 1];
         const margin = 0.15;
         const availableH = lastPage && lastPage.tableBottom != null ? PAGE_NUM_Y - margin - (lastPage.tableBottom + margin) : 0;
-        if (lastPage && availableH >= 0.9) {
+        // Below the table only when the diagram still reads at MIN_PT or more there.
+        const trailBox = lastPage ? { x: TABLE_BAND_X / 72, y: lastPage.tableBottom + margin, w: TABLE_BAND_CX / 72, h: availableH } : null;
+        const trailNat = naturalSize(renderedVisuals[0], TARGET_PT);
+        const trailFits = trailBox && Math.min(trailBox.w / trailNat.w, trailBox.h / trailNat.h) >= MIN_PT / TARGET_PT - 1e-9;
+        if (lastPage && availableH >= 0.9 && trailFits) {
           const png = renderedVisuals[0];
-          const box = { x: TABLE_BAND_X / 72, y: lastPage.tableBottom + margin, w: TABLE_BAND_CX / 72, h: availableH };
+          const box = trailBox;
           lastPage.pictures = [{ ...png, bounds: fitTarget(box, png) }];
           lastPage.visualLayout = "table-trailing";
           tableVisualPlaced = true;
@@ -1348,4 +1394,4 @@ async function render(sections, templatePath, outputPath, session, toc) {
   return b.render(sections, outputPath, toc);
 }
 
-module.exports = { Builder, render, geometry, naturalSize, fitTarget, visualPanel, tocSessionName, TARGET_PT, UML_MAX_PT, PAGE_NUM_Y };
+module.exports = { Builder, render, geometry, naturalSize, fitTarget, visualPanel, columnWidths, tocSessionName, TARGET_PT, MIN_PT, UML_MAX_PT, PAGE_NUM_Y };

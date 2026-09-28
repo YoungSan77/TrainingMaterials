@@ -9,7 +9,9 @@ const path = require("path");
 const assert = require("assert/strict");
 const { parse } = require("../parse");
 
-const INPUT = path.resolve(__dirname, "../../../../courses/ooad/sessions/s01.md");
+// A frozen copy of a full session (courses/ooad/sessions/s01.md at the time), so course edits
+// never break the renderer tests.
+const INPUT = path.resolve(__dirname, "fixtures/reference-session.md");
 const raw = fs.readFileSync(INPUT, "utf-8");
 
 function fenceCount(lang) {
@@ -20,7 +22,7 @@ function fenceCount(lang) {
 const { session, sections } = parse(raw);
 
 assert.equal(session, "01. OOAD 개요");
-assert.equal(sections.length, 26);
+assert.equal(sections.length, 35);
 // "## 목차" is the manuscript's manual TOC heading, not a topic -- parse() correctly excludes it
 // from `sections` (see parse.js's TOC_HEADING handling), so this raw-regex scan of "## " headings
 // must exclude it too, or the two lists differ by one entry regardless of any real topic drift.
@@ -29,7 +31,7 @@ assert.deepEqual(sections.map((s) => s.heading), expectedHeadings);
 assert.deepEqual(sections.map((s) => s.title), expectedHeadings, "legacy title alias remains compatible");
 
 // Every topic must carry a non-empty notes list (s01.md has exactly one "강사 노트" marker
-// per topic, confirmed by `grep -c '강사 노트' s01.md` == 26 == topic count).
+// per topic, confirmed by `grep -c '강사 노트' fixtures/reference-session.md` == 35 == topic count).
 const notesMarkerCount = (raw.match(/^\*\*강사 노트\*\*$/gm) || []).length;
 assert.equal(notesMarkerCount, sections.length);
 let topicsWithNotes = 0;

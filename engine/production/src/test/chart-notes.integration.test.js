@@ -22,8 +22,8 @@ test("matplotlib chart adapter emits a valid PNG and rejects bad specifications"
   await assert.rejects(() => renderChart({ type: "pie", labels: ["A"], values: [1] }), /Chart 렌더 실패/);
 });
 
-test("s01 packages two charts and one notes slide per authored topic", async () => {
-  const source = fs.readFileSync(path.join(ROOT, "courses/ooad/sessions/s01.md"), "utf8");
+test("the reference session packages its charts and one notes slide per authored topic", async () => {
+  const source = fs.readFileSync(path.join(__dirname, "fixtures/reference-session.md"), "utf8");
   const { session, sections, toc } = parse(source);
   const output = path.join(os.tmpdir(), `tm-chart-notes-s01-${process.pid}-${Date.now()}.pptx`);
   try {
@@ -31,7 +31,7 @@ test("s01 packages two charts and one notes slide per authored topic", async () 
     const expectedQuotes = [];
     for (const section of sections) for (let i = 0; i < section.blocks.length - 1; i++) {
       if (section.blocks[i].text.trim() !== "**인용문**") continue;
-      // s01.md authors quotes with straight ASCII double quotes ("..."), not curly ones -- the
+      // the reference session authors quotes with straight ASCII double quotes ("..."), not curly ones -- the
       // renderer preserves whatever quote glyph is in the source, so the check must match that.
       const match = /^"([^"]+)"\s*,\s*(?:"([^"]+)"\s*,\s*)?(.+?)\s*$/.exec(section.blocks[i + 1].text);
       assert.ok(match, `quote syntax: ${section.heading}`);
@@ -45,15 +45,16 @@ test("s01 packages two charts and one notes slide per authored topic", async () 
         full: plain(korean + ", " + (english ? english + ", " : "") + source),
       });
     }
-    // TOC(1) + one slide per topic -- s01.md is the Session Authoring baseline (AGENTS.md), so
-    // this tracks its actual current topic count rather than an old fixed number.
-    assert.equal(manifest.pages.length, sections.length + 1);
+    // TOC slides + at least one slide per topic, in order -- the reference session fixture
+    // (AGENTS.md) and may split a topic (**페이지 분할**), so this tracks topics, not a fixed count.
+    assert.deepEqual([...new Set(manifest.pages.filter((p) => !p.isToc).map((p) => String(p.heading).split("\n")[0].replace(/ \(\d+\/\d+\)$/, "")))], sections.map((s) => s.heading));
     const expectedCounts = Object.fromEntries(["mermaid", "plantuml", "chart", "svg"].map((kind) => [kind, sections.flatMap((s) => s.blocks).filter((b) => b.kind === kind).length]));
     assert.deepEqual(manifest.imageCounts, expectedCounts);
     assert.equal(manifest.pages.filter((page) => page.notes && page.notes.length).length, sections.filter((s) => s.notes.length).length);
     assert.equal(manifest.pages.filter((page) => page.visualLayout === "stacked" && (page.pictures || []).some((p) => p.kind === "chart")).length, expectedCounts.chart);
-    assert.equal(manifest.pages.filter((page) => page.pictures && page.pictures.length).every((page) => page.visualLayout === "stacked"), true);
-    for (const page of manifest.pages.filter((page) => page.pictures && page.pictures.length)) {
+    // Prose visuals stack below the text; diagram–code pairs ("code-stacked") put the diagram above the code.
+    assert.equal(manifest.pages.filter((page) => page.pictures && page.pictures.length).every((page) => ["stacked", "code-stacked"].includes(page.visualLayout)), true);
+    for (const page of manifest.pages.filter((page) => page.visualLayout === "stacked" && page.pictures && page.pictures.length)) {
       for (const picture of page.pictures) assert.ok(picture.bounds.y >= 3.05);
     }
 

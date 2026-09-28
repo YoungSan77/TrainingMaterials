@@ -74,23 +74,22 @@ test("real prose overflow still creates continuation slides without content loss
   assert.match(m.pages[1].heading, /\(1\/\d+\)$/);
 });
 
-test("s01 composes current topics without visual or notes slides", async () => {
-  const source = fs.readFileSync(path.join(ROOT, "courses/ooad/sessions/s01.md"), "utf8");
+test("the reference session composes its topics without visual or notes slides", async () => {
+  const source = fs.readFileSync(path.join(__dirname, "fixtures/reference-session.md"), "utf8");
   const { session, sections, toc } = parse(source);
-  assert.equal(sections.length, 26);
+  assert.equal(sections.length, 35);
   const output = path.join(os.tmpdir(), `tm-phase2-s01-${process.pid}-${Date.now()}.pptx`);
   try {
     const m = await render(sections, TEMPLATE, output, session, toc);
     const report = await inspect(output, m);
     assert.deepEqual(report.errors, []);
-    // These figures track s01.md's actual current content (it's the Session Authoring baseline --
-    // see AGENTS.md -- so this test follows it, rather than pinning it to old numbers and fighting
-    // legitimate edits).
-    assert.equal(m.pages.length, 27, "TOC 1 + 26 content slides, one per topic");
+    // These figures belong to the frozen fixture (fixtures/reference-session.md), not to the live
+    // course: editing the course never changes them.
+    assert.equal(m.pages.length, 45, "TOC 2 + 43 content slides (split and overflowing topics)");
     assert.equal(m.unsupportedVisuals.length, 0);
-    assert.equal(m.images, 10);
-    assert.deepEqual(m.imageCounts, { mermaid: 8, plantuml: 1, chart: 1, svg: 0 });
-    assert.equal(m.pages.filter((p) => p.items.length === 0).length, 1, "only TOC has no body items");
+    assert.equal(m.images, 17);
+    assert.deepEqual(m.imageCounts, { mermaid: 9, plantuml: 7, chart: 1, svg: 0 });
+    assert.equal(m.pages.filter((p) => p.items.length === 0).length, 2, "only the two TOC slides have no body items");
   } finally {
     if (fs.existsSync(output)) fs.unlinkSync(output);
   }

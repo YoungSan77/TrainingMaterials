@@ -13,8 +13,8 @@ const { parseXml, all, P, A, children } = require("../xml");
 const ROOT = path.resolve(__dirname, "../../../..");
 const TEMPLATE = path.join(ROOT, "references/production/lecture-java-baseline/templates/approved.pptx");
 
-test("s01 PlantUML renders and follows the shared OOXML picture path", async () => {
-  const source = fs.readFileSync(path.join(ROOT, "courses/ooad/sessions/s01.md"), "utf8");
+test("reference session PlantUML renders and follows the shared OOXML picture path", async () => {
+  const source = fs.readFileSync(path.join(__dirname, "fixtures/reference-session.md"), "utf8");
   const { session, sections, toc } = parse(source);
   const uml = sections.flatMap((section) => section.blocks).find((block) => block.kind === "plantuml");
   assert.ok(uml);
@@ -28,8 +28,8 @@ test("s01 PlantUML renders and follows the shared OOXML picture path", async () 
     const expectedCounts = Object.fromEntries(["mermaid", "plantuml", "chart", "svg"].map((kind) => [kind, sections.flatMap((s) => s.blocks).filter((b) => b.kind === kind).length]));
     assert.deepEqual(manifest.imageCounts, expectedCounts);
     // TOC(1) + one slide per topic -- tracks s01.md's actual current topic count (see mermaid
-    // integration test's comment: s01.md is the Session Authoring baseline, not a fixed fixture).
-    assert.equal(manifest.pages.length, sections.length + 1);
+    // integration test's comment: the reference session fixture, not a fixed fixture).
+    assert.deepEqual([...new Set(manifest.pages.filter((p) => !p.isToc).map((p) => String(p.heading).split("\n")[0].replace(/ \(\d+\/\d+\)$/, "")))], sections.map((s) => s.heading));
     const zip = await readZip(output);
     const template = await readZip(TEMPLATE);
     assert.deepEqual(zip.get("ppt/media/image1.png"), template.get("ppt/media/image1.png"));
