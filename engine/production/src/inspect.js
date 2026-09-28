@@ -55,6 +55,9 @@ async function inspect(outputPath, m) {
         for (const rp of all(sh, A, "rPr")) if (rp.getAttribute("sz") !== "1000") errors.push(prefix + "table font !=10pt");
       } else {
         if (text(sh) !== item.text) errors.push(prefix + "text/code mismatch");
+        if (item.kind === "source") {
+          for (const rp of all(sh, A, "rPr")) if (!["800", "900", "1000"].includes(rp.getAttribute("sz"))) errors.push(prefix + "source font outside 8~10pt");
+        }
         if (["code", "tree"].includes(item.kind)) {
           for (const par of kids(body(sh), A, "p")) {
             const pr = child(par, A, "pPr");

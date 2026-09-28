@@ -460,3 +460,34 @@ test("two tables with the same column count in one segment share column widths",
   assert.equal(grids.length, 2);
   assert.equal(grids[0], grids[1]);
 });
+
+test("a diagram right before a code block is shown with the code on every code slide", async () => {
+  const uml = 'class "가" as A\nclass "나" as B\nclass "다" as C\nA -- B\nB -- C';
+  const code = Array.from({ length: 200 }, (_, i) => "int 줄" + i + " = " + i + ";").join("\n");
+  const sections = [{ heading: "01. 모델과 코드", title: "01. 모델과 코드", notes: [], blocks: [
+    textBlock("모델을 코드로 읽는다."),
+    { kind: "plantuml", text: uml, rows: [], depth: 0, meta: { uml: "class" } },
+    { kind: "code", text: code, rows: [], depth: 0, meta: null },
+  ] }];
+  const m = await renderOnce(sections, [bulletBlock("01. 모델과 코드")], "code-pair");
+  const pages = m.pages.filter((pg) => pg.heading.startsWith("01. 모델과 코드"));
+  assert.ok(pages.length >= 2, "long code spans slides");
+  for (const pg of pages) {
+    assert.equal((pg.pictures || []).length, 1, "the diagram is on every code slide");
+    assert.ok(pg.items.some((it) => it.kind === "source"));
+  }
+});
+
+test("code that does not fit one slide at 10pt tries two columns, then 9pt/8pt, before splitting", async () => {
+  const code = Array.from({ length: 44 }, (_, i) => (i % 11 === 10 ? "}" : "    int 값" + i + " = " + i + ";")).join("\n");
+  const sections = [{ heading: "01. 코드", title: "01. 코드", notes: [], blocks: [
+    textBlock("코드를 한 장에 본다."),
+    { kind: "code", text: code, rows: [], depth: 0, meta: null },
+  ] }];
+  const m = await renderOnce(sections, [bulletBlock("01. 코드")], "code-fit");
+  const pages = m.pages.filter((pg) => pg.heading.startsWith("01. 코드"));
+  assert.equal(pages.length, 1, "fits on one slide");
+  const sources = pages[0].items.filter((it) => it.kind === "source");
+  assert.equal(sources.length, 2, "as two side-by-side columns");
+  assert.equal(sources.map((s) => s.text).join("\n"), code, "no code lost at the column split");
+});

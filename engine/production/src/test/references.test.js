@@ -57,3 +57,15 @@ test("a continuation slide with only a line of text is reported as a warning", (
   assert.equal(w.length, 1);
   assert.match(w[0], /슬라이드 2/);
 });
+
+test("a review deck sNN-add.md resolves own-session references against its full candidate sNN.md", () => {
+  const root = course();
+  const full = ["--------------------", "Session 명: 03. 정적 모델", "--------------------", "", "## 목차", "", "01. 세션 목표", "02. 개념", "03. 코드", "",
+    "## 01. 세션 목표", "", "본문.", "", "## 02. 개념", "", "본문.", "", "## 03. 코드", "", "「02. 개념」을 코드로 본다.", ""].join("\n");
+  fs.writeFileSync(path.join(root, "sessions", "s03.md"), full);
+  const add = ["--------------------", "Session 명: 03. 정적 모델", "--------------------", "", "## 목차", "", "03. 코드", "",
+    "## 03. 코드", "", "「02. 개념」을 코드로 본다.", ""].join("\n");
+  const p = path.join(root, "sessions", "s03-add.md");
+  fs.writeFileSync(p, add);
+  assert.deepEqual(checkReferences(p, add), { errors: [], warnings: [] });
+});

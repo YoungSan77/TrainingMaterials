@@ -72,14 +72,17 @@ test("lecture-java-baseline input.md renders end to end through the auto pipelin
 
     // -- No stray/leftover shapes on any generated "code" slide (regression guard: see header). --
     let codeSlidesChecked = 0;
-    for (const key of slideKeys) {
+    for (const [slideIndex, key] of slideKeys.entries()) {
       const doc = parseXml(zip.get(key));
       const hasCodeShape = (() => { try { shape(doc, 31); return true; } catch (e) { return false; } })();
       if (!hasCodeShape) continue;
       codeSlidesChecked++;
+      // Shapes the renderer authored on purpose (e.g. the lead text above source code) are recorded
+      // in the page manifest; anything else beyond the template set is leftover corruption.
+      const authored = new Set(manifest.pages[slideIndex].items.map((it) => String(it.id)));
       const ids = all(doc, P, "sp").map((sp) => sp.getElementsByTagNameNS(P, "cNvPr")[0].getAttribute("id"));
       for (const id of ids) {
-        assert.ok(EXPECTED_CODE_SHAPE_IDS.has(id), `slide ${key} has an unexpected shape id=${id} beyond the known template set -- likely leftover template corruption, not authored content`);
+        assert.ok(EXPECTED_CODE_SHAPE_IDS.has(id) || authored.has(id), `slide ${key} has an unexpected shape id=${id} beyond the known template set -- likely leftover template corruption, not authored content`);
       }
     }
     assert.ok(codeSlidesChecked > 0, "the manuscript's Java/SQL code blocks must actually reach the code template (id=31)");

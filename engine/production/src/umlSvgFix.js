@@ -210,4 +210,33 @@ function fitUsecaseEllipses(svg) {
     });
 }
 
-module.exports = { cropTop, endpoints, shrinkUsecaseActors, fitUsecaseEllipses, fixAssociationClasses };
+
+// PlantUML's smetana layout can place content (curved links and their labels in communication
+// diagrams) at negative coordinates while the SVG viewBox starts at 0, clipping it. Widen the
+// viewBox to the drawn content (with a small margin); an SVG already inside its viewBox is
+// returned unchanged.
+function fitViewBox(svg, margin = 6) {
+  const vb = /viewBox="([\d.-]+) ([\d.-]+) ([\d.]+) ([\d.]+)"/.exec(svg);
+  if (!vb) return svg;
+  const [x0, y0, w, h] = vb.slice(1).map(Number);
+  const xs = [], ys = [];
+  for (const m of svg.matchAll(/\s(x|x1|x2|cx)="(-?[\d.]+)"/g)) xs.push(Number(m[2]));
+  for (const m of svg.matchAll(/\s(y|y1|y2|cy)="(-?[\d.]+)"/g)) ys.push(Number(m[2]));
+  // Text is positioned by its baseline: allow for the glyph height above it.
+  for (const m of svg.matchAll(/<text\b[^>]*\sy="(-?[\d.]+)"/g)) ys.push(Number(m[1]) - 16);
+  for (const m of svg.matchAll(/\s(?:d|points)="([^"]*)"/g)) {
+    const nums = m[1].match(/-?[\d.]+/g) || [];
+    for (let i = 0; i + 1 < nums.length; i += 2) { xs.push(Number(nums[i])); ys.push(Number(nums[i + 1])); }
+  }
+  const minX = Math.min(x0, ...xs), minY = Math.min(y0, ...ys);
+  if (minX >= x0 && minY >= y0) return svg;
+  const nx = Math.min(x0, minX - margin), ny = Math.min(y0, minY - margin);
+  const nw = w + (x0 - nx), nh = h + (y0 - ny);
+  return svg.replace(vb[0], `viewBox="${nx} ${ny} ${nw} ${nh}"`)
+    .replace(/(<svg\b[^>]*?\swidth=")[\d.]+px"/, `$1${nw}px"`)
+    .replace(/(<svg\b[^>]*?\sheight=")[\d.]+px"/, `$1${nh}px"`)
+    .replace(/(<svg\b[^>]*?style="[^"]*?width:)[\d.]+px/, `$1${nw}px`)
+    .replace(/(<svg\b[^>]*?style="[^"]*?height:)[\d.]+px/, `$1${nh}px`);
+}
+
+module.exports = { fitViewBox, cropTop, endpoints, shrinkUsecaseActors, fitUsecaseEllipses, fixAssociationClasses };

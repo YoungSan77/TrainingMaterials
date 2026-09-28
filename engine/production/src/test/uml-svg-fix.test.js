@@ -67,3 +67,12 @@ test("svgFixes routes only the diagrams that need an SVG correction", () => {
   assert.equal(svgFixes("sequence", 'participant "주문" as O').length, 0);
   assert.equal(svgFixes("sequence", 'actor "고객" as C').length, 1);
 });
+
+test("fitViewBox widens a viewBox that clips content drawn at negative coordinates", () => {
+  const { fitViewBox } = require("../umlSvgFix");
+  const svg = '<svg width="100px" height="50px" viewBox="0 0 100 50"><text x="10" y="-20">라벨</text><path d="M5,-30 L90,40"/></svg>';
+  const out = fitViewBox(svg);
+  const vb = /viewBox="([\d.-]+) ([\d.-]+) ([\d.]+) ([\d.]+)"/.exec(out).slice(1).map(Number);
+  assert.ok(vb[1] <= -36, "top grows to cover the label above y=-20 and the path at y=-30");
+  assert.equal(fitViewBox('<svg viewBox="0 0 10 10"><rect x="1" y="1"/></svg>'), '<svg viewBox="0 0 10 10"><rect x="1" y="1"/></svg>');
+});

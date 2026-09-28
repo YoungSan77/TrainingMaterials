@@ -69,7 +69,11 @@ function checkReferences(inputPath, text) {
   const warnings = [];
   const own = sessionOf(text);
   const sessions = knownSessions(inputPath);
-  const ownHeadings = headingsOf(text);
+  // A review deck "sNN-add.md" holds only the added/changed topics of the full candidate
+  // "sNN.md" next to it; its own-session references resolve against that full candidate.
+  const review = /^(s\d\d)-add\.md$/i.exec(path.basename(inputPath));
+  const full = review && path.join(path.dirname(path.resolve(inputPath)), review[1] + ".md");
+  const ownHeadings = full && fs.existsSync(full) ? headingsOf(fs.readFileSync(full, "utf-8")) : headingsOf(text);
   const lines = stripCode(text);
   let inToc = false;
   lines.forEach((line, i) => {

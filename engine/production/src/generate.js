@@ -22,7 +22,7 @@ function sparseContinuations(m) {
     const heading = String(p.heading || "").split("\n")[0];
     if (p.isToc || !/\(\d+\/\d+\)$/.test(heading)) return;
     if ((p.pictures || []).length) return;
-    if (p.items.some((it) => ["table", "code", "tree"].includes(it.kind))) return;
+    if (p.items.some((it) => ["table", "code", "tree", "source"].includes(it.kind))) return;
     if ((p.textCost || 0) >= 0.25 * 450) return;
     warnings.push("슬라이드 " + (i + 1) + ": \"" + heading + "\" continuation에 본문이 한두 줄뿐이다.");
   });

@@ -9,7 +9,7 @@ const {
   A, P, R, REL, CT, need, xmlOut, children, kids, child, all, first, el, copy, shape, paragraph, text, body, setText, spacing,
 } = require("./xml");
 const { readZip, writeZip } = require("./zip");
-const { plain, wide, estimate, splitCode } = require("./text");
+const { plain, wide, estimate, splitCode, codePoints } = require("./text");
 const { rich, runParen } = require("./richText");
 const { paragraphs } = require("./paragraphs");
 const { slideParts } = require("./referenceRenderer");
@@ -196,6 +196,57 @@ function visualPolicy(rendered) {
   return { name: "stacked", text: STACKED_TEXT, panel: STACKED_PANEL, width: 620, capacity: 330 };
 }
 
+// Lines a body paragraph takes: like estimate(), but a "(...)" span is rendered 4pt smaller
+// (production-guide.md, 괄호 -4pt) and is measured at that size.
+function proseLines(text, width, size) {
+  let sum = 0, depth = 0;
+  for (const cp of codePoints(text)) {
+    if (cp === 0x28) depth++;
+    const s = depth > 0 ? size - 4 : size;
+    sum += wide(cp) ? s : s * 0.56;
+    if (cp === 0x29 && depth > 0) depth--;
+  }
+  return Math.max(1, Math.ceil(sum / (width - 12)));
+}
+
+// Source code sizing (production-guide.md "소스 코드").
+const CODE_COL_GAP = 0.2;
+function codeHeightPt(lines, widthPt, size, lineH) {
+  return (lines.reduce((s, l) => s + estimate(plain(l), widthPt, size), 0) + 1) * lineH;
+}
+// The two halves of a code block for side-by-side columns: split at a blank line nearest the
+// middle (between members), else after the least-indented closing "}", so that a column never
+// starts inside a method body.
+function splitColumns(lines) {
+  let best = Math.ceil(lines.length / 2), bestScore = Infinity;
+  for (let i = 1; i < lines.length; i++) {
+    const prev = lines[i - 1];
+    const indent = prev.length - prev.trimStart().length;
+    let score;
+    if (prev.trim() === "") score = Math.abs(i - lines.length / 2);
+    else if (prev.trim() === "}") score = Math.abs(i - lines.length / 2) + 1000 * (indent + 1);
+    else continue;
+    if (score < bestScore) { best = i; bestScore = score; }
+  }
+  return [lines.slice(0, best), lines.slice(best)];
+}
+const wraps = (lines, widthPt, size) => lines.some((l) => estimate(plain(l), widthPt, size) > 1);
+// The layout that fits the whole code in `availPt`, trying 10pt one column, 10pt two columns,
+// then 9pt and 8pt (tighter line spacing) in one and two columns -- first among layouts where no
+// line wraps, then among any. null when none fits.
+function planCode(text, widthPt, availPt) {
+  const lines = text.split("\n");
+  const options = [];
+  for (const [size, lineH] of [[10, 13], [9, 10.8], [8, 9.6]]) {
+    options.push({ size, lineH, cols: [lines] , w: widthPt });
+    const halves = splitColumns(lines);
+    if (halves[1].length) options.push({ size, lineH, cols: halves, w: (widthPt - CODE_COL_GAP * 72) / 2 });
+  }
+  const fits = (o) => Math.max(...o.cols.map((c) => codeHeightPt(c, o.w, o.size, o.lineH))) <= availPt;
+  const pick = options.find((o) => fits(o) && !o.cols.some((c) => wraps(c, o.w, o.size))) || options.find(fits);
+  return pick ? { size: pick.size, lineH: pick.lineH, cols: pick.cols.map((c) => c.join("\n")) } : null;
+}
+
 function addPicture(doc, shapeId, relId, bounds, name, descr) {
   const pic = el(doc, P, "pic");
   const nv = el(doc, P, "nvPicPr");
@@ -376,7 +427,7 @@ class Builder {
       const rest = b.text.trim().slice(korean.length);
       return estimate(plain(korean), 620, 18) * 22 + estimate(plain(rest), 620, 10) * 13 + 12;
     }
-    return estimate(plain(b.text), 620, 18) * 22 + 12;
+    return proseLines(plain(b.text), 620, 18) * 22 + 12;
   }
 
   flush(pending, heading, width = 620, capacity = 450) {
@@ -460,12 +511,113 @@ class Builder {
 
   // A copy of a template shape on the same slide, under a fresh unique id.
   cloneShape(page, id) {
-    const src = shape(page.doc, id);
-    const c = src.cloneNode(true);
+    let src;
+    try { src = shape(page.doc, id); } catch (e) { src = null; }
+    // A page from another template slot (e.g. a code page) lacks the table page's text box (13)
+    // or table frame (11): borrow the shape from the template slide that has it.
+    if (!src) {
+      const root = this.roots.find((r) => { try { shape(r, id); return true; } catch (e) { return false; } });
+      need(root, "Template shape missing: " + id);
+      src = shape(root, id);
+    }
+    const c = page.doc.importNode(src, true);
     const next = Math.max(...all(page.doc, P, "cNvPr").map((e) => parseInt(e.getAttribute("id"), 10) || 0)) + 1;
     first(c, P, "cNvPr").setAttribute("id", String(next));
-    src.parentNode.appendChild(c);
+    first(page.doc, P, "spTree").appendChild(c);
     return next;
+  }
+
+  // Course source code (a ```java block etc.): full-width, monospace Latin font, no paragraph
+  // spacing, and a short lead text above the code on the first slide. The lecture-java baseline
+  // layouts keep their own code slide rules. Returns the last page, with tableBottom set to where
+  // the code ends so that following text/tables can stack below it.
+  //
+  // `opts.visual` is the diagram the code expresses (it sits right before the code in the
+  // manuscript). It is shown on every slide of that code: a wide diagram above the code, a narrow
+  // one to its left -- code is never shown without the model it maps.
+  sourceCode(block, heading, lead, opts = {}) {
+    const X = 0.4, W = 9.2, TOP = 1.05, BOTTOM = PAGE_NUM_Y - 0.15, LINE = 13, GAP = 0.12;
+    const png = opts.visual;
+    const stacked = png && png.width / png.height >= 1.3;
+    let remaining = block.text;
+    const parts = [];
+    let page = null;
+    for (let first = true; remaining !== null; first = false) {
+      page = this.page(5, heading);
+      let y = TOP;
+      if (first && lead.length) {
+        const h = this.textHeightPt(lead);
+        const leadId = this.cloneShape(page, 8);
+        setShapeBounds(shape(page.doc, leadId), { x: X, y: TOP, w: W, h: h / 72 });
+        paragraphs(page, leadId, lead, false);
+        y += (h + 8) / 72;
+      }
+      let codeX = X, codeW = W, pictureBottom = y;
+      if (png) {
+        const box = stacked
+          ? { x: X, y, w: W, h: (BOTTOM - y) * 0.45 }
+          : { x: X, y, w: W * 0.42, h: BOTTOM - y };
+        let bounds = fitTarget(box, png);
+        // Beside code the diagram stays at its target size instead of growing into the band
+        // (UML_MAX_PT growth): the room goes to the code, which then keeps its 10pt.
+        const nat = naturalSize(png, TARGET_PT);
+        if (bounds.w > nat.w) bounds = { x: box.x + (box.w - nat.w) / 2, y, w: nat.w, h: nat.h };
+        bounds.y = y;
+        page.pictures = [{ ...png, bounds }];
+        page.visualLayout = stacked ? "code-stacked" : "code-side";
+        pictureBottom = y + bounds.h;
+        if (stacked) y = pictureBottom + GAP;
+        else { codeX = X + box.w + GAP; codeW = W - box.w - GAP; }
+      }
+      // On the first slide, try to keep the whole code (plus the text that follows it) on one
+      // slide: 10pt in one column, then two columns side by side, then 9pt and 8pt with tighter
+      // line spacing (production-guide.md "소스 코드"). Otherwise split across slides at 10pt.
+      let cols = null, size = 10, lineH = LINE;
+      if (first) {
+        const avail = (BOTTOM - y) * 72 - (opts.trailPt ? opts.trailPt + 8 : 0);
+        const plan = planCode(remaining, codeW * 72, avail);
+        if (plan) ({ cols, size, lineH } = plan);
+      }
+      if (!cols) {
+        const piece = splitCode(remaining, codeW * 72, (BOTTOM - y) * 72)[0];
+        remaining = remaining.length > piece.length ? remaining.slice(piece.length + 1) : null;
+        cols = [piece];
+      } else {
+        remaining = null;
+      }
+      const colW = cols.length === 2 ? (codeW - CODE_COL_GAP) / 2 : codeW;
+      let codeBottom = y;
+      cols.forEach((piece, ci) => {
+        const id = ci === 0 ? 31 : this.cloneShape(page, 31);
+        const sh = shape(page.doc, id);
+        const used = codeHeightPt(piece.split("\n"), colW * 72, size, lineH) / 72;
+        setShapeBounds(sh, { x: codeX + ci * (colW + CODE_COL_GAP), y, w: colW, h: Math.min(used, BOTTOM - y) });
+        // Same left inset as the body text box, so code starts where the text starts.
+        const bodyPr = all(sh, A, "bodyPr")[0];
+        if (bodyPr) { bodyPr.setAttribute("lIns", "91440"); bodyPr.setAttribute("rIns", "91440"); }
+        setText(sh, piece);
+        for (const par of kids(body(sh), A, "p")) {
+          const line = paragraph(par);
+          const pr = spacing(par, 0, 0, size === 10 ? null : lineH);
+          pr.setAttribute("marL", "0");
+          pr.setAttribute("indent", "0");
+          pr.setAttribute("algn", "l");
+          rich(par, line, size, false, true, this.names);
+          for (const rp of all(par, A, "rPr")) {
+            for (const old of kids(rp, A, "latin")) rp.removeChild(old);
+            const latin = el(page.doc, A, "latin", "typeface", "Consolas");
+            const ea = child(rp, A, "ea");
+            if (ea) rp.insertBefore(latin, ea); else rp.appendChild(latin);
+          }
+        }
+        page.items.push({ id, kind: "source", text: piece, rows: [] });
+        codeBottom = Math.max(codeBottom, y + used);
+        parts.push(piece);
+      });
+      page.tableBottom = Math.max(codeBottom, pictureBottom);
+    }
+    this.codes.push({ source: block.text, parts });
+    return page;
   }
 
   // Free band (pt) left below whatever is already stacked on a table page.
@@ -727,11 +879,27 @@ class Builder {
         for (let k = i - 1; k >= 0 && segOf[k] === segOf[i]; k--) if (section.blocks[k].kind === "table") return true;
         let k = i + 1;
         while (k < section.blocks.length && ["text", "heading", "bullet"].includes(section.blocks[k].kind)) k++;
-        return k < section.blocks.length && section.blocks[k].kind === "table";
+        return k < section.blocks.length && ["table", "code"].includes(section.blocks[k].kind);
       };
       const visualSegs = new Set(section.blocks.map((blk, i) => (isVisualBlock(blk) && !tableStacked(i) ? segOf[i] : -1)).filter((s) => s >= 0));
       const fullCapacity = visualPolicy([]).capacity;
-      const capacityFor = (s) => (visualSegs.has(s) ? layout.capacity : fullCapacity);
+      // Side layout: a topic's only diagram that is tall (width:height < 1.3) and whose segment
+      // text does not fit above it goes to the right half, the text to the left -- one slide
+      // instead of a text slide plus a continuation.
+      const SIDE_TEXT = { x: 0.4, y: 1.05, w: 5.3, h: 5.75 };
+      const SIDE_PANEL = { x: 5.85, y: 1.05, w: 3.75, h: 5.75 };
+      const SIDE_CAPACITY = Math.floor(fullCapacity * SIDE_TEXT.w / FULL_TEXT.w);
+      const segTextCost = (s) => section.blocks.reduce((sum, blk, i) => (segOf[i] === s && ["text", "heading", "bullet"].includes(blk.kind)
+        && !/^\*\*(?:도식|인용문|Chart)/.test(blk.text.trim()) ? sum + this.blockCost(blk) : sum), 0);
+      const sideSegs = new Set();
+      if (visuals.length === 1) {
+        const i = section.blocks.findIndex(isVisualBlock);
+        const png = renderedVisuals[0];
+        const s = segOf[i];
+        const cost = segTextCost(s);
+        if (!tableStacked(i) && png.width / png.height < 1.3 && cost > layout.capacity && cost <= SIDE_CAPACITY) sideSegs.add(s);
+      }
+      const capacityFor = (s) => (sideSegs.has(s) ? SIDE_CAPACITY : visualSegs.has(s) ? layout.capacity : fullCapacity);
       let seg = 0;
       const segStart = [this.pages.length];
       let capacity = capacityFor(0);
@@ -766,6 +934,7 @@ class Builder {
       // and is placed between the lead text and the table on the same slide when they fit.
       let open = null;
       let deferred = null;
+      let deferredCode = null;
       // Consecutive tables in one segment with the same column count share column widths, so a
       // stacked pair (or a pair split across slides) reads as one aligned grid.
       let carryWidths = null;
@@ -827,6 +996,11 @@ class Builder {
         if (["mermaid", "plantuml", "chart", "svg"].includes(b.kind)) {
           let j = blockIndex + 1;
           while (j < section.blocks.length && ["text", "heading", "bullet"].includes(section.blocks[j].kind)) j++;
+          if (j < section.blocks.length && section.blocks[j].kind === "code") {
+            deferredCode = { vi: visualIndex, png: renderedVisuals[visualIndex] };
+            visualIndex++;
+            continue;
+          }
           if (!open && j < section.blocks.length && section.blocks[j].kind === "table") {
             deferred = { vi: visualIndex, png: renderedVisuals[visualIndex], split: pending.length };
             visualIndex++;
@@ -936,6 +1110,21 @@ class Builder {
           continue;
         }
         need(b.kind === "code" || b.kind === "tree", "Unknown block");
+        if (b.kind === "code") {
+          const pair = deferredCode;
+          deferredCode = null;
+          const lead = pending.length && this.textHeightPt(pending) <= 3 * 40 ? pending.slice() : [];
+          if (!lead.length) flushPending();
+          let k = blockIndex + 1;
+          const trail = [];
+          while (k < section.blocks.length && ["text", "heading", "bullet"].includes(section.blocks[k].kind)) trail.push(section.blocks[k++]);
+          const trailPt = this.textHeightPt(trail);
+          open = this.sourceCode(b, section.title, lead, { ...(pair ? { visual: pair.png } : {}), trailPt });
+          if (pair) { if (multiVisual) visualTargets[pair.vi] = "placed"; else visualInline = true; }
+          pending = [];
+          governingSeen = true;
+          continue;
+        }
         const paired = b.kind === "tree" && pending.length === 1 && pending[0].kind === "text" && !governingSeen;
         if (!paired) flushPending();
         open = null;
@@ -1034,7 +1223,14 @@ class Builder {
           // flush()) estimates how far down the actual text ran, and the panel is centered in
           // whatever's left between that point and the footer -- instead of always sitting glued to
           // the text box's full design height, which left the panel crowding short text blocks.
-          const textEndY = layout.text.y + layout.text.h * Math.min(ORPHAN_TOLERANCE, (target.textCost || 0) / layout.capacity);
+          if (sideSegs.has(vSeg)) {
+            setShapeBounds(shape(target.doc, 8), SIDE_TEXT);
+            const png = renderedVisuals[0];
+            target.pictures = [{ ...png, bounds: fitTarget(SIDE_PANEL, png) }];
+            target.visualLayout = "side";
+          } else {
+          const cost = target.textCost || 0;
+          const textEndY = layout.text.y + layout.text.h * Math.min(ORPHAN_TOLERANCE, cost / layout.capacity);
           const margin = 0.15;
           const availableH = Math.max(0.6, PAGE_NUM_Y - margin - (textEndY + margin));
           const panel = visualPanel(layout, textEndY + margin, availableH, renderedVisuals);
@@ -1045,6 +1241,7 @@ class Builder {
             bounds: fitTarget({ x: panel.x, y: panel.y + index * (slotH + gap), w: panel.w, h: slotH }, png),
           }));
           target.visualLayout = layout.name;
+          }
         }
       }
       if (section.notes && section.notes.length && end > firstIdx) this.pages[firstIdx].notes = section.notes;

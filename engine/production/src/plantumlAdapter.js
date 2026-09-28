@@ -4,7 +4,7 @@ const path = require("path");
 const https = require("https");
 const crypto = require("crypto");
 const { textWidths, maxEntityRectWidth, uniformClassSource, uniformLabelSource } = require("./uniformSize");
-const { shrinkUsecaseActors, fitUsecaseEllipses, fixAssociationClasses } = require("./umlSvgFix");
+const { shrinkUsecaseActors, fitUsecaseEllipses, fixAssociationClasses, fitViewBox } = require("./umlSvgFix");
 const { execFileSync } = require("child_process");
 
 const VERSION = "1.2026.0";
@@ -115,7 +115,7 @@ function assembled(source, kind) {
     // general arrow labels are explicitly kept plain rather than picking up the default.
     "skinparam defaultFontStyle bold", "skinparam SequenceMessageFontStyle plain", "skinparam ArrowFontStyle plain",
     "skinparam ArrowColor #1B3A6B", "skinparam SequenceLifeLineBorderColor #1B3A6B",
-    "skinparam SequenceParticipantBorderColor #1B3A6B", "skinparam SequenceParticipantBackgroundColor #EBF1F8",
+    "skinparam SequenceParticipantBorderColor #1B3A6B", "skinparam SequenceParticipantBackgroundColor white",
     styleSource(innerSource(source)), "@enduml",
   ].join("\n");
 }
@@ -233,12 +233,13 @@ function svgFixes(kind, inner) {
   if (kind === "usecase") fixes.push(fitUsecaseEllipses);
   if (kind === "usecase" && hasActor) fixes.push((svg) => shrinkUsecaseActors(svg, ACTOR_SCALE));
   if (kind === "class" && /^\s*\([^)]*,[^)]*\)\s*\.\./m.test(inner)) fixes.push(fixAssociationClasses);
+  if (["communication", "collaboration"].includes(kind)) fixes.push(fitViewBox);
   return fixes;
 }
 
 const RSVG_CONVERT = "/opt/homebrew/bin/rsvg-convert";
 function rasterizeSvg(svg, kind) {
-  const hash = crypto.createHash("sha1").update(`svgfix-v6\n${svg}`).digest("hex").slice(0, 16);
+  const hash = crypto.createHash("sha1").update(`svgfix-v7\n${svg}`).digest("hex").slice(0, 16);
   const pngPath = path.join(CACHE_DIR, hash + ".actors.png");
   if (fs.existsSync(pngPath) && pngSize(fs.readFileSync(pngPath)).width) return pngPath;
   if (!fs.existsSync(RSVG_CONVERT)) throw new Error("PlantUML 액터 축소용 rsvg-convert가 없다: " + RSVG_CONVERT);
