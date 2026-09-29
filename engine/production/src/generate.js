@@ -51,7 +51,7 @@ async function generateFile(inputPath, outputPath, templatePath) {
     // Diagram text below MIN_PT (production-guide.md "Visual layout 및 가독성"): the diagram had to
     // shrink past 7pt to fit, so the source should split or simplify it.
     m.pages.forEach((p, i) => (p.pictures || []).forEach((pic) => {
-      const pt = builder.TARGET_PT * pic.bounds.w / builder.naturalSize(pic, builder.TARGET_PT).w;
+      const pt = builder.pictureTextPt(pic, pic.bounds);
       if (pt < builder.MIN_PT - 0.05) refs.warnings.push(`슬라이드 ${i + 1}: 도식 글자가 ${pt.toFixed(1)}pt로 ${builder.MIN_PT}pt보다 작다.`);
     }));
     const warnings = refs.warnings.concat(sparseContinuations(m));

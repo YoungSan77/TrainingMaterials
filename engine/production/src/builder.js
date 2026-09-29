@@ -158,6 +158,13 @@ function fitTarget(bounds, image) {
   return center(bounds, natural.w * scale, natural.h * scale);
 }
 
+// The text size (pt) a diagram reads at inside `bounds`, and the whole body area a diagram gets
+// when it has a slide to itself.
+function pictureTextPt(image, bounds) {
+  return TARGET_PT * bounds.w / naturalSize(image, TARGET_PT).w;
+}
+const VISUAL_ONLY = { x: 0.5, y: 1.05, w: 9.0, h: PAGE_NUM_Y - 0.15 - 1.05 };
+
 // The panel a topic's visual(s) are placed in: centered in the free band [top, top+availableH]
 // between the text's estimated end and the footer. Mermaid/SVG/chart keep the layout's design
 // panel height; an all-UML panel takes the whole free band at the widest body width, so a large
@@ -1278,13 +1285,35 @@ class Builder {
           }
         }
       }
-      if (section.notes && section.notes.length && end > firstIdx) this.pages[firstIdx].notes = section.notes;
-      for (let k = firstIdx; k < end; k++) {
+      // A diagram that would read below MIN_PT while sharing its slide first gets a slide of its
+      // own at the full body area (production-guide.md "Visual layout 및 가독성"). It stays put --
+      // and is reported by generate.js -- only when even that slide cannot hold it at MIN_PT.
+      let sectionEnd = end;
+      for (let k = firstIdx; k < sectionEnd; k++) {
+        const p = this.pages[k];
+        if (!p.pictures || !p.pictures.length) continue;
+        const shared = () => p.pictures.length > 1 || p.items.some((it) => it.kind === "table" || (it.text && it.text.trim() !== ""));
+        for (const pic of p.pictures.slice()) {
+          if (pictureTextPt(pic, pic.bounds) >= MIN_PT - 0.05 || !shared()) continue;
+          const bounds = fitTarget(VISUAL_ONLY, pic);
+          if (pictureTextPt(pic, bounds) < MIN_PT - 0.05) continue;
+          p.pictures = p.pictures.filter((x) => x !== pic);
+          const q = this.page(ORIGIN.prose, section.title);
+          paragraphs(q, 8, [], false);
+          this.pages.pop();
+          this.pages.splice(k + 1, 0, q);
+          q.pictures = [{ ...pic, bounds }];
+          q.visualLayout = "visual-only";
+          sectionEnd++;
+        }
+      }
+      if (section.notes && section.notes.length && sectionEnd > firstIdx) this.pages[firstIdx].notes = section.notes;
+      for (let k = firstIdx; k < sectionEnd; k++) {
         const p = this.pages[k];
         const m = /^(.+?) (\(.*\))$/.exec(p.heading);
         let main = p.heading, english = "";
         if (m) { main = m[1]; english = m[2]; }
-        if (end - firstIdx > 1) main += " (" + (k - firstIdx + 1) + "/" + (end - firstIdx) + ")";
+        if (sectionEnd - firstIdx > 1) main += " (" + (k - firstIdx + 1) + "/" + (sectionEnd - firstIdx) + ")";
         const second = [english, section.diagram || ""].filter((s) => s !== "").join(" · ");
         p.heading = main + (second === "" ? "" : "\n" + second);
       }
@@ -1381,4 +1410,4 @@ async function render(sections, templatePath, outputPath, session, toc) {
   return b.render(sections, outputPath, toc);
 }
 
-module.exports = { Builder, render, geometry, naturalSize, fitTarget, visualPanel, columnWidths, tocSessionName, TARGET_PT, MIN_PT, UML_MAX_PT, PAGE_NUM_Y };
+module.exports = { Builder, render, geometry, naturalSize, pictureTextPt, fitTarget, visualPanel, columnWidths, tocSessionName, TARGET_PT, MIN_PT, UML_MAX_PT, PAGE_NUM_Y };
