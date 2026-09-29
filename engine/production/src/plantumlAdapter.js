@@ -112,6 +112,9 @@ function assembled(source, kind) {
     // A class box shows its name only; the C·E·I·A spot is not UML, so enumerations and
     // interfaces are told apart by their «enumeration»·«interface» stereotypes instead.
     ...(kind === "class" || kind === "package" ? ["hide circle"] : []),
+    // A package diagram shows what belongs to which package: class names only, never attributes
+    // or operations (session-authoring-guide.md "9. UML").
+    ...(kind === "package" ? ["hide members"] : []),
     `scale ${SCALE}`,
     "skinparam backgroundColor white", "skinparam defaultFontName 맑은 고딕", `skinparam defaultFontSize ${FONT_SIZE}`,
     // Bold by default (box/entity text), but not the flow itself -- sequence messages and

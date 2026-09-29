@@ -156,4 +156,4 @@ function paragraphs(page, id, blocks, toc) {
   page.items.push({ id, kind: "body", text: expected.join("\n"), rows: [] });
 }
 
-module.exports = { paragraphs };
+module.exports = { paragraphs, BULLET_LEVELS };

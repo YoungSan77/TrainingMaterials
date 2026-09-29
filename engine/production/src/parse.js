@@ -164,13 +164,16 @@ function parse(input) {
     // is accepted as a "bullet" block, reusing the existing bullet depth/typography rules (size,
     // spacing). The numeral is kept as part of the text verbatim -- it is never stripped or replaced
     // with a generic bullet glyph, so authored numbering is preserved exactly as written.
-    if (/^\d+\.\s.*$/.test(line)) {
-      push(block("bullet", line, 0));
+    // An indented one ("  1. ") nests under the list item above it, like an indented bullet.
+    const ordered = /^( *)(\d+\.\s.*)$/.exec(line);
+    if (ordered) {
+      need(ordered[1].length % 2 === 0, "목록 들여쓰기는 2칸 단위다.");
+      push(block("bullet", ordered[2], Math.min(ordered[1].length / 2, 2)));
       continue;
     }
     need(!/^(!\[|<).*/.test(line), "지원하지 않는 Markdown: " + line);
     let value = line;
-    while (i < lines.length && lines[i].trim() !== "" && !isNotesHeading(lines[i]) && !/^(#|\s*[-+] |\||```)/.test(lines[i])) {
+    while (i < lines.length && lines[i].trim() !== "" && !isNotesHeading(lines[i]) && !/^(#|\s*[-+] |\s*\d+\.\s|\||```)/.test(lines[i])) {
       value += " " + lines[i++].trim();
     }
     push(block("text", value, 0));

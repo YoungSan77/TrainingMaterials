@@ -7,8 +7,8 @@ const {
 } = require("./xml");
 const { writeZip } = require("./zip");
 const { plain, wide, estimate, splitCode, codePoints } = require("./text");
-const { rich, runParen, richDeclarations } = require("./richText");
-const { paragraphs } = require("./paragraphs");
+const { rich, run, runParen, richDeclarations } = require("./richText");
+const { paragraphs, BULLET_LEVELS } = require("./paragraphs");
 const { TEMPLATE_DIR, ORIGIN, readTemplate, slideParts } = require("./template");
 const { renderMermaid } = require("./mermaidAdapter");
 const { renderPlantUml } = require("./plantumlAdapter");
@@ -25,6 +25,14 @@ const TOC_FONT_SIZE = 16;
 // production-guide.md "Session 명": the TOC slide title uses only the session name before its
 // " — " subtitle ("03. 정적 모델 — 도메인 개념과 관계" -> "03. 정적 모델"); every other slide's
 // top-right session name keeps the full name.
+// A practice assignment topic ("NN. 실습 — …"), one slide; an older review example ("… 검토 예시") may run longer.
+function isPractice(title) {
+  return /^\d\d\. 실습 — /.test(title) && !/검토 예시/.test(title);
+}
+// Its answer, a topic titled "NN. <산출물> (안)" (session-authoring-guide.md "사례·가정·실습").
+function isAnswer(title) {
+  return /\(안\)$/.test(String(title).trim());
+}
 function tocSessionName(session) {
   return String(session).split(/\s+—\s+/)[0].trim();
 }
@@ -386,6 +394,80 @@ function columnWidths(rows, cols) {
   return fitting.reduce((best, ws) => (wrapped(ws) < wrapped(best) ? ws : best));
 }
 
+// production-guide.md "실습 슬라이드": the practice slide and a text answer "(안)" take the sizes
+// of the reference deck. A style gives the size of a plain paragraph (`text`) and of each list
+// level, the size of a line's explanation after "—" and of a "(...)" span for a level size, and
+// how lines are indented: `hang` sets each level 0.25in in with a 0.2in hanging glyph (answer);
+// `aligned` puts an unbulleted "+ " line under its parent's text (practice).
+const PRACTICE_STYLE = { fit: 1.04, text: 16, levels: [18, 16, 14], expl: () => 10.5, paren: () => 10, aligned: true };
+const ANSWER_STYLE = { fit: 1.1, text: 14, levels: [14, 12, 11], expl: (L) => L - 2, paren: (L) => Math.max(8, L - 4), hang: true };
+const shiftStyle = (size) => ({ fit: 1.04, text: size, levels: [size, size - 2, size - 4], expl: (L) => L - 2, paren: (L) => Math.max(8, L - 4), aligned: true });
+const PRACTICE_BOX = { x: 0.4, y: 1.05, w: 9.43, h: 6.04 };
+const ANSWER_COLUMNS = [{ x: 0.255, y: 1.05, w: 4.745, h: 6.04 }, { x: 5.0, y: 1.05, w: 4.855, h: 6.04 }];
+// Glyph widths and line height in em for 맑은 고딕, calibrated against PowerPoint's own output of
+// the practice and answer slides. A style's `fit` is the share of a box's height its text may be
+// estimated at and still fit; the smaller answer sizes wrap less than estimated.
+const KOREAN_EM = 0.9, SPACE_EM = 0.25, LINE_EM = 1.25;
+const STYLE_SPACE = 3;
+const AUTHORED = [18, 16, 14];
+
+function styleSize(style, b) {
+  return b.kind === "bullet" ? style.levels[Math.min(b.depth || 0, 2)] : style.text;
+}
+
+// Height (pt) of `blocks` set in `style` inside `box`: the key before the first " — " at the
+// line's size, the explanation after it at the explanation size, "(...)" at the paren size.
+function styledCost(blocks, style, box) {
+  return blocks.reduce((sum, b) => {
+    const L = styleSize(style, b), E = style.expl(L), P = style.paren(L);
+    const depth = b.kind === "bullet" ? Math.min(b.depth || 0, 2) : -1;
+    const level = depth < 0 ? null : BULLET_LEVELS[depth + 1];
+    const numbered = /^(?:\d+\.|\(\d+\))\s/.test(b.text);
+    const indent = depth < 0 ? 0 : style.hang ? (depth + 1) * 0.25
+      : style.aligned && b.meta && b.meta.noGlyph && !numbered ? BULLET_LEVELS[depth].marL / EMU
+      : numbered ? (level.marL + level.indent) / EMU + 0.25 : level.marL / EMU;
+    const text = plain(b.text), cut = text.indexOf(" — ");
+    let w = 0, paren = 0;
+    Array.from(text).forEach((ch, i) => {
+      const cp = ch.codePointAt(0);
+      if (cp === 0x28) paren++;
+      const size = paren > 0 ? P : cut >= 0 && i > cut ? E : L;
+      w += size * (cp >= 0x1100 ? KOREAN_EM : cp === 0x20 ? SPACE_EM : 0.56);
+      if (cp === 0x29 && paren > 0) paren--;
+    });
+    const lines = Math.max(1, Math.ceil(w / ((box.w - indent) * 72 - 12)));
+    return sum + lines * L * LINE_EM + 2 * STYLE_SPACE;
+  }, 0);
+}
+
+// Applies `style` to the paragraphs paragraphs() wrote into `sh` at the authored sizes (18/16/14
+// by level, the explanation 2pt and a "(...)" span 4pt under).
+function restyle(sh, style) {
+  for (const p of all(sh, A, "p")) {
+    spacing(p, STYLE_SPACE, STYLE_SPACE, null);
+    const pr = child(p, A, "pPr");
+    const lvl = pr && pr.getAttribute("lvl") ? parseInt(pr.getAttribute("lvl"), 10) : 0;
+    const depth = lvl ? Math.min(lvl - 2, 2) : -1;
+    const from = depth < 0 ? 18 : AUTHORED[depth];
+    const L = depth < 0 ? style.text : style.levels[depth], E = style.expl(L), P = style.paren(L);
+    for (const rp of all(p, A, "rPr")) {
+      const sz = parseInt(rp.getAttribute("sz") || "1800", 10) / 100;
+      const to = sz >= from ? L : sz >= from - 2 ? E : sz >= from - 4 ? P : Math.max(8, Math.min(P, E - 2));
+      rp.setAttribute("sz", String(Math.round(to * 100)));
+    }
+    if (!lvl) continue;
+    const bare = Boolean(child(pr, A, "buNone"));
+    const level = BULLET_LEVELS[Math.min(lvl, BULLET_LEVELS.length) - 1];
+    if (style.hang) {
+      pr.setAttribute("marL", String(Math.round((lvl - 1) * 0.25 * EMU)));
+      pr.setAttribute("indent", String(bare ? 0 : Math.round(-0.2 * EMU)));
+    } else if (style.aligned && bare && parseInt(pr.getAttribute("indent"), 10) === level.indent) {
+      pr.setAttribute("marL", String(BULLET_LEVELS[lvl - 2].marL));
+      pr.setAttribute("indent", "0");
+    }
+  }
+}
+
 // Port of LecturePpt.geometry(): reads a template shape's <a:ext> in points, default 630x390.
 function geometry(sh) {
   const sp = child(sh, P, "spPr");
@@ -430,6 +512,7 @@ class Builder {
   // was tipping citation-heavy topics into an extra near-empty continuation slide (confirmed by
   // inspecting actual output: e.g. topic "08" spilled a single trailing bullet onto its own page).
   blockCost(b) {
+    if (this.sectionStyle) return styledCost([b], this.sectionStyle, FULL_TEXT) * 450 / (FULL_TEXT.h * 72 * this.sectionStyle.fit);
     const markedQuote = b.meta && (b.meta.quote || b.meta.anchor);
     const quoteMatch = markedQuote && /^"[^"]*"/.exec(b.text.trim());
     if (quoteMatch) {
@@ -440,8 +523,90 @@ class Builder {
     return proseLines(plain(b.text), 620, 18) * 22 + 12;
   }
 
+  // The practice slide (production-guide.md "실습 슬라이드"): the reference style in one column,
+  // then 16 and 14pt in one column, then 14pt in two. Returns the page (appended to this.pages) or
+  // null when even two columns overflow.
+  practicePage(blocks, heading) {
+    const half = (FULL_TEXT.w - 0.3) / 2;
+    const two = [{ ...FULL_TEXT, w: half }, { ...FULL_TEXT, x: FULL_TEXT.x + half + 0.3, w: half }];
+    const tries = [[PRACTICE_STYLE, [PRACTICE_BOX]], [shiftStyle(16), [FULL_TEXT]], [shiftStyle(14), [FULL_TEXT]], [shiftStyle(14), two]];
+    for (const [style, boxes] of tries) {
+      const page = this.styledPage(blocks, heading, style, boxes);
+      if (!page) continue;
+      page.practiceSize = style.text;
+      if (boxes.length === 2) page.practiceColumns = 2;
+      return page;
+    }
+    return null;
+  }
+
+  // A text answer "(안)": the reference style in two columns split before a level-0 item where
+  // possible. Returns null when it does not fit (structure.js then reports it).
+  answerPage(blocks, heading) {
+    const page = this.styledPage(blocks, heading, ANSWER_STYLE, ANSWER_COLUMNS);
+    if (page) page.answerColumns = 2;
+    return page;
+  }
+
+  // Sets `blocks` in `style` into one box, or into two boxes split at the most balanced block
+  // boundary (a level-0 block first); null when a box overflows.
+  styledPage(blocks, heading, style, boxes) {
+    if (!blocks.length) return null;
+    const fits = (bs, box) => styledCost(bs, style, box) <= box.h * 72 * style.fit;
+    // In two columns, the leading unbulleted paragraphs (a governing message) span both columns
+    // above them.
+    let lead = [], leadBox = null;
+    if (boxes.length === 2) {
+      while (lead.length < blocks.length && blocks[lead.length].kind === "text") lead.push(blocks[lead.length]);
+      if (lead.length === blocks.length) lead = [];
+      if (lead.length) {
+        const [l, r] = boxes;
+        leadBox = { x: l.x, y: l.y, w: r.x + r.w - l.x, h: l.h };
+        leadBox.h = styledCost(lead, style, leadBox) / 72 / style.fit + 0.2;
+        boxes = boxes.map((box) => ({ ...box, y: box.y + leadBox.h, h: box.h - leadBox.h }));
+        blocks = blocks.slice(lead.length);
+      }
+    }
+    let parts;
+    if (boxes.length === 1) {
+      if (!fits(blocks, boxes[0])) return null;
+      parts = [blocks];
+    } else {
+      const top = (b) => b.kind !== "bullet" || !b.depth;
+      const split = (allowed) => {
+        let best = null;
+        for (let i = 1; i < blocks.length; i++) {
+          if (!allowed(blocks[i]) || !fits(blocks.slice(0, i), boxes[0]) || !fits(blocks.slice(i), boxes[1])) continue;
+          const h = Math.max(styledCost(blocks.slice(0, i), style, boxes[0]), styledCost(blocks.slice(i), style, boxes[1]));
+          if (!best || h < best.h) best = { i, h };
+        }
+        return best;
+      };
+      const best = split(top) || split(() => true);
+      if (!best) return null;
+      parts = [blocks.slice(0, best.i), blocks.slice(best.i)];
+    }
+    const page = this.page(ORIGIN.prose, heading);
+    if (lead.length) {
+      const id = this.cloneShape(page, 8);
+      setShapeBounds(shape(page.doc, id), leadBox);
+      paragraphs(page, id, lead, false);
+      restyle(shape(page.doc, id), style);
+    }
+    parts.forEach((part, k) => {
+      const id = k === 0 ? 8 : this.cloneShape(page, 8);
+      setShapeBounds(shape(page.doc, id), boxes[k]);
+      paragraphs(page, id, part, false);
+      restyle(shape(page.doc, id), style);
+    });
+    page.textCost = styledCost(parts[0], style, boxes[0]);
+    page.columns = parts.length;
+    return page;
+  }
+
   flush(pending, heading, width = 620, capacity = 450) {
     if (pending.length === 0) return;
+    if (this.sectionBlocks) this.sectionBlocks.push(...pending);
     let chunk = [];
     let cost = 0;
     let pageCapacity = capacity;
@@ -458,6 +623,7 @@ class Builder {
       if (!keep && cost + c > pageCapacity && chunk.length) {
         const p = this.page(ORIGIN.prose, heading);
         paragraphs(p, 8, chunk, false);
+        if (this.sectionStyle) restyle(shape(p.doc, 8), this.sectionStyle);
         p.textCost = cost;
         chunk = [];
         cost = 0;
@@ -469,6 +635,7 @@ class Builder {
     if (chunk.length) {
       const p = this.page(ORIGIN.prose, heading);
       paragraphs(p, 8, chunk, false);
+      if (this.sectionStyle) restyle(shape(p.doc, 8), this.sectionStyle);
       p.textCost = cost;
     }
     pending.length = 0;
@@ -551,6 +718,55 @@ class Builder {
   // `opts.visual` is the diagram the code expresses (it sits right before the code in the
   // manuscript). It is shown on every slide of that code: a wide diagram above the code, a narrow
   // one to its left -- code is never shown without the model it maps.
+  // Fills one or two code columns at (x, y) within width w; returns the bottom (in) of the code.
+  fillCode(page, cols, x, y, w, size, lineH, bottom, parts) {
+    const colW = cols.length === 2 ? (w - CODE_COL_GAP) / 2 : w;
+    let codeBottom = y;
+    cols.forEach((piece, ci) => {
+      const id = ci === 0 && !page.items.some((it) => it.id === 31) ? 31 : this.cloneShape(page, 31);
+      const sh = shape(page.doc, id);
+      const used = codeHeightPt(piece.split("\n"), colW * 72, size, lineH) / 72;
+      setShapeBounds(sh, { x: x + ci * (colW + CODE_COL_GAP), y, w: colW, h: Math.min(used, bottom - y) });
+      // Same left inset as the body text box, so code starts where the text starts.
+      const bodyPr = all(sh, A, "bodyPr")[0];
+      if (bodyPr) { bodyPr.setAttribute("lIns", "91440"); bodyPr.setAttribute("rIns", "91440"); }
+      setText(sh, piece);
+      for (const par of kids(body(sh), A, "p")) {
+        const line = paragraph(par);
+        const pr = spacing(par, 0, 0, size === 10 ? null : lineH);
+        pr.setAttribute("marL", "0");
+        pr.setAttribute("indent", "0");
+        pr.setAttribute("algn", "l");
+        richDeclarations(par, line, size);
+        for (const rp of all(par, A, "rPr")) {
+          for (const old of kids(rp, A, "latin")) rp.removeChild(old);
+          const latin = el(page.doc, A, "latin", "typeface", "Consolas");
+          const ea = child(rp, A, "ea");
+          if (ea) rp.insertBefore(latin, ea); else rp.appendChild(latin);
+        }
+      }
+      page.items.push({ id, kind: "source", text: piece, rows: [] });
+      codeBottom = Math.max(codeBottom, y + used);
+      parts.push(piece);
+    });
+    return codeBottom;
+  }
+
+  // A code block that directly follows another one (no text between) is stacked below it on the
+  // same slide when it fits there whole, in the same code column; otherwise it starts its own slide.
+  appendCodeBelow(page, block, trailPt) {
+    if (!page || !page.codeArea) return false;
+    const BOTTOM = PAGE_NUM_Y - 0.15, GAP = 0.12;
+    const y = page.tableBottom + GAP;
+    const avail = (BOTTOM - y) * 72 - (trailPt ? trailPt + 8 : 0);
+    const plan = planCode(block.text, page.codeArea.w * 72, avail);
+    if (!plan) return false;
+    const parts = [];
+    page.tableBottom = this.fillCode(page, plan.cols, page.codeArea.x, y, page.codeArea.w, plan.size, plan.lineH, BOTTOM, parts);
+    this.codes.push({ source: block.text, parts });
+    return true;
+  }
+
   sourceCode(block, heading, lead, opts = {}) {
     const X = 0.4, W = 9.2, TOP = 1.05, BOTTOM = PAGE_NUM_Y - 0.15, LINE = 13, GAP = 0.12;
     const png = opts.visual;
@@ -614,35 +830,8 @@ class Builder {
       } else {
         remaining = null;
       }
-      const colW = cols.length === 2 ? (codeW - CODE_COL_GAP) / 2 : codeW;
-      let codeBottom = y;
-      cols.forEach((piece, ci) => {
-        const id = ci === 0 ? 31 : this.cloneShape(page, 31);
-        const sh = shape(page.doc, id);
-        const used = codeHeightPt(piece.split("\n"), colW * 72, size, lineH) / 72;
-        setShapeBounds(sh, { x: codeX + ci * (colW + CODE_COL_GAP), y, w: colW, h: Math.min(used, BOTTOM - y) });
-        // Same left inset as the body text box, so code starts where the text starts.
-        const bodyPr = all(sh, A, "bodyPr")[0];
-        if (bodyPr) { bodyPr.setAttribute("lIns", "91440"); bodyPr.setAttribute("rIns", "91440"); }
-        setText(sh, piece);
-        for (const par of kids(body(sh), A, "p")) {
-          const line = paragraph(par);
-          const pr = spacing(par, 0, 0, size === 10 ? null : lineH);
-          pr.setAttribute("marL", "0");
-          pr.setAttribute("indent", "0");
-          pr.setAttribute("algn", "l");
-          richDeclarations(par, line, size);
-          for (const rp of all(par, A, "rPr")) {
-            for (const old of kids(rp, A, "latin")) rp.removeChild(old);
-            const latin = el(page.doc, A, "latin", "typeface", "Consolas");
-            const ea = child(rp, A, "ea");
-            if (ea) rp.insertBefore(latin, ea); else rp.appendChild(latin);
-          }
-        }
-        page.items.push({ id, kind: "source", text: piece, rows: [] });
-        codeBottom = Math.max(codeBottom, y + used);
-        parts.push(piece);
-      });
+      const codeBottom = this.fillCode(page, cols, codeX, y, codeW, size, lineH, BOTTOM, parts);
+      page.codeArea = { x: codeX, w: codeW };
       page.tableBottom = Math.max(codeBottom, pictureBottom);
     }
     this.codes.push({ source: block.text, parts });
@@ -884,7 +1073,11 @@ class Builder {
 
     for (const section of sections) {
       const firstIdx = this.pages.length;
+      this.sectionBlocks = [];
       const visuals = section.blocks.filter((b) => ["mermaid", "plantuml", "chart", "svg"].includes(b.kind));
+      // A diagram answer "(안)" keeps the usual text-above-diagram layout, its text in the answer
+      // sizes (production-guide.md "실습 슬라이드").
+      this.sectionStyle = isAnswer(section.title) && visuals.length ? ANSWER_STYLE : null;
       const renderedVisuals = await Promise.all(visuals.map(async (b) => {
         const png = b.kind === "mermaid" ? await renderMermaid({ source: b.text })
           : b.kind === "plantuml" ? await renderPlantUml({ kind: b.meta && b.meta.uml, source: b.text })
@@ -1156,6 +1349,10 @@ class Builder {
           const trail = [];
           while (k < section.blocks.length && ["text", "heading", "bullet"].includes(section.blocks[k].kind)) trail.push(section.blocks[k++]);
           const trailPt = this.textHeightPt(trail);
+          if (!pair && !pending.length && open && open.codeArea && this.appendCodeBelow(open, b, trailPt)) {
+            governingSeen = true;
+            continue;
+          }
           open = this.sourceCode(b, section.title, lead, { ...(pair ? { visual: pair.png } : {}), trailPt });
           if (pair) { if (multiVisual) visualTargets[pair.vi] = "placed"; else visualInline = true; }
           pending = [];
@@ -1238,7 +1435,7 @@ class Builder {
           for (let s = vSeg + 1; s < segStart.length; s++) if (segStart[s] != null) segStart[s]++;
         }
       }
-      const end = this.pages.length;
+      let end = this.pages.length;
       if (multiVisual) {
         // Each visual already claimed its own target page inline (see the loop above); attach it
         // there alone, with the full panel height to itself rather than sharing a slot.
@@ -1285,6 +1482,22 @@ class Builder {
           }
         }
       }
+      // A practice topic ("NN. 실습 — …", not its "검토 예시") is one slide (session-authoring-guide.md
+      // "사례·가정·실습"): when its text ran onto continuation slides, set it again on one slide at
+      // 16 then 14pt, then in two columns at 14pt (production-guide.md "실습 슬라이드"). Its answer
+      // is set on one slide at 14/12/11pt by level, in two columns if needed; if even that runs
+      // over it keeps its 18pt continuation slides.
+      const practicePages = this.pages.slice(firstIdx, end);
+      if (isPractice(section.title) || isAnswer(section.title)) {
+        const pages = practicePages;
+        const textOnly = pages.every((p) => !(p.pictures || []).length && p.tableBottom == null && !p.items.some((it) => it.kind === "source" || it.kind === "table"));
+        const one = textOnly && (isPractice(section.title) ? this.practicePage(this.sectionBlocks, section.title) : this.answerPage(this.sectionBlocks, section.title));
+        if (one) {
+          this.pages.splice(firstIdx, end - firstIdx);
+          this.pages.splice(firstIdx, 0, this.pages.pop());
+          end = firstIdx + 1;
+        }
+      }
       // A diagram that would read below MIN_PT while sharing its slide first gets a slide of its
       // own at the full body area (production-guide.md "Visual layout 및 가독성"). It stays put --
       // and is reported by generate.js -- only when even that slide cannot hold it at MIN_PT.
@@ -1310,7 +1523,7 @@ class Builder {
       if (section.notes && section.notes.length && sectionEnd > firstIdx) this.pages[firstIdx].notes = section.notes;
       for (let k = firstIdx; k < sectionEnd; k++) {
         const p = this.pages[k];
-        const m = /^(.+?) (\(.*\))$/.exec(p.heading);
+        const m = /^(.+?) (\((?!안\)).*\))$/.exec(p.heading);
         let main = p.heading, english = "";
         if (m) { main = m[1]; english = m[2]; }
         if (sectionEnd - firstIdx > 1) main += " (" + (k - firstIdx + 1) + "/" + (sectionEnd - firstIdx) + ")";
@@ -1348,7 +1561,13 @@ class Builder {
         for (let li = 0; li < lines.length; li++) {
           const par = el(p.doc, A, "p");
           titleBody.appendChild(par);
-          runParen(par, lines[li], li === 0 ? 24 : 11, true);
+          // An answer's "(안)" is set at 18pt beside the 24pt title (production-guide.md "실습 슬라이드").
+          const draft = li === 0 && /^(.*) (\(안\))((?: \(\d+\/\d+\))?)$/.exec(lines[li]);
+          if (draft) {
+            runParen(par, draft[1] + " ", 24, true);
+            run(par, draft[2], 18, true);
+            if (draft[3]) runParen(par, draft[3], 24, true);
+          } else runParen(par, lines[li], li === 0 ? 24 : 11, true);
         }
       }
       // Shape 5 (top-right, idx=11) is the session name -- production-guide.md ("Session 명")
@@ -1410,4 +1629,4 @@ async function render(sections, templatePath, outputPath, session, toc) {
   return b.render(sections, outputPath, toc);
 }
 
-module.exports = { Builder, render, geometry, naturalSize, pictureTextPt, fitTarget, visualPanel, columnWidths, tocSessionName, TARGET_PT, MIN_PT, UML_MAX_PT, PAGE_NUM_Y };
+module.exports = { styledCost, PRACTICE_STYLE, ANSWER_STYLE, PRACTICE_BOX, ANSWER_COLUMNS, Builder, render, isPractice, isAnswer, geometry, naturalSize, pictureTextPt, fitTarget, visualPanel, columnWidths, tocSessionName, TARGET_PT, MIN_PT, UML_MAX_PT, PAGE_NUM_Y };

@@ -32,6 +32,15 @@ test("an omission comment splits a code block into runs that must each appear in
   assert.deepEqual(checkCodeSources(ok, fs.readFileSync(ok, "utf-8")), { errors: [], warnings: [] });
 });
 
+test("sources in package subfolders (code/sNN/<package>/*.java) count as the session's source", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "tm-code-pkg-"));
+  const p = path.join(root, "s05.md");
+  fs.writeFileSync(p, "## 01. 코드\n\n```java\npackage 주문;\n\npublic interface 배송요청 {\n    void 요청한다(String 주문번호);\n}\n```\n");
+  fs.mkdirSync(path.join(root, "code", "s05", "주문"), { recursive: true });
+  fs.writeFileSync(path.join(root, "code", "s05", "주문", "배송요청.java"), "package 주문;\n\npublic interface 배송요청 {\n    void 요청한다(String 주문번호);\n}\n");
+  assert.deepEqual(checkCodeSources(p, fs.readFileSync(p, "utf-8")), { errors: [], warnings: [] });
+});
+
 test("a code block that differs from the source is an error; a missing source folder is a warning", () => {
   const bad = session("class 주문 {\n    int 금액 = 1;\n}", SOURCE);
   assert.equal(checkCodeSources(bad, fs.readFileSync(bad, "utf-8")).errors.length, 1);
@@ -102,4 +111,24 @@ test("an enum keeps its earlier sessions' values: adding is fine, renaming or dr
   }
   assert.deepEqual(checkEnumConsistency(path.join(root, "s02.md")), []);
   assert.equal(checkEnumConsistency(path.join(root, "s03.md")).length, 2, "결제대기 missing against s01 and s02");
+});
+
+test("a code block right after another one stacks on the same slide when it fits, otherwise starts a new one", async () => {
+  const pagesOf = async (md) => {
+    const { sections } = parse(md);
+    const toc = [{ kind: "bullet", text: sections[0].title, rows: [], depth: 0, meta: null }];
+    const out = path.join(os.tmpdir(), `tm-code-stack-${process.pid}-${Date.now()}.pptx`);
+    try {
+      return (await render(sections, TEMPLATE, out, "테스트", toc)).pages.filter((p) => !p.isToc);
+    } finally {
+      if (fs.existsSync(out)) fs.unlinkSync(out);
+    }
+  };
+  const short = "class 주문 {\n    int 금액;\n}";
+  const stacked = await pagesOf("## 01. 코드\n\n코드 두 개를 잇는다.\n\n```java\n" + short + "\n```\n\n```java\n" + short + "\n```\n");
+  assert.equal(stacked.length, 1);
+  assert.equal(stacked[0].items.filter((it) => it.kind === "source").length, 2);
+  const long = Array.from({ length: 200 }, (_, i) => `    int 필드${i};`).join("\n");
+  const split = await pagesOf("## 01. 코드\n\n코드 두 개를 잇는다.\n\n```java\n" + short + "\n```\n\n```java\nclass 긴 {\n" + long + "\n}\n```\n");
+  assert.ok(split.length >= 2, "a code block that does not fit below starts its own slide");
 });

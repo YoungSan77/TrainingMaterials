@@ -90,6 +90,11 @@ test("class and package diagrams hide the C·E·I·A spot; the source does not h
   assert.ok(!assembled('state "결제 대기" as A', "state").includes("hide circle"));
 });
 
+test("package diagrams show class names only; class diagrams keep their members", () => {
+  assert.ok(assembled('package "주문" {\n  class "주문" as O {\n    주문 번호\n  }\n}', "package").includes("hide members"));
+  assert.ok(!assembled('class "주문" as O {\n  주문 번호\n}', "class").includes("hide members"));
+});
+
 test("shrinkSequenceActors scales the stick figure about its feet and crops the empty top band", () => {
   const svg = '<svg height="544px" style="width:464px;height:544px;" viewBox="0 0 464 544">'
     + '<g class="participant participant-head" id="part1-head"><text>고객</text>'

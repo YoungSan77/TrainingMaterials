@@ -8,6 +8,21 @@ const path = require("path");
 
 const OMISSION = /^\s*\/\/ \.\.\. .*생략\s*$/;
 
+// Every .java file under `dir`, package subfolders included (code/s05/주문/주문.java), in a stable order.
+function javaFiles(dir) {
+  if (!fs.existsSync(dir)) return [];
+  const out = [];
+  const walk = (d) => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true }).sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (e.name.endsWith(".java")) out.push(p);
+    }
+  };
+  walk(dir);
+  return out;
+}
+
 function javaBlocks(markdown) {
   return Array.from(markdown.matchAll(/^```java[ \t]*\n([\s\S]*?)^```[ \t]*$/gm), (m) => m[1].replace(/\n$/, ""));
 }
@@ -36,12 +51,12 @@ function checkCodeSources(inputPath, markdown) {
   const m = /^(s\d\d)(?:-add)?\.md$/i.exec(path.basename(inputPath));
   if (!m) return { errors, warnings };
   const dir = path.join(path.dirname(path.resolve(inputPath)), "code", m[1].toLowerCase());
-  const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith(".java")).sort() : [];
+  const files = javaFiles(dir);
   if (!files.length) {
     warnings.push(`자바 코드 원본(code/${m[1].toLowerCase()}/*.java)이 없어 코드 발췌를 확인하지 않았다.`);
     return { errors, warnings };
   }
-  const source = files.map((f) => fs.readFileSync(path.join(dir, f), "utf-8").replace(/\r\n/g, "\n")).join("\n");
+  const source = files.map((f) => fs.readFileSync(f, "utf-8").replace(/\r\n/g, "\n")).join("\n");
   blocks.forEach((block, i) => {
     for (const run of runs(block)) {
       if (!source.includes(run)) {
@@ -58,9 +73,8 @@ function checkCodeSources(inputPath, markdown) {
 // A later session may add values it discovered; renaming or dropping one is reported. Warning only.
 function enumValues(dir) {
   const out = new Map();
-  if (!fs.existsSync(dir)) return out;
-  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".java"))) {
-    const text = fs.readFileSync(path.join(dir, f), "utf-8");
+  for (const f of javaFiles(dir)) {
+    const text = fs.readFileSync(f, "utf-8");
     for (const m of text.matchAll(/\benum\s+([^\s{]+)\s*\{([^}]*)\}/g)) {
       out.set(m[1], m[2].split(";")[0].split(",").map((v) => v.trim()).filter(Boolean));
     }

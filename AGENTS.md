@@ -5,7 +5,7 @@
 Course Design → Session Authoring → Production
 
 - **Course Design**: `courses/<course>/course-design.md`. 여러 과정(ooad, ddd, msa, devops 등)에 존재한다.
-- **Session Authoring**: Session Source Markdown. `courses/ooad/sessions/s01.md`~`s04.md`가 목표 품질의 기준 예시다(s01 개요, s02~s04 상세).
+- **Session Authoring**: Session Source Markdown. `courses/ooad/sessions/s01.md`~`s05.md`가 목표 품질의 기준 예시다(s01 개요, s02~s05 상세).
 - **Production**: `engine/production/`. Session Source Markdown을 실제 PowerPoint(.pptx)로 렌더링하는 Node.js 파이프라인이며, 자동 테스트(`engine/production/src/test/`)를 갖추고 있다.
 
 세 지침 파일이 각 단계의 상세 계약을 정의한다: `guides/course-design-guide.md`, `guides/session-authoring-guide.md`, `guides/production-guide.md`.
@@ -18,7 +18,7 @@ Course Design → Session Authoring → Production
 
 ## Session Authoring Baseline
 
-`courses/ooad/sessions/s01.md`~`s04.md`는 Session Authoring의 목표 품질을 보여주는 현재 기준 예시다. `s01`은 개요 세션, `s02`~`s04`는 상세 세션의 수준이다.
+`courses/ooad/sessions/s01.md`~`s05.md`는 Session Authoring의 목표 품질을 보여주는 현재 기준 예시다. `s01`은 개요 세션, `s02`~`s05`는 상세 세션의 수준이다.
 
 삭제하거나 renderer에 맞춰 수정하지 않는다.
 

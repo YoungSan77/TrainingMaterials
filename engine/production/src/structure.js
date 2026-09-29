@@ -3,9 +3,11 @@
 //   - "01. 세션 목표" fits one slide and lists at most 7 goals.
 //   - The last topic "요약" fits one slide and has a "다음 세션" group, unless the course design
 //     lists no later session (the course's last session).
+//   - A practice topic ("NN. 실습 — …", not its "검토 예시") and a text answer "NN. … (안)" each fit
+//     one slide ("사례·가정·실습").
 const fs = require("fs");
 const path = require("path");
-const { columnWidths } = require("./builder");
+const { columnWidths, isPractice, isAnswer } = require("./builder");
 const { estimate } = require("./text");
 
 const MAX_GOALS = 7;
@@ -28,6 +30,11 @@ function checkStructure(inputPath, session, sections, pages) {
     const count = goals.blocks.filter((b) => b.kind === "bullet" && b.depth === 0).length;
     if (count > MAX_GOALS) errors.push(`세션 목표가 ${count}개다. ${MAX_GOALS}개 이하로 압축한다.`);
     if (pageCount(goals.title) > 1) errors.push("세션 목표가 한 슬라이드를 넘는다.");
+  }
+  for (const s of sections) {
+    if (isPractice(s.title) && pageCount(s.title) > 1) errors.push(`실습 "${s.title}"이 한 슬라이드를 넘는다. 과제를 줄이거나 검토 기준을 강사 노트로 옮긴다.`);
+    const textOnly = s.blocks.every((b) => ["text", "bullet", "heading"].includes(b.kind));
+    if (isAnswer(s.title) && textOnly && pageCount(s.title) > 1) errors.push(`답 "${s.title}"이 한 슬라이드를 넘는다. 대표가 아닌 규칙을 "......"로 생략하거나 (안)을 나눈다.`);
   }
   const summary = sections[sections.length - 1];
   if (summary && /^\d\d\. 요약$/.test(summary.title)) {
