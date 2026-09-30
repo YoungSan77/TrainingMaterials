@@ -36,6 +36,18 @@ function isAnswer(title) {
 function tocSessionName(session) {
   return String(session).split(/\s+—\s+/)[0].trim();
 }
+// production-guide.md "Session 명": the top-right session name stays on one line. The placeholder
+// is 3699901 EMU (~291pt) wide at 14pt bold; a longer name shrinks (0.5pt steps, not below 9pt)
+// instead of wrapping into the slide title.
+const SESSION_BOX_PT = 3699901 / 12700;
+const SESSION_PT = 14;
+const SESSION_MIN_PT = 9;
+function sessionNamePt(session) {
+  let em = 0;
+  for (const cp of codePoints(String(session))) em += wide(cp) ? 1 : 0.6;
+  if (em * SESSION_PT <= SESSION_BOX_PT) return SESSION_PT;
+  return Math.max(SESSION_MIN_PT, Math.floor((SESSION_BOX_PT / em) * 2) / 2);
+}
 const TOC_LEFT_MAX = 15;
 const TOC_LEFT_XFRM = { x: -8822, y: 949064, cx: 4580822, cy: 5530862 };
 const TOC_RIGHT_XFRM = { x: 4426820, y: 949064, cx: 4195811, cy: 5530862 };
@@ -1574,6 +1586,10 @@ class Builder {
       // requires the same value on every slide, never the slide's own topic title. Shapes 6/7
       // stay blank (no source/copyright string).
       setText(shape(p.doc, 5), p.isToc ? "" : this.session);
+      if (!p.isToc) {
+        const pt = sessionNamePt(this.session);
+        if (pt !== SESSION_PT) for (const rpr of all(shape(p.doc, 5), A, "rPr")) rpr.setAttribute("sz", String(Math.round(pt * 100)));
+      }
       setText(shape(p.doc, 6), "");
       setText(shape(p.doc, 7), "");
       for (const sh of all(p.doc, P, "sp")) if (all(sh, P, "ph").some((ph) => ph.getAttribute("type") === "sldNum")) setText(sh, "- " + number + " -");
@@ -1629,4 +1645,4 @@ async function render(sections, templatePath, outputPath, session, toc) {
   return b.render(sections, outputPath, toc);
 }
 
-module.exports = { styledCost, PRACTICE_STYLE, ANSWER_STYLE, PRACTICE_BOX, ANSWER_COLUMNS, Builder, render, isPractice, isAnswer, geometry, naturalSize, pictureTextPt, fitTarget, visualPanel, columnWidths, tocSessionName, TARGET_PT, MIN_PT, UML_MAX_PT, PAGE_NUM_Y };
+module.exports = { styledCost, PRACTICE_STYLE, ANSWER_STYLE, PRACTICE_BOX, ANSWER_COLUMNS, Builder, render, isPractice, isAnswer, geometry, naturalSize, pictureTextPt, fitTarget, visualPanel, columnWidths, tocSessionName, sessionNamePt, TARGET_PT, MIN_PT, UML_MAX_PT, PAGE_NUM_Y };

@@ -120,7 +120,10 @@ function parse(input) {
       else if (uml) { kind = "plantuml"; meta = { uml: uml[1] ? uml[1].toLowerCase() : null }; }
       else if (/^(chart|matplotlib)$/i.test(info)) { kind = "chart"; meta = null; }
       else if (/^svg(?::uml)?$/i.test(info)) { kind = "svg"; meta = /:uml$/i.test(info) ? { uml: "svg" } : null; }
-      else if (/^(tree|plaintext|text)$/.test(info) || /[├└]─/.test(value)) { kind = "tree"; meta = null; }
+      // A ```text / ```plaintext block is a learner-facing example (session-authoring-guide.md,
+      // "의미 표식과 블록 경계") and renders like code; only ```tree or box-drawing branches
+      // (├─ └─) make a directory-tree visual.
+      else if (/^tree$/i.test(info) || /[├└]─/.test(value)) { kind = "tree"; meta = null; }
       else { kind = "code"; meta = null; }
       push(block(kind, value, 0, [], meta));
       continue;

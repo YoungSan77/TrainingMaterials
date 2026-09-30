@@ -18,7 +18,7 @@ const path = require("path");
 const { parseXml, A, all, shape, body, kids, child, paragraph } = require("../xml");
 const { rich, run, runParen } = require("../richText");
 const { paragraphs } = require("../paragraphs");
-const { render, naturalSize, fitTarget, visualPanel, tocSessionName, TARGET_PT, UML_MAX_PT } = require("../builder");
+const { render, naturalSize, fitTarget, visualPanel, tocSessionName, sessionNamePt, TARGET_PT, UML_MAX_PT } = require("../builder");
 const { styleSource: mermaidStyleSource } = require("../mermaidAdapter");
 const { styleSource: plantumlStyleSource, innerSource, assembled } = require("../plantumlAdapter");
 
@@ -497,4 +497,11 @@ test("code that does not fit one slide at 10pt tries two columns, then 9pt/8pt, 
   const sources = pages[0].items.filter((it) => it.kind === "source");
   assert.equal(sources.length, 2, "as two side-by-side columns");
   assert.equal(sources.map((s) => s.text).join("\n"), code, "no code lost at the column split");
+});
+
+test("session name: a name that fits keeps 14pt, a long one shrinks to one line (not below 9pt)", () => {
+  assert.equal(sessionNamePt("04. 동적 모델 — 상호작용과 상태"), 14);
+  const long = sessionNamePt("13. OOAD에서 전문영역으로 — Architecture · DDD · MSA");
+  assert.ok(long < 14 && long >= 9, String(long));
+  assert.equal(sessionNamePt("99. " + "아주 긴 세션 이름".repeat(10)), 9);
 });

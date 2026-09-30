@@ -158,3 +158,12 @@ test("a code block right after another one stacks on the same slide when it fits
   const split = await pagesOf("## 01. 코드\n\n코드 두 개를 잇는다.\n\n```java\n" + short + "\n```\n\n```java\nclass 긴 {\n" + long + "\n}\n```\n");
   assert.ok(split.length >= 2, "a code block that does not fit below starts its own slide");
 });
+
+test("a ```text block is a learner-facing example rendered as code; only ```tree or box-drawing branches make a tree", () => {
+  const kinds = (md) => parse(md).sections[0].blocks.filter((b) => b.kind === "code" || b.kind === "tree").map((b) => b.kind);
+  const doc = (fence, body) => ["## 01. 예", "", "```" + fence, body, "```", "", "**강사 노트**", "", "- 노트"].join("\n");
+  assert.deepEqual(kinds(doc("text", "제목: 결정\n상태: 채택")), ["code"]);
+  assert.deepEqual(kinds(doc("plaintext", "한 줄 예시")), ["code"]);
+  assert.deepEqual(kinds(doc("tree", "src\n  main")), ["tree"]);
+  assert.deepEqual(kinds(doc("text", "src\n├─ main\n└─ test")), ["tree"]);
+});
