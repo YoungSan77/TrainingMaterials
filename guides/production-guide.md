@@ -193,7 +193,7 @@ Anchor Message는 Production 전용 시각 타입이 아니다. Course Design의
   - 굵게 표시한 핵심어가 없는 25자 이상의 본문 문장·bullet(`structure.js`). 번호 단계, 인용된 요청(`>`, `“…”`)은 제외한다.
   - 자바 코드 원본 폴더가 없는 세션(「소스 코드」, `codeSource.js`).
   - 강사 노트가 없는 topic(`structure.js`).
-  - 앞 세션의 코드와 값이 다른 `enum` — 관통 사례의 공통 식별자가 세션 사이에서 바뀐 것(`codeSource.js`). 뒤 세션이 값을 더하는 것(진화)은 허용한다.
+  - 앞 세션의 코드와 값이 다른 `enum` — 관통 사례의 공통 식별자가 세션 사이에서 바뀐 것(`codeSource.js`). 뒤 세션이 값을 더하는 것(진화)은 허용한다. 분석 코드의 한글 enum(`주문상태`)과 설계 코드의 영문 enum(`OrderStatus`)은 같은 과정 `course-design.md`의 **영한 용어집** 표로 대응시켜 비교한다. 용어집에 없는 한글 값은 대응을 확인할 수 없다고 보고한다.
 
 ## Visual layout 및 가독성
 

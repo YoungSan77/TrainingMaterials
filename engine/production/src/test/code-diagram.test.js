@@ -113,6 +113,32 @@ test("an enum keeps its earlier sessions' values: adding is fine, renaming or dr
   assert.equal(checkEnumConsistency(path.join(root, "s03.md")).length, 2, "결제대기 missing against s01 and s02");
 });
 
+test("a design session's English enum is compared with the analysis Korean enum through the course glossary", () => {
+  const { checkEnumConsistency } = require("../codeSource");
+  const course = fs.mkdtempSync(path.join(os.tmpdir(), "tm-glossary-"));
+  const root = path.join(course, "sessions");
+  fs.writeFileSync(path.join(course, "course-design.md"), [
+    "### 영한 용어집과 명명 규칙", "", "| 한글 | 영문 | 종류 |", "|---|---|---|",
+    "| 주문 상태 | `OrderStatus` | 타입 |", "| 결제대기 | `PENDING_PAYMENT` | 값 |", "| 결제완료 | `PAID` | 값 |",
+    "| 찾는다 / 저장한다 | `findBy` / `save` | 메서드 |", "", "### 다음 절", "| 취소됨 | `CANCELLED` | 값 |",
+  ].join("\n"));
+  for (const [s, body] of [
+    ["s04", "enum 주문상태 { 결제대기, 결제완료 }"],
+    ["s05", "enum OrderStatus { PENDING_PAYMENT, PAID }"],
+    ["s06", "enum OrderStatus { PENDING_PAYMENT }"],
+    ["s07", "enum 주문상태 { 결제대기, 취소됨 }"],
+    ["s08", "enum OrderStatus { PENDING_PAYMENT, PAID }"],
+  ]) {
+    fs.mkdirSync(path.join(root, "code", s), { recursive: true });
+    fs.writeFileSync(path.join(root, "code", s, "a.java"), body);
+  }
+  assert.deepEqual(checkEnumConsistency(path.join(root, "s05.md")), [], "the glossary maps every Korean value");
+  const dropped = checkEnumConsistency(path.join(root, "s06.md"));
+  assert.equal(dropped.length, 2, "PAID dropped against s04 (through the glossary) and s05 (by name)");
+  const unmapped = checkEnumConsistency(path.join(root, "s08.md"));
+  assert.ok(unmapped.some((w) => w.includes("취소됨") && w.includes("영한 용어집")), "a value outside the glossary section is reported, not silently passed");
+});
+
 test("a code block right after another one stacks on the same slide when it fits, otherwise starts a new one", async () => {
   const pagesOf = async (md) => {
     const { sections } = parse(md);

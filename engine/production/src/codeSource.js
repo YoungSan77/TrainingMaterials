@@ -82,18 +82,50 @@ function enumValues(dir) {
   return out;
 }
 
+// The course's 영한 용어집 (course-design.md, "### 영한 용어집…"): analysis code names things in
+// Korean (주문상태.결제대기), design code in English (OrderStatus.PENDING_PAYMENT). The table maps a
+// Korean term, spaces ignored, to its English name so an enum can be followed across the switch.
+function glossary(sessionsDir) {
+  const out = new Map();
+  const file = path.join(sessionsDir, "..", "course-design.md");
+  if (!fs.existsSync(file)) return out;
+  const lines = fs.readFileSync(file, "utf-8").split("\n");
+  const start = lines.findIndex((l) => /^###\s+영한 용어집/.test(l));
+  if (start < 0) return out;
+  const clean = (c) => c.replace(/\*\*|`/g, "").trim();
+  for (const line of lines.slice(start + 1)) {
+    if (/^#{2,3}\s/.test(line)) break;
+    const cells = line.split("|").slice(1, -1).map(clean);
+    if (cells.length < 2 || /^-+$/.test(cells[0])) continue;
+    const ko = cells[0].split("/").map((c) => c.trim());
+    const en = cells[1].split("/").map((c) => c.trim());
+    if (ko.length !== en.length) continue;
+    ko.forEach((k, i) => out.set(k.replace(/\s/g, ""), en[i]));
+  }
+  return out;
+}
+
 function checkEnumConsistency(inputPath) {
   const warnings = [];
   const m = /^s(\d\d)(?:-add)?\.md$/i.exec(path.basename(inputPath));
   if (!m) return warnings;
-  const base = path.join(path.dirname(path.resolve(inputPath)), "code");
+  const sessionsDir = path.dirname(path.resolve(inputPath));
+  const base = path.join(sessionsDir, "code");
+  const terms = glossary(sessionsDir);
+  const english = (ko) => terms.get(ko.replace(/\s/g, ""));
   const mine = enumValues(path.join(base, "s" + m[1]));
   for (let n = 1; n < Number(m[1]); n++) {
-    const earlier = enumValues(path.join(base, "s" + String(n).padStart(2, "0")));
+    const tag = "s" + String(n).padStart(2, "0");
+    const earlier = enumValues(path.join(base, tag));
     for (const [name, values] of earlier) {
-      if (!mine.has(name)) continue;
-      const missing = values.filter((v) => !mine.get(name).includes(v));
-      if (missing.length) warnings.push(`enum ${name}의 값 ${missing.join(", ")}이 앞 세션(s${String(n).padStart(2, "0")})과 다르다.`);
+      // Same name: same values. Korean name absent but its English name present: values through the glossary.
+      const translated = !mine.has(name) && english(name) && mine.has(english(name));
+      if (!mine.has(name) && !translated) continue;
+      const target = mine.get(translated ? english(name) : name);
+      const unmapped = translated ? values.filter((v) => !english(v)) : [];
+      const missing = values.filter((v) => !unmapped.includes(v) && !target.includes(translated ? english(v) : v));
+      if (missing.length) warnings.push(`enum ${name}의 값 ${missing.join(", ")}이 앞 세션(${tag})과 다르다.`);
+      if (unmapped.length) warnings.push(`enum ${name}의 값 ${unmapped.join(", ")}이 영한 용어집에 없어 ${english(name)}과 대응을 확인할 수 없다.`);
     }
   }
   return warnings;
