@@ -1,11 +1,11 @@
 package deliveryadapter;
 
-import delivery.DeliverySystem;
+import delivery.DeliveryGateway;
 import order.OrderNumber;
 import order.OrderService;
 
 // 배송 시스템과 주고받는 형식을 주문 시스템의 의미로 옮긴다.
-public final class DeliveryAdapter implements DeliverySystem {
+public final class DeliveryAdapter implements DeliveryGateway {
     private final DeliverySystemApi api;
     private final OrderService orderService;
 

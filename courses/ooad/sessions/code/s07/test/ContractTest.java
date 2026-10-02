@@ -5,10 +5,10 @@ package test;
 import java.nio.file.*;
 import java.util.*;
 import payment.Payment;
-import payment.PaymentSystem;
+import payment.PaymentGateway;
 import payment.Money;
 import delivery.Delivery;
-import delivery.DeliverySystem;
+import delivery.DeliveryGateway;
 import deliveryadapter.DeliveryAdapter;
 import product.Product;
 import product.ProductNumber;
@@ -19,9 +19,9 @@ public class ContractTest {
 
     public static void main(String[] args) throws Exception {
         var requests = new ArrayList<String>();
-        PaymentSystem fakePayment = amount -> requests.add("환불 " + amount.won());
-        DeliverySystem accepts = number -> { requests.add("출고 중단"); return true; };
-        DeliverySystem refuses = number -> { requests.add("출고 중단"); return false; };
+        PaymentGateway fakePayment = amount -> requests.add("환불 " + amount.won());
+        DeliveryGateway accepts = number -> { requests.add("출고 중단"); return true; };
+        DeliveryGateway refuses = number -> { requests.add("출고 중단"); return false; };
 
         // 1. 사전조건 — 결제 전 주문은 취소를 거절하고 아무것도 요청하지 않는다
         var pending = newOrder("O-1");

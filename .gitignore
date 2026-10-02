@@ -4,3 +4,6 @@ courses/*/out/
 courses/swqm/output/
 engine/.cache/
 engine/production/.cache/
+
+# 원전 텍스트 캐시(저작물 원문, tools/verify-quote.js)
+references/sources/

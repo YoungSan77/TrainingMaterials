@@ -505,3 +505,66 @@ test("session name: a name that fits keeps 14pt, a long one shrinks to one line 
   assert.ok(long < 14 && long >= 9, String(long));
   assert.equal(sessionNamePt("99. " + "아주 긴 세션 이름".repeat(10)), 9);
 });
+
+test("template: Latin words never break mid-word (latinLnBrk=0 everywhere)", () => {
+  const offenders = [];
+  const walk = (dir) => {
+    for (const name of fs.readdirSync(dir)) {
+      const p = path.join(dir, name);
+      if (fs.statSync(p).isDirectory()) walk(p);
+      else if (p.endsWith(".xml") && fs.readFileSync(p, "utf8").includes('latinLnBrk="1"')) offenders.push(p);
+    }
+  };
+  walk(TEMPLATE);
+  assert.deepEqual(offenders, []);
+});
+
+test("citation: an escaped quote inside the English original stays in the quote and prints plain", () => {
+  const { citationParts } = require("../paragraphs");
+  const parts = citationParts(String.raw`"한글", "Without a check, \"looks done\" is the only signal", Anthropic, 2026, www`);
+  assert.equal(parts[1], "한글");
+  assert.equal(parts[2], 'Without a check, "looks done" is the only signal');
+  assert.equal(parts[3], "Anthropic, 2026, www");
+  assert.equal(citationParts(String.raw`"한글", 저자, 2004`)[3], "저자, 2004");
+});
+
+// -- bullet citation: an indented bullet written as a citation renders as one without a marker --
+
+test("bullet citation: Korean at the bullet level's size, English original+source at 10pt", () => {
+  const page = fixturePage(13);
+  const block = {
+    kind: "bullet",
+    text: '"모듈은 **하나의, 오직 하나의 액터**에 대해서만 책임져야 한다", "A module should be responsible to one, and only one, actor.", [Martin 2018]',
+    depth: 1,
+    rows: [],
+  };
+  paragraphs(page, 13, [block], false);
+  const p = child(body(shape(page.doc, 13)), A, "p");
+  const runs = kids(p, A, "r").map((r) => ({ text: textOf(r), sz: child(r, A, "rPr").getAttribute("sz") }));
+  assert.equal(runs[0].sz, "1600", "depth-1 bullet keeps its 16pt body size for the Korean part");
+  const english = runs.find((r) => r.text.startsWith('"A module'));
+  assert.equal(english.sz, "1000");
+  assert.equal(runs.find((r) => r.text === "[Martin 2018]").sz, "1000");
+});
+
+test("bulletCitation needs the English original and a reference label tail", () => {
+  const { bulletCitation } = require("../paragraphs");
+  assert.ok(bulletCitation('"한글", "English.", [Martin 2014]'));
+  assert.ok(bulletCitation('"한글", "English.", [Jacobson 1992, 재인용]'));
+  assert.equal(bulletCitation('"한글", "English.", Robert C. Martin, 2014'), null, "the old author, year tail is not a label");
+  assert.equal(bulletCitation('"결제", "취소", "배송"'), null, "a list of quoted terms stays a plain bullet");
+  assert.equal(bulletCitation('"한글", 저자, 2004'), null, "no English original: not a bullet citation");
+  assert.equal(bulletCitation('"한글", "English."'), null, "no label: not a bullet citation");
+});
+
+test("a parenthetical that spans a **bold** span still shrinks -4pt end to end", () => {
+  const { p } = freshParagraph();
+  rich(p, "다이어그램으로 표현하고(설계 이름은 **용어집의 영문명**), 순환을 없앤다", 18, false, false, new Set());
+  const runs = kids(p, A, "r").map((r) => ({ text: textOf(r), sz: child(r, A, "rPr").getAttribute("sz") }));
+  for (const t of ["(설계 이름은 ", "용어집의 영문명", ")"]) {
+    const r = runs.find((x) => x.text === t);
+    assert.ok(r, t);
+    assert.equal(r.sz, "1400", `${t} is inside the parenthesis`);
+  }
+  assert.equal(runs.find((x) => x.text.startsWith(", 순환")).sz, "1800", "text after the ) is back to 18pt");
+});

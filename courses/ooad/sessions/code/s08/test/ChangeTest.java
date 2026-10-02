@@ -5,10 +5,10 @@ package test;
 import java.nio.file.*;
 import java.util.*;
 import payment.Payment;
-import payment.PaymentSystem;
+import payment.PaymentGateway;
 import payment.Money;
 import delivery.Delivery;
-import delivery.DeliverySystem;
+import delivery.DeliveryGateway;
 import samedaydeliveryadapter.SameDayDeliveryAdapter;
 import product.Product;
 import product.ProductNumber;
@@ -19,7 +19,7 @@ public class ChangeTest {
 
     public static void main(String[] args) throws Exception {
         var requests = new ArrayList<String>();
-        PaymentSystem fakePayment = amount -> requests.add("환불 " + amount.won());
+        PaymentGateway fakePayment = amount -> requests.add("환불 " + amount.won());
 
         // 변경 요청 1 — 결제 전 취소: 취소됨이 되고 외부에 아무것도 요청하지 않는다
         var pending = newOrder("O-1");
@@ -27,7 +27,7 @@ public class ChangeTest {
         check(pending.status() == OrderStatus.CANCELLED && requests.isEmpty());
 
         // 변경 요청 1 — 결제 완료의 취소 계약은 그대로다
-        DeliverySystem accepts = number -> { requests.add("출고 중단"); return true; };
+        DeliveryGateway accepts = number -> { requests.add("출고 중단"); return true; };
         var paid = newOrder("O-2");
         paid.onPaid(new Payment(new Money(2000), fakePayment), new Delivery("D-2", accepts));
         paid.cancel();

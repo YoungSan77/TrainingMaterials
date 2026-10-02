@@ -5,10 +5,10 @@ package test;
 import java.nio.file.*;
 import java.util.*;
 import payment.Payment;
-import payment.PaymentSystem;
+import payment.PaymentGateway;
 import payment.Money;
 import delivery.Delivery;
-import delivery.DeliverySystem;
+import delivery.DeliveryGateway;
 import deliveryadapter.DeliveryAdapter;
 import product.Product;
 import product.ProductNumber;
@@ -29,8 +29,8 @@ public class DesignTest {
 
         // 3. 주문 서비스가 시스템 이벤트를 받아 주문에게 맡긴다
         var requests = new ArrayList<String>();
-        PaymentSystem fakePayment = amount -> requests.add("환불 " + amount.won());
-        DeliverySystem fakeDelivery = number -> { requests.add("출고 중단"); return true; };
+        PaymentGateway fakePayment = amount -> requests.add("환불 " + amount.won());
+        DeliveryGateway fakeDelivery = number -> { requests.add("출고 중단"); return true; };
         var repository = new InMemoryOrderRepository();
         var service = new OrderService(repository);
 

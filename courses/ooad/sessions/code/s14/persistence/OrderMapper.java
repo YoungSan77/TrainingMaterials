@@ -5,17 +5,17 @@ import java.util.Map;
 import order.*;
 import payment.Money;
 import payment.Payment;
-import payment.PaymentSystem;
+import payment.PaymentGateway;
 import delivery.Delivery;
-import delivery.DeliverySystem;
+import delivery.DeliveryGateway;
 import product.ProductNumber;
 
 // 도메인 모델과 물리 모델 사이의 매퍼. 결제·배송은 저장된 값과 조립된 약속으로 복원한다.
 public final class OrderMapper {
-    private final PaymentSystem paymentSystem;
-    private final Map<String, DeliverySystem> carriers;
+    private final PaymentGateway paymentSystem;
+    private final Map<String, DeliveryGateway> carriers;
 
-    public OrderMapper(PaymentSystem paymentSystem, Map<String, DeliverySystem> carriers) {
+    public OrderMapper(PaymentGateway paymentSystem, Map<String, DeliveryGateway> carriers) {
         this.paymentSystem = paymentSystem;
         this.carriers = carriers;
     }

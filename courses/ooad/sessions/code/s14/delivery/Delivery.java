@@ -3,12 +3,12 @@ package delivery;
 public final class Delivery {
     private final String deliveryNumber;
     private final String carrier;
-    private final DeliverySystem deliverySystem;
+    private final DeliveryGateway deliverySystem;
 
-    public Delivery(String deliveryNumber, DeliverySystem deliverySystem) {
+    public Delivery(String deliveryNumber, DeliveryGateway deliverySystem) {
         this(deliveryNumber, "REGULAR", deliverySystem);
     }
-    public Delivery(String deliveryNumber, String carrier, DeliverySystem deliverySystem) {
+    public Delivery(String deliveryNumber, String carrier, DeliveryGateway deliverySystem) {
         this.deliveryNumber = deliveryNumber;
         this.carrier = carrier;
         this.deliverySystem = deliverySystem;

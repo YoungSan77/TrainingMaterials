@@ -2,9 +2,9 @@ package delivery;
 
 public final class Delivery {
     private final String deliveryNumber;
-    private final DeliverySystem deliverySystem;
+    private final DeliveryGateway deliverySystem;
 
-    public Delivery(String deliveryNumber, DeliverySystem deliverySystem) {
+    public Delivery(String deliveryNumber, DeliveryGateway deliverySystem) {
         this.deliveryNumber = deliveryNumber;
         this.deliverySystem = deliverySystem;
     }

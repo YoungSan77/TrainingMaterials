@@ -1,8 +1,8 @@
 {
   "status": "PASS",
-  "slides": 51,
+  "slides": 53,
   "checked_blocks": 95,
   "visual_status": "NOT_VERIFIED",
   "errors": [],
-  "warnings": []
+  "warnings": ["슬라이드 18: \"14. 응집도 (3/3)\" continuation에 본문이 한두 줄뿐이다."]
 }

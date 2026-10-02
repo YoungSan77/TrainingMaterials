@@ -43,7 +43,7 @@ async function renderChart(source) {
   if (!fs.existsSync(LOCAL_PYTHON)) throw new Error("Chart 렌더용 Python 환경이 없다: " + LOCAL_PYTHON);
   fs.mkdirSync(CACHE_DIR, { recursive: true });
   const json = JSON.stringify(spec);
-  const hash = crypto.createHash("sha1").update("v4-bold-title-contrast\n" + json).digest("hex").slice(0, 16);
+  const hash = crypto.createHash("sha1").update("v6-pie-labels-21\n" + json).digest("hex").slice(0, 16);
   const pngPath = path.join(CACHE_DIR, hash + ".png");
   // A cache hit is only trusted if the file is actually a non-empty PNG -- see the matching
   // check in plantumlAdapter.js for why (an interrupted run can leave a truncated file that a

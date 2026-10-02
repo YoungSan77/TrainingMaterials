@@ -1,8 +1,8 @@
 {
   "status": "PASS",
-  "slides": 86,
-  "checked_blocks": 141,
+  "slides": 87,
+  "checked_blocks": 155,
   "visual_status": "NOT_VERIFIED",
   "errors": [],
-  "warnings": []
+  "warnings": ["슬라이드 9: 도식 글자가 6.7pt로 7pt보다 작다.","슬라이드 20: \"10. 클래스 유형 (4/5)\" continuation에 본문이 한두 줄뿐이다."]
 }

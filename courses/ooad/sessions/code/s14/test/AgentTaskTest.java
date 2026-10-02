@@ -11,7 +11,7 @@ import paymentadapter.PaymentAdapter;
 import deliveryadapter.DeliveryAdapter;
 import samedaydeliveryadapter.SameDayDeliveryAdapter;
 import delivery.CarrierSelector;
-import delivery.DeliverySystem;
+import delivery.DeliveryGateway;
 import product.Product;
 import product.ProductNumber;
 import persistence.*;
@@ -30,7 +30,7 @@ public class AgentTaskTest {
         }
 
         // 조립 — FeedbackTest와 같다
-        var carriers = new HashMap<String, DeliverySystem>();
+        var carriers = new HashMap<String, DeliveryGateway>();
         var repository = new TableOrderRepository(new OrderMapper(new IntegrationTest.DeferredPayment(), carriers));
         var service = new OrderService(repository);
         var paymentAdapter = new PaymentAdapter((command, amount) -> {}, service);

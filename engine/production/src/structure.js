@@ -79,14 +79,17 @@ function numberedDiagramLabels(sections) {
 // Warning only.
 function unboldedText(sections) {
   const warnings = [];
-  for (const section of sections) for (const block of section.blocks) {
-    if (!["text", "bullet"].includes(block.kind)) continue;
-    if (block.meta && (block.meta.quote || block.meta.anchor)) continue;
+  for (const section of sections) section.blocks.forEach((block, i) => {
+    if (!["text", "bullet"].includes(block.kind)) return;
+    if (block.meta && (block.meta.quote || block.meta.anchor)) return;
+    // A footnote (the paragraph after "**주석**") is reference text, not a sentence to emphasize.
+    const prev = section.blocks[i - 1];
+    if (prev && prev.kind === "text" && /^\*\*주석\*\*$/.test(prev.text.trim())) return;
     const text = String(block.text).trim();
-    if (text.includes("**") || text.length < 25) continue;
-    if (/^(?:\d+\.|\(\d+\)|[“"「>])/.test(text)) continue;
+    if (text.includes("**") || text.length < 25) return;
+    if (/^(?:\d+\.|\(\d+\)|[“"「>])/.test(text)) return;
     warnings.push(`굵게 표시한 핵심어가 없다: "${section.title}"의 "${text.slice(0, 30)}"`);
-  }
+  });
   return warnings;
 }
 

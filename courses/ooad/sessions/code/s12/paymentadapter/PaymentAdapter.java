@@ -1,12 +1,12 @@
 package paymentadapter;
 
-import payment.PaymentSystem;
+import payment.PaymentGateway;
 import payment.Money;
 import order.OrderNumber;
 import order.OrderNotice;
 
 // 결제 시스템과 주고받는 형식을 주문 시스템의 의미로 옮긴다.
-public final class PaymentAdapter implements PaymentSystem {
+public final class PaymentAdapter implements PaymentGateway {
     private final PaymentSystemApi api;
     private final OrderNotice orderNotice;
 

@@ -8,7 +8,7 @@ const {
 const { writeZip } = require("./zip");
 const { plain, wide, estimate, splitCode, codePoints } = require("./text");
 const { rich, run, runParen, richDeclarations } = require("./richText");
-const { paragraphs, BULLET_LEVELS } = require("./paragraphs");
+const { paragraphs, BULLET_LEVELS, bulletCitation, citationParts, numberWidthEmu } = require("./paragraphs");
 const { TEMPLATE_DIR, ORIGIN, readTemplate, slideParts } = require("./template");
 const { renderMermaid } = require("./mermaidAdapter");
 const { renderPlantUml } = require("./plantumlAdapter");
@@ -67,6 +67,10 @@ const DEEP_STACKED_PANEL = { x: 0.5, y: 3.35, w: 9.0, h: 3.0 };
 // The template's sldNum placeholder Y (slideLayout1.xml, 6449625 EMU) -- the floor a
 // diagram panel must clear so it never crowds the footer.
 const PAGE_NUM_Y = 6449625 / EMU;
+// A visual's tool marker, with an optional title after it: "**도식 — PlantUML — 제목**".
+const VISUAL_MARKER = /^\*\*(?:도식\s*[—:-]\s*(?:Mermaid|PlantUML|SVG)|Chart\s*[—:-]\s*matplotlib)(?:\s*—\s*(.+?))?\*\*$/i;
+// A table's title line right before it: "**표 — 제목**".
+const TABLE_CAPTION = /^\*\*표\s*—\s*(.+?)\*\*$/;
 const TREE_TEXT = { x: 2.65, y: 1.05, w: 4.7, h: 5.75 };
 
 const EP = "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties";
@@ -119,6 +123,14 @@ function updateDocProps(result, pages, session) {
     }
     result.set(appPath, xmlOut(app));
   }
+}
+
+// A table's lead text may end with its "**표 — 제목**" title: that title is drawn on its own, 6pt
+// above the table, not as part of the lead text box.
+function splitCaption(lead) {
+  const last = lead[lead.length - 1];
+  if (last && last.meta && last.meta.caption) return { lead: lead.slice(0, -1), caption: last.meta.caption };
+  return { lead, caption: null };
 }
 
 function setShapeBounds(sh, bounds) {
@@ -413,6 +425,12 @@ function columnWidths(rows, cols) {
 // `aligned` puts an unbulleted "+ " line under its parent's text (practice).
 const PRACTICE_STYLE = { fit: 1.04, text: 16, levels: [18, 16, 14], expl: () => 10.5, paren: () => 10, aligned: true };
 const ANSWER_STYLE = { fit: 1.1, text: 14, levels: [14, 12, 11], expl: (L) => L - 2, paren: (L) => Math.max(8, L - 4), hang: true };
+// "**참고 자료 목록**" (production-guide.md "별첨 — 참고 자료"): numbered entries at 8pt in two columns.
+// `numberHang` starts a numbered entry at the left edge and its wrapped lines after "N. "; `space` is
+// the space before and after each paragraph (pt, default STYLE_SPACE).
+const REFERENCE_STYLE = { fit: 1.1, text: 8, levels: [8, 8, 8], expl: (L) => L, paren: (L) => L, hang: true, numberHang: true, space: 1 };
+const REFERENCE_MARKER = /^\*\*참고 자료 목록\*\*$/;
+const isReferenceMarker = (b) => b.kind === "text" && REFERENCE_MARKER.test(b.text.trim());
 const shiftStyle = (size) => ({ fit: 1.04, text: size, levels: [size, size - 2, size - 4], expl: (L) => L - 2, paren: (L) => Math.max(8, L - 4), aligned: true });
 const PRACTICE_BOX = { x: 0.4, y: 1.05, w: 9.43, h: 6.04 };
 const ANSWER_COLUMNS = [{ x: 0.255, y: 1.05, w: 4.745, h: 6.04 }, { x: 5.0, y: 1.05, w: 4.855, h: 6.04 }];
@@ -435,7 +453,8 @@ function styledCost(blocks, style, box) {
     const depth = b.kind === "bullet" ? Math.min(b.depth || 0, 2) : -1;
     const level = depth < 0 ? null : BULLET_LEVELS[depth + 1];
     const numbered = /^(?:\d+\.|\(\d+\))\s/.test(b.text);
-    const indent = depth < 0 ? 0 : style.hang ? (depth + 1) * 0.25
+    const prefix = /^(?:\d+\.|\(\d+\))\s/.exec(plain(b.text));
+    const indent = style.numberHang && prefix ? numberWidthEmu(prefix[0], L) / EMU : depth < 0 ? 0 : style.hang ? (depth + 1) * 0.25
       : style.aligned && b.meta && b.meta.noGlyph && !numbered ? BULLET_LEVELS[depth].marL / EMU
       : numbered ? (level.marL + level.indent) / EMU + 0.25 : level.marL / EMU;
     const text = plain(b.text), cut = text.indexOf(" — ");
@@ -448,7 +467,7 @@ function styledCost(blocks, style, box) {
       if (cp === 0x29 && paren > 0) paren--;
     });
     const lines = Math.max(1, Math.ceil(w / ((box.w - indent) * 72 - 12)));
-    return sum + lines * L * LINE_EM + 2 * STYLE_SPACE;
+    return sum + lines * L * LINE_EM + 2 * (style.space != null ? style.space : STYLE_SPACE);
   }, 0);
 }
 
@@ -456,7 +475,8 @@ function styledCost(blocks, style, box) {
 // by level, the explanation 2pt and a "(...)" span 4pt under).
 function restyle(sh, style) {
   for (const p of all(sh, A, "p")) {
-    spacing(p, STYLE_SPACE, STYLE_SPACE, null);
+    const sp = style.space != null ? style.space : STYLE_SPACE;
+    spacing(p, sp, sp, null);
     const pr = child(p, A, "pPr");
     const lvl = pr && pr.getAttribute("lvl") ? parseInt(pr.getAttribute("lvl"), 10) : 0;
     const depth = lvl ? Math.min(lvl - 2, 2) : -1;
@@ -466,6 +486,13 @@ function restyle(sh, style) {
       const sz = parseInt(rp.getAttribute("sz") || "1800", 10) / 100;
       const to = sz >= from ? L : sz >= from - 2 ? E : sz >= from - 4 ? P : Math.max(8, Math.min(P, E - 2));
       rp.setAttribute("sz", String(Math.round(to * 100)));
+    }
+    const number = style.numberHang && /^(?:\d+\.|\(\d+\))\s/.exec(p.textContent);
+    if (number && pr) {
+      const w = numberWidthEmu(number[0], L);
+      pr.setAttribute("marL", String(w));
+      pr.setAttribute("indent", String(-w));
+      continue;
     }
     if (!lvl) continue;
     const bare = Boolean(child(pr, A, "buNone"));
@@ -525,7 +552,7 @@ class Builder {
   // inspecting actual output: e.g. topic "08" spilled a single trailing bullet onto its own page).
   blockCost(b) {
     if (this.sectionStyle) return styledCost([b], this.sectionStyle, FULL_TEXT) * 450 / (FULL_TEXT.h * 72 * this.sectionStyle.fit);
-    const markedQuote = b.meta && (b.meta.quote || b.meta.anchor);
+    const markedQuote = (b.meta && (b.meta.quote || b.meta.anchor)) || (b.kind === "bullet" && bulletCitation(b.text));
     const quoteMatch = markedQuote && /^"[^"]*"/.exec(b.text.trim());
     if (quoteMatch) {
       const korean = quoteMatch[0];
@@ -558,6 +585,26 @@ class Builder {
     const page = this.styledPage(blocks, heading, ANSWER_STYLE, ANSWER_COLUMNS);
     if (page) page.answerColumns = 2;
     return page;
+  }
+
+  // The reference list of the appendix: as many entries as fit in two 8pt columns per slide, a
+  // heading never left as the last line of a slide. Returns the pages (not left in this.pages).
+  referencePages(blocks, heading) {
+    const out = [];
+    let rest = blocks.slice();
+    while (rest.length) {
+      let page = null;
+      let n = rest.length;
+      for (; n > 0; n--) {
+        if (n < rest.length && rest[n - 1].kind === "heading" && n > 1) continue;
+        page = this.styledPage(rest.slice(0, n), heading, REFERENCE_STYLE, ANSWER_COLUMNS);
+        if (page) break;
+      }
+      need(page, "참고 자료 항목이 한 슬라이드에 들어가지 않는다: " + heading);
+      out.push(this.pages.pop());
+      rest = rest.slice(n);
+    }
+    return out;
   }
 
   // Sets `blocks` in `style` into one box, or into two boxes split at the most balanced block
@@ -621,7 +668,9 @@ class Builder {
     if (this.sectionBlocks) this.sectionBlocks.push(...pending);
     let chunk = [];
     let cost = 0;
-    let pageCapacity = capacity;
+    // A continuation slide of the topic carries the lead repeat on top (repeatLead): reserve it.
+    const reserve = this.leadReserve || 0;
+    let pageCapacity = capacity - (this.pages.length > this.sectionFirst ? reserve : 0);
     const costs = pending.map((b) => this.blockCost(b));
     for (let i = 0; i < pending.length; i++) {
       const b = pending[i];
@@ -639,7 +688,7 @@ class Builder {
         p.textCost = cost;
         chunk = [];
         cost = 0;
-        pageCapacity = 450;
+        pageCapacity = 450 - reserve;
       }
       chunk.push(b);
       cost += c;
@@ -702,6 +751,167 @@ class Builder {
     }
     groups.push(chunk);
     return groups;
+  }
+
+  // A continuation slide restates the topic's lead message in italics above its own content
+  // (production-guide.md "이어지는 장"). Only a slide whose body placeholder carries prose gets it.
+  repeatLead(page, lead) {
+    const item = page.items.find((it) => it.id === 8 && it.kind !== "footnote");
+    const prose = item && String(item.text || "").trim();
+    // A slide without prose in the body placeholder: a table/code slide gets the repeat in its own
+    // line above everything (shifted down); a diagram alone on its slide stays clean.
+    if (!prose && (page.visualLayout === "visual-only" || !page.items.length)) return;
+    const isQuote = lead.meta && (lead.meta.quote || lead.meta.anchor);
+    let value = lead.text;
+    if (isQuote) {
+      const parts = citationParts(lead.text);
+      value = parts ? parts[1] : lead.text.split(/,\s*"/)[0];
+    }
+    value = plain(value);
+    if (!prose) return this.repeatLeadAbove(page, value);
+    const b = body(shape(page.doc, 8));
+    const p = el(page.doc, A, "p");
+    const pr = spacing(p, 0, 6, null);
+    pr.setAttribute("marL", "0");
+    pr.setAttribute("indent", "0");
+    pr.appendChild(el(page.doc, A, "buNone"));
+    run(p, value, 18, false);
+    for (const rp of all(p, A, "rPr")) rp.setAttribute("i", "1");
+    const firstP = kids(b, A, "p")[0];
+    b.insertBefore(p, firstP || null);
+    item.text = value + (item.text ? "\n" + item.text : "");
+  }
+
+  // Shift the slide's content down one line and put the italic lead repeat on top.
+  repeatLeadAbove(page, value) {
+    // 18pt lines across the 9.2in body width (662pt), plus a little air below.
+    const dy = 0.1 + estimate(value, 662, 18) * 0.32;
+    const fixed = new Set(["2", "5", "6", "7"]);
+    for (const e of children(first(page.doc, P, "spTree"))) {
+      const nv = first(e, P, "cNvPr");
+      if (!nv || fixed.has(nv.getAttribute("id"))) continue;
+      if (all(e, P, "ph").some((ph) => ph.getAttribute("type") === "sldNum")) continue;
+      const off = first(e, A, "off");
+      if (off) off.setAttribute("y", String(Math.round(parseInt(off.getAttribute("y"), 10) + dy * EMU)));
+    }
+    for (const pic of page.pictures || []) {
+      const b = pic.bounds;
+      const room = PAGE_NUM_Y - 0.08 - (b.y + dy);
+      const scale = Math.min(1, room / b.h);
+      pic.bounds = { x: b.x + (b.w - b.w * scale) / 2, y: b.y + dy, w: b.w * scale, h: b.h * scale };
+    }
+    if (page.tableBottom != null) page.tableBottom += dy;
+    const id = this.cloneShape(page, 13);
+    const sh = shape(page.doc, id);
+    setShapeBounds(sh, { x: 0.4, y: 1.05, w: 9.2, h: dy });
+    const tb = body(sh);
+    for (const old of kids(tb, A, "p")) tb.removeChild(old);
+    const p = el(page.doc, A, "p");
+    tb.appendChild(p);
+    run(p, value, 18, false);
+    for (const rp of all(p, A, "rPr")) rp.setAttribute("i", "1");
+    page.items.push({ id, kind: "lead", text: value, rows: [] });
+  }
+
+  // Move whatever sits below `top` (a table or code under the diagram) down by `dy`, if it still
+  // clears the footer. Returns whether it moved.
+  shiftBelow(page, top, dy) {
+    const fixed = new Set(["2", "5", "6", "7"]);
+    const moving = [];
+    let bottom = 0;
+    for (const e of children(first(page.doc, P, "spTree"))) {
+      const nv = first(e, P, "cNvPr");
+      if (!nv || fixed.has(nv.getAttribute("id"))) continue;
+      if (all(e, P, "ph").some((ph) => ph.getAttribute("type") === "sldNum")) continue;
+      const off = first(e, A, "off"), ext = first(e, A, "ext");
+      if (!off || !ext) continue;
+      const y0 = parseInt(off.getAttribute("y"), 10) / EMU;
+      if (y0 <= top + 0.01) continue;
+      // A table's frame height is a stale template value; use where its content really ends.
+      const isTable = e.localName === "graphicFrame";
+      const y1 = isTable && page.tableBottom != null ? page.tableBottom : y0 + parseInt(ext.getAttribute("cy"), 10) / EMU;
+      if (!String(text(e) || "").trim() && !isTable) continue;
+      moving.push(off);
+      bottom = Math.max(bottom, y1);
+    }
+    if (!moving.length || bottom + dy > PAGE_NUM_Y - 0.05) return false;
+    for (const off of moving) off.setAttribute("y", String(Math.round(parseInt(off.getAttribute("y"), 10) + dy * EMU)));
+    if (page.tableBottom != null) page.tableBottom += dy;
+    return true;
+  }
+
+  drawCaption(page, value, bounds, algn = "ctr") {
+    const id = this.cloneShape(page, 13);
+    const sh = shape(page.doc, id);
+    setShapeBounds(sh, bounds);
+    const tb = body(sh);
+    for (const old of kids(tb, A, "p")) tb.removeChild(old);
+    const p = el(page.doc, A, "p");
+    tb.appendChild(p);
+    const pr = spacing(p, 0, 0, null);
+    pr.setAttribute("algn", algn);
+    run(p, value, 14, true);
+  }
+
+  // A 14pt bold title right above a diagram (production-guide.md "표·도식 제목").
+  captionPicture(page, picture) {
+    const H = 0.3;
+    const b = picture.bounds;
+    // Stay inside the space the layout gave the diagram (a table or text may sit right below it):
+    // the picture gives up the title's height, shrinking about its center.
+    let { x, y, w, h } = b;
+    // A table or code right below the diagram: stay inside the diagram's own box. Otherwise move
+    // the picture down by the title's height, shrinking only if it would reach the footer.
+    const below = page.visualLayout === "table-leading" || page.items.some((it) => ["source", "code"].includes(it.kind));
+    // The table/code below also gets a little air from the diagram's bottom edge.
+    if (below && this.shiftBelow(page, y, H + 0.12)) {
+      picture.bounds = { x, y: y + H, w, h };
+      return this.drawCaption(page, picture.caption, { x: 0.4, y, w: 9.2, h: H });
+    }
+    // A narrow diagram with something below keeps its size: the title sits beside it, at its top left.
+    if (below && x - 0.4 >= 1.8) {
+      const id = this.cloneShape(page, 13);
+      const sh = shape(page.doc, id);
+      setShapeBounds(sh, { x: 0.4, y, w: x - 0.55, h: 0.6 });
+      const tb = body(sh);
+      for (const old of kids(tb, A, "p")) tb.removeChild(old);
+      const p = el(page.doc, A, "p");
+      tb.appendChild(p);
+      const pr = spacing(p, 0, 0, null);
+      pr.setAttribute("algn", "r");
+      run(p, picture.caption, 14, true);
+      return;
+    }
+    const room = below ? h - H : Math.min(h, PAGE_NUM_Y - 0.08 - y - H);
+    const scale = Math.max(0.5, Math.min(1, room / h));
+    x += (w - w * scale) / 2;
+    w *= scale; h *= scale;
+    const id = this.cloneShape(page, 13);
+    const sh = shape(page.doc, id);
+    setShapeBounds(sh, { x: 0.4, y, w: 9.2, h: H });
+    const tb = body(sh);
+    for (const old of kids(tb, A, "p")) tb.removeChild(old);
+    const p = el(page.doc, A, "p");
+    tb.appendChild(p);
+    child(p, A, "pPr") || p.insertBefore(el(page.doc, A, "pPr"), p.firstChild);
+    child(p, A, "pPr").setAttribute("algn", "ctr");
+    run(p, picture.caption, 14, true);
+    picture.bounds = { x, y: y + H, w, h };
+  }
+
+  // An 8pt footnote line just above the page number (production-guide.md "주석").
+  footnote(page, value) {
+    const id = this.cloneShape(page, 13);
+    const sh = shape(page.doc, id);
+    setShapeBounds(sh, { x: 0.4, y: PAGE_NUM_Y - 0.42, w: 9.2, h: 0.38 });
+    const b = body(sh);
+    // Bottom-anchored so a one-line footnote sits right above the page number like a two-line one.
+    child(b, A, "bodyPr").setAttribute("anchor", "b");
+    for (const old of kids(b, A, "p")) b.removeChild(old);
+    const p = el(page.doc, A, "p");
+    b.appendChild(p);
+    run(p, plain(value), 8, false);
+    page.items.push({ id, kind: "footnote", text: plain(value), rows: [] });
   }
 
   // A copy of a template shape on the same slide, under a fresh unique id.
@@ -913,20 +1123,33 @@ class Builder {
 
   // Append a whole (single-group) table, with its lead text, below the content already on a
   // table page. Returns false (nothing changed) when it doesn't fit.
-  appendTableBelow(page, block, lead, widthsOverride) {
+  appendTableBelow(page, block, leadIn, widthsOverride) {
+    const { lead, caption } = splitCaption(leadIn);
     const widths = widthsOverride || columnWidths(block.rows, block.rows[0].length);
     const groups = this.tableGroups(block.rows, widths);
     if (groups.length !== 1) return false;
     const tableH = groups[0].reduce((sum, row) => sum + this.rowHeight(row, widths), 0);
     const leadH = lead.length ? this.textHeightPt(lead) + 8 : 0;
-    if (leadH + tableH > this.roomBelowPt(page)) return false;
+    const capH = caption ? 14 * 1.25 + 6 : 0;
+    if (leadH + capH + tableH > this.roomBelowPt(page)) return false;
     if (lead.length) this.appendTextBelow(page, lead);
+    let yPt = page.tableBottom * 72 + 8;
+    if (caption) yPt = this.tableCaption(page, caption, yPt);
     const id = this.cloneShape(page, 11);
-    this.fillTable(page, shape(page.doc, id), groups[0], widths, page.tableBottom * 72 + 8);
+    this.fillTable(page, shape(page.doc, id), groups[0], widths, yPt);
     return true;
   }
 
   table(block, heading, lead = [], leadCap = 160, opts = {}) {
+    const split = splitCaption(lead);
+    lead = split.lead;
+    let caption = split.caption;
+    // A diagram between the lead and the table: the title travels with the text after the diagram.
+    if (opts.mid && opts.mid.length) {
+      const m = splitCaption(opts.mid);
+      opts = { ...opts, mid: m.lead };
+      caption = caption || m.caption;
+    }
     const rows = block.rows;
     const cols = rows[0].length;
     need(cols >= 2 && cols <= 6, "표는 2~6열을 지원한다.");
@@ -937,7 +1160,7 @@ class Builder {
       const page = this.page(ORIGIN.table, heading);
       const gf = shape(page.doc, 11);
       let yPt = null;
-      if (gi === 0 && (lead.length || opts.visual)) {
+      if (gi === 0 && (lead.length || opts.visual || caption)) {
         yPt = 1.05 * 72;
         if (lead.length) {
           setShapeBounds(shape(page.doc, 13), { x: 0.4, y: 1.05, w: 9.2, h: leadHeightPt / 72 });
@@ -966,8 +1189,29 @@ class Builder {
       // page.tableBottom (set by fillTable) is where this group's rendered content ends, in inches:
       // the graphicFrame's own ext.cy is a stale template value PowerPoint autofits away, so later
       // content stacked below the table (text, a second table, a small visual) needs this instead.
+      if (gi === 0 && caption) yPt = this.tableCaption(page, caption, yPt);
       this.fillTable(page, gf, groups[gi], widths, yPt);
     }
+  }
+
+  // A table title right above the table, 6pt from it (production-guide.md "표·도식 제목").
+  // Returns where the table starts (pt).
+  tableCaption(page, caption, yPt) {
+    const h = 14 * 1.25;
+    const id = this.cloneShape(page, 13);
+    const sh = shape(page.doc, id);
+    setShapeBounds(sh, { x: 0.4, y: yPt / 72, w: 9.2, h: h / 72 });
+    const tb = body(sh);
+    const bp = child(tb, A, "bodyPr");
+    for (const k of ["tIns", "bIns"]) bp.setAttribute(k, "0");
+    for (const old of kids(tb, A, "p")) tb.removeChild(old);
+    const p = el(page.doc, A, "p");
+    tb.appendChild(p);
+    const pr = spacing(p, 0, 0, null);
+    pr.setAttribute("algn", "ctr");
+    run(p, caption, 14, true);
+    page.items.push({ id, kind: "caption", text: caption, rows: [] });
+    return yPt + h + 6;
   }
 
   // One TOC paragraph per topic. Markdown headings already carry their own ordinal ("01. 세션
@@ -1080,13 +1324,46 @@ class Builder {
       }
     }
 
-    this.validateToc(toc, sections);
-    this.renderToc(toc, this.session);
+    // The appendix (a reference list only) has no table of contents.
+    const appendix = !toc && sections.length > 0 && sections.every((sec) => sec.blocks.some(isReferenceMarker));
+    if (!appendix) {
+      this.validateToc(toc, sections);
+      this.renderToc(toc, this.session);
+    }
 
-    for (const section of sections) {
+    for (let section of sections) {
       const firstIdx = this.pages.length;
+      this.sectionFirst = firstIdx;
+      this.leadReserve = 0;
+      // "**주석**" and the paragraph after it: an 8pt footnote at the bottom of every slide of the
+      // topic, kept out of the body flow (session-authoring-guide.md "주석", production-guide.md
+      // "주석").
+      const noteAt = section.blocks.findIndex((b) => b.kind === "text" && /^\*\*주석\*\*$/.test(b.text.trim()));
+      let footnote = null;
+      // "**문서 형식**": a document shown as one (e.g. a use-case specification) -- the topic is set
+      // like a text answer, two columns at 14/12/11pt on one slide (production-guide.md "문서 형식").
+      const docAt = section.blocks.findIndex((b) => b.kind === "text" && /^\*\*문서 형식\*\*$/.test(b.text.trim()));
+      const docLayout = docAt >= 0;
+      if (docLayout) section = { ...section, blocks: section.blocks.filter((b, i) => i !== docAt && b.kind !== "pagebreak") };
+      const refLayout = section.blocks.some(isReferenceMarker);
+      if (refLayout) section = { ...section, blocks: section.blocks.filter((b) => !isReferenceMarker(b) && b.kind !== "pagebreak") };
+      if (noteAt >= 0) {
+        const at = section.blocks.findIndex((b) => b.kind === "text" && /^\*\*주석\*\*$/.test(b.text.trim()));
+        need(section.blocks[at + 1] && section.blocks[at + 1].kind === "text", "주석 표식 뒤에 문단이 없다: " + section.title);
+        footnote = section.blocks[at + 1].text;
+        section = { ...section, blocks: section.blocks.filter((_, i) => i !== at && i !== at + 1) };
+      }
       this.sectionBlocks = [];
       const visuals = section.blocks.filter((b) => ["mermaid", "plantuml", "chart", "svg"].includes(b.kind));
+      // "**도식 — PlantUML — 제목**": the optional title after the tool name captions that visual
+      // (session-authoring-guide.md "의미 표식과 블록 경계", production-guide.md "표·도식 제목").
+      const visualCaption = (vb) => {
+        for (let j = section.blocks.indexOf(vb) - 1; j >= 0 && section.blocks[j].kind === "text"; j--) {
+          const m = VISUAL_MARKER.exec(section.blocks[j].text.trim());
+          if (m) return m[1] ? m[1].trim() : null;
+        }
+        return null;
+      };
       // A diagram answer "(안)" keeps the usual text-above-diagram layout, its text in the answer
       // sizes (production-guide.md "실습 슬라이드").
       this.sectionStyle = isAnswer(section.title) && visuals.length ? ANSWER_STYLE : null;
@@ -1095,7 +1372,7 @@ class Builder {
           : b.kind === "plantuml" ? await renderPlantUml({ kind: b.meta && b.meta.uml, source: b.text })
           : b.kind === "svg" ? await renderSvg(b.text)
           : await renderChart(b.text);
-        return { ...png, source: b.text, kind: b.kind, uml: Boolean(b.meta && b.meta.uml) };
+        return { ...png, source: b.text, kind: b.kind, uml: Boolean(b.meta && b.meta.uml), caption: visualCaption(b) };
       }));
       const layout = visualPolicy(renderedVisuals);
       // Explicit "**페이지 분할**" markers cut the topic into segments. Text budget is per segment:
@@ -1125,7 +1402,7 @@ class Builder {
       const SIDE_PANEL = { x: 5.85, y: 1.05, w: 3.75, h: 5.75 };
       const SIDE_CAPACITY = Math.floor(fullCapacity * SIDE_TEXT.w / FULL_TEXT.w);
       const segTextCost = (s) => section.blocks.reduce((sum, blk, i) => (segOf[i] === s && ["text", "heading", "bullet"].includes(blk.kind)
-        && !/^\*\*(?:도식|인용문|Chart)/.test(blk.text.trim()) ? sum + this.blockCost(blk) : sum), 0);
+        && !/^\*\*(?:도식|인용문|Chart|주석)/.test(blk.text.trim()) ? sum + this.blockCost(blk) : sum), 0);
       const sideSegs = new Set();
       if (visuals.length === 1) {
         const i = section.blocks.findIndex(isVisualBlock);
@@ -1153,6 +1430,9 @@ class Builder {
       // text follow it nest one level deeper until the next heading, so the heading reads as their
       // parent rather than a flush label floating above them.
       let headingDepthBoost = 0;
+      // The topic's lead message, repeated in italics at the top of its continuation slides.
+      let leadBlock = null;
+      let contentSeen = false;
       // A topic with 2+ visuals used to dump all of them onto the single first prose page found
       // in the topic's whole page range, regardless of which page's text actually described each
       // one (e.g. topic 24's two PlantUML examples both landed on page 1, next to neither
@@ -1227,7 +1507,7 @@ class Builder {
       };
       for (let blockIndex = 0; blockIndex < section.blocks.length; blockIndex++) {
         const b = section.blocks[blockIndex];
-        if (visuals.length && b.kind === "text" && /^\*\*(?:도식\s*[—:-]\s*(?:Mermaid|PlantUML|SVG)|Chart\s*[—:-]\s*matplotlib)\*\*$/i.test(b.text.trim())) continue;
+        if (visuals.length && b.kind === "text" && VISUAL_MARKER.test(b.text.trim())) continue;
         if (b.kind === "text" && /^\*\*(?:인용문|Anchor Message|앵커 메시지)\*\*$/i.test(b.text.trim())) {
           quoteKind = /인용문/.test(b.text) ? "quote" : "anchor";
           continue;
@@ -1279,20 +1559,28 @@ class Builder {
         }
         if (["text", "heading", "bullet"].includes(b.kind)) {
           let block = quoteKind ? { ...b, meta: { ...(b.meta || {}), [quoteKind]: true } } : b;
-          if (block.kind === "heading") {
-            block = { ...block, kind: "bullet" };
-            headingDepthBoost = 1;
+          const caption = block.kind === "text" && TABLE_CAPTION.exec(block.text.trim());
+          if (caption) {
+            // "**표 — 제목**": an 11pt bold title right above the table (it joins the table's lead).
+            block = { ...block, meta: { ...(block.meta || {}), caption: caption[1].trim() } };
+          } else if (block.kind === "heading") {
+            // A "###" sub-heading: bold, no glyph, indented; what follows keeps its own level
+            // (session-authoring-guide.md "한 장의 메시지").
+            contentSeen = true;
           } else if (block.kind === "text") {
-            // A citation is support material, never the topic's own thesis -- it must never claim
-            // the one flush "governing message" slot (a topic that opens with an epigraph before
-            // its real opening sentence would otherwise leave that sentence promoted instead).
+            // A citation is support material -- except when it opens the topic: then it IS the
+            // topic's lead message (e.g. an author's positioning statement).
             const isQuote = block.meta && (block.meta.quote || block.meta.anchor);
-            if (!isQuote && !governingMessageSeen) {
+            if (!governingMessageSeen && (!isQuote || !contentSeen)) {
               governingMessageSeen = true;
+              leadBlock = block;
+              this.leadReserve = this.blockCost(block);
             } else {
               block = { ...block, kind: "bullet", depth: block.depth + headingDepthBoost };
             }
+            contentSeen = true;
           } else if (block.kind === "bullet") {
+            contentSeen = true;
             block = { ...block, depth: block.depth + headingDepthBoost };
           }
           pending.push(block);
@@ -1500,7 +1788,7 @@ class Builder {
       // is set on one slide at 14/12/11pt by level, in two columns if needed; if even that runs
       // over it keeps its 18pt continuation slides.
       const practicePages = this.pages.slice(firstIdx, end);
-      if (isPractice(section.title) || isAnswer(section.title)) {
+      if (isPractice(section.title) || isAnswer(section.title) || docLayout) {
         const pages = practicePages;
         const textOnly = pages.every((p) => !(p.pictures || []).length && p.tableBottom == null && !p.items.some((it) => it.kind === "source" || it.kind === "table"));
         const one = textOnly && (isPractice(section.title) ? this.practicePage(this.sectionBlocks, section.title) : this.answerPage(this.sectionBlocks, section.title));
@@ -1509,6 +1797,11 @@ class Builder {
           this.pages.splice(firstIdx, 0, this.pages.pop());
           end = firstIdx + 1;
         }
+      }
+      if (refLayout) {
+        const built = this.referencePages(this.sectionBlocks, section.title);
+        this.pages.splice(firstIdx, end - firstIdx, ...built);
+        end = firstIdx + built.length;
       }
       // A diagram that would read below MIN_PT while sharing its slide first gets a slide of its
       // own at the full body area (production-guide.md "Visual layout 및 가독성"). It stays put --
@@ -1542,6 +1835,8 @@ class Builder {
         const second = [english, section.diagram || ""].filter((s) => s !== "").join(" · ");
         p.heading = main + (second === "" ? "" : "\n" + second);
       }
+      if (leadBlock) for (const page of this.pages.slice(firstIdx + 1, sectionEnd)) this.repeatLead(page, leadBlock);
+      if (footnote) for (const page of this.pages.slice(firstIdx)) this.footnote(page, footnote);
     }
 
     const { parseXml, relPath } = require("./xml");
@@ -1596,6 +1891,8 @@ class Builder {
       const name = "ppt/slides/slide" + number + ".xml";
       const sr = parseXml(this.data.get(relPath(p.origin)));
       for (const rel of children(sr.documentElement).slice()) if (rel.getAttribute("Type").endsWith("/notesSlide")) rel.parentNode.removeChild(rel);
+      // Diagram titles are shapes too: add them before numbering the pictures' shape ids.
+      for (const picture of p.pictures || []) if (picture.caption) this.captionPicture(p, picture);
       let nextShapeId = Math.max(...all(p.doc, P, "cNvPr").map((e) => parseInt(e.getAttribute("id"), 10) || 0)) + 1;
       for (let pi = 0; pi < (p.pictures || []).length; pi++) {
         const picture = p.pictures[pi];
@@ -1645,4 +1942,4 @@ async function render(sections, templatePath, outputPath, session, toc) {
   return b.render(sections, outputPath, toc);
 }
 
-module.exports = { styledCost, PRACTICE_STYLE, ANSWER_STYLE, PRACTICE_BOX, ANSWER_COLUMNS, Builder, render, isPractice, isAnswer, geometry, naturalSize, pictureTextPt, fitTarget, visualPanel, columnWidths, tocSessionName, sessionNamePt, TARGET_PT, MIN_PT, UML_MAX_PT, PAGE_NUM_Y };
+module.exports = { styledCost, PRACTICE_STYLE, ANSWER_STYLE, REFERENCE_STYLE, PRACTICE_BOX, ANSWER_COLUMNS, Builder, render, isPractice, isAnswer, geometry, naturalSize, pictureTextPt, fitTarget, visualPanel, columnWidths, tocSessionName, sessionNamePt, TARGET_PT, MIN_PT, UML_MAX_PT, PAGE_NUM_Y };

@@ -1,0 +1,10 @@
+{
+  "cohesion … is a measure of how strongly related and focused the responsibilities of an element are.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "defer all conditional and branching statements to the extensions section.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  }
+}

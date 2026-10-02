@@ -4,10 +4,10 @@ import java.util.Optional;
 
 public final class Payment {
     private final Money paymentAmount;
-    private final PaymentSystem paymentSystem;
+    private final PaymentGateway paymentSystem;
     private Optional<Refund> refund = Optional.empty();
 
-    public Payment(Money paymentAmount, PaymentSystem paymentSystem) {
+    public Payment(Money paymentAmount, PaymentGateway paymentSystem) {
         this.paymentAmount = paymentAmount;
         this.paymentSystem = paymentSystem;
     }

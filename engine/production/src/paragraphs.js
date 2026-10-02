@@ -91,9 +91,17 @@ function paragraphs(page, id, blocks, toc) {
         pr.appendChild(el(page.doc, A, "buChar", "char", level.buChar));
       }
     } else {
-      pr.setAttribute("marL", "0");
+      // A "###" sub-heading sits indented at the first bullet level, bold and without a glyph.
+      pr.setAttribute("marL", block.kind === "heading" && !toc ? String(BULLET_LEVELS[0].marL) : "0");
       pr.setAttribute("indent", "0");
       pr.appendChild(el(page.doc, A, "buNone"));
+    }
+    if (block.meta && block.meta.caption) {
+      // A table title ("**표 — 제목**", production-guide.md "표·도식 제목"): 14pt bold, centered.
+      pr.setAttribute("algn", "ctr");
+      rich(p, block.meta.caption, 14, true, false, new Set());
+      expected.push(plain(block.meta.caption));
+      continue;
     }
     // A "**인용문**"/"**Anchor Message**" marker (see builder.js) tags the following block's meta
     // as quote/anchor. guides/session-authoring-guide.md ("인용문과 출처 규칙") defines two forms:
@@ -107,7 +115,8 @@ function paragraphs(page, id, blocks, toc) {
     // comma split -- which cuts at the FIRST comma even when it's inside the Korean sentence
     // itself (e.g. "...논리적·물리적, 정적·동적...", not the real Korean/English boundary),
     // stranding the tail of the Korean text in the 10pt run instead of the 18pt one.
-    const markedPartsA = markedQuote && /^"([^"]+)"\s*,\s*(?:"([^"]+)"\s*,\s*)?(.+?)\s*$/.exec(block.text);
+    const bulletCite = !markedQuote && block.kind === "bullet" ? bulletCitation(block.text) : null;
+    const markedPartsA = (markedQuote && citationParts(block.text)) || bulletCite;
     let markedPartsB = null;
     if (markedQuote && !markedPartsA) {
       const idx = topLevelSplit(block.text);
@@ -123,7 +132,9 @@ function paragraphs(page, id, blocks, toc) {
       // emphasis (richInline, not runParen -- see guides/session-authoring-guide.md "인용문 안의
       // bold는 강조만 뜻한다"); the English-original+source 10pt zone is the one stated exception
       // and stays flat, parens included, no bold.
-      richInline(p, `"${markedPartsA[1]}"`, 18, false);
+      // A bullet citation keeps its level's body size for the Korean part (production-guide.md
+      // "인용문" -- bullet 인용); the 10pt English/source zone is the same either way.
+      richInline(p, `"${markedPartsA[1]}"`, bulletCite ? [18, 16, 14][Math.min(block.depth, 2)] : 18, false);
       run(p, ", ", 10, false);
       if (markedPartsA[2]) {
         run(p, `"${plain(markedPartsA[2])}"`, 10, false);
@@ -132,10 +143,10 @@ function paragraphs(page, id, blocks, toc) {
       run(p, plain(markedPartsA[3]), 10, false);
       expected.push(plain(`"${markedPartsA[1]}", ` + (markedPartsA[2] ? `"${markedPartsA[2]}", ` : "") + markedPartsA[3]));
     } else if (markedPartsB) {
-      richInline(p, markedPartsB.korean, 18, false);
+      richInline(p, unescapeQuotes(markedPartsB.korean), 18, false);
       run(p, ", ", 10, false);
-      run(p, plain(markedPartsB.rest), 10, false);
-      expected.push(plain(markedPartsB.korean + ", " + markedPartsB.rest));
+      run(p, plain(unescapeQuotes(markedPartsB.rest)), 10, false);
+      expected.push(plain(unescapeQuotes(markedPartsB.korean + ", " + markedPartsB.rest)));
     } else if (quote) {
       richInline(p, quote[1] + ".", 18, false);
       run(p, ", ", 10, false);
@@ -156,4 +167,28 @@ function paragraphs(page, id, blocks, toc) {
   page.items.push({ id, kind: "body", text: expected.join("\n"), rows: [] });
 }
 
-module.exports = { paragraphs, BULLET_LEVELS };
+// A citation's quoted parts may contain the original's own quotation marks written as \"
+// (session-authoring-guide.md "인용과 출처"). They split as part of the quote and print as a plain
+// '"' -- a stray backslash shows as "₩" in the Korean font.
+const QUOTED = '"((?:[^"\\\\]|\\\\.)+)"';
+const CITATION = new RegExp("^" + QUOTED + "\\s*,\\s*(?:" + QUOTED + "\\s*,\\s*)?(.+?)\\s*$");
+function unescapeQuotes(text) {
+  return String(text).replace(/\\(["\\])/g, "$1");
+}
+function citationParts(text) {
+  const m = CITATION.exec(text);
+  if (!m) return null;
+  return [m[0], unescapeQuotes(m[1]), m[2] === undefined ? undefined : unescapeQuotes(m[2]), m[3]];
+}
+
+// A bullet whose whole line is a citation -- "한글", "English original", [Larman 2004] -- renders as
+// one without a "**인용문**" marker (session-authoring-guide.md "5. 인용과 출처": supporting
+// quotes indented under a definition quote). Both the English original and a reference label tail
+// ("[저자 연도]", appendix "별첨 — 참고 자료") are required, so a bullet that merely lists quoted terms ("결제", "취소", "배송") stays a bullet.
+function bulletCitation(text) {
+  const parts = citationParts(String(text).trim());
+  if (!parts || parts[2] === undefined) return null;
+  return /^\[[^\]"]+\](?:\s*[,·]\s*\[[^\]"]+\])*$/.test(parts[3]) ? parts : null;
+}
+
+module.exports = { paragraphs, BULLET_LEVELS, citationParts, bulletCitation, unescapeQuotes, numberWidthEmu };

@@ -69,3 +69,18 @@ test("a review deck sNN-add.md resolves own-session references against its full 
   fs.writeFileSync(p, add);
   assert.deepEqual(checkReferences(p, add), { errors: [], warnings: [] });
 });
+
+test("a bare topic number 「NN」 is an error that suggests the full 「NN. 제목」", () => {
+  const root = course();
+  const p = path.join(root, "sessions", "s03.md");
+  const body = [
+    "--------------------", "Session 명: 03. 정적 모델", "--------------------", "", "## 목차", "", "01. 세션 목표", "02. 개념", "",
+    "## 01. 세션 목표", "", "뒤의 「02」와 \"02. 요구 분석과 유스케이스\"의 「02」를 본다.", "",
+    "## 02. 개념", "", "본문.", "",
+  ].join("\n");
+  fs.writeFileSync(p, body);
+  const { errors } = checkReferences(p, body);
+  assert.equal(errors.length, 2);
+  assert.match(errors[0], /「02\. 개념」로 쓴다/);
+  assert.match(errors[1], /「02\. 유스케이스」로 쓴다/);
+});

@@ -9,7 +9,7 @@ import paymentadapter.PaymentAdapter;
 import deliveryadapter.DeliveryAdapter;
 import samedaydeliveryadapter.SameDayDeliveryAdapter;
 import delivery.CarrierSelector;
-import delivery.DeliverySystem;
+import delivery.DeliveryGateway;
 import product.Product;
 import product.ProductNumber;
 import persistence.*;
@@ -19,7 +19,7 @@ public class IntegrationTest {
     public static void main(String[] args) {
         // 조립 — 외부 시스템은 요청을 기록하는 가짜 API다
         var external = new ArrayList<String>();
-        var carriers = new HashMap<String, DeliverySystem>();
+        var carriers = new HashMap<String, DeliveryGateway>();
         var paymentApi = (paymentadapter.PaymentSystemApi) (command, amount) -> external.add(command + " " + amount);
         var repository = new TableOrderRepository(new OrderMapper(new DeferredPayment(), carriers));
         var service = new OrderService(repository);
@@ -53,8 +53,8 @@ public class IntegrationTest {
 
     // 결제 연동은 주문 서비스가 있어야 만들 수 있고, 매퍼는 결제 약속이 있어야 만들 수 있다.
     // 조립 순서의 고리를 끊기 위한 테스트용 위임.
-    static final class DeferredPayment implements payment.PaymentSystem {
-        static payment.PaymentSystem target;
+    static final class DeferredPayment implements payment.PaymentGateway {
+        static payment.PaymentGateway target;
         public void requestRefund(Money amount) { target.requestRefund(amount); }
     }
 

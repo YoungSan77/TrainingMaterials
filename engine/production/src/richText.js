@@ -108,18 +108,48 @@ function rich(p, value, size, bold, code, names) {
   // can sit inside a **bold** span (e.g. "**본질적 어려움 — 주문 취소...**"), and splitting the
   // raw markdown there would sever one of the "**" pairs and leave literal asterisks in the text.
   let dashFound = false;
+  // A parenthetical may span a **bold** span ("(설계 이름은 **용어집의 영문명**)"): PAREN only
+  // sees one segment at a time, so an unclosed "(" carries the -4pt into the following segments
+  // until its ")" (production-guide.md "괄호").
+  let openParen = false;
+  const emit = (text, sz, isBold) => {
+    if (!openParen) {
+      const open = unclosedParen(text);
+      if (open < 0) { runParen(p, text, sz, isBold); return; }
+      runParen(p, text.slice(0, open), sz, isBold);
+      run(p, text.slice(open).replace(/`/g, ""), sz - 4, isBold);
+      openParen = true;
+      return;
+    }
+    const close = text.indexOf(")");
+    if (close < 0) { run(p, text.replace(/`/g, ""), sz - 4, isBold); return; }
+    run(p, text.slice(0, close + 1).replace(/`/g, ""), sz - 4, isBold);
+    openParen = false;
+    emit(text.slice(close + 1), sz, isBold);
+  };
   for (const s of segments) {
     if (code) { run(p, s.text, size, s.bold); continue; }
     // Backticks are NOT stripped here -- runParen() needs them intact to find code spans and
     // exempt their "()" from the paren rule (e.g. "`Order.cancel()`"); it strips them itself.
     const text = s.text;
-    if (dashFound) { runParen(p, text, size - 2, s.bold); continue; }
+    if (dashFound) { emit(text, size - 2, s.bold); continue; }
     const dashIdx = text.indexOf(DASH);
-    if (dashIdx < 0) { runParen(p, text, size, s.bold); continue; }
-    runParen(p, text.slice(0, dashIdx + 1), size, s.bold);
-    runParen(p, text.slice(dashIdx + 1), size - 2, s.bold);
+    if (dashIdx < 0 || openParen) { emit(text, size, s.bold); continue; }
+    emit(text.slice(0, dashIdx + 1), size, s.bold);
+    emit(text.slice(dashIdx + 1), size - 2, s.bold);
     dashFound = true;
   }
+}
+
+// Index of a "(" left open at the end of `text` (outside code spans), or -1.
+function unclosedParen(text) {
+  const masked = text.replace(CODE_SPAN, (m) => " ".repeat(m.length));
+  let depth = 0, at = -1;
+  for (let i = 0; i < masked.length; i++) {
+    if (masked[i] === "(") { if (depth === 0) at = i; depth++; }
+    else if (masked[i] === ")" && depth > 0) depth--;
+  }
+  return depth > 0 ? at : -1;
 }
 
 // Port of ReferenceRenderer.canonical(): strip whitespace outside quotes, keep quoted spacing.

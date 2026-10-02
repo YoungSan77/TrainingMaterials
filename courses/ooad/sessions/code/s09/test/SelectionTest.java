@@ -5,10 +5,10 @@ package test;
 import java.nio.file.*;
 import java.util.*;
 import payment.Payment;
-import payment.PaymentSystem;
+import payment.PaymentGateway;
 import payment.Money;
 import delivery.CarrierSelector;
-import delivery.DeliverySystem;
+import delivery.DeliveryGateway;
 import product.Product;
 import product.ProductNumber;
 import order.*;
@@ -18,9 +18,9 @@ public class SelectionTest {
 
     public static void main(String[] args) throws Exception {
         var requests = new ArrayList<String>();
-        PaymentSystem fakePayment = amount -> requests.add("환불 " + amount.won());
-        DeliverySystem regular = number -> { requests.add("기존 대행사 출고 중단 " + number); return true; };
-        DeliverySystem sameDay = number -> { requests.add("당일 배송 픽업 취소 " + number); return true; };
+        PaymentGateway fakePayment = amount -> requests.add("환불 " + amount.won());
+        DeliveryGateway regular = number -> { requests.add("기존 대행사 출고 중단 " + number); return true; };
+        DeliveryGateway sameDay = number -> { requests.add("당일 배송 픽업 취소 " + number); return true; };
         var selector = new CarrierSelector(regular, sameDay, "서울");
 
         // 선택 규칙 — 당일 배송 권역이면 당일 배송 대행사, 아니면 기존 대행사

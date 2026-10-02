@@ -78,12 +78,13 @@ def main():
             ax.plot(labels, item["values"], marker="o", linewidth=2,
                     label=item.get("name"), color=colors[index % len(colors)])
     else:
+        # pie: 슬라이드에 줄여 넣으면 약 0.55배가 되므로 라벨은 21pt로 그려 표시 크기가 12pt에 가깝게 한다.
         # pie: 값이 하나의 전체(합계)에 대한 비율이므로 값 자체를 조각 크기로 쓴다. 원형을 강제해
         # "원에 비율만큼 표현"이 실제로 지켜지게 한다(figure 비율과 무관하게).
         values = series[0]["values"]
         wedge_colors = [colors[i % len(colors)] for i in range(len(values))]
         _, _, autotexts = ax.pie(values, labels=labels, autopct="%1.0f%%", colors=wedge_colors,
-                                  startangle=90, textprops={"fontsize": 11})
+                                  startangle=90, textprops={"fontsize": 21})
         for autotext, wedge_color in zip(autotexts, wedge_colors):
             autotext.set_color("white" if is_dark(wedge_color) else "black")
         ax.axis("equal")

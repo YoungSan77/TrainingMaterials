@@ -5,10 +5,10 @@ package test;
 import java.nio.file.*;
 import java.util.*;
 import payment.Payment;
-import payment.PaymentSystem;
+import payment.PaymentGateway;
 import payment.Money;
 import delivery.Delivery;
-import delivery.DeliverySystem;
+import delivery.DeliveryGateway;
 import deliveryadapter.DeliveryAdapter;
 import deliveryadapter.DeliverySystemApi;
 import order.Order;
@@ -18,8 +18,8 @@ public class BoundaryTest {
     public static void main(String[] args) throws Exception {
         // 1. 연동 없이 주문 규칙을 검증한다 — 가짜 결제·배송 시스템
         var requests = new ArrayList<String>();
-        PaymentSystem fakePayment = amount -> requests.add("환불 " + amount.won());
-        DeliverySystem fakeDelivery = number -> { requests.add("출고 중단"); return true; };
+        PaymentGateway fakePayment = amount -> requests.add("환불 " + amount.won());
+        DeliveryGateway fakeDelivery = number -> { requests.add("출고 중단"); return true; };
 
         var order = new Order();
         order.onPaid(new Payment(new Money(2000), fakePayment), new Delivery("D-1", fakeDelivery));
@@ -27,7 +27,7 @@ public class BoundaryTest {
         check(order.status() == OrderStatus.CANCELLING);
         check(requests.equals(List.of("출고 중단", "환불 2000")));
 
-        // 2. 배송 연동은 외부 형식을 주문의 사건으로 옮긴다
+        // 2. 배송 연동은 외부 형식을 주문의 사건으로 변환한다
         var externalRequests = new ArrayList<String>();
         DeliverySystemApi api = (command, number) -> { externalRequests.add(command + " " + number); return "ACCEPTED"; };
         var adapter = new DeliveryAdapter(api);

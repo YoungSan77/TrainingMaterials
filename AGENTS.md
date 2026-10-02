@@ -49,13 +49,13 @@ Renderer must not drive Content.
 
 renderer 한계 때문에 Session Source를 수정하지 않는다. 지원되지 않는 Markdown/visual type이 필요하면 renderer를 확장한다.
 
-## 과거 방식으로 되돌리지 않기
+## 규칙의 원천
 
 현재 규칙은 이 파일과 `guides/`의 지침에만 있다. 과거의 산출물은 비교하거나 복원할 기준이 아니다.
 
-- 제거한 중간 산출물 — 과정별 Curriculum(`<course>-curriculum.md`)과 세션 상세 설계(Session DD, `sNN-detailed-design.md`) — 을 다시 만들지 않는다. Session Authoring은 `course-design.md`에서 Session Source로 바로 간다.
+- Session Authoring은 `course-design.md`에서 Session Source로 바로 간다. 과정별 커리큘럼 문서나 세션 상세 설계 문서 같은 중간 산출물을 두지 않는다.
 - 예전에 생성한 PPT, git history의 이전 원고·지침은 내용·시각의 기준이 아니다. 현재 지침과 다르면 지침을 따른다.
-- 제거한 renderer 부분 — 외부 승인 템플릿(`approved.pptx`), 고정 페이지 레이아웃(`--layout compact|reference`, `layout-profile.xml`) — 을 되살리지 않는다. 뼈대는 `engine/production/template/` 하나다.
+- Production의 뼈대는 `engine/production/template/` 하나다. 외부 승인 템플릿이나 고정 페이지 레이아웃 설정을 두지 않는다.
 - `references/production/`은 사용자가 참고하려고 보관하는 폴더다(`approved.pptx` 원본). LLM은 이 폴더를 읽거나 비교·복사·복원의 근거로 쓰지 않고, 수정·삭제하지도 않는다.
 - renderer의 회귀는 참조 폴더와의 비교가 아니라 테스트로 막는다(`guides/production-guide.md`의 「Regression」).
 
@@ -65,3 +65,17 @@ renderer 한계 때문에 Session Source를 수정하지 않는다. 지원되지
 - `guides/*.md` 중 하나의 내용(수동 목차 정책, 의미 표식 문법, typography 규칙 등)을 바꾸면, 그 계약을 실제로 구현하는 `engine/production/src/`의 코드와 테스트도 함께 갱신한다. 지침 문서 수정만으로 구현이 완료됐다고 간주하지 않는다.
 - 세 지침 파일과 `sw-engineering-principles.md`는 서로를 파일명으로 참조한다. 파일을 이동·rename하면 상호 참조도 함께 갱신한다.
 - 기본 원칙을 바꾸면 그 원칙을 적용하는 지침(과정 설계·세션 작성)의 해당 항목과 참조 자료도 함께 점검한다.
+
+## 작업 운영
+
+같은 품질을 적은 반복으로 낸다. 다시 만들기·전체 재확인·원전 재탐색이 작업 비용의 대부분이었다.
+
+- **구성안 먼저** — 세션을 만들거나 크게 보완할 때는 인용문 → 구성안(topic·핵심 메시지·사례 값·visual 종류) 순서로 채팅에서 승인받은 뒤에 원고를 쓴다(`guides/session-authoring-guide.md`의 「검토 절차」).
+- **모아서 한 번에** — 검토에서 찾은 문제는 목록으로 모아 한 번에 고치고 한 번 렌더링한다. 문제마다 렌더링하지 않는다.
+- **범위만큼 검사** — 원고만 바꾸면 그 세션만 렌더링한다. 전체 테스트와 모든 세션의 재렌더링은 renderer·템플릿을 바꿨을 때만 한다.
+- **필요한 장만 시각 검토** — 자동 검사가 오류·경고 0개가 된 뒤, `tools/review-pdf.sh <원고> <장…>`으로 도식·표·코드가 있는 장과 바뀐 장만 본다. 고친 뒤에는 고친 장만 다시 본다.
+- **원문 확인은 PC에서** — 인용이 원전에 있는지는 `node tools/verify-quote.js <원전|URL|캐시 이름> "<영문 인용>"`로 확인하고 결과 한 줄만 본다. 원전 텍스트는 `references/sources/`(git 제외)에 한 번만 추출한다(예: `larman-2004`). "있음"은 `references/verified.json`에 기록되고, 기록에 없는 영문 인용은 Production이 경고한다.
+- **인용은 기록부터** — 새 인용을 찾기 전에 `node tools/citations.js courses/<course> <저자·원문>`으로 이미 확인한 인용을 찾는다. 원전 PDF는 텍스트로 한 번 추출해 grep으로 문장만 찾는다.
+- **필요한 범위만 읽기** — 긴 원고는 `grep -n "^## "`로 위치를 찾고 그 범위만 읽는다.
+- **기계적 수정은 도구로** — topic 삽입과 번호·참조 갱신은 `tools/insert-topic.py`를 쓴다.
+- **끝에 한 줄 보고** — 작업을 마칠 때 렌더링 횟수와 시각 검토한 장 수를 함께 보고한다.

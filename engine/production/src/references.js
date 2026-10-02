@@ -64,6 +64,73 @@ const TOPIC_REF = /「(\d\d)\. ([^」\n]+)」/g;
 // after other topic references joined by ·, 쉼표, 과/와, 및, 또는.
 const TARGET = /"(\d\d)\. [^"\n]+"의\s*(?:「[^」\n]*」\s*(?:·|,|과|와|및|또는)?\s*)*$/;
 
+// Reference labels (session-authoring-guide.md "인용과 출처", production-guide.md "별첨 — 참고 자료"):
+// a citation or reference in a session is "[저자 연도]" (or "[Wikipedia: 항목]"), and every label
+// is an entry "N. **[레이블]** …" of the course appendix references.md next to the sessions.
+const APPENDIX = "references.md";
+const { quoteKey, findLedger } = require("./quoteKey");
+const { citationParts } = require("./paragraphs");
+// A label starts with a capital (author, organization, "Wikipedia: …") and carries the year when it
+// is known: [Larman 2004], [Ambler], [Jacobson 1992, 재인용]. A markdown link text "[…](url)" is not one.
+const LABEL = /\[([A-Z][^\[\]\n()"]*?)(?:, 재인용)?\](?!\()/g;
+const ENTRY = /^\d+\.\s+\*\*\[([^\]]+)\]\*\*/;
+// The old citation tail "…", 저자, 년도 (before labels).
+const OLD_TAIL = /"\s*,\s*[A-Z][^"\[\]\n]*,\s*\d{4}(?:,\s*www)?\s*$/;
+
+function labelsIn(text) {
+  const out = [];
+  stripCode(text).forEach((line, i) => {
+    let m;
+    LABEL.lastIndex = 0;
+    while ((m = LABEL.exec(line))) out.push({ label: m[1], line: i + 1 });
+  });
+  return out;
+}
+
+function appendixEntries(text) {
+  return stripCode(text).map((line, i) => ({ m: ENTRY.exec(line), line: i + 1 })).filter((e) => e.m).map((e) => ({ label: e.m[1], line: e.line }));
+}
+
+function checkLabels(inputPath, text) {
+  const errors = [];
+  const warnings = [];
+  const dir = path.dirname(path.resolve(inputPath));
+  if (path.basename(inputPath) === APPENDIX) {
+    const entries = appendixEntries(text);
+    const seen = new Set();
+    for (const e of entries) {
+      if (seen.has(e.label)) errors.push("원고 " + e.line + "행: 참고 자료 레이블 [" + e.label + "]이 중복된다.");
+      seen.add(e.label);
+    }
+    const used = new Set();
+    for (const f of fs.readdirSync(dir)) {
+      if (!/^s\d\d\.md$/i.test(f)) continue;
+      for (const u of labelsIn(fs.readFileSync(path.join(dir, f), "utf-8"))) used.add(u.label);
+    }
+    for (const u of used) if (!seen.has(u)) errors.push("세션이 쓰는 레이블 [" + u + "]이 별첨에 없다.");
+    return { errors, warnings };
+  }
+  const appendix = path.join(dir, APPENDIX);
+  const known = fs.existsSync(appendix) ? new Set(appendixEntries(fs.readFileSync(appendix, "utf-8")).map((e) => e.label)) : null;
+  for (const u of labelsIn(text)) {
+    if (!known) { errors.push("원고 " + u.line + "행: 레이블 [" + u.label + "]을 확인할 별첨 " + APPENDIX + "이 없다."); break; }
+    if (!known.has(u.label)) errors.push("원고 " + u.line + "행: 레이블 [" + u.label + "]이 별첨 " + APPENDIX + "에 없다.");
+  }
+  // An English original must be recorded as verified (tools/verify-quote.js), when the repository
+  // keeps a ledger references/verified.json.
+  const ledgerFile = findLedger(dir);
+  const ledger = ledgerFile ? JSON.parse(fs.readFileSync(ledgerFile, "utf-8")) : null;
+  if (ledger) stripCode(text).forEach((line, i) => {
+    const parts = citationParts(line.trim().replace(/^-\s+/, ""));
+    if (!parts || parts[2] === undefined || !/\[/.test(parts[3])) return;
+    if (!ledger[quoteKey(parts[2])]) warnings.push("원고 " + (i + 1) + "행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"" + parts[2].slice(0, 40) + "…\"");
+  });
+  stripCode(text).forEach((line, i) => {
+    if (OLD_TAIL.test(line)) warnings.push("원고 " + (i + 1) + "행: 인용 출처를 \"저자, 년도\"가 아니라 레이블 [저자 연도]로 쓴다.");
+  });
+  return { errors, warnings };
+}
+
 function checkReferences(inputPath, text) {
   const errors = [];
   const warnings = [];
@@ -105,11 +172,23 @@ function checkReferences(inputPath, text) {
           (sameTitle ? ". 번호를 「" + sameTitle + "」로 고친다." : "."));
       }
     }
+    // A bare number 「NN」 is not a reference form (session-authoring-guide.md "참조 형식"):
+    // the title is what keeps the reference readable and checkable when topics move.
+    const BARE = /「(\d\d)」/g;
+    while ((m = BARE.exec(line))) {
+      const t = TARGET.exec(line.slice(0, m.index));
+      const heads = t ? sessions[t[1]] && sessions[t[1]].headings : ownHeadings;
+      const full = heads && [...heads.keys()].find((k) => k.startsWith(m[1] + ". "));
+      errors.push(where + "주제 참조 「" + m[1] + "」에 제목이 없다" + (full ? ". 「" + full + "」로 쓴다." : "."));
+    }
     if (/(^|[^A-Za-z0-9])S\d\d(?![0-9])/.test(line)) {
       errors.push(where + "파일명식 세션 참조(S0x)를 쓰지 않는다. 정확한 세션명을 쓴다.");
     }
   });
+  const labels = checkLabels(inputPath, text);
+  errors.push(...labels.errors);
+  warnings.push(...labels.warnings);
   return { errors, warnings };
 }
 
-module.exports = { checkReferences };
+module.exports = { checkReferences, checkLabels };

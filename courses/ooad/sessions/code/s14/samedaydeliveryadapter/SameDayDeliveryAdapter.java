@@ -1,12 +1,12 @@
 package samedaydeliveryadapter;
 
-import delivery.DeliverySystem;
+import delivery.DeliveryGateway;
 import order.OrderNumber;
 import order.OrderNotice;
 
-// 당일 배송 대행사의 형식을 배송 경계의 약속(DeliverySystem)으로 옮긴다.
+// 당일 배송 대행사의 형식을 배송 경계의 약속(DeliveryGateway)으로 옮긴다.
 // 주문·배송 클래스는 바뀌지 않는다.
-public final class SameDayDeliveryAdapter implements DeliverySystem {
+public final class SameDayDeliveryAdapter implements DeliveryGateway {
     private final SameDayDeliveryApi api;
     private final OrderNotice orderNotice;
 
