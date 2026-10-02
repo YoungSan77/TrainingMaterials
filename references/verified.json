@@ -1,9 +1,69 @@
 {
+  "…to collapse crud (create, retrieve, update, delete) separate goals into one crud use case, idiomatically called manage <x>.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "a system sequence diagram is a picture that shows, for one particular scenario of a use case, the events that external actors generate, their order, and inter-system events.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "a task performed by one person in one place at one time, in response to a business event, which adds measurable business value and leaves the data in a consistent state": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "a use case diagram is an excellent picture of the system context; it makes a good context diagram, that is, showing the boundary of a system, what lies outside of it, and how it gets used.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "a use case is a collection of related success and failure scenarios that describe an actor using a system to support a goal.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "bdd is a way for software teams to work that closes the gap between business people and technical people by: encouraging collaboration across roles to build shared understanding of the problem to be solved": {
+    "source": "https://cucumber.io/docs/bdd/",
+    "date": "2026-10-02"
+  },
+  "card, conversation, confirmation": {
+    "source": "https://ronjeffries.com/xprog/articles/expcardconversationconfirmation/",
+    "date": "2026-10-02"
+  },
   "cohesion … is a measure of how strongly related and focused the responsibilities of an element are.": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "defer all conditional and branching statements to the extensions section.": {
+  "even when they don't yet know it, customers want something better.": {
+    "source": "https://www.aboutamazon.com/news/company-news/2016-letter-to-shareholders",
+    "date": "2026-10-02"
+  },
+  "requirements are capabilities and conditions to which the system … must conform": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "something happened that domain experts care about.": {
+    "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
+    "date": "2026-10-02"
+  },
+  "the ability for tracking the relationships between requirements and designs from the original stakeholder need to the actual implemented solution.": {
+    "source": "https://www.iiba.org/knowledgehub/the-business-analysis-standard/4-implementing-business-analysis/4-4-understanding-requirements-and-designs/",
+    "date": "2026-10-02"
+  },
+  "the event list is a narrative list of the \"stimuli\" that occur in the outside world and to which our system must respond.": {
+    "source": "https://web.archive.org/web/20070214052310/http://yourdon.com/strucanalysis/wiki/index.php?title=Chapter_18",
+    "date": "2026-10-02"
+  },
+  "the hardest single part of building a software system is deciding precisely what to build.": {
+    "source": "https://www.cs.unc.edu/techreports/86-020.pdf",
+    "date": "2026-10-02"
+  },
+  "the postconditions describe changes in the state of objects in the domain model. domain model state changes include instances created, associations formed or broken, and attributes changed.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "use cases are text documents, not diagrams, and use-case modeling is primarily an act of writing text, not drawing diagrams.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "write use cases in an essential style; keep the user interface out and focus on actor intent.": {
     "source": "larman-2004",
     "date": "2026-10-02"
   }

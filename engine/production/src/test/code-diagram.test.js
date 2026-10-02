@@ -167,3 +167,30 @@ test("a ```text block is a learner-facing example rendered as code; only ```tree
   assert.deepEqual(kinds(doc("tree", "src\n  main")), ["tree"]);
   assert.deepEqual(kinds(doc("text", "src\n├─ main\n└─ test")), ["tree"]);
 });
+
+test("diagram and code on continuation slides stay above the page number", async () => {
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="300" viewBox="0 0 900 300"><style>text{font-size:16px}</style>'
+    + '<rect x="10" y="10" width="880" height="280" fill="#EBF1F8"/><text x="450" y="150">가로로 넓은 도식</text></svg>';
+  const code = Array.from({ length: 80 }, (_, i) => "        값" + i + " = 계산한다(첫째, 둘째, 셋째, 넷째) + " + i + ";").join("\n");
+  const md = "## 01. 코드\n\n이 topic의 lead 문장은 두 줄에 걸칠 만큼 길게 써서, 첫 장의 위쪽을 차지한다.\n\n"
+    + "- 첫 장의 설명.\n\n**페이지 분할**\n\n- 둘째 장의 설명.\n\n**도식 — SVG — 넓은 도식**\n\n```svg\n" + svg + "\n```\n\n```java\n" + code + "\n```\n";
+  const { sections } = parse(md);
+  const output = path.join(os.tmpdir(), `tm-code-lead-${process.pid}-${Date.now()}.pptx`);
+  try {
+    const m = await render(sections, TEMPLATE, output, "T", [block("bullet", "01. 코드")]);
+    const pages = m.pages.filter((p) => String(p.heading).startsWith("01. 코드"));
+    assert.ok(pages.length >= 3, "the code continues across slides");
+    const EMU = 914400, PAGE_NUM_Y = 6449625 / EMU;
+    for (const p of pages.slice(1)) {
+      for (const sp of Array.from(p.doc.getElementsByTagName("p:sp"))) {
+        const off = sp.getElementsByTagName("a:off")[0], ext = sp.getElementsByTagName("a:ext")[0];
+        if (!off || !ext || !String(sp.textContent || "").includes("값")) continue;
+        const bottom = (Number(off.getAttribute("y")) + Number(ext.getAttribute("cy"))) / EMU;
+        assert.ok(bottom <= PAGE_NUM_Y, `code ends at ${bottom.toFixed(2)}in, below the page number`);
+      }
+      for (const pic of p.pictures || []) assert.ok(pic.bounds.y + pic.bounds.h <= PAGE_NUM_Y);
+    }
+  } finally {
+    if (fs.existsSync(output)) fs.unlinkSync(output);
+  }
+});

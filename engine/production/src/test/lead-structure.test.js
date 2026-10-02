@@ -1,7 +1,7 @@
 "use strict";
 // session-authoring-guide.md "한 장의 메시지" / production-guide.md "이어지는 장", "표·도식 제목":
 // one lead per topic (a citation may be it when it opens the topic), "###" sub-headings bold and
-// indented without a glyph, the lead repeated in italics on continuation slides, and titles for
+// indented without a glyph, continuation slides that start with their own content, and titles for
 // tables ("**표 — 제목**") and diagrams ("**도식 — PlantUML — 제목**").
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -46,13 +46,14 @@ test("a citation that opens the topic is its lead (flush, no glyph)", async () =
   assert.ok(child(child(first, A, "pPr"), A, "buNone"));
 });
 
-test("a continuation slide repeats the lead in italics", async () => {
+test("a continuation slide starts with its own content at the top, without repeating the lead", async () => {
   const lines = Array.from({ length: 16 }, (_, i) => `- **${i + 1}번** 설명 문장이 본문을 한 줄씩 길게 채워 다음 장으로 넘어가게 한다.`);
   const ps = await deck("## 01. 주제\n\n**리드** 메시지 문장이다.\n\n" + lines.join("\n") + "\n");
   assert.ok(ps.length >= 2);
   const first = paras(ps[1])[0];
-  assert.equal(pText(first), "리드 메시지 문장이다.");
-  for (const rp of all(first, A, "rPr")) assert.equal(rp.getAttribute("i"), "1");
+  assert.notEqual(pText(first), "리드 메시지 문장이다.");
+  assert.ok(/번 설명 문장/.test(pText(first)));
+  for (const rp of all(first, A, "rPr")) assert.notEqual(rp.getAttribute("i"), "1");
 });
 
 test("a table title renders 14pt bold right above the table", async () => {

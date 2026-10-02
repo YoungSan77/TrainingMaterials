@@ -4,5 +4,5 @@
   "checked_blocks": 53,
   "visual_status": "NOT_VERIFIED",
   "errors": [],
-  "warnings": []
+  "warnings": ["원고 94행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Good context engineering means finding t…\"","원고 179행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Agents can then pause for human feedback…\"","원고 203행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Claude stops when the work looks done. W…\"","원고 227행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"everything in an AI agent except the mod…\"","원고 248행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Separately, you get either an agent that…\"","원고 366행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Any indication that the genie was cheati…\""]
 }

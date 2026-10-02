@@ -4,5 +4,5 @@
   "checked_blocks": 62,
   "visual_status": "NOT_VERIFIED",
   "errors": [],
-  "warnings": []
+  "warnings": ["원고 172행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"A Dependency signifies a supplier/client…\"","원고 274행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"We propose instead that one begins with …\"","원고 275행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Classes that change together, belong tog…\"","원고 276행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Classes that aren’t reused together shou…\"","원고 442행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Depend in the direction of stability.…\"","원고 460행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"The dependencies betwen packages must no…\"","원고 464행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Depend upon Abstractions. Do not depend …\"","원고 543행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Stable packages should be abstract packa…\"","원고 564행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"The granule of reuse is the granule of r…\"","원고 597행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"The component structure cannot be design…\""]
 }

@@ -668,9 +668,7 @@ class Builder {
     if (this.sectionBlocks) this.sectionBlocks.push(...pending);
     let chunk = [];
     let cost = 0;
-    // A continuation slide of the topic carries the lead repeat on top (repeatLead): reserve it.
-    const reserve = this.leadReserve || 0;
-    let pageCapacity = capacity - (this.pages.length > this.sectionFirst ? reserve : 0);
+    let pageCapacity = capacity;
     const costs = pending.map((b) => this.blockCost(b));
     for (let i = 0; i < pending.length; i++) {
       const b = pending[i];
@@ -688,7 +686,7 @@ class Builder {
         p.textCost = cost;
         chunk = [];
         cost = 0;
-        pageCapacity = 450 - reserve;
+        pageCapacity = 450;
       }
       chunk.push(b);
       cost += c;
@@ -753,66 +751,6 @@ class Builder {
     return groups;
   }
 
-  // A continuation slide restates the topic's lead message in italics above its own content
-  // (production-guide.md "이어지는 장"). Only a slide whose body placeholder carries prose gets it.
-  repeatLead(page, lead) {
-    const item = page.items.find((it) => it.id === 8 && it.kind !== "footnote");
-    const prose = item && String(item.text || "").trim();
-    // A slide without prose in the body placeholder: a table/code slide gets the repeat in its own
-    // line above everything (shifted down); a diagram alone on its slide stays clean.
-    if (!prose && (page.visualLayout === "visual-only" || !page.items.length)) return;
-    const isQuote = lead.meta && (lead.meta.quote || lead.meta.anchor);
-    let value = lead.text;
-    if (isQuote) {
-      const parts = citationParts(lead.text);
-      value = parts ? parts[1] : lead.text.split(/,\s*"/)[0];
-    }
-    value = plain(value);
-    if (!prose) return this.repeatLeadAbove(page, value);
-    const b = body(shape(page.doc, 8));
-    const p = el(page.doc, A, "p");
-    const pr = spacing(p, 0, 6, null);
-    pr.setAttribute("marL", "0");
-    pr.setAttribute("indent", "0");
-    pr.appendChild(el(page.doc, A, "buNone"));
-    run(p, value, 18, false);
-    for (const rp of all(p, A, "rPr")) rp.setAttribute("i", "1");
-    const firstP = kids(b, A, "p")[0];
-    b.insertBefore(p, firstP || null);
-    item.text = value + (item.text ? "\n" + item.text : "");
-  }
-
-  // Shift the slide's content down one line and put the italic lead repeat on top.
-  repeatLeadAbove(page, value) {
-    // 18pt lines across the 9.2in body width (662pt), plus a little air below.
-    const dy = 0.1 + estimate(value, 662, 18) * 0.32;
-    const fixed = new Set(["2", "5", "6", "7"]);
-    for (const e of children(first(page.doc, P, "spTree"))) {
-      const nv = first(e, P, "cNvPr");
-      if (!nv || fixed.has(nv.getAttribute("id"))) continue;
-      if (all(e, P, "ph").some((ph) => ph.getAttribute("type") === "sldNum")) continue;
-      const off = first(e, A, "off");
-      if (off) off.setAttribute("y", String(Math.round(parseInt(off.getAttribute("y"), 10) + dy * EMU)));
-    }
-    for (const pic of page.pictures || []) {
-      const b = pic.bounds;
-      const room = PAGE_NUM_Y - 0.08 - (b.y + dy);
-      const scale = Math.min(1, room / b.h);
-      pic.bounds = { x: b.x + (b.w - b.w * scale) / 2, y: b.y + dy, w: b.w * scale, h: b.h * scale };
-    }
-    if (page.tableBottom != null) page.tableBottom += dy;
-    const id = this.cloneShape(page, 13);
-    const sh = shape(page.doc, id);
-    setShapeBounds(sh, { x: 0.4, y: 1.05, w: 9.2, h: dy });
-    const tb = body(sh);
-    for (const old of kids(tb, A, "p")) tb.removeChild(old);
-    const p = el(page.doc, A, "p");
-    tb.appendChild(p);
-    run(p, value, 18, false);
-    for (const rp of all(p, A, "rPr")) rp.setAttribute("i", "1");
-    page.items.push({ id, kind: "lead", text: value, rows: [] });
-  }
-
   // Move whatever sits below `top` (a table or code under the diagram) down by `dy`, if it still
   // clears the footer. Returns whether it moved.
   shiftBelow(page, top, dy) {
@@ -863,6 +801,13 @@ class Builder {
     // A table or code right below the diagram: stay inside the diagram's own box. Otherwise move
     // the picture down by the title's height, shrinking only if it would reach the footer.
     const below = page.visualLayout === "table-leading" || page.items.some((it) => ["source", "code"].includes(it.kind));
+    // A diagram beside code: the title stays over the diagram's own column, never over the code.
+    if (page.visualLayout === "code-side") {
+      const room = h - H;
+      const scale = Math.max(0.5, Math.min(1, room / h));
+      picture.bounds = { x: x + (w - w * scale) / 2, y: y + H, w: w * scale, h: h * scale };
+      return this.drawCaption(page, picture.caption, { x: 0.4, y, w: 2 * (x - 0.4) + w, h: H });
+    }
     // The table/code below also gets a little air from the diagram's bottom edge.
     if (below && this.shiftBelow(page, y, H + 0.12)) {
       picture.bounds = { x, y: y + H, w, h };
@@ -1334,7 +1279,6 @@ class Builder {
     for (let section of sections) {
       const firstIdx = this.pages.length;
       this.sectionFirst = firstIdx;
-      this.leadReserve = 0;
       // "**주석**" and the paragraph after it: an 8pt footnote at the bottom of every slide of the
       // topic, kept out of the body flow (session-authoring-guide.md "주석", production-guide.md
       // "주석").
@@ -1574,7 +1518,6 @@ class Builder {
             if (!governingMessageSeen && (!isQuote || !contentSeen)) {
               governingMessageSeen = true;
               leadBlock = block;
-              this.leadReserve = this.blockCost(block);
             } else {
               block = { ...block, kind: "bullet", depth: block.depth + headingDepthBoost };
             }
@@ -1835,7 +1778,6 @@ class Builder {
         const second = [english, section.diagram || ""].filter((s) => s !== "").join(" · ");
         p.heading = main + (second === "" ? "" : "\n" + second);
       }
-      if (leadBlock) for (const page of this.pages.slice(firstIdx + 1, sectionEnd)) this.repeatLead(page, leadBlock);
       if (footnote) for (const page of this.pages.slice(firstIdx)) this.footnote(page, footnote);
     }
 

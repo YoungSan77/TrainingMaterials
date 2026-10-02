@@ -4,5 +4,5 @@
   "checked_blocks": 63,
   "visual_status": "NOT_VERIFIED",
   "errors": [],
-  "warnings": []
+  "warnings": ["원고 60행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"the team mines the feedback from realist…\"","원고 137행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"program testing can be used very effecti…\"","원고 161행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Keep the bar green to keep the code clea…\"","원고 238행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Refactoring is a structured, disciplined…\"","원고 293행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"It's much cheaper to fix problems and de…\"","원고 315행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Since there's only a few hours of change…\"","원고 357행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"if it hurts, do it more often…\"","원고 398행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"The Second Way is about creating the rig…\"","원고 418행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"5 Whys is the practice of asking why rep…\""]
 }

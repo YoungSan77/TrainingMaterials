@@ -84,8 +84,8 @@ test("the reference session composes its topics without visual or notes slides",
     assert.deepEqual(report.errors, []);
     // These figures belong to the frozen fixture (fixtures/reference-session.md), not to the live
     // course: editing the course never changes them.
-    // 46 since continuation slides reserve room for the italic lead repeat (production-guide.md "이어지는 장").
-    assert.equal(m.pages.length, 46, "TOC 2 + 44 content slides (split and overflowing topics)");
+    // 45 since continuation slides start with their own content, without a lead repeat (production-guide.md "이어지는 장").
+    assert.equal(m.pages.length, 45, "TOC 2 + 43 content slides (split and overflowing topics)");
     assert.equal(m.unsupportedVisuals.length, 0);
     assert.equal(m.images, 17);
     assert.deepEqual(m.imageCounts, { mermaid: 9, plantuml: 7, chart: 1, svg: 0 });

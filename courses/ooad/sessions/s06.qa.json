@@ -1,8 +1,8 @@
 {
   "status": "PASS",
   "slides": 42,
-  "checked_blocks": 81,
+  "checked_blocks": 79,
   "visual_status": "NOT_VERIFIED",
   "errors": [],
-  "warnings": []
+  "warnings": ["원고 94행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"The critical design tool for software de…\"","원고 140행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Use software class names in the domain l…\"","원고 144행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"A lowered representational gap is useful…\"","원고 163행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"If the design, or some central part of i…\"","원고 637행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Draw from the model the terminology used…\"","원고 974행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Care must be applied with this method; a…\""]
 }

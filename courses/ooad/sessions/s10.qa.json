@@ -4,5 +4,5 @@
   "checked_blocks": 68,
   "visual_status": "NOT_VERIFIED",
   "errors": [],
-  "warnings": []
+  "warnings": ["원고 80행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Superficial changes to the UI can actual…\"","원고 98행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"a number of problems arise due to the mi…\"","원고 120행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Do not put application logic (such as a …\"","원고 165행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Isolate the expression of the domain mod…\"","원고 295행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"A layer of mappers that moves data betwe…\"","원고 412행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"As a downstream client, create an isolat…\"","원고 575행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Domain logic moves into queries and appl…\"","원고 596행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"A large interface with an upstream syste…\""]
 }

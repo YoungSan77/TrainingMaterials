@@ -4,5 +4,5 @@
   "checked_blocks": 67,
   "visual_status": "NOT_VERIFIED",
   "errors": [],
-  "warnings": []
+  "warnings": ["원고 60행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Architecture is about the important stuf…\"","원고 122행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Architecture is the decisions that you w…\"","원고 146행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"the quality attributes have a strong inf…\"","원고 229행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Model expressions, like any other phrase…\"","원고 284행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Recognize that a change in the language …\"","원고 308행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Boil the model down. Define a core domai…\"","원고 354행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"the microservice architectural style is …\"","원고 376행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"An in-process function call is fast and …\"","원고 429행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"even experienced architects working in f…\"","원고 453행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"organizations which design systems … are…\"","원고 495행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Don't even consider microservices unless…\""]
 }

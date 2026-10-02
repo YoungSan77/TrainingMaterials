@@ -4,5 +4,5 @@
   "checked_blocks": 63,
   "visual_status": "NOT_VERIFIED",
   "errors": [],
-  "warnings": []
+  "warnings": ["원고 83행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"It also requires a willingness to accept…\"","원고 277행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Assign a responsibility so that cohesion…\"","원고 298행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Assign a responsibility so that coupling…\"","원고 319행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"It is not high coupling per se that is t…\"","원고 340행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"future proofing is arguably rarely perfe…\"","원고 382행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"There are two ways of constructing a sof…\"","원고 386행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Passes the tests; Reveals intention; No …\"","원고 458행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Explaining the rationale of rejecting th…\""]
 }

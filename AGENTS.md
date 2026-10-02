@@ -74,7 +74,7 @@ renderer 한계 때문에 Session Source를 수정하지 않는다. 지원되지
 - **모아서 한 번에** — 검토에서 찾은 문제는 목록으로 모아 한 번에 고치고 한 번 렌더링한다. 문제마다 렌더링하지 않는다.
 - **범위만큼 검사** — 원고만 바꾸면 그 세션만 렌더링한다. 전체 테스트와 모든 세션의 재렌더링은 renderer·템플릿을 바꿨을 때만 한다.
 - **필요한 장만 시각 검토** — 자동 검사가 오류·경고 0개가 된 뒤, `tools/review-pdf.sh <원고> <장…>`으로 도식·표·코드가 있는 장과 바뀐 장만 본다. 고친 뒤에는 고친 장만 다시 본다.
-- **원문 확인은 PC에서** — 인용이 원전에 있는지는 `node tools/verify-quote.js <원전|URL|캐시 이름> "<영문 인용>"`로 확인하고 결과 한 줄만 본다. 원전 텍스트는 `references/sources/`(git 제외)에 한 번만 추출한다(예: `larman-2004`). "있음"은 `references/verified.json`에 기록되고, 기록에 없는 영문 인용은 Production이 경고한다.
+- **원문 확인은 PC에서** — 인용이 원전에 있는지는 `node tools/verify-quote.js <원전|URL|캐시 이름> "<영문 인용>"`로 확인하고 결과 한 줄만 본다. 원전 텍스트는 `references/sources/`(git 제외)에 한 번만 추출한다(예: `larman-2004`). "있음"은 `references/verified.json`에 기록되고, 기록에 없는 영문 인용은 Production이 경고한다. 원고에 쓰지 않을 조사용 조회(장 제목·용어 확인)는 `--check`로 해 기록하지 않는다.
 - **인용은 기록부터** — 새 인용을 찾기 전에 `node tools/citations.js courses/<course> <저자·원문>`으로 이미 확인한 인용을 찾는다. 원전 PDF는 텍스트로 한 번 추출해 grep으로 문장만 찾는다.
 - **필요한 범위만 읽기** — 긴 원고는 `grep -n "^## "`로 위치를 찾고 그 범위만 읽는다.
 - **기계적 수정은 도구로** — topic 삽입과 번호·참조 갱신은 `tools/insert-topic.py`를 쓴다.

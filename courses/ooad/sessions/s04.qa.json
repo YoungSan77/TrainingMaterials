@@ -1,8 +1,8 @@
 {
   "status": "PASS",
   "slides": 71,
-  "checked_blocks": 121,
+  "checked_blocks": 116,
   "visual_status": "NOT_VERIFIED",
   "errors": [],
-  "warnings": []
+  "warnings": ["원고 113행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"An event describes a set of possible occ…\"","원고 131행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"You potentially need to use multiple mod…\"","원고 151행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"A reactive system ..., is characterized …\"","원고 288행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"An Interaction is a unit of Behavior tha…\"","원고 327행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"They are used to get a better grip of an…\"","원고 1122행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"A State models a situation during which …\"","원고 1384행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"a complex system cannot be beneficially …\"","원고 1520행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"agile models and agile documents are suf…\""]
 }
