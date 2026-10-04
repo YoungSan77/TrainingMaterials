@@ -1,8 +1,8 @@
 {
   "status": "PASS",
   "slides": 86,
-  "checked_blocks": 141,
+  "checked_blocks": 179,
   "visual_status": "NOT_VERIFIED",
   "errors": [],
-  "warnings": ["원고 137행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"A model is a simplification. It is an in…\"","원고 248행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"The state of an object identifies the va…\"","원고 308행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"A domain model is a visual representatio…\"","원고 623행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"The entity-relationship model adopts the…\"","원고 644행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Domain models are not data models.…\"","원고 844행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"The domain model is a visualization of n…\"","원고 900행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"If we do not think of some conceptual cl…\"","원고 936행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"There is a predicate associated with eac…\"","원고 981행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Make it express the meaning of the attri…\"","원고 1379행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"aggregation (white diamond) has no seman…\"","원고 1431행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Make a domain model in the spirit of how…\"","원고 1988행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"are in the same subject area—closely rel…\"","원고 2210행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"domain models are not necessarily correc…\""]
+  "warnings": []
 }

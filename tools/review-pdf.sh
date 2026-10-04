@@ -34,12 +34,12 @@ end tell" >/dev/null
 [[ -s $tmp_pdf ]] || { echo "PDF 내보내기 실패 — DELAY를 늘려 다시 실행한다"; exit 1; }
 pages=$(pdfinfo $tmp_pdf | awk '/^Pages:/ {print $2}')
 if (( $# == 0 )); then
-  echo "$name: $pages장. 볼 장을 지정한다(예: 3 8-10)."
+  echo "$name: ${pages}장. 볼 장을 지정한다(예: 3 8-10)."
   exit 0
 fi
 for spec in "$@"; do
   first=${spec%-*}; last=${spec#*-}
   pdftoppm -r ${DPI:-50} -png -f $first -l $last $tmp_pdf $out/p
 done
-echo "$name: $pages장 중 $# 범위 → $out"
+echo "$name: ${pages}장 중 $# 범위 → $out"
 ls $out/*.png

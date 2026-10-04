@@ -95,7 +95,8 @@ function unboldedText(sections) {
 
 // Every topic carries an instructor note (session-authoring-guide.md "강사 노트"). Warning only.
 function missingNotes(sections) {
-  return sections.filter((s) => !(s.notes && s.notes.length)).map((s) => `강사 노트가 없다: "${s.title}"`);
+  // A group with no body of its own (its sub-topics follow) has no slide, so no note.
+  return sections.filter((s) => (!s.blocks || s.blocks.length) && !(s.notes && s.notes.length)).map((s) => `강사 노트가 없다: "${s.title}"`);
 }
 
 module.exports = { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, missingNotes, MAX_GOALS };

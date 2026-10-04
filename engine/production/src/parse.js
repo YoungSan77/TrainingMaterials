@@ -58,6 +58,7 @@ function parse(input) {
   // instead of deriving a TOC from body headings, and so it never becomes its own content slide.
   const TOC_HEADING = "목차";
   let toc = null;
+  let group = null;
   while (i < lines.length) {
     const line = lines[i++];
     if (line.trim() === "") continue;
@@ -75,11 +76,23 @@ function parse(input) {
         continue;
       }
       // `title` is retained as a compatibility alias for the current renderers/callers.
-      current = { heading: h[2], title: h[2], blocks: [], notes: [] };
+      // A numbered heading "## NN. 제목" is a topic -- a table-of-contents group. An unnumbered one
+      // "## 제목" is a sub-topic of the group above it (session-authoring-guide.md "목차와 Topic
+      // 번호 규칙"): its own slide title, with the group shown as the 11pt second title line.
+      // An unnumbered heading with no group above it (an appendix's "## 참고 자료") stays a topic.
+      if (/^\d\d\. /.test(h[2].trim()) || !group) {
+        current = { heading: h[2], title: h[2], blocks: [], notes: [] };
+        if (/^\d\d\. /.test(h[2].trim())) group = current;
+      } else {
+        current = { heading: h[2], title: h[2], blocks: [], notes: [], group: group.title };
+      }
       sections.push(current);
       inNotes = false;
       continue;
     }
+    // "**배치 — 좌우**": the author puts the topic's one diagram in the right half beside the text
+    // (production-guide.md "Visual layout 및 가독성"). Slide layout metadata, not body content.
+    if (/^\*\*배치\s*—\s*좌우\*\*$/.test(line.trim())) { need(current, "배치 표식 앞에 주제가 없다."); current.side = true; continue; }
     need(current != null, "첫 주제 제목 앞의 본문은 허용하지 않는다.");
     // TM parser extension (NOT present in lecture-ppt-java): "**강사 노트**" switches the rest of
     // the current topic (until the next top-level heading) into section.notes instead of
@@ -97,7 +110,7 @@ function parse(input) {
     // builder shows it as an 11pt second title line, and the TOC (matched 1:1 against the
     // heading) is unaffected.
     const diagramMarker = /^\*\*다이어그램\s*[—:-]\s*(.+?)\*\*$/.exec(line.trim());
-    if (diagramMarker) { current.diagram = diagramMarker[1].trim(); continue; }
+    if (diagramMarker) { if (!current.group) current.diagram = diagramMarker[1].trim(); continue; }
     if (h) {
       push(block("heading", h[2], 0));
       continue;
@@ -180,6 +193,18 @@ function parse(input) {
       value += " " + lines[i++].trim();
     }
     push(block("text", value, 0));
+  }
+  // A group whose whole content is one sub-topic is that sub-topic: it shows as the group itself
+  // ("NN. 그룹" as the 24pt title, no 11pt second line) -- production-guide.md "슬라이드 제목".
+  for (let k = sections.length - 1; k >= 0; k--) {
+    const g = sections[k];
+    if (g.group || g.blocks.length) continue;
+    const subs = [];
+    for (let j = k + 1; j < sections.length && sections[j].group === g.title; j++) subs.push(sections[j]);
+    if (subs.length !== 1) continue;
+    g.blocks = subs[0].blocks; g.notes = subs[0].notes;
+    if (subs[0].side) g.side = true;
+    sections.splice(k + 1, 1);
   }
   return { session, toc: toc ? toc.blocks : null, sections };
 }

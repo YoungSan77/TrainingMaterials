@@ -60,7 +60,7 @@ function cached(source) {
   return source;
 }
 
-// 대소문자·따옴표·대시·줄끝 하이픈·공백 차이를 없앤다. 원문 위치를 되찾도록 인덱스 표도 만든다.
+// 대소문자·따옴표·대시·줄끝 하이픈·공백(괄호 안쪽 포함) 차이를 없앤다. 원문 위치를 되찾도록 인덱스 표도 만든다.
 function normalize(text) {
   const src = text.replace(/-\s*\n\s*/g, "").replace(/­/g, "");
   let out = "", map = [], dash = false;
@@ -74,7 +74,9 @@ function normalize(text) {
       if (out.endsWith(" ")) { out = out.slice(0, -1); map.pop(); }
       dash = true; continue;
     }
-    if (/\s/.test(ch)) { if (dash || out.endsWith(" ")) continue; ch = " "; }
+    if (/\s/.test(ch)) { if (dash || out.endsWith(" ") || out.endsWith("(")) continue; ch = " "; }
+    // 괄호 안쪽 공백은 비교하지 않는다: HTML 추출의 "( white diamond )"와 "(white diamond)"가 같다.
+    if (ch === ")" && out.endsWith(" ")) { out = out.slice(0, -1); map.pop(); }
     dash = false;
     out += ch; map.push(i);
   }

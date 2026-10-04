@@ -218,7 +218,7 @@ test("TOC paragraph spacing is 3pt, body paragraph spacing is 6pt", async () => 
   assert.equal(bodySpcBef.getAttribute("val"), "600");
 });
 
-test("a TOC over 32 items splits into (1/2)/(2/2) pages, and the unused right column isn't left showing the template's placeholder text", async () => {
+test("a TOC over 34 items splits into (1/2)/(2/2) pages, and the unused right column isn't left showing the template's placeholder text", async () => {
   const sections = Array.from({ length: 40 }, (_, i) => {
     const n = String(i + 1).padStart(2, "0");
     return { heading: `${n}. 토픽`, title: `${n}. 토픽`, blocks: [textBlock("본문 내용입니다.")], notes: [] };
@@ -226,20 +226,18 @@ test("a TOC over 32 items splits into (1/2)/(2/2) pages, and the unused right co
   const toc = sections.map((s) => bulletBlock(s.title));
   const m = await renderOnce(sections, toc, "toc-pagination");
   const tocPages = m.pages.filter((pg) => pg.isToc);
-  assert.equal(tocPages.length, 2, "40 items over the 32-per-page cap must produce 2 TOC pages");
+  assert.equal(tocPages.length, 2, "40 items over the 34-per-page cap must produce 2 TOC pages");
   assert.match(tocPages[0].heading, /\(1\/2\)$/);
   assert.match(tocPages[1].heading, /\(2\/2\)$/);
   // CT_TextBody requires at least one <a:p>, so a fully-empty column keeps exactly one blank
   // paragraph (no run/text) rather than zero -- the assertion that matters is that none of it is
   // the template's baked-in placeholder text, not the literal paragraph count.
   const page2Right = kids(body(shape(tocPages[1].doc, 4)), A, "p");
-  assert.ok(page2Right.length <= 1, "page 2 has only 8 remaining items (all in the left column) -- the right column must be cleared, not left showing the template's baked-in placeholder text");
+  assert.ok(page2Right.length <= 1, "page 2 has only 6 remaining items (all in the left column) -- the right column must be cleared, not left showing the template's baked-in placeholder text");
   for (const p of page2Right) assert.equal(paragraph(p), "");
   const page2Left = kids(body(shape(tocPages[1].doc, 10)), A, "p").map((p) => textOf(kids(p, A, "r")[0]));
-  // Per-column capacity stays the already-tuned TOC_LEFT_MAX (15) on each side -- 30/page, not a
-  // literal 32 -- since 32 would mean 17 in one column, tighter than the box height 15 was tuned
-  // for and liable to reintroduce the exact overflow this pagination exists to avoid.
-  assert.equal(page2Left[0], "31. 토픽");
+  // Per-column capacity is TOC_LEFT_MAX (17 at 16pt) on each side -- 34/page.
+  assert.equal(page2Left[0], "35. 토픽");
   assert.equal(page2Left[page2Left.length - 1], "40. 토픽");
 });
 

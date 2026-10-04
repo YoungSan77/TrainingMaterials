@@ -1,8 +1,8 @@
 {
   "status": "PASS",
-  "slides": 43,
-  "checked_blocks": 80,
+  "slides": 39,
+  "checked_blocks": 82,
   "visual_status": "NOT_VERIFIED",
   "errors": [],
-  "warnings": ["원고 71행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Current software projects spend about 40…\"","원고 75행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"requirements errors account for 70 to 85…\"","원고 104행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"A Standish study found that 45% of featu…\"","원고 211행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"The complexity of software is an essenti…\"","원고 278행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Object-oriented analysis is a method of …\"","원고 371행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Unified Modeling Language® (UML®) as a s…\"","원고 768행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"OOP to me means only messaging, local re…\"","원고 1006행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"An ontology is an explicit specification…\""]
+  "warnings": []
 }

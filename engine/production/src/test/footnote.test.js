@@ -33,6 +33,34 @@ test("a footnote is its own 8pt item on the slide and stays out of the body text
   }
 });
 
+test("a footnote reserves the bottom strip for a two-column answer", async () => {
+  const answer = "## 01. 요구사항 명세서 (안)\n\n" + Array.from({ length: 20 }, (_, i) =>
+    `- **R${i + 1} 규칙** — 주석이 본문을 가리지 않도록 충분히 긴 설명을 둔다.`).join("\n")
+    + "\n\n**주석**\n\n이 수치와 정책은 교육용 가정이다.\n";
+  const { sections } = parse(answer);
+  const toc = [{ kind: "bullet", text: sections[0].title, rows: [], depth: 0, meta: null }];
+  const out = path.join(os.tmpdir(), `tm-footnote-answer-${process.pid}-${Date.now()}.pptx`);
+  try {
+    const m = await render(sections, TEMPLATE_DIR, out, "테스트", toc);
+    const [p] = m.pages.filter((pg) => !pg.isToc);
+    assert.equal(p.answerColumns, 2);
+    const note = p.items.find((it) => it.kind === "footnote");
+    assert.ok(note);
+    const { A, P, child, shape } = require("../xml");
+    const bounds = (id) => {
+      const xf = child(child(shape(p.doc, id), P, "spPr"), A, "xfrm");
+      const off = child(xf, A, "off"), ext = child(xf, A, "ext");
+      return { y: Number(off.getAttribute("y")), h: Number(ext.getAttribute("cy")) };
+    };
+    const noteTop = bounds(note.id).y;
+    const bodies = p.items.filter((x) => x.kind === "body").map((x) => bounds(x.id));
+    assert.equal(bodies.length, 2);
+    assert.ok(bodies.every((box) => box.y + box.h < noteTop), "answer columns end above the footnote");
+  } finally {
+    if (fs.existsSync(out)) fs.unlinkSync(out);
+  }
+});
+
 test("the footnote paragraph is exempt from the bold-keyword warning", () => {
   const { sections } = parse(MD);
   assert.deepEqual(unboldedText(sections), []);

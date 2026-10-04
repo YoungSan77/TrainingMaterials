@@ -19,8 +19,8 @@ const ARCH_TERMS = new Set(["domain", "application", "presentation", "adapter", 
 
 // TOC per guides/production-guide.md ("목차 생성 및 검증"): Production uses `## 목차`'s own
 // items verbatim (validated 1:1 against body headings), never derives a TOC from body headings.
-// Layout is two fixed columns on one slide -- left = items 1-15 (the template's own placeholder,
-// shape id 10), right = item 16 on (a shape the renderer adds at TOC_RIGHT_XFRM).
+// Layout is two fixed columns on one slide -- left = items 1-17 (the template's own placeholder,
+// shape id 10), right = item 18 on (a shape the renderer adds at TOC_RIGHT_XFRM), 16pt.
 const TOC_FONT_SIZE = 16;
 // production-guide.md "Session 명": the TOC slide title uses only the session name before its
 // " — " subtitle ("03. 정적 모델 — 도메인 개념과 관계" -> "03. 정적 모델"); every other slide's
@@ -48,7 +48,8 @@ function sessionNamePt(session) {
   if (em * SESSION_PT <= SESSION_BOX_PT) return SESSION_PT;
   return Math.max(SESSION_MIN_PT, Math.floor((SESSION_BOX_PT / em) * 2) / 2);
 }
-const TOC_LEFT_MAX = 15;
+// Items per column at 16pt: the column height (435pt) over one line (16pt x 1.2 + 3pt + 3pt spacing).
+const TOC_LEFT_MAX = 17;
 const TOC_LEFT_XFRM = { x: -8822, y: 949064, cx: 4580822, cy: 5530862 };
 const TOC_RIGHT_XFRM = { x: 4426820, y: 949064, cx: 4195811, cy: 5530862 };
 const TOC_RIGHT_ID = 4;
@@ -523,6 +524,14 @@ class Builder {
     this.codes = [];
     this.unsupportedVisuals = [];
     this.names = new Set();
+    this.hasFootnote = false;
+  }
+
+  // A topic footnote owns the strip directly above the page number. Content composition must
+  // reserve that strip; drawing the footnote last is not enough because it would cover a chart or
+  // the bottom lines of a one-slide answer.
+  contentBottomY() {
+    return PAGE_NUM_Y - (this.hasFootnote ? 0.47 : 0.15);
   }
 
   async init(session) {
@@ -566,9 +575,11 @@ class Builder {
   // then 16 and 14pt in one column, then 14pt in two. Returns the page (appended to this.pages) or
   // null when even two columns overflow.
   practicePage(blocks, heading) {
-    const half = (FULL_TEXT.w - 0.3) / 2;
-    const two = [{ ...FULL_TEXT, w: half }, { ...FULL_TEXT, x: FULL_TEXT.x + half + 0.3, w: half }];
-    const tries = [[PRACTICE_STYLE, [PRACTICE_BOX]], [shiftStyle(16), [FULL_TEXT]], [shiftStyle(14), [FULL_TEXT]], [shiftStyle(14), two]];
+    const fitBox = (box) => ({ ...box, h: Math.min(box.h, this.contentBottomY() - box.y) });
+    const full = fitBox(FULL_TEXT), practice = fitBox(PRACTICE_BOX);
+    const half = (full.w - 0.3) / 2;
+    const two = [{ ...full, w: half }, { ...full, x: full.x + half + 0.3, w: half }];
+    const tries = [[PRACTICE_STYLE, [practice]], [shiftStyle(16), [full]], [shiftStyle(14), [full]], [shiftStyle(14), two]];
     for (const [style, boxes] of tries) {
       const page = this.styledPage(blocks, heading, style, boxes);
       if (!page) continue;
@@ -582,7 +593,12 @@ class Builder {
   // A text answer "(안)": the reference style in two columns split before a level-0 item where
   // possible. Returns null when it does not fit (structure.js then reports it).
   answerPage(blocks, heading) {
-    const page = this.styledPage(blocks, heading, ANSWER_STYLE, ANSWER_COLUMNS);
+    const boxes = ANSWER_COLUMNS.map((box) => ({ ...box, h: Math.min(box.h, this.contentBottomY() - box.y) }));
+    // Keep the contracted 14/12/11pt answer sizes. When a footnote owns the bottom strip, reclaim
+    // the needed height from paragraph spacing (1pt instead of 3pt), not from the font size or by
+    // letting the footnote cover the last lines.
+    const style = this.hasFootnote ? { ...ANSWER_STYLE, space: 1 } : ANSWER_STYLE;
+    const page = this.styledPage(blocks, heading, style, boxes);
     if (page) page.answerColumns = 2;
     return page;
   }
@@ -807,6 +823,14 @@ class Builder {
       const scale = Math.max(0.5, Math.min(1, room / h));
       picture.bounds = { x: x + (w - w * scale) / 2, y: y + H, w: w * scale, h: h * scale };
       return this.drawCaption(page, picture.caption, { x: 0.4, y, w: 2 * (x - 0.4) + w, h: H });
+    }
+    // A diagram in the right half beside the text: the title stays over the diagram's own column
+    // (centered on it, inside the right half), never across the text on the left.
+    if (page.visualLayout === "side") {
+      const scale = Math.max(0.5, Math.min(1, (h - H) / h));
+      picture.bounds = { x: x + (w - w * scale) / 2, y: y + H, w: w * scale, h: h * scale };
+      const cx = x + w / 2, half = Math.min(cx - 5.85, 9.6 - cx);
+      return this.drawCaption(page, picture.caption, { x: cx - half, y, w: 2 * half, h: H });
     }
     // The table/code below also gets a little air from the diagram's bottom edge.
     if (below && this.shiftBelow(page, y, H + 0.12)) {
@@ -1177,7 +1201,9 @@ class Builder {
   // guides/production-guide.md "목차 생성 및 검증": `## 목차`와 본문 `## NN. 제목`의 번호·제목·
   // 순서를 1:1로 비교하고, 불일치하면 해당 항목과 불일치 내용을 보고한다 -- 본문 heading에서
   // 목차를 새로 만들거나 목차를 임의로 고치지 않는다.
-  validateToc(toc, sections) {
+  validateToc(toc, allSections) {
+    // The TOC lists the numbered topics (groups) only; their unnumbered sub-topics are not items.
+    const sections = allSections.filter((s) => !s.group);
     need(toc && toc.length > 0, "`## 목차`가 없다. Session Source 최상단에 수동 목차가 필요하다 (guides/session-authoring-guide.md).");
     need(toc.every((b) => b.kind === "bullet"), "`## 목차` 항목은 `01.`, `02.` 형식의 번호 목록이어야 한다(bullet(-) 금지).");
     need(toc.length === sections.length,
@@ -1225,7 +1251,7 @@ class Builder {
     if (items.length === 0) b.appendChild(el(doc, A, "p"));
   }
 
-  // A two-column TOC page holds TOC_LEFT_MAX (left) + TOC_LEFT_MAX (right) = 30 items before
+  // A two-column TOC page holds TOC_LEFT_MAX (left) + TOC_LEFT_MAX (right) = 34 items before
   // either column overflows its fixed placeholder height -- both columns share the same tuned
   // per-column capacity, so the right column isn't stretched past it just to round the page total
   // up to a bigger number. Past that, items move to a continuation TOC page, numbered "(N/M)" the
@@ -1277,6 +1303,10 @@ class Builder {
     }
 
     for (let section of sections) {
+      // A table-of-contents group with no body of its own ("## 05. 연관" followed directly by its
+      // sub-topics) makes no slide: its sub-topics carry it as their second title line.
+      const next = sections[sections.indexOf(section) + 1];
+      if (!section.group && section.blocks.length === 0 && next && next.group === section.title) continue;
       const firstIdx = this.pages.length;
       this.sectionFirst = firstIdx;
       // "**주석**" and the paragraph after it: an 8pt footnote at the bottom of every slide of the
@@ -1297,6 +1327,7 @@ class Builder {
         footnote = section.blocks[at + 1].text;
         section = { ...section, blocks: section.blocks.filter((_, i) => i !== at && i !== at + 1) };
       }
+      this.hasFootnote = Boolean(footnote);
       this.sectionBlocks = [];
       const visuals = section.blocks.filter((b) => ["mermaid", "plantuml", "chart", "svg"].includes(b.kind));
       // "**도식 — PlantUML — 제목**": the optional title after the tool name captions that visual
@@ -1339,9 +1370,9 @@ class Builder {
       };
       const visualSegs = new Set(section.blocks.map((blk, i) => (isVisualBlock(blk) && !tableStacked(i) ? segOf[i] : -1)).filter((s) => s >= 0));
       const fullCapacity = visualPolicy([]).capacity;
-      // Side layout: a topic's only diagram that is tall (width:height < 1.3) and whose segment
-      // text does not fit above it goes to the right half, the text to the left -- one slide
-      // instead of a text slide plus a continuation.
+      // Side layout: only when the author asks for it ("**배치 — 좌우**", production-guide.md "Visual
+      // layout 및 가독성"), the topic's one diagram goes to the right half and the text to the left.
+      // Otherwise the diagram sits below the text.
       const SIDE_TEXT = { x: 0.4, y: 1.05, w: 5.3, h: 5.75 };
       const SIDE_PANEL = { x: 5.85, y: 1.05, w: 3.75, h: 5.75 };
       const SIDE_CAPACITY = Math.floor(fullCapacity * SIDE_TEXT.w / FULL_TEXT.w);
@@ -1353,7 +1384,7 @@ class Builder {
         const png = renderedVisuals[0];
         const s = segOf[i];
         const cost = segTextCost(s);
-        if (!tableStacked(i) && png.width / png.height < 1.3 && cost > layout.capacity && cost <= SIDE_CAPACITY) sideSegs.add(s);
+        if (section.side && png && !tableStacked(i) && cost <= SIDE_CAPACITY) sideSegs.add(s);
       }
       const capacityFor = (s) => (sideSegs.has(s) ? SIDE_CAPACITY : visualSegs.has(s) ? layout.capacity : fullCapacity);
       let seg = 0;
@@ -1690,7 +1721,7 @@ class Builder {
           setShapeBounds(shape(target.doc, 8), layout.text);
           const textEndY = layout.text.y + layout.text.h * Math.min(ORPHAN_TOLERANCE, (target.textCost || 0) / layout.capacity);
           const margin = 0.15;
-          const availableH = Math.max(0.6, PAGE_NUM_Y - margin - (textEndY + margin));
+          const availableH = Math.max(0.6, this.contentBottomY() - margin - textEndY);
           const panel = visualPanel(layout, textEndY + margin, availableH, [png]);
           target.pictures = [{ ...png, bounds: fitTarget({ x: panel.x, y: panel.y, w: panel.w, h: panel.h }, png) }];
           target.visualLayout = layout.name;
@@ -1713,7 +1744,7 @@ class Builder {
           const cost = target.textCost || 0;
           const textEndY = layout.text.y + layout.text.h * Math.min(ORPHAN_TOLERANCE, cost / layout.capacity);
           const margin = 0.15;
-          const availableH = Math.max(0.6, PAGE_NUM_Y - margin - (textEndY + margin));
+          const availableH = Math.max(0.6, this.contentBottomY() - margin - textEndY);
           const panel = visualPanel(layout, textEndY + margin, availableH, renderedVisuals);
           const gap = 0.12;
           const slotH = (panel.h - gap * (renderedVisuals.length - 1)) / renderedVisuals.length;
@@ -1775,10 +1806,12 @@ class Builder {
         let main = p.heading, english = "";
         if (m) { main = m[1]; english = m[2]; }
         if (sectionEnd - firstIdx > 1) main += " (" + (k - firstIdx + 1) + "/" + (sectionEnd - firstIdx) + ")";
-        const second = [english, section.diagram || ""].filter((s) => s !== "").join(" · ");
+        // The second title line: a sub-topic's group ("05. 연관"), else the diagram marker's name.
+        const second = [english, section.group || section.diagram || ""].filter((s) => s !== "").join(" · ");
         p.heading = main + (second === "" ? "" : "\n" + second);
       }
       if (footnote) for (const page of this.pages.slice(firstIdx)) this.footnote(page, footnote);
+      this.hasFootnote = false;
     }
 
     const { parseXml, relPath } = require("./xml");

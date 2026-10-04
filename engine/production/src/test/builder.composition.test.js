@@ -84,7 +84,8 @@ test("the reference session composes its topics without visual or notes slides",
     assert.deepEqual(report.errors, []);
     // These figures belong to the frozen fixture (fixtures/reference-session.md), not to the live
     // course: editing the course never changes them.
-    // 45 since continuation slides start with their own content, without a lead repeat (production-guide.md "이어지는 장").
+    // 45: continuation slides start with their own content (production-guide.md "이어지는 장"), and
+    // the 35-item TOC takes two pages at 16pt, 17 items per column ("목차 생성 및 검증").
     assert.equal(m.pages.length, 45, "TOC 2 + 43 content slides (split and overflowing topics)");
     assert.equal(m.unsupportedVisuals.length, 0);
     assert.equal(m.images, 17);

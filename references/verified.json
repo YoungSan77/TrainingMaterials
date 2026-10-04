@@ -1,6 +1,54 @@
 {
+  "…state-dependent objects react differently to events depending on their state or mode.": {
+    "source": "larman-2004",
+    "date": "2026-10-03"
+  },
   "…to collapse crud (create, retrieve, update, delete) separate goals into one crud use case, idiomatically called manage <x>.": {
     "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "100% of the conceptual superclass's definition should be applicable to the subclass.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "45% of such features were never used, and an additional 19% were \"rarely\" used.": {
+    "source": "larman-2004",
+    "date": "2026-10-03"
+  },
+  "a description class contains information that describes something else.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "a domain model is a visual representation of conceptual classes or real-situation objects in a domain": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "a link is a connection path between two objects; … more formally, a link is an instance of an association.": {
+    "source": "larman-2004",
+    "date": "2026-10-03"
+  },
+  "a problem or opportunity to be addressed.": {
+    "source": "https://www.iiba.org/globalassets/standards-and-resources/core-standard/iiba-core-standard.pdf",
+    "date": "2026-10-03"
+  },
+  "a reactive system ..., is characterized by being, to a large extent, event-driven, continuously having to react to external and internal stimuli.": {
+    "source": "https://dubroy.com/refs/Statecharts_a_visual_formalism_for_complex_systems.pdf",
+    "date": "2026-10-03"
+  },
+  "a sphere of knowledge, influence, or activity. the subject area to which the user applies a program is the domain of the software.": {
+    "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
+    "date": "2026-10-03"
+  },
+  "a state is the condition of an object at a moment in time-the time between events.": {
+    "source": "larman-2004",
+    "date": "2026-10-03"
+  },
+  "a state models a situation during which some (usually implicit) invariant condition holds.": {
+    "source": "https://www.omg.org/spec/UML/2.5.1/PDF",
+    "date": "2026-10-03"
+  },
+  "a system of abstractions that describes selected aspects of a domain and can be used to solve problems related to that domain.": {
+    "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-02"
   },
   "a system sequence diagram is a picture that shows, for one particular scenario of a use case, the events that external actors generate, their order, and inter-system events.": {
@@ -11,6 +59,22 @@
     "source": "larman-2004",
     "date": "2026-10-02"
   },
+  "a transition is a relationship between two states that indicates that when an event occurs, the object moves from the prior state to the subsequent state.": {
+    "source": "larman-2004",
+    "date": "2026-10-03"
+  },
+  "a transition may also have a conditional guard-or boolean test. the transition only occurs if the test passes.": {
+    "source": "larman-2004",
+    "date": "2026-10-03"
+  },
+  "a uml activity diagram shows sequential and parallel activities in a process. they are useful for modeling business processes, workflows, data flows, and complex algorithms.": {
+    "source": "larman-2004",
+    "date": "2026-10-03"
+  },
+  "a uml state machine diagram … illustrates the interesting events and states of an object, and the behavior of an object in reaction to an event.": {
+    "source": "larman-2004",
+    "date": "2026-10-03"
+  },
   "a use case diagram is an excellent picture of the system context; it makes a good context diagram, that is, showing the boundary of a system, what lies outside of it, and how it gets used.": {
     "source": "larman-2004",
     "date": "2026-10-02"
@@ -19,8 +83,48 @@
     "source": "larman-2004",
     "date": "2026-10-02"
   },
+  "a weakness of this approach is the imprecision of natural language": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "all the members of a subclass set must be members of their superclass set.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "an association is a relationship between classes (more precisely, instances of those classes) that indicates some meaningful and interesting connection.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "an attribute is a logical data value of an object.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "an event is a significant or noteworthy occurrence.": {
+    "source": "larman-2004",
+    "date": "2026-10-03"
+  },
+  "an ontology is an explicit specification of a conceptualization.": {
+    "source": "https://tomgruber.org/writing/ontolingua-kaj-1993.pdf",
+    "date": "2026-10-03"
+  },
+  "analysis emphasizes an investigation of the problem and requirements, rather than a solution.": {
+    "source": "larman-2004",
+    "date": "2026-10-03"
+  },
+  "are in the same subject area-closely related by concept or purpose … are in a class hierarchy together … participate in the same use cases … are strongly associated": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "associations for which knowledge of the relationship needs to be preserved for some duration": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
   "bdd is a way for software teams to work that closes the gap between business people and technical people by: encouraging collaboration across roles to build shared understanding of the problem to be solved": {
     "source": "https://cucumber.io/docs/bdd/",
+    "date": "2026-10-02"
+  },
+  "bounded by the current iteration requirements under design: 1. find the conceptual classes … 2. draw them as classes in a uml class diagram. 3. add associations and attributes.": {
+    "source": "larman-2004",
     "date": "2026-10-02"
   },
   "card, conversation, confirmation": {
@@ -31,20 +135,116 @@
     "source": "larman-2004",
     "date": "2026-10-02"
   },
+  "communication diagrams illustrate object interactions in a graph or network format, in which objects can be placed anywhere on the diagram.": {
+    "source": "larman-2004",
+    "date": "2026-10-03"
+  },
+  "consider state machines for state-dependent objects with complex behavior, not for state-independent objects.": {
+    "source": "larman-2004",
+    "date": "2026-10-03"
+  },
+  "current software projects spend about 40 to 50 percent of their effort on avoidable rework.": {
+    "source": "https://www.cs.umd.edu/users/basili/publications/journals/J81.pdf",
+    "date": "2026-10-03"
+  },
+  "do not model the states of a concept x as subclasses of x.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "domain models are not data models.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "domain models are not necessarily correct or wrong, but rather more or less useful.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "don't bother to use aggregation in the uml; rather, use composition when appropriate.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "drawing uml for the hard, creative parts of the detailed object design. then stop": {
+    "source": "larman-2004",
+    "date": "2026-10-03"
+  },
   "even when they don't yet know it, customers want something better.": {
     "source": "https://www.aboutamazon.com/news/company-news/2016-letter-to-shareholders",
+    "date": "2026-10-02"
+  },
+  "fortunately, uml activity diagrams can satisfy the same goals-they can be used for data flow modeling, replacing traditional dfd notation.": {
+    "source": "larman-2004",
+    "date": "2026-10-03"
+  },
+  "if we do not think of some conceptual class x as a number or text in the real world, x is probably a conceptual class, not an attribute.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "it's common during the creation of the contracts to discover the need to record new conceptual classes, attributes, or associations in the domain model. do not be limited to the prior definition of the domain model; enhance it as you make new discoveries while thinking through operation contracts.": {
+    "source": "larman-2004",
+    "date": "2026-10-03"
+  },
+  "make a domain model in the spirit of how a cartographer or mapmaker works: use the existing names in the territory. … exclude irrelevant or out-of-scope features. … do not add things that are not there.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "make it express the meaning of the attributes it conveys and give it related functionality.": {
+    "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
+    "date": "2026-10-02"
+  },
+  "most numeric quantities should not be represented as plain numbers.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "multiplicity defines how many instances of a class a can be associated with one instance of a class b.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "name an association based on a classname-verbphrase-classname format where the verb phrase creates a sequence that is readable and meaningful.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "on composition: if in doubt, leave it out.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "relate conceptual classes with an association, not with an attribute.": {
+    "source": "larman-2004",
     "date": "2026-10-02"
   },
   "requirements are capabilities and conditions to which the system … must conform": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
+  "reuse or modify existing models. this is the first, best, and usually easiest approach": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "sequence diagrams illustrate interactions in a kind of fence format, in which each new object is added to the right.": {
+    "source": "larman-2004",
+    "date": "2026-10-03"
+  },
   "something happened that domain experts care about.": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-02"
   },
+  "starting in the 1970s, data flow diagrams (dfd) became a popular way to visualize the major steps and data involved in software system processes.": {
+    "source": "larman-2004",
+    "date": "2026-10-03"
+  },
   "the ability for tracking the relationships between requirements and designs from the original stakeholder need to the actual implemented solution.": {
     "source": "https://www.iiba.org/knowledgehub/the-business-analysis-standard/4-implementing-business-analysis/4-4-understanding-requirements-and-designs/",
+    "date": "2026-10-02"
+  },
+  "the complexity of software is an essential property, not an accidental one.": {
+    "source": "url-0541effb230b",
+    "date": "2026-10-03"
+  },
+  "the domain model is a visualization of noteworthy domain concepts and vocabulary. where are those terms found? some are in the use cases.": {
+    "source": "larman-2004",
+    "date": "2026-10-02"
+  },
+  "the entity-relationship model adopts the more natural view that the real world consists of entities and relationships.": {
+    "source": "https://www.csc.lsu.edu/~chen/pdf/erd-5-pages.pdf",
     "date": "2026-10-02"
   },
   "the event list is a narrative list of the \"stimuli\" that occur in the outside world and to which our system must respond.": {
@@ -59,6 +259,42 @@
     "source": "larman-2004",
     "date": "2026-10-02"
   },
+  "the purpose of modeling (sketching uml, …) is primarily to understand, not to document.": {
+    "source": "larman-2004",
+    "date": "2026-10-03"
+  },
+  "the state of an object identifies the values for that object of properties of the classifier of the object.": {
+    "source": "https://www.omg.org/spec/UML/2.5.1/PDF",
+    "date": "2026-10-02"
+  },
+  "the team mines the feedback from realistic building and testing something for crucial practical insight and an opportunity to modify or adapt understanding of the requirements or design.": {
+    "source": "larman-2004",
+    "date": "2026-10-03"
+  },
+  "the uml includes interaction diagrams to illustrate how objects interact via messages. they are used for dynamic object modeling.": {
+    "source": "larman-2004",
+    "date": "2026-10-03"
+  },
+  "there is a predicate associated with each value set to test whether a value belongs to it.": {
+    "source": "https://www.csc.lsu.edu/~chen/pdf/erd-5-pages.pdf",
+    "date": "2026-10-02"
+  },
+  "they are used to get a better grip of an interaction situation for an individual designer or for a group that needs to achieve a common understanding of the situation.": {
+    "source": "https://www.omg.org/spec/UML/2.5.1/PDF",
+    "date": "2026-10-03"
+  },
+  "this technique proves most valuable for very complex processes, usually involving many parties. use-case text suffices for simple processes.": {
+    "source": "larman-2004",
+    "date": "2026-10-03"
+  },
+  "to support conditional and looping constructs (among many other things), the uml uses frames. … they have an operator or label (such as loop) and a guard": {
+    "source": "larman-2004",
+    "date": "2026-10-03"
+  },
+  "unified modeling language® (uml®) as a standard for visualizing, specifying, and documenting software and systems.": {
+    "source": "url-5982e2b53aa3",
+    "date": "2026-10-03"
+  },
   "use cases are text documents, not diagrams, and use-case modeling is primarily an act of writing text, not drawing diagrams.": {
     "source": "larman-2004",
     "date": "2026-10-02"
@@ -66,5 +302,9 @@
   "write use cases in an essential style; keep the user interface out and focus on actor intent.": {
     "source": "larman-2004",
     "date": "2026-10-02"
+  },
+  "you potentially need to use multiple models to develop software because each model describes a single aspect of your software.": {
+    "source": "https://agilemodeling.com/principles.htm",
+    "date": "2026-10-03"
   }
 }

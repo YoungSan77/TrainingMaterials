@@ -28,23 +28,23 @@ Session 명: 별첨. 참고 자료
 20. **[Evans 2015]**  Domain-Driven Design Reference, Eric Evans, Domain Language, 2015
 21. **[Fairbanks 2010]**  Just Enough Software Architecture: A Risk-Driven Approach, George Fairbanks, Marshall & Brainerd, 2010
 22. **[Fowler 2002]**  Patterns of Enterprise Application Architecture, Martin Fowler, Addison-Wesley, 2002
-23. **[Fowler 2003a]**  AggregationAndComposition, Martin Fowler, martinfowler.com, 2003, https://martinfowler.com/bliki/AggregationAndComposition.html
-24. **[Fowler 2003b]**  AnemicDomainModel, Martin Fowler, martinfowler.com, 2003, https://martinfowler.com/bliki/AnemicDomainModel.html
-25. **[Fowler 2003c]**  Who Needs an Architect?, Martin Fowler, IEEE Software 20(5), 2003
-26. **[Fowler 2004]**  UML Distilled, 3rd ed., Martin Fowler, Addison-Wesley, 2004
-27. **[Fowler 2011]**  FrequencyReducesDifficulty, Martin Fowler, martinfowler.com, 2011, https://martinfowler.com/bliki/FrequencyReducesDifficulty.html
-28. **[Fowler 2014]**  Microservices and the First Law of Distributed Objects, Martin Fowler, martinfowler.com, 2014, https://martinfowler.com/articles/distributed-objects-microservices.html
-29. **[Fowler 2015a]**  Yagni, Martin Fowler, martinfowler.com, 2015, https://martinfowler.com/bliki/Yagni.html
-30. **[Fowler 2015b]**  BeckDesignRules, Martin Fowler, martinfowler.com, 2015, https://martinfowler.com/bliki/BeckDesignRules.html
-31. **[Fowler 2015c]**  MonolithFirst, Martin Fowler, martinfowler.com, 2015, https://martinfowler.com/bliki/MonolithFirst.html
-32. **[Fowler 2015d]**  MicroservicePremium, Martin Fowler, martinfowler.com, 2015, https://martinfowler.com/bliki/MicroservicePremium.html
-33. **[Fowler 2024]**  Continuous Integration, Martin Fowler, martinfowler.com, 2024, https://martinfowler.com/articles/continuousIntegration.html
-34. **[Gamma 외 1994]**  Design Patterns: Elements of Reusable Object-Oriented Software, Erich Gamma·Richard Helm·Ralph Johnson·John Vlissides, Addison-Wesley, 1994
-35. **[Gamma 2005]**  Design Principles from Design Patterns — A Conversation with Erich Gamma, Part III, Bill Venners, Artima, 2005, https://www.artima.com/articles/design-principles-from-design-patterns
-36. **[Gruber 1993]**  A Translation Approach to Portable Ontology Specifications, Thomas R. Gruber, Knowledge Acquisition 5(2), 1993
-37. **[Harel 1987]**  Statecharts: A Visual Formalism for Complex Systems, David Harel, Science of Computer Programming, 1987
-38. **[Hoare 1981]**  The Emperor's Old Clothes, C. A. R. Hoare, Communications of the ACM 24(2), 1981
-39. **[Humble]**  Principles, Jez Humble, continuousdelivery.com, https://continuousdelivery.com/principles/
+23. **[Fowler 2003b]**  AnemicDomainModel, Martin Fowler, martinfowler.com, 2003, https://martinfowler.com/bliki/AnemicDomainModel.html
+24. **[Fowler 2003c]**  Who Needs an Architect?, Martin Fowler, IEEE Software 20(5), 2003
+25. **[Fowler 2004]**  UML Distilled, 3rd ed., Martin Fowler, Addison-Wesley, 2004
+26. **[Fowler 2011]**  FrequencyReducesDifficulty, Martin Fowler, martinfowler.com, 2011, https://martinfowler.com/bliki/FrequencyReducesDifficulty.html
+27. **[Fowler 2014]**  Microservices and the First Law of Distributed Objects, Martin Fowler, martinfowler.com, 2014, https://martinfowler.com/articles/distributed-objects-microservices.html
+28. **[Fowler 2015a]**  Yagni, Martin Fowler, martinfowler.com, 2015, https://martinfowler.com/bliki/Yagni.html
+29. **[Fowler 2015b]**  BeckDesignRules, Martin Fowler, martinfowler.com, 2015, https://martinfowler.com/bliki/BeckDesignRules.html
+30. **[Fowler 2015c]**  MonolithFirst, Martin Fowler, martinfowler.com, 2015, https://martinfowler.com/bliki/MonolithFirst.html
+31. **[Fowler 2015d]**  MicroservicePremium, Martin Fowler, martinfowler.com, 2015, https://martinfowler.com/bliki/MicroservicePremium.html
+32. **[Fowler 2024]**  Continuous Integration, Martin Fowler, martinfowler.com, 2024, https://martinfowler.com/articles/continuousIntegration.html
+33. **[Gamma 외 1994]**  Design Patterns: Elements of Reusable Object-Oriented Software, Erich Gamma·Richard Helm·Ralph Johnson·John Vlissides, Addison-Wesley, 1994
+34. **[Gamma 2005]**  Design Principles from Design Patterns — A Conversation with Erich Gamma, Part III, Bill Venners, Artima, 2005, https://www.artima.com/articles/design-principles-from-design-patterns
+35. **[Gruber 1993]**  A Translation Approach to Portable Ontology Specifications, Thomas R. Gruber, Knowledge Acquisition 5(2), 1993
+36. **[Harel 1987]**  Statecharts: A Visual Formalism for Complex Systems, David Harel, Science of Computer Programming, 1987
+37. **[Hoare 1981]**  The Emperor's Old Clothes, C. A. R. Hoare, Communications of the ACM 24(2), 1981
+38. **[Humble]**  Principles, Jez Humble, continuousdelivery.com, https://continuousdelivery.com/principles/
+39. **[IIBA 2017]**  Global Business Analysis Core Standard, International Institute of Business Analysis, 2017, https://www.iiba.org/globalassets/standards-and-resources/core-standard/iiba-core-standard.pdf
 40. **[IIBA 2022]**  The Business Analysis Standard, IIBA, 2022
 41. **[Jacobson 1992]**  Object-Oriented Software Engineering: A Use Case Driven Approach, Ivar Jacobson 외, Addison-Wesley, 1992
 42. **[Jeffries 2001]**  Essential XP: Card, Conversation, Confirmation, Ron Jeffries, 2001

@@ -92,15 +92,18 @@ final class 주문 {
 class 도메인모델테스트 {
     public static void main(String[] args) {
         var 펜 = new 상품("펜", new 금액(1000));
-        var 주문 = new 주문(new 고객("김"), Map.of(펜, new 수량(2)), new 주소("서울"));
+        var 주문 = new 주문(new 고객("김"),
+                Map.of(펜, new 수량(2)), new 주소("서울"));
         확인(주문.주문총액().equals(new 금액(2000)));
 
         펜.판매가 = new 금액(1500);
         확인(주문.주문총액().equals(new 금액(2000)));
 
         거절(() -> new 수량(0));
-        거절(() -> new 주문(new 고객("김"), Map.of(), new 주소("서울")));
-        거절(() -> new 환불(new 결제(new 금액(2000)), new 금액(3000)));
+        거절(() -> new 주문(new 고객("김"),
+                Map.of(), new 주소("서울")));
+        거절(() -> new 환불(new 결제(new 금액(2000)),
+                new 금액(3000)));
         System.out.println("정적 모델 규칙 확인");
     }
 
