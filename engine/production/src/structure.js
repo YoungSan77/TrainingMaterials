@@ -5,6 +5,8 @@
 //     lists no later session (the course's last session).
 //   - A practice topic ("NN. 실습 — …", not its "검토 예시") and a text answer "NN. … (안)" each fit
 //     one slide ("사례·가정·실습").
+//   - The appendix ("## 별첨. 실습 답", the practice answers) comes after the summary and nothing
+//     numbered follows it.
 const fs = require("fs");
 const path = require("path");
 const { columnWidths, isPractice, isAnswer } = require("./builder");
@@ -36,7 +38,10 @@ function checkStructure(inputPath, session, sections, pages) {
     const textOnly = s.blocks.every((b) => ["text", "bullet", "heading"].includes(b.kind));
     if (isAnswer(s.title) && textOnly && pageCount(s.title) > 1) errors.push(`답 "${s.title}"이 한 슬라이드를 넘는다. 대표가 아닌 규칙을 "......"로 생략하거나 (안)을 나눈다.`);
   }
-  const summary = sections[sections.length - 1];
+  const firstAppendix = sections.findIndex((s) => s.appendix);
+  if (firstAppendix >= 0 && sections.slice(firstAppendix).some((s) => !s.appendix)) errors.push("별첨 뒤에 본문 topic이 있다. `## 별첨. …`은 요약 뒤 맨 끝에 둔다.");
+  const body = firstAppendix >= 0 ? sections.slice(0, firstAppendix) : sections;
+  const summary = body[body.length - 1];
   if (summary && /^\d\d\. 요약$/.test(summary.title)) {
     if (pageCount(summary.title) > 1) errors.push("요약이 한 슬라이드를 넘는다. 핵심과 다음 세션을 한 장으로 압축한다.");
     const hasNext = summary.blocks.some((b) => b.kind === "heading" && /^다음 세션/.test(b.text.trim()));
@@ -93,10 +98,16 @@ function unboldedText(sections) {
   return warnings;
 }
 
+// A practice answer "(안)" belongs to the appendix after the summary, so the lecture runs straight to
+// its summary (session-authoring-guide.md "사례·가정·실습"). Warning only.
+function answersOutsideAppendix(sections) {
+  return sections.filter((s) => isAnswer(s.title) && !s.appendix).map((s) => `실습 답 "${s.title}"은 요약 뒤 \`## 별첨. 실습 답\`의 서브 항목으로 둔다.`);
+}
+
 // Every topic carries an instructor note (session-authoring-guide.md "강사 노트"). Warning only.
 function missingNotes(sections) {
   // A group with no body of its own (its sub-topics follow) has no slide, so no note.
   return sections.filter((s) => (!s.blocks || s.blocks.length) && !(s.notes && s.notes.length)).map((s) => `강사 노트가 없다: "${s.title}"`);
 }
 
-module.exports = { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, missingNotes, MAX_GOALS };
+module.exports = { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, missingNotes, answersOutsideAppendix, MAX_GOALS };

@@ -80,11 +80,17 @@ function parse(input) {
       // "## 제목" is a sub-topic of the group above it (session-authoring-guide.md "목차와 Topic
       // 번호 규칙"): its own slide title, with the group shown as the 11pt second title line.
       // An unnumbered heading with no group above it (an appendix's "## 참고 자료") stays a topic.
-      if (/^\d\d\. /.test(h[2].trim()) || !group) {
+      // "## 별첨. 실습 답" after the summary opens the session's appendix (session-authoring-guide.md
+      // "사례·가정·실습"): a group outside the TOC whose sub-topics are the practice answers.
+      if (/^별첨\.\s/.test(h[2].trim())) {
+        current = { heading: h[2], title: h[2], blocks: [], notes: [], appendix: true };
+        group = current;
+      } else if (/^\d\d\. /.test(h[2].trim()) || !group) {
         current = { heading: h[2], title: h[2], blocks: [], notes: [] };
         if (/^\d\d\. /.test(h[2].trim())) group = current;
       } else {
         current = { heading: h[2], title: h[2], blocks: [], notes: [], group: group.title };
+        if (group.appendix) current.appendix = true;
       }
       sections.push(current);
       inNotes = false;
@@ -198,7 +204,8 @@ function parse(input) {
   // ("NN. 그룹" as the 24pt title, no 11pt second line) -- production-guide.md "슬라이드 제목".
   for (let k = sections.length - 1; k >= 0; k--) {
     const g = sections[k];
-    if (g.group || g.blocks.length) continue;
+    // The appendix group keeps even a single answer as its own sub-topic: the answer's "(안)" title.
+    if (g.group || g.blocks.length || g.appendix) continue;
     const subs = [];
     for (let j = k + 1; j < sections.length && sections[j].group === g.title; j++) subs.push(sections[j]);
     if (subs.length !== 1) continue;

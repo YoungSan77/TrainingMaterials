@@ -61,8 +61,9 @@ function knownSessions(inputPath) {
 const SESSION_REF = /"(\d\d)\. ([^"\n]+)"/g;
 const TOPIC_REF = /「(\d\d)\. ([^」\n]+)」/g;
 // A topic reference targets another session when it follows `"NN. 세션명"의` directly, possibly
-// after other topic references joined by ·, 쉼표, 과/와, 및, 또는.
-const TARGET = /"(\d\d)\. [^"\n]+"의\s*(?:「[^」\n]*」\s*(?:·|,|과|와|및|또는)?\s*)*$/;
+// after other topic references joined by ·, 쉼표, 과/와, 및, 또는 -- each of which may name a
+// sub-topic of its group: `"04. …"의 「06. 시퀀스 다이어그램」의 「주문 취소 시퀀스」·「08. …」`.
+const TARGET = /"(\d\d)\. [^"\n]+"의\s*(?:「[^」\n]*」(?:의\s*「[^」\n]*」)*\s*(?:·|,|과|와|및|또는)?\s*)*$/;
 
 // Reference labels (session-authoring-guide.md "인용과 출처", production-guide.md "별첨 — 참고 자료"):
 // a citation or reference in a session is "[저자 연도]" (or "[Wikipedia: 항목]"), and every label

@@ -15,6 +15,10 @@
     "source": "larman-2004",
     "date": "2026-10-03"
   },
+  "a dependency signifies a supplier/client relationship between model elements where the modification of a supplier may impact the client model elements.": {
+    "source": "references/sources/url-991f343aa7a9.txt",
+    "date": "2026-10-05"
+  },
   "a description class contains information that describes something else.": {
     "source": "larman-2004",
     "date": "2026-10-02"
@@ -131,6 +135,14 @@
     "source": "https://ronjeffries.com/xprog/articles/expcardconversationconfirmation/",
     "date": "2026-10-02"
   },
+  "classes that aren't reused together should not be grouped together.": {
+    "source": "url-1c611f8361f4",
+    "date": "2026-10-05"
+  },
+  "classes that change together, belong together.": {
+    "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
+    "date": "2026-10-05"
+  },
   "cohesion … is a measure of how strongly related and focused the responsibilities of an element are.": {
     "source": "larman-2004",
     "date": "2026-10-02"
@@ -146,6 +158,14 @@
   "current software projects spend about 40 to 50 percent of their effort on avoidable rework.": {
     "source": "https://www.cs.umd.edu/users/basili/publications/journals/J81.pdf",
     "date": "2026-10-03"
+  },
+  "depend in the direction of stability.": {
+    "source": "url-1c611f8361f4",
+    "date": "2026-10-05"
+  },
+  "depend upon abstractions. do not depend upon concretions.": {
+    "source": "url-1c611f8361f4",
+    "date": "2026-10-05"
   },
   "do not model the states of a concept x as subclasses of x.": {
     "source": "larman-2004",
@@ -227,6 +247,10 @@
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-02"
   },
+  "stable packages should be abstract packages.": {
+    "source": "url-1c611f8361f4",
+    "date": "2026-10-05"
+  },
   "starting in the 1970s, data flow diagrams (dfd) became a popular way to visualize the major steps and data involved in software system processes.": {
     "source": "larman-2004",
     "date": "2026-10-03"
@@ -238,6 +262,14 @@
   "the complexity of software is an essential property, not an accidental one.": {
     "source": "url-0541effb230b",
     "date": "2026-10-03"
+  },
+  "the component structure cannot be designed from the top down. it is not one of the first things about the system that is designed, but rather evolves as the system grows and changes.": {
+    "source": "https://raw.githubusercontent.com/sdcuike/Clean-Code-Collection-Books/master/Clean%20Architecture%20A%20Craftsman%27s%20Guide%20to%20Software%20Structure%20and%20Design.pdf",
+    "date": "2026-10-05"
+  },
+  "the dependencies betwen packages must not form cycles.": {
+    "source": "url-1c611f8361f4",
+    "date": "2026-10-05"
   },
   "the domain model is a visualization of noteworthy domain concepts and vocabulary. where are those terms found? some are in the use cases.": {
     "source": "larman-2004",

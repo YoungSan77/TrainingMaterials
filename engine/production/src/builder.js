@@ -33,6 +33,11 @@ function isPractice(title) {
 function isAnswer(title) {
   return /\(안\)$/.test(String(title).trim());
 }
+// production-guide.md "Session 명": slides of the appendix after the summary (practice answers)
+// carry "별첨: " before the session name.
+function appendixSessionName(session) {
+  return "별첨: " + session;
+}
 function tocSessionName(session) {
   return String(session).split(/\s+—\s+/)[0].trim();
 }
@@ -523,6 +528,7 @@ class Builder {
     this.pages = [];
     this.codes = [];
     this.unsupportedVisuals = [];
+    this.layoutWarnings = [];
     this.names = new Set();
     this.hasFootnote = false;
   }
@@ -1203,7 +1209,7 @@ class Builder {
   // 목차를 새로 만들거나 목차를 임의로 고치지 않는다.
   validateToc(toc, allSections) {
     // The TOC lists the numbered topics (groups) only; their unnumbered sub-topics are not items.
-    const sections = allSections.filter((s) => !s.group);
+    const sections = allSections.filter((s) => !s.group && !s.appendix);
     need(toc && toc.length > 0, "`## 목차`가 없다. Session Source 최상단에 수동 목차가 필요하다 (guides/session-authoring-guide.md).");
     need(toc.every((b) => b.kind === "bullet"), "`## 목차` 항목은 `01.`, `02.` 형식의 번호 목록이어야 한다(bullet(-) 금지).");
     need(toc.length === sections.length,
@@ -1343,10 +1349,12 @@ class Builder {
       // sizes (production-guide.md "실습 슬라이드").
       this.sectionStyle = isAnswer(section.title) && visuals.length ? ANSWER_STYLE : null;
       const renderedVisuals = await Promise.all(visuals.map(async (b) => {
-        const png = b.kind === "mermaid" ? await renderMermaid({ source: b.text })
-          : b.kind === "plantuml" ? await renderPlantUml({ kind: b.meta && b.meta.uml, source: b.text })
-          : b.kind === "svg" ? await renderSvg(b.text)
-          : await renderChart(b.text);
+        // A render failure names the topic and the diagram (production-guide.md "자동 검사").
+        const where = `"${section.title}"의 ${visualCaption(b) ? `"${visualCaption(b)}"` : b.kind + " 도식"}`;
+        const png = await (b.kind === "mermaid" ? renderMermaid({ source: b.text })
+          : b.kind === "plantuml" ? renderPlantUml({ kind: b.meta && b.meta.uml, source: b.text })
+          : b.kind === "svg" ? renderSvg(b.text)
+          : renderChart(b.text)).catch((e) => { throw new Error(where + ": " + e.message); });
         return { ...png, source: b.text, kind: b.kind, uml: Boolean(b.meta && b.meta.uml), caption: visualCaption(b) };
       }));
       const layout = visualPolicy(renderedVisuals);
@@ -1384,7 +1392,13 @@ class Builder {
         const png = renderedVisuals[0];
         const s = segOf[i];
         const cost = segTextCost(s);
-        if (section.side && png && !tableStacked(i) && cost <= SIDE_CAPACITY) sideSegs.add(s);
+        // A diagram too wide for the right half would read below MIN_PT there and be moved to a
+        // slide of its own, leaving the text alone in the left half: keep it below the text instead.
+        if (section.side && png && !tableStacked(i)) {
+          if (cost > SIDE_CAPACITY) this.layoutWarnings.push(`"${section.title}": 본문이 왼쪽 반에 들어가지 않아 \`**배치 — 좌우**\`를 쓰지 않았다. 본문을 줄이거나 표식을 지운다.`);
+          else if (pictureTextPt(png, fitTarget(SIDE_PANEL, png)) < MIN_PT - 0.05) this.layoutWarnings.push(`"${section.title}": 도식이 넓어 오른쪽 반에서 ${MIN_PT}pt보다 작아지므로 \`**배치 — 좌우**\`를 쓰지 않았다. 표식을 지우거나 도식을 세로로 바꾼다.`);
+          else sideSegs.add(s);
+        }
       }
       const capacityFor = (s) => (sideSegs.has(s) ? SIDE_CAPACITY : visualSegs.has(s) ? layout.capacity : fullCapacity);
       let seg = 0;
@@ -1800,6 +1814,7 @@ class Builder {
         }
       }
       if (section.notes && section.notes.length && sectionEnd > firstIdx) this.pages[firstIdx].notes = section.notes;
+      if (section.appendix) for (let k = firstIdx; k < sectionEnd; k++) this.pages[k].appendix = true;
       for (let k = firstIdx; k < sectionEnd; k++) {
         const p = this.pages[k];
         const m = /^(.+?) (\((?!안\)).*\))$/.exec(p.heading);
@@ -1855,9 +1870,11 @@ class Builder {
       // Shape 5 (top-right, idx=11) is the session name -- production-guide.md ("Session 명")
       // requires the same value on every slide, never the slide's own topic title. Shapes 6/7
       // stay blank (no source/copyright string).
-      setText(shape(p.doc, 5), p.isToc ? "" : this.session);
+      // An appendix slide (after the summary, "## 별첨. …") reads "별첨: <세션명>".
+      const label = p.appendix ? appendixSessionName(this.session) : this.session;
+      setText(shape(p.doc, 5), p.isToc ? "" : label);
       if (!p.isToc) {
-        const pt = sessionNamePt(this.session);
+        const pt = sessionNamePt(label);
         if (pt !== SESSION_PT) for (const rpr of all(shape(p.doc, 5), A, "rPr")) rpr.setAttribute("sz", String(Math.round(pt * 100)));
       }
       setText(shape(p.doc, 6), "");
@@ -1907,7 +1924,7 @@ class Builder {
     await writeZip(outputPath, result);
     // inspect.js checks shape 5/7 text against manifest.title/.source verbatim -- source is kept
     // as "" (not omitted) so that check still holds for the now-always-blank footer.
-    return { pages: this.pages, codes: this.codes, unsupportedVisuals: this.unsupportedVisuals, images: imageNumber, imageCounts, title: this.session, source: "" };
+    return { pages: this.pages, codes: this.codes, unsupportedVisuals: this.unsupportedVisuals, layoutWarnings: this.layoutWarnings, images: imageNumber, imageCounts, title: this.session, source: "" };
   }
 }
 
@@ -1917,4 +1934,4 @@ async function render(sections, templatePath, outputPath, session, toc) {
   return b.render(sections, outputPath, toc);
 }
 
-module.exports = { styledCost, PRACTICE_STYLE, ANSWER_STYLE, REFERENCE_STYLE, PRACTICE_BOX, ANSWER_COLUMNS, Builder, render, isPractice, isAnswer, geometry, naturalSize, pictureTextPt, fitTarget, visualPanel, columnWidths, tocSessionName, sessionNamePt, TARGET_PT, MIN_PT, UML_MAX_PT, PAGE_NUM_Y };
+module.exports = { styledCost, PRACTICE_STYLE, ANSWER_STYLE, REFERENCE_STYLE, PRACTICE_BOX, ANSWER_COLUMNS, Builder, render, isPractice, isAnswer, geometry, naturalSize, pictureTextPt, fitTarget, visualPanel, columnWidths, tocSessionName, appendixSessionName, sessionNamePt, TARGET_PT, MIN_PT, UML_MAX_PT, PAGE_NUM_Y };

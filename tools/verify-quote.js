@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // 인용문이 원전에 실제로 있는지 PC에서 확인하고, 결과만 한두 줄로 출력한다(LLM이 원문을 읽지 않게).
 //
-// 사용: node tools/verify-quote.js [--check] <원전> "<영문 인용>"
+// 사용: node tools/verify-quote.js [--check] <원전> "<영문 인용>" ["<영문 인용>" ...]
+//   인용을 여러 개 주면 원전을 한 번만 읽고 인용마다 결과 한 줄을 출력한다. 하나라도 "없음"이면 종료 코드 1.
 //   원전: PDF 경로 | 텍스트 경로 | URL | 캐시 이름(references/sources/<이름>.txt, 예: larman-2004)
 //   인용의 "…" 또는 "..."는 생략 표시로 보고, 나눈 조각이 순서대로 모두 있으면 "있음"이다.
 //   조각 끝의 문장부호(. , ; : ! ?)와 줄표(—·–)와 그 둘레 공백은 비교하지 않는다(원문이 문장을
@@ -86,10 +87,17 @@ function normalize(text) {
 function main() {
   const args = process.argv.slice(2);
   const check = args[0] === "--check";
-  const [source, quote] = check ? args.slice(1) : args;
-  if (!source || !quote) { console.error('사용: node tools/verify-quote.js [--check] <원전> "<영문 인용>"'); process.exit(2); }
+  const [source, ...quotes] = check ? args.slice(1) : args;
+  if (!source || !quotes.length) { console.error('사용: node tools/verify-quote.js [--check] <원전> "<영문 인용>" ["<영문 인용>" ...]'); process.exit(2); }
   const file = cached(source);
   const doc = normalize(fs.readFileSync(file, "utf-8"));
+  let missing = 0;
+  for (const quote of quotes) if (!verify(doc, file, source, quote, check)) missing++;
+  if (missing) process.exit(1);
+}
+
+// One quote against the normalized source: prints one line, records it when found (unless --check).
+function verify(doc, file, source, quote, check) {
   const parts = quote.split(/…|\.\.\./).map((p) => normalize(p).text.trim().replace(/[.,;:!?]+$/, "").trim()).filter(Boolean);
   // 생략(…)으로 나눈 조각은 앞 조각 뒤 GAP자 안에서 이어져야 한다.
   const GAP = 600;
@@ -110,12 +118,13 @@ function main() {
     while (n > 10 && doc.text.indexOf(p.slice(0, n)) < 0) n = Math.floor(n * 0.8);
     const j = n > 10 ? doc.text.indexOf(p.slice(0, n)) : -1;
     const near = j >= 0 ? doc.src.slice(doc.map[j], doc.map[Math.min(j + Math.min(p.length, 200), doc.map.length - 1)]).replace(/\s+/g, " ") : "";
-    console.log("없음: " + path.basename(file) + (j >= 0 ? ` — 가장 긴 조각의 앞 ${n}/${p.length}자만 일치, 원문: "${near}"` : ""));
-    process.exit(1);
+    console.log("없음: " + path.basename(file) + (j >= 0 ? ` — 가장 긴 조각의 앞 ${n}/${p.length}자만 일치, 원문: "${near}"` : ` — "${quote.slice(0, 60)}"`));
+    return false;
   }
   const s = doc.map[Math.max(0, first - 40)], e = doc.map[Math.min(doc.map.length - 1, Math.min(end, first + 240) + 40)];
   if (!check) record(quote, source);
   console.log((check ? "있음(기록 안 함): " : "있음: ") + path.basename(file) + ` — "…${doc.src.slice(s, e).replace(/\s+/g, " ")}…"`);
+  return true;
 }
 
 main();

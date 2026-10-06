@@ -84,3 +84,14 @@ test("a bare topic number 「NN」 is an error that suggests the full 「NN. 제
   assert.match(errors[0], /「02\. 개념」로 쓴다/);
   assert.match(errors[1], /「02\. 유스케이스」로 쓴다/);
 });
+
+test("a chained reference may name a sub-topic of each group", () => {
+  const root = course();
+  const p = path.join(root, "sessions", "s03.md");
+  const body = [
+    "--------------------", "Session 명: 03. 정적 모델", "--------------------", "", "## 목차", "", "01. 세션 목표", "",
+    "## 01. 세션 목표", "", "\"02. 요구 분석과 유스케이스\"의 「02. 유스케이스」의 「흐름」·「01. 세션 목표」.", "",
+  ].join("\n");
+  fs.writeFileSync(p, body);
+  assert.deepEqual(checkReferences(p, body).errors, []);
+});

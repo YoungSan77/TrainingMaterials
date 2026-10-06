@@ -34,7 +34,8 @@ async function inspect(outputPath, m) {
     }
     if (text(shape(doc, 2)) !== p.heading) errors.push(prefix + "heading mismatch");
     // The TOC slide intentionally carries no top-right session name (see builder.js `p.isToc`).
-    if (text(shape(doc, 5)) !== (p.isToc ? "" : m.title)) errors.push(prefix + "title mismatch");
+    // An appendix slide reads "별첨: <세션명>" (builder.js appendixSessionName).
+    if (text(shape(doc, 5)) !== (p.isToc ? "" : p.appendix ? "별첨: " + m.title : m.title)) errors.push(prefix + "title mismatch");
     if (text(shape(doc, 7)) !== m.source) errors.push(prefix + "source mismatch");
     for (const item of p.items) {
       const sh = shape(doc, item.id);
