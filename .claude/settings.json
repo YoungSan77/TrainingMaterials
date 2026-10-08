@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --test src/test/*.test.js)",
+      "Bash(node tools/verify-quote.js --check *)",
+      "Bash(shasum *)",
+      "Bash(node src/cli.js --check *)",
+      "Bash(node tools/citations.js *)",
+      "Bash(unzip -p *)",
+      "Bash(unzip -l *)",
+      "Bash(java -version)",
+      "Bash(claude --version)",
+      "Bash(node src/cli.js *)",
+      "Bash(tools/review-pdf.sh *)",
+      "Bash(node tools/verify-quote.js *)",
+      "Bash(pdftotext *)",
+      "Bash(pdftoppm *)"
+    ]
+  }
+}

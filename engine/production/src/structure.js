@@ -100,6 +100,20 @@ function unboldedText(sections) {
   return warnings;
 }
 
+// A bullet that starts with its own number ("- **① 승인**") shows a bullet glyph and a number
+// together; ordered items are a numbered list ("1. ") instead (session-authoring-guide.md "6. 표와
+// 목록"). Warning only.
+function numberedBullets(sections) {
+  const warnings = [];
+  for (const section of sections) for (const block of section.blocks) {
+    // A "+ " line (practice prompt) has no glyph: its ①·② steps are allowed.
+    if (block.kind !== "bullet" || (block.meta && block.meta.noGlyph)) continue;
+    const text = String(block.text).trim().replace(/^\*\*/, "");
+    if (/^[\u2460-\u2473\u2776-\u277F]/.test(text)) warnings.push(`bullet과 번호가 겹친다 — 번호 목록(1.)으로 쓴다: "${section.title}"의 "${text.slice(0, 20)}"`);
+  }
+  return warnings;
+}
+
 // A topic title or a table cell that is a question ("유저 스토리란", "무엇을 얼마나 넣는가")
 // ends with "?" (session-authoring-guide.md "문체와 용어"). Warning only.
 const QUESTION_END = /(?:란|인가|는가|은가|할까|일까|는지)$/;
@@ -131,4 +145,4 @@ function missingNotes(sections) {
   return sections.filter((s) => (!s.blocks || s.blocks.length) && !(s.notes && s.notes.length)).map((s) => `강사 노트가 없다: "${s.title}"`);
 }
 
-module.exports = { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, MAX_GOALS };
+module.exports = { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, numberedBullets, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, MAX_GOALS };

@@ -63,3 +63,12 @@ test("a deck outside a course needs no next session in its summary", () => {
   fs.writeFileSync(p, md);
   assert.deepEqual(checkStructure(p, "01. 참조", parse(md).sections, [page("01. 세션 목표"), page("02. 요약")]), []);
 });
+
+test("a bullet that starts with a circled number is reported; a numbered list item is not", () => {
+  const { numberedBullets } = require("../structure");
+  const { parse } = require("../parse");
+  const { sections } = parse("## 01. 예\n\n본문.\n\n- **① 승인** — 결제완료\n- **승인** — ①과 같다\n\n1. **가격 변경** — 2,000원\n\n- **프롬프트**\n  + ① \"초안을 써줘\"\n");
+  const w = numberedBullets(sections);
+  assert.equal(w.length, 1);
+  assert.match(w[0], /① 승인/);
+});

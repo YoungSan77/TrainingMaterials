@@ -1,4 +1,8 @@
 {
+  "…asked to work on only one feature at a time. this incremental approach turned out to be critical to addressing the agent's tendency to do too much at once": {
+    "source": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+    "date": "2026-10-08"
+  },
   "…state-dependent objects react differently to events depending on their state or mode.": {
     "source": "larman-2004",
     "date": "2026-10-03"
@@ -155,6 +159,10 @@
     "source": "larman-2004",
     "date": "2026-10-02"
   },
+  "always follow the tdd cycle: red → green → refactor": {
+    "source": "https://newsletter.kentbeck.com/p/augmented-coding-beyond-the-vibes",
+    "date": "2026-10-08"
+  },
   "an association is a relationship between classes (more precisely, instances of those classes) that indicates some meaningful and interesting connection.": {
     "source": "larman-2004",
     "date": "2026-10-02"
@@ -181,7 +189,7 @@
   },
   "any indication that the genie was cheating, for example by disabling or deleting tests": {
     "source": "https://newsletter.kentbeck.com/p/augmented-coding-beyond-the-vibes",
-    "date": "2026-10-06"
+    "date": "2026-10-08"
   },
   "architecture is about the important stuff. whatever that is.": {
     "source": "/private/tmp/claude-501/-Users-YoungSan-dev-TrainingMaterials-courses-ooad-sessions/27b1286f-42b1-425b-9585-140a4bfa4ee7/scratchpad/src/fowler2003c.txt",
@@ -258,6 +266,10 @@
   "claude stops when the work looks done. without a check it can run, \"looks done\" is the only signal available": {
     "source": "https://code.claude.com/docs/en/best-practices",
     "date": "2026-10-07"
+  },
+  "claude's tendency to mark a feature as complete without proper testing": {
+    "source": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+    "date": "2026-10-08"
   },
   "code solutions are verifiable through automated tests; agents can iterate on solutions using test results as feedback; the problem space is well-defined and structured; and output quality can be measured objectively.": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
@@ -438,6 +450,14 @@
   "if we do not think of some conceptual class x as a number or text in the real world, x is probably a conceptual class, not an attribute.": {
     "source": "larman-2004",
     "date": "2026-10-02"
+  },
+  "if your project has a robust, comprehensive and stable test suite agentic coding tools can fly with it. without tests? your agent might claim something works without having actually tested it at all": {
+    "source": "https://simonwillison.net/2025/Oct/7/vibe-engineering/",
+    "date": "2026-10-08"
+  },
+  "implement the behaviour described by each documented example, starting with an automated test to guide the development of the code": {
+    "source": "https://cucumber.io/docs/bdd/",
+    "date": "2026-10-08"
   },
   "in augmented coding you care about the code, its complexity, the tests, & their coverage.": {
     "source": "https://newsletter.kentbeck.com/p/augmented-coding-beyond-the-vibes",
@@ -695,6 +715,10 @@
     "source": "https://www.csc.lsu.edu/~chen/pdf/erd-5-pages.pdf",
     "date": "2026-10-02"
   },
+  "these features were all initially marked as \"failing\" so that later coding agents would have a clear outline of what full functionality looked like": {
+    "source": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+    "date": "2026-10-08"
+  },
   "these files are relevant across all ai coding sessions in the codebase, whereas specs only relevant to the tasks that actually create or change that particular functionality.": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
     "date": "2026-10-07"
@@ -766,6 +790,10 @@
   "workflows offer predictability and consistency for well-defined tasks, whereas agents are the better option when flexibility and model-driven decision-making are needed at scale.": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-07"
+  },
+  "write the simplest failing test first": {
+    "source": "https://newsletter.kentbeck.com/p/augmented-coding-beyond-the-vibes",
+    "date": "2026-10-08"
   },
   "write use cases in an essential style; keep the user interface out and focus on actor intent.": {
     "source": "larman-2004",

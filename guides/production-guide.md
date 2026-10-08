@@ -228,6 +228,7 @@ Anchor Message는 Production 전용 시각 타입이 아니다. Course Design의
   - 7pt 미만으로 줄어든 도식(「Visual layout 및 가독성」, `generate.js`).
   - 도식 라벨의 topic 번호(`structure.js`).
   - 굵게 표시한 핵심어가 없는 25자 이상의 본문 문장·bullet(`structure.js`). 번호 단계, 인용된 요청(`>`, `“…”`)은 제외한다.
+  - 번호(①·② 등)로 시작하는 bullet — 글머리표와 번호가 겹친다. 번호 목록(`1. `)으로 쓴다(`structure.js`의 `numberedBullets`).
   - 자바 코드 원본 폴더가 없는 세션(「소스 코드」, `codeSource.js`).
   - 강사 노트가 없는 topic(`structure.js`).
   - "?"가 없는 의문문 topic 제목·표 칸 — "~란·~인가·~는가" 등으로 끝나는 것(`structure.js`의 `unmarkedQuestionTitles`).

@@ -1400,7 +1400,21 @@ class Builder {
           else sideSegs.add(s);
         }
       }
-      const capacityFor = (s) => (sideSegs.has(s) ? SIDE_CAPACITY : visualSegs.has(s) ? layout.capacity : fullCapacity);
+      // A single diagram below the text leaves the text whatever the diagram does not need at 8pt
+      // (its natural height, narrowed to the band width, plus its title; production-guide.md lets a
+      // diagram shrink from 10pt before the slide is split): the governing message and a quotation
+      // above it then stay on one slide instead of the quotation being pushed onto a continuation
+      // slide behind the diagram. Never less than the layout bucket.
+      const visualCapacity = (() => {
+        if (renderedVisuals.length !== 1) return layout.capacity;
+        const png = renderedVisuals[0];
+        const nat = naturalSize(png, 8);
+        const bandW = FULL_TEXT.w - 0.2;
+        const h = nat.h * Math.min(1, bandW / nat.w) + (png.caption ? 0.28 : 0) + 0.15;
+        const textH = this.contentBottomY() - FULL_TEXT.y - h;
+        return Math.max(layout.capacity, Math.floor(fullCapacity * Math.max(0, textH) / FULL_TEXT.h));
+      })();
+      const capacityFor = (s) => (sideSegs.has(s) ? SIDE_CAPACITY : visualSegs.has(s) ? visualCapacity : fullCapacity);
       let seg = 0;
       const segStart = [this.pages.length];
       let capacity = capacityFor(0);
@@ -1631,12 +1645,18 @@ class Builder {
         if (b.kind === "code") {
           const pair = deferredCode;
           deferredCode = null;
-          const lead = pending.length && this.textHeightPt(pending) <= 3 * 40 ? pending.slice() : [];
-          if (!lead.length) flushPending();
           let k = blockIndex + 1;
           const trail = [];
           while (k < section.blocks.length && ["text", "heading", "bullet"].includes(section.blocks[k].kind)) trail.push(section.blocks[k++]);
           const trailPt = this.textHeightPt(trail);
+          // The text before the code joins the code's slide when it is short (three lines), or when
+          // the whole code still fits below it at 10pt -- e.g. a governing message and a quotation
+          // above a short excerpt -- instead of leaving that text alone on a near-empty slide.
+          const leadPt = pending.length ? this.textHeightPt(pending) : 0;
+          const roomPt = (PAGE_NUM_Y - 0.15 - 1.05) * 72 - leadPt - 8 - (trailPt ? trailPt + 8 : 0);
+          const fitsBelowLead = () => { const plan = planCode(b.text, 9.2 * 72, roomPt); return !!plan && plan.size === 10; };
+          const lead = pending.length && (leadPt <= 3 * 40 || (!pair && fitsBelowLead())) ? pending.slice() : [];
+          if (!lead.length) flushPending();
           if (!pair && !pending.length && open && open.codeArea && this.appendCodeBelow(open, b, trailPt)) {
             governingSeen = true;
             continue;
@@ -1756,7 +1776,12 @@ class Builder {
             target.visualLayout = "side";
           } else {
           const cost = target.textCost || 0;
-          const textEndY = layout.text.y + layout.text.h * Math.min(ORPHAN_TOLERANCE, cost / layout.capacity);
+          // Text past the layout bucket (allowed by visualCapacity above) is measured on the full
+          // text area's scale, and its box grows to hold it.
+          const over = cost > layout.capacity;
+          const textEndY = over ? FULL_TEXT.y + FULL_TEXT.h * cost / fullCapacity
+            : layout.text.y + layout.text.h * Math.min(ORPHAN_TOLERANCE, cost / layout.capacity);
+          if (over) setShapeBounds(shape(target.doc, 8), { ...layout.text, h: textEndY - layout.text.y });
           const margin = 0.15;
           const availableH = Math.max(0.6, this.contentBottomY() - margin - textEndY);
           const panel = visualPanel(layout, textEndY + margin, availableH, renderedVisuals);

@@ -4,5 +4,5 @@
   "checked_blocks": 84,
   "visual_status": "NOT_VERIFIED",
   "errors": [],
-  "warnings": ["원고 155행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Rigidity is the tendency for software to…\"","원고 309행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"A module should be open for extension bu…\"","원고 574행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"make the change easy, then make the easy…\"","원고 618행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"descriptions of communicating objects an…\""]
+  "warnings": ["원고 155행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Rigidity is the tendency for software to…\"","원고 309행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"A module should be open for extension bu…\"","원고 574행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"make the change easy, then make the easy…\"","원고 618행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"descriptions of communicating objects an…\"","bullet과 번호가 겹친다 — 번호 목록(1.)으로 쓴다: \"38. 실습 — 변화 대응\"의 \"① \"위 설계에 변경 요청 A·B를 \"","bullet과 번호가 겹친다 — 번호 목록(1.)으로 쓴다: \"38. 실습 — 변화 대응\"의 \"② \"파급을 가장 좁히는 설계를 Pl\""]
 }

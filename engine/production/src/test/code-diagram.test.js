@@ -89,6 +89,25 @@ test("a stacked diagram shrinks (down to 70%) before the code beneath it is spli
   assert.ok(Math.abs(split[0].pictures[0].bounds.h - full) < 1e-6, "and then the diagram keeps its size");
 });
 
+test("a governing message and a quotation above a short code block share its slide", async () => {
+  const quote = "인용한 문장의 한글 요약이 두 줄에 걸칠 만큼 길다. 원문과 출처가 그 뒤에 이어진다";
+  const sections = [{ heading: "01. 코드", title: "01. 코드", notes: [], blocks: [
+    block("text", "코드 앞의 거버닝 메시지는 두 줄에 걸친다. 이 문장은 그 길이를 채우려고 조금 더 길게 썼다."),
+    block("text", "**인용문**"),
+    block("text", quote + ', "A quoted sentence that runs long enough to take a second line on the slide in English", [Author 2025]'),
+    block("code", Array.from({ length: 8 }, (_, i) => "값" + i + " = " + i + ";").join("\n")),
+  ] }];
+  const output = path.join(os.tmpdir(), `tm-code-lead-${process.pid}-${Date.now()}.pptx`);
+  try {
+    const m = await render(sections, TEMPLATE, output, "T", [block("bullet", "01. 코드")]);
+    const pages = m.pages.filter((p) => String(p.heading).startsWith("01. 코드"));
+    assert.equal(pages.length, 1, "the lead, the quotation and the code are on one slide");
+    assert.ok(pages[0].items.some((it) => it.kind === "source"));
+  } finally {
+    if (fs.existsSync(output)) fs.unlinkSync(output);
+  }
+});
+
 test("course code bolds only declared names: types, and method/constructor names on declaration lines", () => {
   const { declaredNameSpans } = require("../richText");
   const bold = (line) => declaredNameSpans(line).map(([s, e]) => line.slice(s, e));
