@@ -1,0 +1,6 @@
+./order/OrderItem.java:20: error: cannot find symbol
+        return new OrderItem(product.productNumber(), product.salePrice(), quantity);
+                                    ^
+  symbol:   method productNumber()
+  location: variable product of type Product
+1 error

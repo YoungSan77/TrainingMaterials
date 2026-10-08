@@ -1,0 +1,1 @@
+docs/business-rule.md의 업무 규칙대로 구현해서 sh run-tests.sh가 통과하게 해줘. test/ 폴더의 테스트는 바꾸지 마. 끝나면 테스트 출력을 보여줘.

@@ -1,0 +1,56 @@
+다음 업무 규칙대로 OrderItem.confirm과 Order.totalAmount를 구현한 두 자바 파일의 전체 코드를 써줘. 설명 없이 코드만 답해줘.
+
+[업무 규칙]
+# 업무 규칙 — 주문 금액
+
+- **단가** — 주문이 생길 때 상품의 판매가로 정한 주문 항목의 가격. 그 뒤로 바뀌지 않는다.
+- **주문 금액** — 주문 항목마다 단가 × 수량의 합.
+- 주문 뒤에 상품의 판매가가 바뀌어도 주문 금액은 바뀌지 않는다.
+
+예: 펜 2개(판매가 1,000원)를 주문하면 주문 금액은 2,000원이다. 그 뒤 펜의 판매가가 1,200원이 되어도 주문 금액은 2,000원이다.
+
+[order/OrderItem.java]
+package order;
+
+import product.Product;
+import product.ProductNumber;
+
+public class OrderItem {
+    private final ProductNumber productNumber;
+    private final Quantity quantity;
+
+    private OrderItem(ProductNumber productNumber, Quantity quantity) {
+        this.productNumber = productNumber;
+        this.quantity = quantity;
+    }
+
+    // 주문할 때 주문 항목을 만든다. 업무 규칙은 docs/business-rule.md를 따른다.
+    public static OrderItem confirm(Product product, Quantity quantity) {
+        throw new UnsupportedOperationException("구현 필요");
+    }
+
+    public ProductNumber productNumber() { return productNumber; }
+    public Quantity quantity() { return quantity; }
+}
+
+[order/Order.java]
+package order;
+
+import java.util.List;
+import payment.Money;
+
+public class Order {
+    private final List<OrderItem> items;
+
+    public Order(List<OrderItem> items) {
+        if (items.isEmpty()) throw new IllegalArgumentException("주문 항목은 1개 이상");
+        this.items = List.copyOf(items);
+    }
+
+    public List<OrderItem> items() { return items; }
+
+    // 주문 금액. 업무 규칙은 docs/business-rule.md를 따른다.
+    public Money totalAmount() {
+        throw new UnsupportedOperationException("구현 필요");
+    }
+}

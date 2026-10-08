@@ -1,0 +1,8 @@
+컴파일 오류가 났어. 고친 order/OrderItem.java 전체 코드만 다시 써줘.
+
+./order/OrderItem.java:20: error: cannot find symbol
+        return new OrderItem(product.productNumber(), product.salePrice(), quantity);
+                                    ^
+  symbol:   method productNumber()
+  location: variable product of type Product
+1 error

@@ -1,0 +1,44 @@
+docs/business-rule.md를 읽고, 이 업무 규칙을 구현하려면 어느 클래스의 어느 메서드를 어떻게 바꿔야 하는지 목록으로 적어줘. 코드는 바꾸지 마.
+---
+다음 계획대로 코드를 바꿔줘. test/ 폴더는 바꾸지 마.
+
+[계획]
+코드는 바꾸지 않았습니다. 업무 규칙(`docs/business-rule.md`)을 구현하려면 아래 메서드를 바꾸면 됩니다.
+
+## 바꿀 곳
+
+**1. `OrderItem` — 필드 추가** (`order/OrderItem.java:7-8`)
+- `private final Money unitPrice;`를 추가합니다.
+- 업무 규칙의 "단가"가 바로 이 값입니다. 지금은 `Product`의 참조나 판매가를 들고 있지 않아서 단가를 저장할 곳이 없습니다.
+- `final`로 두어야 "그 뒤로 바뀌지 않는다"는 규칙이 지켜집니다.
+- `import payment.Money;`도 함께 추가합니다.
+
+**2. `OrderItem` 생성자** (`order/OrderItem.java:10`)
+- 시그니처를 `private OrderItem(ProductNumber productNumber, Quantity quantity, Money unitPrice)`로 바꾸고 `unitPrice`를 받아 저장합니다.
+
+**3. `OrderItem.confirm(Product, Quantity)`** (`order/OrderItem.java:16-18`)
+- `throw`를 지우고 `new OrderItem(product.number(), quantity, product.salePrice())`를 반환합니다.
+- 주문할 때의 판매가를 그 순간에 복사해 단가로 정합니다.
+- `Product` 객체 자체를 필드로 들고 있으면 안 됩니다. 그렇게 하면 나중에 `changeSalePrice`가 호출됐을 때 주문 금액도 같이 바뀝니다.
+
+**4. `OrderItem.amount()` — 새 메서드** (`OrderItem`)
+- `public Money amount() { return unitPrice.times(quantity.value()); }`
+- 항목 금액(단가 × 수량)을 항목 스스로 계산합니다.
+- 필요하면 `public Money unitPrice()` 조회 메서드도 추가합니다.
+
+**5. `Order.totalAmount()`** (`order/Order.java:17-19`)
+- `throw`를 지우고 항목 금액을 모두 더합니다.
+  `items.stream().map(OrderItem::amount).reduce(Money.ZERO, Money::plus)`
+- 주문 금액은 항목마다 단가 × 수량을 더한 값이어야 합니다. `Product`를 다시 조회해서는 안 됩니다.
+
+## 바꾸지 않는 곳
+- `Product`: 판매가가 바뀌는 것은 정상 동작입니다. 주문 쪽이 판매가를 복사해 두면 영향을 받지 않습니다.
+- `Money`: 필요한 `times`, `plus`, `ZERO`가 이미 있습니다.
+- `Quantity`, `ProductNumber`
+- `AmountTest`: 이미 규칙의 예시(2,000원 → 판매가 1,200원으로 바뀐 뒤에도 2,000원)를 그대로 검증하고 있습니다.
+
+위대로 바꾸면 `./run-tests.sh`의 두 검사가 모두 통과할 것으로 예상합니다. 코드를 바꾸지 않았으므로 테스트는 아직 실행하지 않았습니다.
+
+참고로 Gmail, Google Drive와 engineering 플러그인 서버(GitHub, Slack 등)는 아직 인증되지 않아 쓸 수 없습니다. 쓰려면 claude.ai 커넥터 설정이나 `/mcp`에서 인증해야 합니다. 이번 작업에는 필요하지 않았습니다.
+---
+sh run-tests.sh로 테스트를 실행하고 출력을 그대로 보고해줘. 코드는 바꾸지 마.
