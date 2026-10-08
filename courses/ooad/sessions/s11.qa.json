@@ -4,5 +4,5 @@
   "checked_blocks": 54,
   "visual_status": "NOT_VERIFIED",
   "errors": [],
-  "warnings": ["원고 57행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"There is no need for meticulous designs …\"","원고 342행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"(1) identify and prioritize risks, (2) s…\"","원고 408행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Every artifact that you create, and then…\"","원고 472행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"Avoid a waterfall-mindset big-modeling e…\""]
+  "warnings": ["원고 55행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"There is no need for meticulous designs …\"","원고 350행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"(1) identify and prioritize risks, (2) s…\""]
 }

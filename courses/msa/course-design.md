@@ -1,5 +1,7 @@
 # 마이크로서비스 아키텍처 개요와 설계 원칙 — Course Design
 
+> **상태 — 이전 형식의 초안.** 현행 `guides/course-design-guide.md`의 필수 항목(과정의 맥락, 기준 원전, 공통 전제, 실습 관통 사례, 요구에서 코드까지의 경로 등)을 아직 적용하지 않았다. 아래의 Curriculum Harness·Portfolio 같은 이전 파이프라인의 용어와 규칙은 현재 규칙이 아니다(`AGENTS.md`의 「규칙의 원천」). 세션을 쓰기 전에 "AI-native SW 공학"·"객체지향 분석과 설계 실무"처럼 다시 설계한다.
+
 ## Identity
 
 - **Slug:** `msa`
