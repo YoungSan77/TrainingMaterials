@@ -63,7 +63,7 @@ function cached(source) {
 
 // 대소문자·따옴표·대시·줄끝 하이픈·공백(괄호 안쪽 포함) 차이를 없앤다. 원문 위치를 되찾도록 인덱스 표도 만든다.
 function normalize(text) {
-  const src = text.replace(/-\s*\n\s*/g, "").replace(/­/g, "");
+  const src = text.replace(/-\s*\n\s*/g, "").replace(/­/g, "").replace(/ﬁ/g, "fi").replace(/ﬂ/g, "fl").replace(/ﬀ/g, "ff").replace(/ \s*([,.;:])/g, "$1");
   let out = "", map = [], dash = false;
   for (let i = 0; i < src.length; i++) {
     let ch = src[i].toLowerCase();

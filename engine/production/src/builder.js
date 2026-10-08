@@ -429,7 +429,7 @@ function columnWidths(rows, cols) {
 // level, the size of a line's explanation after "—" and of a "(...)" span for a level size, and
 // how lines are indented: `hang` sets each level 0.25in in with a 0.2in hanging glyph (answer);
 // `aligned` puts an unbulleted "+ " line under its parent's text (practice).
-const PRACTICE_STYLE = { fit: 1.04, text: 16, levels: [18, 16, 14], expl: () => 10.5, paren: () => 10, aligned: true };
+const PRACTICE_STYLE = { fit: 1.04, text: 16, levels: [18, 16, 14], expl: (L) => L - 2, paren: (L) => Math.max(8, L - 4), aligned: true };
 const ANSWER_STYLE = { fit: 1.1, text: 14, levels: [14, 12, 11], expl: (L) => L - 2, paren: (L) => Math.max(8, L - 4), hang: true };
 // "**참고 자료 목록**" (production-guide.md "별첨 — 참고 자료"): numbered entries at 8pt in two columns.
 // `numberHang` starts a numbered entry at the left edge and its wrapped lines after "N. "; `space` is

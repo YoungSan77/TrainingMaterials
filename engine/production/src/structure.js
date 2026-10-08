@@ -18,7 +18,9 @@ function hasNextSession(inputPath, session) {
   const m = /^(\d\d)\./.exec(String(session || ""));
   if (!m) return true;
   const design = path.join(path.dirname(path.resolve(inputPath)), "..", "course-design.md");
-  if (!fs.existsSync(design)) return true;
+  // A deck outside a course (a reference deck such as references/sw-engineering-approach/) has no
+  // course design, so no next session to name.
+  if (!fs.existsSync(design)) return false;
   const next = String(Number(m[1]) + 1).padStart(2, "0");
   return new RegExp("^### S" + next + " — ", "m").test(fs.readFileSync(design, "utf-8"));
 }
@@ -65,7 +67,7 @@ function wrappingCells(sections) {
   return warnings;
 }
 
-// A topic number inside a diagram label ("48. 사용자 스토리") goes stale when topics move, and a
+// A topic number inside a diagram label ("48. 유저 스토리") goes stale when topics move, and a
 // diagram names concepts, not slides (session-authoring-guide.md "참조 형식"). Warning only.
 function numberedDiagramLabels(sections) {
   const warnings = [];
@@ -98,6 +100,25 @@ function unboldedText(sections) {
   return warnings;
 }
 
+// A topic title or a table cell that is a question ("유저 스토리란", "무엇을 얼마나 넣는가")
+// ends with "?" (session-authoring-guide.md "문체와 용어"). Warning only.
+const QUESTION_END = /(?:란|인가|는가|은가|할까|일까|는지)$/;
+function unmarkedQuestionTitles(sections) {
+  const warnings = [];
+  for (const section of sections) {
+    const t = String(section.title).replace(/^\d\d\.\s*/, "").trim();
+    if (QUESTION_END.test(t)) warnings.push(`의문문 제목에 "?"가 없다: "${t}"`);
+    for (const block of section.blocks || []) {
+      if (block.kind !== "table") continue;
+      for (const row of block.rows) for (const cell of row) {
+        const c = String(cell).replace(/\*\*/g, "").trim();
+        if (QUESTION_END.test(c)) warnings.push(`의문문 표 칸에 "?"가 없다: "${section.title}"의 "${c.slice(0, 30)}"`);
+      }
+    }
+  }
+  return warnings;
+}
+
 // A practice answer "(안)" belongs to the appendix after the summary, so the lecture runs straight to
 // its summary (session-authoring-guide.md "사례·가정·실습"). Warning only.
 function answersOutsideAppendix(sections) {
@@ -110,4 +131,4 @@ function missingNotes(sections) {
   return sections.filter((s) => (!s.blocks || s.blocks.length) && !(s.notes && s.notes.length)).map((s) => `강사 노트가 없다: "${s.title}"`);
 }
 
-module.exports = { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, missingNotes, answersOutsideAppendix, MAX_GOALS };
+module.exports = { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, MAX_GOALS };

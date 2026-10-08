@@ -185,7 +185,7 @@ Anchor Message는 Production 전용 시각 타입이 아니다. Course Design의
 - 코드 뒤의 짧은 설명·표는 남은 영역에 들어가면 같은 슬라이드에 이어 쌓는다.
 - 실습 과제 topic(`NN. 실습 — …`, 검토 예시 제외)은 **한 슬라이드**이며, 기준 서식으로 배치한다(`builder.js` `practicePage`, `PRACTICE_STYLE`).
   - 한 단(폭 9.43in·높이 6.04in)에 안내 문장 16pt, level 0 18pt, level 1 16pt, level 2 14pt를 쓴다. 문단 간격은 앞뒤 3pt다.
-  - `—` 뒤 설명은 10.5pt, `(…)`는 10pt다.
+  - `—` 뒤 설명은 본문과 같이 2pt 작게, `(…)`는 4pt 작게(최소 8pt) 쓴다. 점검 항목의 질문이 핵심어보다 크게 작아지지 않게 한다.
   - `+ ` 줄(서비스 개요·프롬프트 본문처럼 글머리표 없는 줄)은 부모 항목의 글자 시작에 맞춘다.
   - 기준 서식으로 넘치면 16pt → 14pt 한 단, 다시 14pt 좌우 두 단으로 배치한다. 도식은 다른 도식과 같이 7pt까지 줄인다. 그래도 한 장을 넘으면 **오류**다(`structure.js`).
 - 실습의 답은 요약 뒤 별첨(`## 별첨. 실습 답`)의 서브 항목으로, 제목이 `<산출물> (안)`이다. 제목의 `(안)`은 24pt 제목 옆에 18pt로 쓴다.
@@ -219,7 +219,7 @@ Anchor Message는 Production 전용 시각 타입이 아니다. Course Design의
 - `session-authoring-guide.md`의 「세션 목표와 요약」을 검증한다(`engine/production/src/structure.js`). 다음은 **오류**로 생성을 중단한다. 검토용 원고 `sNN-add.md`는 검사하지 않는다.
   - `01. 세션 목표`의 최상위 bullet이 7개를 넘거나 목표가 두 슬라이드 이상으로 나뉜다.
   - 마지막 topic `요약`이 두 슬라이드 이상으로 나뉜다.
-  - `요약`에 `### 다음 세션` heading이 없는데 같은 과정의 `course-design.md`에 다음 세션(`### S{NN+1} — `)이 있다.
+  - `요약`에 `### 다음 세션` heading이 없는데 같은 과정의 `course-design.md`에 다음 세션(`### S{NN+1} — `)이 있다. 과정 밖의 덱(`references/sw-engineering-approach/` 같은 참조 자료)은 과정 설계가 없으므로 검사하지 않는다.
 - 도식 렌더링이 실패하면 오류에 topic 제목과 도식 제목을 함께 적는다(PlantUML의 "contains errors"만으로는 위치를 알 수 없다).
 - `node src/cli.js --check <원고…>`는 여러 원고를 검사만 하고 덱·`.qa.json`을 남기지 않는다. 세션 번호를 바꾼 뒤 참조하는 세션을 함께 검사할 때 쓴다.
 - 다음은 **경고**로 보고한다. 경고는 `.qa.json`의 `warnings`와 콘솔에 출력하며 생성을 중단하지 않는다. 원고를 고쳐 0개로 만드는 것이 기준이다.
@@ -230,6 +230,7 @@ Anchor Message는 Production 전용 시각 타입이 아니다. Course Design의
   - 굵게 표시한 핵심어가 없는 25자 이상의 본문 문장·bullet(`structure.js`). 번호 단계, 인용된 요청(`>`, `“…”`)은 제외한다.
   - 자바 코드 원본 폴더가 없는 세션(「소스 코드」, `codeSource.js`).
   - 강사 노트가 없는 topic(`structure.js`).
+  - "?"가 없는 의문문 topic 제목·표 칸 — "~란·~인가·~는가" 등으로 끝나는 것(`structure.js`의 `unmarkedQuestionTitles`).
   - 별첨 밖의 실습 답 "(안)" topic(`structure.js`의 `answersOutsideAppendix`).
   - 무시한 `**배치 — 좌우**` — 본문이 왼쪽 반을 넘거나 도식이 오른쪽 반에서 7pt보다 작아질 때(`builder.js`의 `layoutWarnings`).
   - 앞 세션의 코드와 값이 다른 `enum` — 관통 사례의 공통 식별자가 세션 사이에서 바뀐 것(`codeSource.js`). 뒤 세션이 값을 더하는 것(진화)은 허용한다. 분석 코드의 한글 enum(`주문상태`)과 설계 코드의 영문 enum(`OrderStatus`)은 같은 과정 `course-design.md`의 **영한 용어집** 표로 대응시켜 비교한다. 용어집에 없는 한글 값은 대응을 확인할 수 없다고 보고한다.

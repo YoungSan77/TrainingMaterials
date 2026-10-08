@@ -88,11 +88,11 @@ test("a text answer too long for two columns stays split and is reported", async
   assert.ok(errors.some((e) => /답 .*한 슬라이드를 넘는다/.test(e)));
 });
 
-test("a practice slide sets explanations at 10.5pt and a + line under its parent's text", async () => {
+test("a practice slide sets explanations 2pt under their line and a + line under its parent's text", async () => {
   const { pages } = await pagesOf("## 01. 실습 — 과제\n\n실습의 **목표**를 한 문장으로 적는다.\n\n- **서비스 개요**\n  + 고객은 상품을 고른다.\n- **결과물** — 명세서\n");
   assert.equal(pages.length, 1);
   const sizes = sizesOf(pages[0]);
-  assert.ok(sizes.has("1050") && sizes.has("1800"), [...sizes].join());
+  assert.ok(sizes.has("1600") && sizes.has("1800") && !sizes.has("1050"), [...sizes].join());
   const aligned = Array.from(pages[0].doc.getElementsByTagName("a:pPr")).find((pr) => pr.getAttribute("lvl") === "3");
   assert.equal(aligned.getAttribute("marL"), "723900");
   assert.equal(aligned.getAttribute("indent"), "0");

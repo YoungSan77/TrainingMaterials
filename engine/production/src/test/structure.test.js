@@ -43,3 +43,23 @@ test("a topic without an instructor note is reported", () => {
   const sections = [{ title: "01. 가", notes: [{ text: "노트" }] }, { title: "02. 나", notes: [] }];
   assert.deepEqual(missingNotes(sections), ['강사 노트가 없다: "02. 나"']);
 });
+
+test("a question title without a question mark is reported", () => {
+  const { unmarkedQuestionTitles } = require("../structure");
+  const sections = [{ title: "유저 스토리란" }, { title: "BDD란?" }, { title: "05. 무엇을 누가 쓰는가" }, { title: "스토리 나누기" }];
+  assert.deepEqual(unmarkedQuestionTitles(sections), ['의문문 제목에 "?"가 없다: "유저 스토리란"', '의문문 제목에 "?"가 없다: "무엇을 누가 쓰는가"']);
+});
+
+test("a question table cell without a question mark is reported", () => {
+  const { unmarkedQuestionTitles } = require("../structure");
+  const sections = [{ title: "순서", blocks: [{ kind: "table", rows: [["판단", "**무엇인가**"], ["얼마나 남기는가?", "무엇을 넣는가"]] }] }];
+  assert.deepEqual(unmarkedQuestionTitles(sections), ['의문문 표 칸에 "?"가 없다: "순서"의 "무엇인가"', '의문문 표 칸에 "?"가 없다: "순서"의 "무엇을 넣는가"']);
+});
+
+test("a deck outside a course needs no next session in its summary", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "tm-structure-"));
+  const p = path.join(root, "deck.md");
+  const md = ["## 01. 세션 목표", "", "- a", "", "## 02. 요약", "", "### 핵심", "- x", ""].join("\n");
+  fs.writeFileSync(p, md);
+  assert.deepEqual(checkStructure(p, "01. 참조", parse(md).sections, [page("01. 세션 목표"), page("02. 요약")]), []);
+});

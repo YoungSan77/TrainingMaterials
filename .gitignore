@@ -7,3 +7,5 @@ engine/production/.cache/
 
 # 원전 텍스트 캐시(저작물 원문, tools/verify-quote.js)
 references/sources/
+# 사용자가 넣은 받은 원문(PDF·추출 텍스트 — 저작물 원문). 인용 확인용이며 커밋하지 않는다
+references/inputs/
