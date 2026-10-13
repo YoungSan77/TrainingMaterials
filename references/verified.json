@@ -139,6 +139,10 @@
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-07"
   },
+  "agents are most effective in environments with strict boundaries and predictable structure": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-12"
+  },
   "agents can be used for open-ended problems where it's difficult or impossible to predict the required number of steps, and where you can't hardcode a fixed path.": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-07"
@@ -158,6 +162,10 @@
   "all the members of a subclass set must be members of their superclass set.": {
     "source": "larman-2004",
     "date": "2026-10-02"
+  },
+  "allows agents to incrementally discover relevant context through exploration": {
+    "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "date": "2026-10-12"
   },
   "always follow the tdd cycle: red → green → refactor": {
     "source": "https://newsletter.kentbeck.com/p/augmented-coding-beyond-the-vibes",
@@ -206,6 +214,10 @@
   "as a downstream client, create an isolating layer to provide your system with functionality of the upstream system in terms of your own domain model.": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-08"
+  },
+  "as the number of tokens in the context window increases, the model's ability to accurately recall information from that context decreases": {
+    "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "date": "2026-10-12"
   },
   "assign a responsibility so that cohesion remains high. use this to evaluate alternatives.": {
     "source": "larman-2004",
@@ -283,6 +295,14 @@
     "source": "larman-2004",
     "date": "2026-10-03"
   },
+  "compaction": {
+    "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "date": "2026-10-12"
+  },
+  "compaction, structured note-taking, and multi-agent architectures": {
+    "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "date": "2026-10-12"
+  },
   "composition has a nicer property. the coupling is reduced by just having some smaller things you plug into something bigger.": {
     "source": "https://www.artima.com/articles/design-principles-from-design-patterns",
     "date": "2026-10-08"
@@ -294,6 +314,10 @@
   "consider state machines for state-dependent objects with complex behavior, not for state-independent objects.": {
     "source": "larman-2004",
     "date": "2026-10-03"
+  },
+  "context engineering refers to the set of strategies for curating and maintaining the optimal set of tokens (information) during llm inference": {
+    "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "date": "2026-10-12"
   },
   "context, therefore, must be treated as a finite resource with diminishing marginal returns.": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
@@ -395,6 +419,14 @@
     "source": "larman-2004",
     "date": "2026-10-03"
   },
+  "from the agent's point of view, anything it can't access in-context while running effectively doesn't exist.": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-12"
+  },
+  "from the agent's point of view, anything it can't access in-context while running effectively doesn't exist. knowledge that lives in google docs, chat threads, or people's heads are not accessible to the system.": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-12"
+  },
   "future proofing is arguably rarely perfect, since it is speculation; even if the predicted change occurs, some change in the speculated design is likely.": {
     "source": "larman-2004",
     "date": "2026-10-08"
@@ -403,9 +435,17 @@
     "source": "https://blog.cleancoder.com/uncle-bob/2014/05/08/SingleReponsibilityPrinciple.html",
     "date": "2026-10-08"
   },
+  "give codex a map, not a 1,000-page instruction manual": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-12"
+  },
   "given some initial context (the givens), when an event occurs, then ensure some outcomes.": {
     "source": "references/inputs/north-2006-introducing-bdd.txt",
     "date": "2026-10-07"
+  },
+  "good context engineering means finding the smallest possible set of high-signal tokens that maximize the likelihood of some desired outcome": {
+    "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "date": "2026-10-12"
   },
   "good context engineering means finding the smallest possible set of high-signal tokens that maximize the likelihood of some desired outcome.": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
@@ -467,6 +507,10 @@
     "source": "https://newsletter.kentbeck.com/p/augmented-coding-beyond-the-vibes",
     "date": "2026-10-06"
   },
+  "instead of treating agents.md as the encyclopedia, we treat it as the table of contents": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-12"
+  },
   "isolate the expression of the domain model and the business logic, and eliminate any dependency on infrastructure, user interface, or even application logic that is not business logic.": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-08"
@@ -474,6 +518,14 @@
   "it is not high coupling per se that is the problem; it is high coupling to elements that are unstable in some dimension, such as their interface, implementation, or mere presence.": {
     "source": "larman-2004",
     "date": "2026-10-08"
+  },
+  "it rots instantly. a monolithic manual turns into a graveyard of stale rules.": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-12"
+  },
+  "it rots instantly. a monolithic manual turns into a graveyard of stale rules. agents can't tell what's still true, humans stop maintaining it": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-12"
   },
   "it's common during the creation of the contracts to discover the need to record new conceptual classes, attributes, or associations in the domain model. do not be limited to the prior definition of the domain model; enhance it as you make new discoveries while thinking through operation contracts.": {
     "source": "larman-2004",
@@ -483,6 +535,10 @@
     "source": "https://continuousdelivery.com/principles/",
     "date": "2026-10-08"
   },
+  "iterative and the curation phase happens each time we decide what to pass to the model.": {
+    "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "date": "2026-10-12"
+  },
   "its strength is that it forces you to identify the value of delivering a story when you first define it.": {
     "source": "references/inputs/north-2006-introducing-bdd.txt",
     "date": "2026-10-07"
@@ -490,6 +546,18 @@
   "keep the bar green to keep the code clean.": {
     "source": "larman-2004",
     "date": "2026-10-08"
+  },
+  "llms have an \"attention budget\" that they draw on when parsing large volumes of context": {
+    "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "date": "2026-10-12"
+  },
+  "llms, like humans, lose focus or experience confusion at a certain point": {
+    "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "date": "2026-10-12"
+  },
+  "maintain lightweight identifiers (file paths, stored queries, web links, etc.) and use these references to dynamically load data into context at runtime": {
+    "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "date": "2026-10-12"
   },
   "make a domain model in the spirit of how a cartographer or mapmaker works: use the existing names in the territory. … exclude irrelevant or out-of-scope features. … do not add things that are not there.": {
     "source": "larman-2004",
@@ -539,6 +607,14 @@
     "source": "https://www.cs.utexas.edu/~EWD/transcriptions/EWD03xx/EWD303.html",
     "date": "2026-10-08"
   },
+  "progressive disclosure": {
+    "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "date": "2026-10-12"
+  },
+  "progressive disclosure-in other words, allows agents to incrementally discover relevant context through exploration.": {
+    "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "date": "2026-10-12"
+  },
   "recognize that a change in the language is a change to the model.": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-08"
@@ -575,6 +651,10 @@
     "source": "https://martinfowler.com/articles/continuousIntegration.html",
     "date": "2026-10-08"
   },
+  "so instead of treating agents.md as the encyclopedia, we treat it as the table of contents": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-12"
+  },
   "something happened that domain experts care about.": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-02"
@@ -603,9 +683,25 @@
     "source": "larman-2004",
     "date": "2026-10-03"
   },
+  "structured note-taking": {
+    "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "date": "2026-10-12"
+  },
+  "sub-agent architectures": {
+    "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "date": "2026-10-12"
+  },
   "superficial changes to the ui can actually change business logic.": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-08"
+  },
+  "system prompts should be extremely clear and use simple, direct language that presents ideas at the right altitude": {
+    "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "date": "2026-10-12"
+  },
+  "teams will often stuff a laundry list of edge cases into a prompt in an attempt to articulate every possible rule": {
+    "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "date": "2026-10-12"
   },
   "the ability for tracking the relationships between requirements and designs from the original stakeholder need to the actual implemented solution.": {
     "source": "https://www.iiba.org/knowledgehub/the-business-analysis-standard/4-implementing-business-analysis/4-4-understanding-requirements-and-designs/",
@@ -638,6 +734,10 @@
   "the dependencies betwen packages must not form cycles.": {
     "source": "url-1c611f8361f4",
     "date": "2026-10-05"
+  },
+  "the design style in this book largely follows the principle of \"responsibility-driven design,\" put forward in wirfs-brock et al. 1990 and updated in wirfs-brock 2003. it also draws heavily (especially in part iii) on the ideas of \"design by contract\" described in meyer 1988. it is consistent with the general background of other widely held best practices of object-oriented design, which are described in such books as larman 1998.": {
+    "source": "사용자 확인: 사용자가 Domain-Driven Design(Addison-Wesley, 2004) 인쇄본 서문에서 직접 대조함. 전자 사본은 서문이 빠진 324쪽본만 입수 가능",
+    "date": "2026-10-13"
   },
   "the domain model is a visualization of noteworthy domain concepts and vocabulary. where are those terms found? some are in the use cases.": {
     "source": "larman-2004",
@@ -699,6 +799,10 @@
     "source": "https://blog.cleancoder.com/uncle-bob/2014/05/08/SingleReponsibilityPrinciple.html",
     "date": "2026-10-08"
   },
+  "the smallest possible set of high-signal tokens": {
+    "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "date": "2026-10-12"
+  },
   "the state of an object identifies the values for that object of properties of the classifier of the object.": {
     "source": "https://www.omg.org/spec/UML/2.5.1/PDF",
     "date": "2026-10-02"
@@ -727,6 +831,10 @@
     "source": "https://www.omg.org/spec/UML/2.5.1/PDF",
     "date": "2026-10-03"
   },
+  "this enables progressive disclosure: agents start with a small, stable entry point and are taught where to look next, rather than being overwhelmed up front.": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-12"
+  },
   "this technique proves most valuable for very complex processes, usually involving many parties. use-case text suffices for simple processes.": {
     "source": "larman-2004",
     "date": "2026-10-03"
@@ -738,6 +846,10 @@
   "to support conditional and looping constructs (among many other things), the uml uses frames. … they have an operator or label (such as loop) and a guard": {
     "source": "larman-2004",
     "date": "2026-10-03"
+  },
+  "too much guidance becomes non-guidance. when everything is \"important,\" nothing is. agents end up pattern-matching locally instead of navigating intentionally.": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-12"
   },
   "unified modeling language® (uml®) as a standard for visualizing, specifying, and documenting software and systems.": {
     "source": "url-5982e2b53aa3",
@@ -770,6 +882,10 @@
   "we decided to apply all of this behaviour- driven thinking to defining requirements": {
     "source": "references/inputs/north-2006-introducing-bdd.txt",
     "date": "2026-10-07"
+  },
+  "we prioritize work, translate user feedback into acceptance criteria, and validate outcomes.": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-13"
   },
   "we want to give the customer the essence of the whole cake, and the best way is to slice vertically through the layers.": {
     "source": "references/inputs/wake-2003-invest.txt",
@@ -810,5 +926,9 @@
   "you potentially need to use multiple models to develop software because each model describes a single aspect of your software.": {
     "source": "https://agilemodeling.com/principles.htm",
     "date": "2026-10-03"
+  },
+  "you should be striving for the minimal set of information that fully outlines your expected behavior": {
+    "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "date": "2026-10-12"
   }
 }
