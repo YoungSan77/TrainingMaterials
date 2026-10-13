@@ -2,19 +2,98 @@
   "permissions": {
     "allow": [
       "Bash(node --test src/test/*.test.js)",
+      "Bash(node --test engine/production/src/test/*.test.js)",
       "Bash(node tools/verify-quote.js --check *)",
       "Bash(shasum *)",
       "Bash(node src/cli.js --check *)",
+      "Bash(node src/cli.js *)",
+      "Bash(node engine/production/src/cli.js *)",
       "Bash(node tools/citations.js *)",
+      "Bash(node tools/insert-topic.py *)",
+      "Bash(python3 tools/insert-topic.py *)",
+      "Bash(python3 tools/remove-topic.py *)",
       "Bash(unzip -p *)",
       "Bash(unzip -l *)",
       "Bash(java -version)",
       "Bash(claude --version)",
-      "Bash(node src/cli.js *)",
       "Bash(tools/review-pdf.sh *)",
       "Bash(node tools/verify-quote.js *)",
       "Bash(pdftotext *)",
-      "Bash(pdftoppm *)"
+      "Bash(pdftoppm *)",
+      "Bash(pdfinfo *)",
+      "Bash(grep *)",
+      "Bash(rg *)",
+      "Bash(sed -n *)",
+      "Bash(awk *)",
+      "Bash(ls *)",
+      "Bash(find *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(file *)",
+      "Bash(node -e *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/tools/session-authoring-hook.js\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/tools/session-check-hook.js\"",
+            "timeout": 300,
+            "statusMessage": "세션 원고 자동 검사"
+          }
+        ]
+      }
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "filesystem": {
+      "allowWrite": [
+        "/Users/YoungSan/dev",
+        "/tmp",
+        "/var/tmp",
+        "$TMPDIR",
+        "/usr/local/bin",
+        "/usr/local/opt",
+        "/opt/homebrew",
+        "/opt/homebrew/bin",
+        "/opt/homebrew/opt",
+        "/Library",
+        "/etc",
+        "/var",
+        "/Users/YoungSan/.npm",
+        "/Users/YoungSan/.cache",
+        "/Users/YoungSan/.config"
+      ],
+      "denyWrite": [
+        "/Users/YoungSan/Documents",
+        "/Users/YoungSan/Downloads",
+        "/Users/YoungSan/Desktop",
+        "/Users/YoungSan/Pictures",
+        "/Users/YoungSan/Movies",
+        "/Users/YoungSan/Music",
+        "/Users/YoungSan/Library/CloudStorage",
+        "/Users/YoungSan/Library/Mobile Documents"
+      ]
+    }
   }
 }

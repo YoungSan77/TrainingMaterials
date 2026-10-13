@@ -35,9 +35,12 @@ Session Authoring은 Course Design을 입력으로
 
 `engine/production/`이 현재 사용 중인 renderer다.
 
+실행은 **저장소 루트에서 한 줄**로 한다. `cd`로 디렉터리를 옮기지 않는다 — 복합 명령은 허용 목록(`.claude/settings.json`)과 어긋나 실행마다 승인을 요구한다.
+
 ```bash
-cd engine/production
-node src/cli.js ../../courses/ooad/sessions/s01.md
+node engine/production/src/cli.js courses/ooad/sessions/s01.md
+node engine/production/src/cli.js --check courses/ooad/sessions/s01.md
+node --test engine/production/src/test/*.test.js
 ```
 
 Production — renderer 코드, 템플릿(`engine/production/template/`), 테스트 — 은 LLM이 지침에 맞춰 관리한다. 사용자의 승인을 기다리는 별도 자산이 없으며, 지침을 구현하는 데 필요한 변경은 코드·템플릿·테스트를 함께 고친다.
@@ -61,7 +64,7 @@ renderer 한계 때문에 Session Source를 수정하지 않는다. 지원되지
 
 ## 변경 시 확인할 것
 
-- `engine/production/`을 수정하면 `cd engine/production && node --test src/test/*.test.js`로 전체 테스트를 통과시킨다. 테스트는 과정 원고가 아니라 고정 fixture를 쓰므로 원고 수정이 테스트를 깨뜨리지 않는다. 테스트 범위와 실패 시 대응은 `guides/production-guide.md`의 「Regression」을 따른다.
+- `engine/production/`을 수정하면 `node --test engine/production/src/test/*.test.js`로 전체 테스트를 통과시킨다. 테스트는 과정 원고가 아니라 고정 fixture를 쓰므로 원고 수정이 테스트를 깨뜨리지 않는다. 테스트 범위와 실패 시 대응은 `guides/production-guide.md`의 「Regression」을 따른다.
 - `guides/*.md` 중 하나의 내용(수동 목차 정책, 의미 표식 문법, typography 규칙 등)을 바꾸면, 그 계약을 실제로 구현하는 `engine/production/src/`의 코드와 테스트도 함께 갱신한다. 지침 문서 수정만으로 구현이 완료됐다고 간주하지 않는다.
 - 세 지침 파일과 `sw-engineering-principles.md`는 서로를 파일명으로 참조한다. 파일을 이동·rename하면 상호 참조도 함께 갱신한다.
 - 기본 원칙을 바꾸면 그 원칙을 적용하는 지침(과정 설계·세션 작성)의 해당 항목과 참조 자료도 함께 점검한다.
@@ -70,7 +73,11 @@ renderer 한계 때문에 Session Source를 수정하지 않는다. 지원되지
 
 같은 품질을 적은 반복으로 낸다. 다시 만들기·전체 재확인·원전 재탐색이 작업 비용의 대부분이었다.
 
+- **지침을 먼저 읽는다** — 세션 원고를 쓰거나 고치기 전에 `guides/session-authoring-guide.md`와 `guides/production-guide.md`를 읽는다. 기존 세션 원고를 눈으로 흉내 내는 것으로 대신하지 않는다. 원고의 형식(목차 그룹, 실습 topic의 구성, 별첨의 답, 요약의 heading, 목록 들여쓰기)과 인용 형식은 이 두 파일에만 있다.
+- **인용은 원문 확인부터** — 구성안을 보이기 전에 `node tools/verify-quote.js`로 영문 인용을 확인하고 출처 레이블을 확정한다. 웹 검색 요약이나 기억으로 인용·출처를 적지 않는다. 확인하지 않은 인용은 Production이 경고하며 완료 기준을 넘지 못한다.
 - **구성안 먼저** — 세션을 만들거나 크게 보완할 때는 인용문 → 구성안(topic·핵심 메시지·사례 값·visual 종류) 순서로 채팅에서 승인받은 뒤에 원고를 쓴다(`guides/session-authoring-guide.md`의 「검토 절차」).
+- **원고는 파일에 쓴다** — 채팅에 보이는 것은 인용과 구성안까지다. 승인된 뒤에는 원고 전문을 채팅에 늘어놓지 않고 Session Source에 바로 쓰고, 렌더링 결과로 보고한다. 원고를 조각으로 나누어 매번 계속할지 묻지 않는다.
+- **승인은 구성안에서 한 번** — 구성안을 승인받은 뒤의 실행(파일 작성·렌더링·검사·시각 검토·수정)은 끝까지 진행하고 결과를 한 번에 보고한다.
 - **모아서 한 번에** — 검토에서 찾은 문제는 목록으로 모아 한 번에 고치고 한 번 렌더링한다. 문제마다 렌더링하지 않는다.
 - **범위만큼 검사** — 원고만 바꾸면 그 세션만 렌더링한다. topic 번호를 바꿨으면 그 세션을 참조하는 원고를 `node src/cli.js --check <원고…>`로 검사만 한다. 전체 테스트와 모든 세션의 재렌더링은 renderer·템플릿을 바꿨을 때만 한다.
 - **필요한 장만 시각 검토** — 자동 검사가 오류·경고 0개가 된 뒤, `tools/review-pdf.sh <원고> <장…>`으로 도식·표·코드가 있는 장과 바뀐 장만 본다. 고친 뒤에는 고친 장만 다시 본다.

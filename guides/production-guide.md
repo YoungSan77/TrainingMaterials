@@ -233,12 +233,17 @@ Anchor Message는 Production 전용 시각 타입이 아니다. Course Design의
   - 강사 노트가 없는 topic(`structure.js`).
   - "?"가 없는 의문문 topic 제목·표 칸 — "~란·~인가·~는가" 등으로 끝나는 것(`structure.js`의 `unmarkedQuestionTitles`).
   - 별첨 밖의 실습 답 "(안)" topic(`structure.js`의 `answersOutsideAppendix`).
+  - 실습 topic에 빠진 구성 — 투입물(첫 실습은 서비스 개요)·프롬프트·점검 항목·결과물(`structure.js`의 `practiceShape`). 다른 모양으로 쓴 실습은 렌더 결과만으로는 드러나지 않는다.
+- 전자 사본이 없어 **사람이 인쇄본에서 확인한** 인용은 `node tools/verify-quote.js --attest "<확인 경위>" "<영문 인용>"`로 기록한다. 기록에 확인 경위가 남아 나중에 근거를 되짚을 수 있다. 확인하지 않고 쓰는 수단이 아니다.
+- 원전을 구하지 못해 확인이 **사용자 조치를 기다리는** 인용은 `references/pending-sources.json`에 사유·대기 사항과 함께 적는다(없으면 만들고, 해결되면 지운다). Production은 그대로 경고하므로 완료 기준(경고 0개)은 충족되지 않으며, 턴 종료 검사(`tools/session-check-hook.js`)만 같은 항목을 반복해 막지 않는다 — 경고를 감추는 수단이 아니다.
   - 무시한 `**배치 — 좌우**` — 본문이 왼쪽 반을 넘거나 도식이 오른쪽 반에서 7pt보다 작아질 때(`builder.js`의 `layoutWarnings`).
   - 앞 세션의 코드와 값이 다른 `enum` — 관통 사례의 공통 식별자가 세션 사이에서 바뀐 것(`codeSource.js`). 뒤 세션이 값을 더하는 것(진화)은 허용한다. 분석 코드의 한글 enum(`주문상태`)과 설계 코드의 영문 enum(`OrderStatus`)은 같은 과정 `course-design.md`의 **영한 용어집** 표로 대응시켜 비교한다. 용어집에 없는 한글 값은 대응을 확인할 수 없다고 보고한다.
 
 ## Visual layout 및 가독성
 
 - 도식의 방향·행 나눔·배치 같은 **그리는 방법**은 원고가 정한다(`session-authoring-guide.md`의 「8. Visual」). Production은 크기·위치·분할만 정한다.
+- 쌓이는 블록(본문·표·도식·캡션) 사이는 **위아래 모두 한 줄**(18pt)로 같다(`builder.js`의 `BLOCK_GAP_PT`). 도식·표는 남은 공간에 가운데 맞추지 않고 **앞 문장 바로 아래**에서 시작한다(`visualPanel`, `fitTarget(…, "top")`) — 가운데 맞추면 짧은 본문 아래에 빈 구멍이 생기고 표 뒤 문장은 표에 붙는다. 도식 제목과 도식 사이도 한 줄을 띄운다(`CAPTION_GAP`).
+- 본문이 끝나는 자리는 글자를 실제로 재지 않고 **추정**한다(`blockCost` → `textEndIn`·`textAdvancePt`). 추정에는 페이지 넘김을 안전하게 하려는 여유가 섞여 있으므로, 상자 높이는 여유를 그대로 쓰고 **다음 블록의 시작점만** 그 일부(`RECLAIM_PT`)를 되돌려 쓴다. 추정이므로 장마다 한 줄 안팎의 차이가 남는다 — 상수를 바꾸면 여러 세션의 실제 PDF를 눈으로 확인한다.
 - Production이 Session Source의 노드·관계·의미를 임의로 바꾸지는 않는다. 의미 재구성이 필요하면 Session Source 보완 대상으로 보고한다.
 - 슬라이드에 삽입된 최종 표시 크기 기준으로 **모든 도식의 내부 텍스트는 10pt**로 같다. 배치 가능 영역에 여유가 있어도 10pt를 넘겨 키우지 않는다(UML·SVG 포함).
 - 10pt로 배치 영역을 넘치면 **9pt → 8pt → 7pt** 순으로 줄여, 영역을 넘지 않는 가장 큰 크기를 고른다. 본문 텍스트나 페이지 분할은 바꾸지 않는다. **최소는 7pt**다. 다른 내용과 함께 놓여 7pt 미만이 되는 도식은 먼저 **도식만의 슬라이드**(본문 전체 영역)로 옮긴다(`builder.js`). 이 배치 해결은 Production의 책임이다.

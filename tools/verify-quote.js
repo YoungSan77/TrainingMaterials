@@ -8,6 +8,8 @@
 //   조각 끝의 문장부호(. , ; : ! ?)와 줄표(—·–)와 그 둘레 공백은 비교하지 않는다(원문이 문장을
 //   이어 가거나, PDF 추출에서 줄표가 빠진 경우).
 //   --check: 원고에 쓰지 않을 조사용 조회 — "있음"이어도 기록하지 않는다.
+//   --attest "<확인 경위>" "<영문 인용>" …: 전자 사본이 없어 사람이 인쇄본에서 확인한 인용을 그
+//     경위와 함께 기록한다. 원전 파일을 읽지 않으므로 경위를 반드시 적는다.
 // 원전 텍스트는 references/sources/에 한 번만 추출·저장한다(git 제외 — 저작물 원문).
 // "있음"이면 references/verified.json에 기록한다(Production이 미확인 인용을 경고).
 "use strict";
@@ -86,9 +88,20 @@ function normalize(text) {
 
 function main() {
   const args = process.argv.slice(2);
+  // 전자 사본을 구할 수 없는 원전(인쇄본만 있는 책 등)은 사람이 책에서 확인하고 그 사실을 기록한다.
+  // 누가 무엇으로 확인했는지가 기록에 남아야 하므로 사유를 반드시 받는다.
+  if (args[0] === "--attest") {
+    const [, reason, ...quotes] = args;
+    if (!reason || !quotes.length) { console.error('사용: node tools/verify-quote.js --attest "<확인 경위>" "<영문 인용>" …'); process.exit(2); }
+    for (const quote of quotes) {
+      record(quote, "사용자 확인: " + reason);
+      console.log("기록(사용자 확인): " + reason + ' — "' + quote.slice(0, 50) + '…"');
+    }
+    return;
+  }
   const check = args[0] === "--check";
   const [source, ...quotes] = check ? args.slice(1) : args;
-  if (!source || !quotes.length) { console.error('사용: node tools/verify-quote.js [--check] <원전> "<영문 인용>" ["<영문 인용>" ...]'); process.exit(2); }
+  if (!source || !quotes.length) { console.error('사용: node tools/verify-quote.js [--check|--attest "<경위>"] <원전> "<영문 인용>" ["<영문 인용>" ...]'); process.exit(2); }
   const file = cached(source);
   const doc = normalize(fs.readFileSync(file, "utf-8"));
   let missing = 0;
