@@ -6,9 +6,9 @@ const {
   A, P, R, REL, CT, need, xmlOut, children, kids, child, all, first, el, copy, shape, paragraph, text, body, setText, spacing,
 } = require("./xml");
 const { writeZip } = require("./zip");
-const { plain, wide, estimate, splitCode, codePoints } = require("./text");
+const { plain, wide, estimate, widthOf, splitCode, codePoints } = require("./text");
 const { rich, run, runParen, richDeclarations } = require("./richText");
-const { paragraphs, BULLET_LEVELS, bulletCitation, citationParts, numberWidthEmu } = require("./paragraphs");
+const { paragraphs, BULLET_LEVELS, bulletCitation, citationParts, summaryParts, numberWidthEmu } = require("./paragraphs");
 const { TEMPLATE_DIR, ORIGIN, readTemplate, slideParts } = require("./template");
 const { renderMermaid } = require("./mermaidAdapter");
 const { renderPlantUml } = require("./plantumlAdapter");
@@ -184,7 +184,7 @@ function naturalSize(image, pt) {
 // UML_MAX_PT is kept equal to TARGET_PT: UML diagrams no longer grow into free space.
 const UML_MAX_PT = TARGET_PT;
 const isUml = (image) => image.kind === "plantuml" || Boolean(image.uml);
-function fitTarget(bounds, image) {
+function fitTarget(bounds, image, align) {
   // Every diagram's text reads at TARGET_PT (10pt); a diagram is never enlarged. When it does not
   // fit it steps down to 9, 8, 7pt -- the largest step that fits, never past the panel -- and
   // below MIN_PT it is fitted exactly and reported (generate.js) for the source to be fixed.
@@ -193,7 +193,10 @@ function fitTarget(bounds, image) {
   let scale = 1;
   while (scale > maxScale + 1e-9 && scale - 0.1 >= MIN_PT / TARGET_PT - 1e-9) scale = Math.round((scale - 0.1) * 10) / 10;
   if (scale > maxScale + 1e-9) scale = maxScale;
-  return center(bounds, natural.w * scale, natural.h * scale);
+  const fitted = center(bounds, natural.w * scale, natural.h * scale);
+  // A diagram under body text sits one line below it ("align: top"); centering it in the leftover
+  // band pushed it toward the footer and left a hole between the last line and the diagram.
+  return align === "top" ? { ...fitted, y: bounds.y } : fitted;
 }
 
 // The text size (pt) a diagram reads at inside `bounds`, and the whole body area a diagram gets
@@ -203,16 +206,45 @@ function pictureTextPt(image, bounds) {
 }
 const VISUAL_ONLY = { x: 0.5, y: 1.05, w: 9.0, h: PAGE_NUM_Y - 0.15 - 1.05 };
 
-// The panel a topic's visual(s) are placed in: centered in the free band [top, top+availableH]
-// between the text's estimated end and the footer. Mermaid/SVG/chart keep the layout's design
-// panel height; an all-UML panel takes the whole free band at the widest body width, so a large
-// UML diagram keeps its 10pt as far as the band allows.
+// One blank body line between stacked blocks -- text, table, diagram, caption. The rhythm is the
+// same above and below every block, so a table never hugs the paragraph that follows it and a
+// diagram never drifts a third of the slide away from the line that introduces it.
+const BLOCK_GAP_PT = 18;
+const BLOCK_GAP = BLOCK_GAP_PT / 72;
+// A diagram title is set as the diagram's heading: a little air above it so it does not crowd the
+// last line of body text, a tight line box, and a smaller gap below so it reads as belonging to the
+// diagram rather than floating between the text and the picture.
+const CAPTION_LEAD = 0.08;
+const CAPTION_LINE = 0.22;
+const CAPTION_GAP = 0.04;
+
+// Where the body text actually ends (in), from the same cost model pagination uses (blockCost /
+// textHeightPt). That model pads every block to keep pagination safe; most of the padding is never
+// drawn, so the anchor for whatever follows takes part of it back -- otherwise a diagram floats two
+// or three lines below the last line it belongs to.
+// blockCost encodes line counts: a block costs 22 per 18pt line (13 per 10pt line) plus 12 of
+// pagination slack. Reading the lines back out and pricing them at what they actually occupy --
+// 21.6pt a line, 6pt of spacing a block -- lands much closer than scaling the padded cost.
+const LINE_PT = 21.6;
+const BLOCK_SPACING_PT = 6;
+function textRunPt(cost, blocks) {
+  const n = blocks || 1;
+  const lines = Math.max(1, (cost - 12 * n) / 22);
+  return lines * LINE_PT + BLOCK_SPACING_PT * n;
+}
+function textEndIn(top, cost, blocks) {
+  return top + Math.max(0.3, textRunPt(cost, blocks) / 72);
+}
+
+// The panel a topic's visual(s) are placed in: the free band [top, top+availableH] between the
+// text's estimated end and the footer, starting at `top` -- one line below the last line of text.
+// Mermaid/SVG/chart keep the layout's design panel height; an all-UML panel takes the whole free
+// band at the widest body width, so a large UML diagram keeps its 10pt as far as the band allows.
 const UML_PANEL = { x: 0.5, w: 9.0 };
 function visualPanel(layout, top, availableH, images) {
   const uml = images.length > 0 && images.every(isUml);
   const panelH = uml ? availableH : Math.min(layout.panel.h, availableH);
-  const y = top + (availableH - panelH) / 2;
-  return uml ? { ...layout.panel, ...UML_PANEL, y, h: panelH } : { ...layout.panel, y, h: panelH };
+  return uml ? { ...layout.panel, ...UML_PANEL, y: top, h: panelH } : { ...layout.panel, y: top, h: panelH };
 }
 
 function visualPolicy(rendered) {
@@ -567,14 +599,25 @@ class Builder {
   // inspecting actual output: e.g. topic "08" spilled a single trailing bullet onto its own page).
   blockCost(b) {
     if (this.sectionStyle) return styledCost([b], this.sectionStyle, FULL_TEXT) * 450 / (FULL_TEXT.h * 72 * this.sectionStyle.fit);
-    const markedQuote = (b.meta && (b.meta.quote || b.meta.anchor)) || (b.kind === "bullet" && bulletCitation(b.text));
-    const quoteMatch = markedQuote && /^"[^"]*"/.exec(b.text.trim());
-    if (quoteMatch) {
-      const korean = quoteMatch[0];
-      const rest = b.text.trim().slice(korean.length);
-      return estimate(plain(korean), 620, 18) * 22 + estimate(plain(rest), 620, 10) * 13 + 12;
+    const text = b.text.trim();
+    const markedQuote = (b.meta && (b.meta.quote || b.meta.anchor)) || (b.kind === "bullet" && bulletCitation(text));
+    // Both citation forms -- a quoted Korean translation and an unquoted Korean summary -- put the
+    // English original and the label in the 10pt zone. Only the quoted form used to be recognised
+    // here, so a summary citation was costed as if the whole line were 18pt prose, which opened a
+    // hole above the table or diagram that followed it.
+    const parts = markedQuote ? citationParts(text) || summaryParts(text) : null;
+    if (parts && parts[2] !== undefined) {
+      // One paragraph in two sizes: the 10pt original runs on from the 18pt Korean instead of
+      // starting its own line, so the flow is measured once and rounded once -- rounding each run
+      // up separately added as much as two phantom lines to every citation.
+      const korean = plain(parts[4] ? parts[1] : `"${parts[1]}"`);
+      const rest = plain(`, "${parts[2]}", ${parts[3]}`);
+      const w = 620 - 12;
+      const total = Math.max(1, Math.ceil((widthOf(korean, 18) + widthOf(rest, 10)) / w));
+      const at18 = Math.min(total, Math.max(1, Math.ceil(widthOf(korean, 18) / w)));
+      return at18 * 22 + (total - at18) * 13 + 12;
     }
-    return proseLines(plain(b.text), 620, 18) * 22 + 12;
+    return proseLines(plain(text), 620, 18) * 22 + 12;
   }
 
   // The practice slide (production-guide.md "실습 슬라이드"): the reference style in one column,
@@ -706,6 +749,7 @@ class Builder {
         paragraphs(p, 8, chunk, false);
         if (this.sectionStyle) restyle(shape(p.doc, 8), this.sectionStyle);
         p.textCost = cost;
+        p.textBlocks = chunk.length;
         chunk = [];
         cost = 0;
         pageCapacity = 450;
@@ -718,6 +762,7 @@ class Builder {
       paragraphs(p, 8, chunk, false);
       if (this.sectionStyle) restyle(shape(p.doc, 8), this.sectionStyle);
       p.textCost = cost;
+      p.textBlocks = chunk.length;
     }
     pending.length = 0;
   }
@@ -747,6 +792,15 @@ class Builder {
     if (!lead.length) return 0;
     const cost = lead.reduce((sum, b) => sum + this.blockCost(b), 0);
     return Math.min(cost / 1.087 + 10, cap);
+  }
+
+  // How far down the next block starts (pt) after a run of text: the box is sized generously so
+  // nothing clips, but the padding inside that estimate is not drawn, so what follows does not wait
+  // for it (see textEndIn). Box heights keep using textHeightPt; only advances use this.
+  textAdvancePt(blocks) {
+    if (!blocks.length) return 0;
+    const cost = blocks.reduce((sum, b) => sum + this.blockCost(b), 0);
+    return Math.max(BLOCK_GAP_PT, textRunPt(cost, blocks.length));
   }
 
   // Height (pt) a run of text blocks needs in a full-width text box on a table page.
@@ -815,7 +869,9 @@ class Builder {
 
   // A 14pt bold title right above a diagram (production-guide.md "표·도식 제목").
   captionPicture(page, picture) {
-    const H = 0.3;
+    // The title's own box, plus a line between it and the diagram -- the title must read as the
+    // diagram's heading, not as a label stuck on its top edge.
+    const H = CAPTION_LEAD + CAPTION_LINE + CAPTION_GAP;
     const b = picture.bounds;
     // Stay inside the space the layout gave the diagram (a table or text may sit right below it):
     // the picture gives up the title's height, shrinking about its center.
@@ -828,7 +884,7 @@ class Builder {
       const room = h - H;
       const scale = Math.max(0.5, Math.min(1, room / h));
       picture.bounds = { x: x + (w - w * scale) / 2, y: y + H, w: w * scale, h: h * scale };
-      return this.drawCaption(page, picture.caption, { x: 0.4, y, w: 2 * (x - 0.4) + w, h: H });
+      return this.drawCaption(page, picture.caption, { x: 0.4, y: y + CAPTION_LEAD, w: 2 * (x - 0.4) + w, h: CAPTION_LINE });
     }
     // A diagram in the right half beside the text: the title stays over the diagram's own column
     // (centered on it, inside the right half), never across the text on the left.
@@ -836,12 +892,12 @@ class Builder {
       const scale = Math.max(0.5, Math.min(1, (h - H) / h));
       picture.bounds = { x: x + (w - w * scale) / 2, y: y + H, w: w * scale, h: h * scale };
       const cx = x + w / 2, half = Math.min(cx - 5.85, 9.6 - cx);
-      return this.drawCaption(page, picture.caption, { x: cx - half, y, w: 2 * half, h: H });
+      return this.drawCaption(page, picture.caption, { x: cx - half, y: y + CAPTION_LEAD, w: 2 * half, h: CAPTION_LINE });
     }
     // The table/code below also gets a little air from the diagram's bottom edge.
     if (below && this.shiftBelow(page, y, H + 0.12)) {
       picture.bounds = { x, y: y + H, w, h };
-      return this.drawCaption(page, picture.caption, { x: 0.4, y, w: 9.2, h: H });
+      return this.drawCaption(page, picture.caption, { x: 0.4, y: y + CAPTION_LEAD, w: 9.2, h: CAPTION_LINE });
     }
     // A narrow diagram with something below keeps its size: the title sits beside it, at its top left.
     if (below && x - 0.4 >= 1.8) {
@@ -863,7 +919,7 @@ class Builder {
     w *= scale; h *= scale;
     const id = this.cloneShape(page, 13);
     const sh = shape(page.doc, id);
-    setShapeBounds(sh, { x: 0.4, y, w: 9.2, h: H });
+    setShapeBounds(sh, { x: 0.4, y: y + CAPTION_LEAD, w: 9.2, h: CAPTION_LINE });
     const tb = body(sh);
     for (const old of kids(tb, A, "p")) tb.removeChild(old);
     const p = el(page.doc, A, "p");
@@ -1037,16 +1093,16 @@ class Builder {
 
   // Free band (pt) left below whatever is already stacked on a table page.
   roomBelowPt(page) {
-    return (PAGE_NUM_Y - 0.15) * 72 - (page.tableBottom * 72 + 8);
+    return (PAGE_NUM_Y - 0.15) * 72 - (page.tableBottom * 72 + BLOCK_GAP_PT);
   }
 
   // Stack text below the content already on a table page (a second lead-style text box).
   appendTextBelow(page, blocks) {
     const h = this.textHeightPt(blocks);
     const id = this.cloneShape(page, 13);
-    setShapeBounds(shape(page.doc, id), { x: 0.4, y: page.tableBottom + 8 / 72, w: 9.2, h: h / 72 });
+    setShapeBounds(shape(page.doc, id), { x: 0.4, y: page.tableBottom + BLOCK_GAP, w: 9.2, h: h / 72 });
     paragraphs(page, id, blocks, false);
-    page.tableBottom += (8 + h) / 72;
+    page.tableBottom += BLOCK_GAP + this.textAdvancePt(blocks) / 72;
   }
 
   // Fill a table graphicFrame with one row group, top at yPt; returns the content height (pt).
@@ -1088,7 +1144,7 @@ class Builder {
     if (this.tableGroups(block.rows, widths).length !== 1) return 0;
     const tableH = block.rows.reduce((sum, row) => sum + this.rowHeight(row, widths), 0);
     const band = (PAGE_NUM_Y - 0.15 - 1.05) * 72;
-    const used = (lead.length ? this.textHeightPt(lead) + 8 : 0) + (mid.length ? this.textHeightPt(mid) + 8 : 0) + tableH + 8;
+    const used = (lead.length ? this.textHeightPt(lead) + BLOCK_GAP_PT : 0) + (mid.length ? this.textHeightPt(mid) + BLOCK_GAP_PT : 0) + tableH + BLOCK_GAP_PT;
     const room = band - used;
     const natural = naturalSize(png, TARGET_PT);
     // The legend shares the slide only while it still reads at MIN_PT (production-guide.md).
@@ -1104,11 +1160,11 @@ class Builder {
     const groups = this.tableGroups(block.rows, widths);
     if (groups.length !== 1) return false;
     const tableH = groups[0].reduce((sum, row) => sum + this.rowHeight(row, widths), 0);
-    const leadH = lead.length ? this.textHeightPt(lead) + 8 : 0;
+    const leadH = lead.length ? this.textHeightPt(lead) + BLOCK_GAP_PT : 0;
     const capH = caption ? 14 * 1.25 + 6 : 0;
     if (leadH + capH + tableH > this.roomBelowPt(page)) return false;
     if (lead.length) this.appendTextBelow(page, lead);
-    let yPt = page.tableBottom * 72 + 8;
+    let yPt = page.tableBottom * 72 + BLOCK_GAP_PT;
     if (caption) yPt = this.tableCaption(page, caption, yPt);
     const id = this.cloneShape(page, 11);
     this.fillTable(page, shape(page.doc, id), groups[0], widths, yPt);
@@ -1140,7 +1196,7 @@ class Builder {
         if (lead.length) {
           setShapeBounds(shape(page.doc, 13), { x: 0.4, y: 1.05, w: 9.2, h: leadHeightPt / 72 });
           paragraphs(page, 13, lead, false);
-          yPt += leadHeightPt + 8;
+          yPt += this.textAdvancePt(lead) + BLOCK_GAP_PT;
         }
         if (opts.visual) {
           // A legend-style visual between the lead text and the table (same slide).
@@ -1149,13 +1205,13 @@ class Builder {
           bounds.y = yPt / 72;
           page.pictures = [{ ...opts.visual, bounds }];
           page.visualLayout = "table-leading";
-          yPt += bounds.h * 72 + 8;
+          yPt += bounds.h * 72 + BLOCK_GAP_PT;
           if (opts.mid && opts.mid.length) {
             const midH = this.textHeightPt(opts.mid);
             const id = this.cloneShape(page, 13);
             setShapeBounds(shape(page.doc, id), { x: 0.4, y: yPt / 72, w: 9.2, h: midH / 72 });
             paragraphs(page, id, opts.mid, false);
-            yPt += midH + 8;
+            yPt += this.textAdvancePt(opts.mid) + BLOCK_GAP_PT;
           }
         }
       }
@@ -1483,9 +1539,9 @@ class Builder {
         return Math.min((TABLE_BAND_CX / 72) / nat.w, h / nat.h) >= MIN_PT / TARGET_PT - 1e-9;
       };
       const placeBelowTable = (page, png) => {
-        const margin = 0.15;
+        const margin = BLOCK_GAP;
         const y = page.tableBottom + margin;
-        const bounds = fitTarget({ x: TABLE_BAND_X / 72, y, w: TABLE_BAND_CX / 72, h: PAGE_NUM_Y - margin - y }, png);
+        const bounds = fitTarget({ x: TABLE_BAND_X / 72, y, w: TABLE_BAND_CX / 72, h: PAGE_NUM_Y - margin - y }, png, "top");
         page.pictures = (page.pictures || []).concat([{ ...png, bounds }]);
         page.visualLayout = "table-trailing";
         page.tableBottom = bounds.y + bounds.h;
@@ -1753,11 +1809,11 @@ class Builder {
           need(target, "Visual composition unsupported for topic without a prose slide: " + section.title);
           const png = renderedVisuals[vi];
           setShapeBounds(shape(target.doc, 8), layout.text);
-          const textEndY = layout.text.y + layout.text.h * Math.min(ORPHAN_TOLERANCE, (target.textCost || 0) / layout.capacity);
-          const margin = 0.15;
+          const textEndY = textEndIn(layout.text.y, target.textCost || 0, target.textBlocks);
+          const margin = BLOCK_GAP;
           const availableH = Math.max(0.6, this.contentBottomY() - margin - textEndY);
           const panel = visualPanel(layout, textEndY + margin, availableH, [png]);
-          target.pictures = [{ ...png, bounds: fitTarget({ x: panel.x, y: panel.y, w: panel.w, h: panel.h }, png) }];
+          target.pictures = [{ ...png, bounds: fitTarget({ x: panel.x, y: panel.y, w: panel.w, h: panel.h }, png, "top") }];
           target.visualLayout = layout.name;
         }
       } else {
@@ -1779,17 +1835,16 @@ class Builder {
           // Text past the layout bucket (allowed by visualCapacity above) is measured on the full
           // text area's scale, and its box grows to hold it.
           const over = cost > layout.capacity;
-          const textEndY = over ? FULL_TEXT.y + FULL_TEXT.h * cost / fullCapacity
-            : layout.text.y + layout.text.h * Math.min(ORPHAN_TOLERANCE, cost / layout.capacity);
+          const textEndY = textEndIn(over ? FULL_TEXT.y : layout.text.y, cost, target.textBlocks);
           if (over) setShapeBounds(shape(target.doc, 8), { ...layout.text, h: textEndY - layout.text.y });
-          const margin = 0.15;
+          const margin = BLOCK_GAP;
           const availableH = Math.max(0.6, this.contentBottomY() - margin - textEndY);
           const panel = visualPanel(layout, textEndY + margin, availableH, renderedVisuals);
-          const gap = 0.12;
+          const gap = BLOCK_GAP;
           const slotH = (panel.h - gap * (renderedVisuals.length - 1)) / renderedVisuals.length;
           target.pictures = renderedVisuals.map((png, index) => ({
             ...png,
-            bounds: fitTarget({ x: panel.x, y: panel.y + index * (slotH + gap), w: panel.w, h: slotH }, png),
+            bounds: fitTarget({ x: panel.x, y: panel.y + index * (slotH + gap), w: panel.w, h: slotH }, png, "top"),
           }));
           target.visualLayout = layout.name;
           }

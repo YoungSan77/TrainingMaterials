@@ -279,15 +279,25 @@ test("a PlantUML diagram is not enlarged either: every diagram reads at 10pt", (
   assert.equal(UML_MAX_PT, TARGET_PT);
 });
 
-test("visualPanel gives an all-PlantUML topic the whole free band; other visuals keep the design panel", () => {
+test("visualPanel gives an all-PlantUML topic the whole free band; every panel starts at the band top", () => {
   const layout = { panel: { x: 1.4, y: 4.25, w: 7.2, h: 1.8 } };
   const uml = visualPanel(layout, 2.0, 4.0, [{ kind: "plantuml" }]);
   assert.equal(uml.h, 4.0);
   assert.equal(uml.w, 9.0);
+  assert.equal(uml.y, 2.0);
   const mermaid = visualPanel(layout, 2.0, 4.0, [{ kind: "mermaid" }]);
   assert.equal(mermaid.h, 1.8);
   assert.equal(mermaid.w, 7.2);
-  assert.ok(Math.abs(mermaid.y - (2.0 + (4.0 - 1.8) / 2)) < 1e-9);
+  // One line below the text, not centered in the leftover band (session-authoring-guide.md "8. Visual").
+  assert.equal(mermaid.y, 2.0);
+});
+
+test("a diagram placed under text is top-aligned in its panel; elsewhere it stays centered", () => {
+  const image = { kind: "mermaid", width: 1568, height: 236 };
+  const natural = naturalSize(image, TARGET_PT);
+  const box = { x: 1, y: 2, w: natural.w, h: natural.h * 3 };
+  assert.equal(fitTarget(box, image, "top").y, 2);
+  assert.ok(fitTarget(box, image).y > 2, "no align: centered in the box as before");
 });
 
 test("tocSessionName drops the ' — ' subtitle only", () => {
@@ -565,4 +575,16 @@ test("a parenthetical that spans a **bold** span still shrinks -4pt end to end",
     assert.equal(r.sz, "1400", `${t} is inside the parenthesis`);
   }
   assert.equal(runs.find((x) => x.text.startsWith(", 순환")).sz, "1800", "text after the ) is back to 18pt");
+});
+
+test("a summary citation written as a bullet renders 18pt Korean + 10pt original, with \\\" unescaped", () => {
+  const { bulletCitation } = require("../paragraphs");
+  const parts = bulletCitation(String.raw`LLM은 **주의 예산**을 가진다, "LLMs have an \"attention budget\" that they draw on", [Anthropic 2025c]`);
+  assert.ok(parts, "the unquoted Korean summary is a bullet citation");
+  assert.equal(parts[1], "LLM은 **주의 예산**을 가진다");
+  assert.equal(parts[2], 'LLMs have an "attention budget" that they draw on', "\\\" becomes a plain quote");
+  assert.equal(parts[3], "[Anthropic 2025c]");
+  assert.equal(parts[4], true, "marked as the summary form so no quotes are added around the Korean");
+  assert.equal(bulletCitation("항목 하나, 항목 둘, 항목 셋"), null, "prose without an English original stays a bullet");
+  assert.equal(bulletCitation('요약, "English original."'), null, "no label: not a citation");
 });

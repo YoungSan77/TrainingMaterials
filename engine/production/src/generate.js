@@ -8,7 +8,7 @@ const { parse } = require("./parse");
 const builder = require("./builder");
 const { inspect, reportJson } = require("./inspect");
 const { checkReferences } = require("./references");
-const { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, numberedBullets, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix } = require("./structure");
+const { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, numberedBullets, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape } = require("./structure");
 const { checkCodeSources, checkEnumConsistency } = require("./codeSource");
 
 // A continuation slide that carries only a line or two of text (no table, visual or code) is a
@@ -51,6 +51,7 @@ async function generateFile(inputPath, outputPath, templatePath) {
     if (!/-add\.md$/i.test(inputPath)) refs.warnings.push(...missingNotes(sections));
     refs.warnings.push(...checkEnumConsistency(inputPath));
     refs.warnings.push(...answersOutsideAppendix(sections));
+    refs.warnings.push(...practiceShape(sections));
     refs.warnings.push(...(m.layoutWarnings || []));
     // Diagram text below MIN_PT (production-guide.md "Visual layout 및 가독성"): the diagram had to
     // shrink past 7pt to fit, so the source should split or simplify it.

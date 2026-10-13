@@ -139,10 +139,30 @@ function answersOutsideAppendix(sections) {
   return sections.filter((s) => isAnswer(s.title) && !s.appendix).map((s) => `실습 답 "${s.title}"은 요약 뒤 \`## 별첨. 실습 답\`의 서브 항목으로 둔다.`);
 }
 
+// A practice topic has a fixed shape (session-authoring-guide.md "사례·가정·실습"): 투입물 (or 서비스
+// 개요 for the first one), 프롬프트, 점검 항목, 결과물. Without this check a practice written in some
+// other shape -- 과제/평가 기준/구성 요소 -- renders cleanly and the gap only shows in review.
+const PRACTICE_PARTS = [
+  { label: "투입물", re: /\*\*(?:투입물|서비스 개요)\*\*/ },
+  { label: "프롬프트", re: /\*\*프롬프트\*\*/ },
+  { label: "점검 항목", re: /\*\*점검 항목\*\*/ },
+  { label: "결과물", re: /\*\*결과물\*\*/ },
+];
+function practiceShape(sections) {
+  const warnings = [];
+  for (const s of sections) {
+    if (!isPractice(s.title)) continue;
+    const text = (s.blocks || []).map((b) => b.text || "").join("\n");
+    const missing = PRACTICE_PARTS.filter((p) => !p.re.test(text)).map((p) => p.label);
+    if (missing.length) warnings.push(`실습 "${s.title}"에 ${missing.join("·")}이(가) 없다.`);
+  }
+  return warnings;
+}
+
 // Every topic carries an instructor note (session-authoring-guide.md "강사 노트"). Warning only.
 function missingNotes(sections) {
   // A group with no body of its own (its sub-topics follow) has no slide, so no note.
   return sections.filter((s) => (!s.blocks || s.blocks.length) && !(s.notes && s.notes.length)).map((s) => `강사 노트가 없다: "${s.title}"`);
 }
 
-module.exports = { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, numberedBullets, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, MAX_GOALS };
+module.exports = { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, numberedBullets, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape, MAX_GOALS };

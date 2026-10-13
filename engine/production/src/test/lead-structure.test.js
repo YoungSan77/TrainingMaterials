@@ -46,6 +46,14 @@ test("a citation that opens the topic is its lead (flush, no glyph)", async () =
   assert.ok(child(child(first, A, "pPr"), A, "buNone"));
 });
 
+test("a thousands separator in the Korean summary is not the Korean/English boundary", async () => {
+  const [p] = await deck('## 01. 주제\n\n**인용문**\n\n에이전트에게 **1,000쪽 지시서가 아니라 지도**를 준다, "give Codex a map, not a 1,000-page instruction manual", [Lopopolo 2026]\n');
+  const first = paras(p)[0];
+  assert.ok(pText(first).startsWith("에이전트에게 1,000쪽 지시서가 아니라 지도를 준다, "), pText(first));
+  const korean = all(first, A, "r").filter((r) => child(r, A, "rPr").getAttribute("sz") === "1800");
+  assert.equal(korean.map((r) => all(r, A, "t").map((t) => t.textContent).join("")).join(""), "에이전트에게 1,000쪽 지시서가 아니라 지도를 준다");
+});
+
 test("a continuation slide starts with its own content at the top, without repeating the lead", async () => {
   const lines = Array.from({ length: 16 }, (_, i) => `- **${i + 1}번** 설명 문장이 본문을 한 줄씩 길게 채워 다음 장으로 넘어가게 한다.`);
   const ps = await deck("## 01. 주제\n\n**리드** 메시지 문장이다.\n\n" + lines.join("\n") + "\n");

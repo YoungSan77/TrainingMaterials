@@ -70,7 +70,14 @@ const TARGET = /"(\d\d)\. [^"\n]+"의\s*(?:「[^」\n]*」(?:의\s*「[^」\n]*�
 // is an entry "N. **[레이블]** …" of the course appendix references.md next to the sessions.
 const APPENDIX = "references.md";
 const { quoteKey, findLedger } = require("./quoteKey");
-const { citationParts } = require("./paragraphs");
+const { citationParts, summaryParts, LABEL_TAIL } = require("./paragraphs");
+
+// A summary citation counts only when its tail is a reference label, so ordinary prose that happens
+// to carry a quoted phrase and a bracket is not reported as an unverified quote.
+function summaryWithLabel(text) {
+  const parts = summaryParts(text);
+  return parts && LABEL_TAIL.test(parts[3]) ? parts : null;
+}
 // A label starts with a capital (author, organization, "Wikipedia: …") and carries the year when it
 // is known: [Larman 2004], [Ambler], [Jacobson 1992, 재인용]. A markdown link text "[…](url)" is not one.
 const LABEL = /\[([A-Z][^\[\]\n()"]*?)(?:, 재인용)?\](?!\()/g;
@@ -122,7 +129,11 @@ function checkLabels(inputPath, text) {
   const ledgerFile = findLedger(dir);
   const ledger = ledgerFile ? JSON.parse(fs.readFileSync(ledgerFile, "utf-8")) : null;
   if (ledger) stripCode(text).forEach((line, i) => {
-    const parts = citationParts(line.trim().replace(/^-\s+/, ""));
+    const bare = line.trim().replace(/^-\s+/, "");
+    // Either form of citation (session-authoring-guide.md "5. 인용과 출처"): a quoted Korean
+    // translation, or an unquoted Korean summary. The summary form used to escape this check.
+    const quoted = citationParts(bare);
+    const parts = quoted && quoted[2] !== undefined ? quoted : summaryWithLabel(bare);
     if (!parts || parts[2] === undefined || !/\[/.test(parts[3])) return;
     if (!ledger[quoteKey(parts[2])]) warnings.push("원고 " + (i + 1) + "행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"" + parts[2].slice(0, 40) + "…\"");
   });

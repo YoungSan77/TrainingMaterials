@@ -5,7 +5,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { renderChart, pngSize } = require("../chartAdapter");
-const { render } = require("../builder");
+const { render, PAGE_NUM_Y } = require("../builder");
 const { parse } = require("../parse");
 const { readZip } = require("../zip");
 const { parseXml, all, children, P, A } = require("../xml");
@@ -53,8 +53,14 @@ test("the reference session packages its charts and one notes slide per authored
     assert.equal(manifest.pages.filter((page) => page.visualLayout === "stacked" && (page.pictures || []).some((p) => p.kind === "chart")).length, expectedCounts.chart);
     // Prose visuals stack below the text; diagram–code pairs ("code-stacked") put the diagram above the code.
     assert.equal(manifest.pages.filter((page) => page.pictures && page.pictures.length).every((page) => ["stacked", "code-stacked"].includes(page.visualLayout)), true);
+    // A stacked visual follows its text by one line instead of being centered in the leftover band,
+    // so a topic with little text puts its diagram higher up; it must still clear the heading band
+    // and stay above the footer.
     for (const page of manifest.pages.filter((page) => page.visualLayout === "stacked" && page.pictures && page.pictures.length)) {
-      for (const picture of page.pictures) assert.ok(picture.bounds.y >= 3.05);
+      for (const picture of page.pictures) {
+        assert.ok(picture.bounds.y >= 1.05, `below the heading band: ${page.heading}`);
+        assert.ok(picture.bounds.y + picture.bounds.h <= PAGE_NUM_Y, `above the footer: ${page.heading}`);
+      }
     }
 
     const zip = await readZip(output);

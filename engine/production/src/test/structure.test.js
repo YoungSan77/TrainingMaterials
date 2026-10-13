@@ -72,3 +72,14 @@ test("a bullet that starts with a circled number is reported; a numbered list it
   assert.equal(w.length, 1);
   assert.match(w[0], /① 승인/);
 });
+
+test("a practice topic missing 프롬프트·점검 항목 is reported; the full shape is not", () => {
+  const { practiceShape } = require("../structure");
+  const { parse } = require("../parse");
+  const bad = parse('## 09. 실습 — 수용 기준\n\n만드십시오.\n\n- **투입물**\n  + 작업 명세서\n- **평가 기준**\n  + 좋은가?\n');
+  const w = practiceShape(bad.sections);
+  assert.equal(w.length, 1);
+  assert.match(w[0], /프롬프트·점검 항목·결과물이\(가\) 없다/);
+  const good = parse('## 09. 실습 — 수용 기준\n\n만드십시오.\n\n- **투입물**\n  + 작업 명세서\n- **프롬프트**\n  + "써줘"\n- **점검 항목**\n  1. **대표 예** — 있는가?\n- **결과물** — 수용 기준\n');
+  assert.deepEqual(practiceShape(good.sections), []);
+});

@@ -24,13 +24,19 @@ const BULLET_LEVELS = [
 // Finds the first comma not nested inside (), [], or {} -- e.g. splits
 // "...접근이다, Eric Evans, ..." correctly even though the sentence itself contains a
 // parenthesized "(Domain-Driven Design, DDD)" with its own comma.
+// A thousands separator ("1,000쪽") is not a boundary: cutting there strands the tail of the
+// Korean sentence in the 10pt run and splits an authored **bold** span in half, so a comma
+// between two digits is skipped.
+function isGroupingComma(text, i) {
+  return /\d/.test(text[i - 1] || "") && /\d/.test(text[i + 1] || "");
+}
 function topLevelSplit(text) {
   let depth = 0;
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
     if (c === "(" || c === "[" || c === "{") depth++;
     else if (c === ")" || c === "]" || c === "}") depth = Math.max(0, depth - 1);
-    else if (c === "," && depth === 0) return i;
+    else if (c === "," && depth === 0 && !isGroupingComma(text, i)) return i;
   }
   return -1;
 }
@@ -134,14 +140,16 @@ function paragraphs(page, id, blocks, toc) {
       // and stays flat, parens included, no bold.
       // A bullet citation keeps its level's body size for the Korean part (production-guide.md
       // "인용문" -- bullet 인용); the 10pt English/source zone is the same either way.
-      richInline(p, `"${markedPartsA[1]}"`, bulletCite ? [18, 16, 14][Math.min(block.depth, 2)] : 18, false);
+      // markedPartsA[4] marks the summary form, whose Korean is not a quotation and keeps no quotes.
+      const korean = markedPartsA[4] ? markedPartsA[1] : `"${markedPartsA[1]}"`;
+      richInline(p, korean, bulletCite ? [18, 16, 14][Math.min(block.depth, 2)] : 18, false);
       run(p, ", ", 10, false);
       if (markedPartsA[2]) {
         run(p, `"${plain(markedPartsA[2])}"`, 10, false);
         run(p, ", ", 10, false);
       }
       run(p, plain(markedPartsA[3]), 10, false);
-      expected.push(plain(`"${markedPartsA[1]}", ` + (markedPartsA[2] ? `"${markedPartsA[2]}", ` : "") + markedPartsA[3]));
+      expected.push(plain(`${korean}, ` + (markedPartsA[2] ? `"${markedPartsA[2]}", ` : "") + markedPartsA[3]));
     } else if (markedPartsB) {
       richInline(p, unescapeQuotes(markedPartsB.korean), 18, false);
       run(p, ", ", 10, false);
@@ -181,14 +189,31 @@ function citationParts(text) {
   return [m[0], unescapeQuotes(m[1]), m[2] === undefined ? undefined : unescapeQuotes(m[2]), m[3]];
 }
 
-// A bullet whose whole line is a citation -- "한글", "English original", [Larman 2004] -- renders as
-// one without a "**인용문**" marker (session-authoring-guide.md "5. 인용과 출처": supporting
-// quotes indented under a definition quote). Both the English original and a reference label tail
-// ("[저자 연도]", appendix "별첨 — 참고 자료") are required, so a bullet that merely lists quoted terms ("결제", "취소", "배송") stays a bullet.
-function bulletCitation(text) {
-  const parts = citationParts(String(text).trim());
-  if (!parts || parts[2] === undefined) return null;
-  return /^\[[^\]"]+\](?:\s*[,·]\s*\[[^\]"]+\])*$/.test(parts[3]) ? parts : null;
+const LABEL_TAIL = /^\[[^\]"]+\](?:\s*[,·]\s*\[[^\]"]+\])*$/;
+
+// The summary form of a citation: the Korean is a summary, so it carries no quotation marks of its
+// own (session-authoring-guide.md "5. 인용과 출처" -- 핵심 요약, "English original", [저자 연도]).
+// CITATION only matches a quoted Korean part, so without this a summary citation written as a
+// bullet fell through to plain body text: no 10pt English/source zone, and its \" escapes printed
+// raw (a backslash shows as "₩" in the Korean font).
+const SUMMARY = new RegExp('^([^"]+?)\\s*,\\s*' + QUOTED + "\\s*,\\s*(.+?)\\s*$");
+function summaryParts(text) {
+  const m = SUMMARY.exec(String(text).trim());
+  // The trailing `true` marks the Korean as unquoted, so the renderer does not add quotes around it.
+  return m ? [m[0], m[1], unescapeQuotes(m[2]), m[3], true] : null;
 }
 
-module.exports = { paragraphs, BULLET_LEVELS, citationParts, bulletCitation, unescapeQuotes, numberWidthEmu };
+// A bullet whose whole line is a citation -- "한글", "English original", [Larman 2004], or the
+// summary form above -- renders as one without a "**인용문**" marker (session-authoring-guide.md
+// "5. 인용과 출처": supporting quotes indented under a definition quote). Both the English original
+// and a reference label tail ("[저자 연도]", appendix "별첨 — 참고 자료") are required, so a bullet
+// that merely lists quoted terms ("결제", "취소", "배송") stays a bullet.
+function bulletCitation(text) {
+  const line = String(text).trim();
+  const quoted = citationParts(line);
+  if (quoted && quoted[2] !== undefined && LABEL_TAIL.test(quoted[3])) return quoted;
+  const summary = summaryParts(line);
+  return summary && LABEL_TAIL.test(summary[3]) ? summary : null;
+}
+
+module.exports = { paragraphs, BULLET_LEVELS, citationParts, summaryParts, bulletCitation, LABEL_TAIL, unescapeQuotes, numberWidthEmu };

@@ -24,10 +24,17 @@ function codePoints(str) {
   return Array.from(str).map((ch) => ch.codePointAt(0));
 }
 
-function estimate(line, width, size) {
+// Rendered width of a run at `size`, in the units `estimate` divides by. Exposed so a paragraph
+// that mixes sizes (a citation: 18pt Korean, then the 10pt original) can be measured as one flow
+// and rounded to lines once, instead of rounding each run up on its own.
+function widthOf(line, size) {
   let sum = 0;
   for (const cp of codePoints(line)) sum += wide(cp) ? size : size * 0.56;
-  return Math.max(1, Math.ceil(sum / (width - 12)));
+  return sum;
+}
+
+function estimate(line, width, size) {
+  return Math.max(1, Math.ceil(widthOf(line, size) / (width - 12)));
 }
 
 function linesOf(text) {
@@ -81,4 +88,4 @@ function cells(line) {
   return parts.map((s) => plain(s.trim()).replace(/\\\|/g, "|").replace(/<br>/g, ""));
 }
 
-module.exports = { plain, wide, estimate, linesOf, splitCode, HEADING, BULLET, INDENT, separator, cells, codePoints };
+module.exports = { plain, wide, estimate, widthOf, linesOf, splitCode, HEADING, BULLET, INDENT, separator, cells, codePoints };
