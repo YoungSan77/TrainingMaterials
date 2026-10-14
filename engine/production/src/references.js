@@ -58,12 +58,15 @@ function knownSessions(inputPath) {
   return sessions;
 }
 
-const SESSION_REF = /"(\d\d)\. ([^"\n]+)"/g;
+// A session is quoted with the word 세션 in front of its number: "세션 02. 요구 분석과 유스케이스".
+// Without it a bare "02. …" reads like a topic of the session at hand.
+const SESSION_REF = /"(세션 )?(\d\d)\. ([^"\n]+)"/g;
+const BARE_SESSION = /"(?:세션 )?(\d\d)\.\s*"/g;
 const TOPIC_REF = /「(\d\d)\. ([^」\n]+)」/g;
 // A topic reference targets another session when it follows `"NN. 세션명"의` directly, possibly
 // after other topic references joined by ·, 쉼표, 과/와, 및, 또는 -- each of which may name a
 // sub-topic of its group: `"04. …"의 「06. 시퀀스 다이어그램」의 「주문 취소 시퀀스」·「08. …」`.
-const TARGET = /"(\d\d)\. [^"\n]+"의\s*(?:「[^」\n]*」(?:의\s*「[^」\n]*」)*\s*(?:·|,|과|와|및|또는)?\s*)*$/;
+const TARGET = /"세션 (\d\d)\. [^"\n]+"의\s*(?:「[^」\n]*」(?:의\s*「[^」\n]*」)*\s*(?:·|,|과|와|및|또는)?\s*)*$/;
 
 // Reference labels (session-authoring-guide.md "인용과 출처", production-guide.md "별첨 — 참고 자료"):
 // a citation or reference in a session is "[저자 연도]" (or "[Wikipedia: 항목]"), and every label
@@ -163,10 +166,18 @@ function checkReferences(inputPath, text) {
     let m;
     SESSION_REF.lastIndex = 0;
     while ((m = SESSION_REF.exec(line))) {
-      const s = sessions[m[1]];
-      const ref = m[1] + ". " + m[2];
+      const s = sessions[m[2]];
+      const ref = m[2] + ". " + m[3];
       if (!s) warnings.push(where + "세션 참조 \"" + ref + "\"를 확인할 수 없다(과정 설계에 없음).");
       else if (s.name !== ref) errors.push(where + "세션 참조 \"" + ref + "\"가 세션명 \"" + s.name + "\"과 다르다. 주제 참조라면 「」를 쓴다.");
+      else if (!m[1]) errors.push(where + "세션 참조에 \"세션\"이 없다 — \"세션 " + s.name + "\"처럼 쓴다.");
+    }
+    // A quoted number without the session name ("02.") says nothing about which session it is,
+    // and the guide requires the exact name here as much as in the prose around it.
+    BARE_SESSION.lastIndex = 0;
+    while ((m = BARE_SESSION.exec(line))) {
+      const s = sessions[m[1]];
+      errors.push(where + "세션 참조 \"" + m[1] + ".\"에 세션명이 없다" + (s ? ". \"" + s.name + "\"로 쓴다." : "."));
     }
     TOPIC_REF.lastIndex = 0;
     while ((m = TOPIC_REF.exec(line))) {

@@ -1,8 +1,8 @@
 {
   "status": "PASS",
-  "slides": 86,
+  "slides": 87,
   "checked_blocks": 179,
   "visual_status": "NOT_VERIFIED",
   "errors": [],
-  "warnings": ["bullet과 번호가 겹친다 — 번호 목록(1.)으로 쓴다: \"18. 실습 — 도메인 모델\"의 \"① \"위 유스케이스 명세서로 도메인 \"","bullet과 번호가 겹친다 — 번호 목록(1.)으로 쓴다: \"18. 실습 — 도메인 모델\"의 \"② \"초안의 **n:m 관계를 해소*\""]
+  "warnings": []
 }

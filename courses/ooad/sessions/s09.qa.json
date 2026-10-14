@@ -4,5 +4,5 @@
   "checked_blocks": 63,
   "visual_status": "NOT_VERIFIED",
   "errors": [],
-  "warnings": ["원고 82행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"It also requires a willingness to accept…\"","원고 394행: 영문 인용이 원문 확인 기록에 없다 — node tools/verify-quote.js <원전> \"There are two ways of constructing a sof…\"","bullet과 번호가 겹친다 — 번호 목록(1.)으로 쓴다: \"32. 실습 — 설계 대안 평가\"의 \"① \"배송 주기에 '매월 ○일'을 더\"","bullet과 번호가 겹친다 — 번호 목록(1.)으로 쓴다: \"32. 실습 — 설계 대안 평가\"의 \"② \"변경 영향, 응집도·결합도, 의\""]
+  "warnings": []
 }

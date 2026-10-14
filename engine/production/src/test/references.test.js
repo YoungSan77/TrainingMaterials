@@ -23,8 +23,8 @@ test("topic references resolve in the current session, or in the session named r
   const p = path.join(root, "sessions", "s03.md");
   const body = [
     "--------------------", "Session 명: 03. 정적 모델", "--------------------", "", "## 목차", "", "01. 세션 목표", "02. 개념", "",
-    "## 01. 세션 목표", "", "「02. 개념」과 \"02. 요구 분석과 유스케이스\"의 「02. 유스케이스」를 본다.", "",
-    "## 02. 개념", "", "\"02. 요구 분석과 유스케이스\"의 「01. 세션 목표」·「02. 유스케이스」.", "",
+    "## 01. 세션 목표", "", "「02. 개념」과 \"세션 02. 요구 분석과 유스케이스\"의 「02. 유스케이스」를 본다.", "",
+    "## 02. 개념", "", "\"세션 02. 요구 분석과 유스케이스\"의 「01. 세션 목표」·「02. 유스케이스」.", "",
   ].join("\n");
   fs.writeFileSync(p, body);
   assert.deepEqual(checkReferences(p, body), { errors: [], warnings: [] });
@@ -35,8 +35,8 @@ test("wrong numbers, topic titles quoted as sessions and S0x names are errors", 
   const p = path.join(root, "sessions", "s03.md");
   const body = [
     "--------------------", "Session 명: 03. 정적 모델", "--------------------", "", "## 목차", "", "01. 세션 목표", "02. 개념", "",
-    "## 01. 세션 목표", "", "「01. 개념」을 본다.", "", "\"02. 개념\"을 본다.", "", "S02에서 다뤘다.", "",
-    "## 02. 개념", "", "\"02. 요구 분석과 유스케이스\"의 「03. 유스케이스」.", "",
+    "## 01. 세션 목표", "", "「01. 개념」을 본다.", "", "\"세션 02. 개념\"을 본다.", "", "S02에서 다뤘다.", "",
+    "## 02. 개념", "", "\"세션 02. 요구 분석과 유스케이스\"의 「03. 유스케이스」.", "",
   ].join("\n");
   fs.writeFileSync(p, body);
   const { errors } = checkReferences(p, body);
@@ -45,6 +45,34 @@ test("wrong numbers, topic titles quoted as sessions and S0x names are errors", 
   assert.match(errors[1], /주제 참조라면 「」/);
   assert.match(errors[2], /S0x/);
   assert.match(errors[3], /「03\. 유스케이스」/);
+});
+
+test("a session quoted without the word 세션 is an error that shows the form to use", () => {
+  const root = course();
+  const p = path.join(root, "sessions", "s03.md");
+  const body = [
+    "--------------------", "Session 명: 03. 정적 모델", "--------------------", "", "## 목차", "", "01. 세션 목표", "",
+    "## 01. 세션 목표", "", "\"02. 요구 분석과 유스케이스\"의 「02. 유스케이스」를 본다.", "",
+  ].join("\n");
+  fs.writeFileSync(p, body);
+  const { errors } = checkReferences(p, body);
+  assert.equal(errors.length, 2);
+  assert.match(errors[0], /"세션 02\. 요구 분석과 유스케이스"처럼 쓴다/);
+  // Without the prefix the topic no longer resolves against that session either.
+  assert.match(errors[1], /「02\. 유스케이스」/);
+});
+
+test("a session referenced by number alone is an error that names the session to use", () => {
+  const root = course();
+  const p = path.join(root, "sessions", "s03.md");
+  const body = [
+    "--------------------", "Session 명: 03. 정적 모델", "--------------------", "", "## 목차", "", "01. 세션 목표", "",
+    "## 01. 세션 목표", "", "\"세션 02.\"의 시연에서 보았다.", "",
+  ].join("\n");
+  fs.writeFileSync(p, body);
+  const { errors } = checkReferences(p, body);
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /"02\. 요구 분석과 유스케이스"로 쓴다/);
 });
 
 test("a continuation slide with only a line of text is reported as a warning", () => {
@@ -75,7 +103,7 @@ test("a bare topic number 「NN」 is an error that suggests the full 「NN. 제
   const p = path.join(root, "sessions", "s03.md");
   const body = [
     "--------------------", "Session 명: 03. 정적 모델", "--------------------", "", "## 목차", "", "01. 세션 목표", "02. 개념", "",
-    "## 01. 세션 목표", "", "뒤의 「02」와 \"02. 요구 분석과 유스케이스\"의 「02」를 본다.", "",
+    "## 01. 세션 목표", "", "뒤의 「02」와 \"세션 02. 요구 분석과 유스케이스\"의 「02」를 본다.", "",
     "## 02. 개념", "", "본문.", "",
   ].join("\n");
   fs.writeFileSync(p, body);
@@ -90,7 +118,7 @@ test("a chained reference may name a sub-topic of each group", () => {
   const p = path.join(root, "sessions", "s03.md");
   const body = [
     "--------------------", "Session 명: 03. 정적 모델", "--------------------", "", "## 목차", "", "01. 세션 목표", "",
-    "## 01. 세션 목표", "", "\"02. 요구 분석과 유스케이스\"의 「02. 유스케이스」의 「흐름」·「01. 세션 목표」.", "",
+    "## 01. 세션 목표", "", "\"세션 02. 요구 분석과 유스케이스\"의 「02. 유스케이스」의 「흐름」·「01. 세션 목표」.", "",
   ].join("\n");
   fs.writeFileSync(p, body);
   assert.deepEqual(checkReferences(p, body).errors, []);
