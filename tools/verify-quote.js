@@ -8,8 +8,9 @@
 //   조각 끝의 문장부호(. , ; : ! ?)와 줄표(—·–)와 그 둘레 공백은 비교하지 않는다(원문이 문장을
 //   이어 가거나, PDF 추출에서 줄표가 빠진 경우).
 //   --check: 원고에 쓰지 않을 조사용 조회 — "있음"이어도 기록하지 않는다.
-//   --attest "<확인 경위>" "<영문 인용>" …: 전자 사본이 없어 사람이 인쇄본에서 확인한 인용을 그
-//     경위와 함께 기록한다. 원전 파일을 읽지 않으므로 경위를 반드시 적는다.
+//   --attest "<확인 경위>" "<영문 인용>" …: 자동 대조가 되지 않는 원전(인쇄본만 있는 책, 단이 섞여
+//     추출되는 2단 스캔 PDF 등)을 사람이 지면에서 읽어 확인한 인용을 그 경위와 함께 기록한다.
+//     원전 파일을 대조하지 않으므로 누가 무엇을 어떻게 보았는지 경위에 적는다.
 // 원전 텍스트는 references/sources/에 한 번만 추출·저장한다(git 제외 — 저작물 원문).
 // "있음"이면 references/verified.json에 기록한다(Production이 미확인 인용을 경고).
 "use strict";
@@ -48,7 +49,9 @@ function cached(source) {
       } else {
         const text = raw.toString("utf-8").replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, " ")
           .replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&quot;/g, '"')
-          .replace(/&#39;|&rsquo;|&lsquo;/g, "'").replace(/&ldquo;|&rdquo;/g, '"').replace(/&mdash;|&ndash;/g, "-");
+          .replace(/&#39;|&rsquo;|&lsquo;/g, "'").replace(/&ldquo;|&rdquo;/g, '"').replace(/&mdash;|&ndash;/g, "-")
+          .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+          .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(Number(dec)));
         fs.writeFileSync(out, source + "\n" + text);
       }
     }
@@ -94,8 +97,8 @@ function main() {
     const [, reason, ...quotes] = args;
     if (!reason || !quotes.length) { console.error('사용: node tools/verify-quote.js --attest "<확인 경위>" "<영문 인용>" …'); process.exit(2); }
     for (const quote of quotes) {
-      record(quote, "사용자 확인: " + reason);
-      console.log("기록(사용자 확인): " + reason + ' — "' + quote.slice(0, 50) + '…"');
+      record(quote, "확인 경위: " + reason);
+      console.log("기록(확인 경위): " + reason + ' — "' + quote.slice(0, 50) + '…"');
     }
     return;
   }

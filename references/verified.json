@@ -3,67 +3,95 @@
     "source": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
     "date": "2026-10-08"
   },
-  "…state-dependent objects react differently to events depending on their state or mode.": {
+  "…state-dependent objects react differently to events depending on their state or mode": {
     "source": "larman-2004",
     "date": "2026-10-03"
   },
-  "…to collapse crud (create, retrieve, update, delete) separate goals into one crud use case, idiomatically called manage <x>.": {
+  "…to collapse crud (create, retrieve, update, delete) separate goals into one crud use case, idiomatically called manage <x>": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "100% of the conceptual superclass's definition should be applicable to the subclass.": {
+  "(1) identify and prioritize risks, (2) select and apply a set of techniques, and (3) evaluate risk reduction": {
+    "source": "https://www.georgefairbanks.com/book/",
+    "date": "2026-10-14"
+  },
+  "100% of the conceptual superclass's definition should be applicable to the subclass": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "45% of such features were never used, and an additional 19% were \"rarely\" used.": {
+  "45% of such features were never used, and an additional 19% were \"rarely\" used": {
     "source": "larman-2004",
     "date": "2026-10-03"
   },
-  "5 whys is the practice of asking why repeatedly whenever a problem is encountered in order to get beyond the obvious symptoms to discover the root cause.": {
+  "5 whys is the practice of asking why repeatedly whenever a problem is encountered in order to get beyond the obvious symptoms to discover the root cause": {
     "source": "https://www.lean.org/lexicon-terms/5-whys/",
     "date": "2026-10-08"
   },
-  "a critical ability in oo development is to skillfully assign responsibilities to software objects.": {
+  "a central \"manager\" agent coordinates multiple specialized agents via tool calls, each handling a specific task": {
+    "source": "references/inputs/a-practical-guide-to-building-agents.pdf",
+    "date": "2026-10-13"
+  },
+  "a central \"manager\" agent coordinates multiple specialized agents via tool calls, each handling a specific task or domain": {
+    "source": "references/inputs/a-practical-guide-to-building-agents.pdf",
+    "date": "2026-10-13"
+  },
+  "a critical ability in oo development is to skillfully assign responsibilities to software objects": {
     "source": "larman-2004",
     "date": "2026-10-08"
   },
-  "a dependency signifies a supplier/client relationship between model elements where the modification of a supplier may impact the client model elements.": {
-    "source": "references/sources/url-991f343aa7a9.txt",
-    "date": "2026-10-05"
+  "a dependency signifies a supplier/client relationship between model elements where the modification of a supplier may impact the client model elements": {
+    "source": "https://www.omg.org/spec/UML/2.5.1/PDF",
+    "date": "2026-10-14"
   },
-  "a description class contains information that describes something else.": {
+  "a description class contains information that describes something else": {
     "source": "larman-2004",
     "date": "2026-10-02"
+  },
+  "a developer orchestrates multiple ai coding agents, each with a distinct role": {
+    "source": "https://www.thoughtworks.com/radar/techniques/team-of-coding-agents",
+    "date": "2026-10-13"
   },
   "a domain model is a visual representation of conceptual classes or real-situation objects in a domain": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "a large interface with an upstream system can eventually overwhelm the intent of the downstream model altogether, causing it to be modified to resemble the other system's model in an ad hoc fashion.": {
+  "a fixed prompt is fed to an agent in an infinite loop": {
+    "source": "https://www.thoughtworks.com/radar/techniques/ralph-loop",
+    "date": "2026-10-13"
+  },
+  "a large interface with an upstream system can eventually overwhelm the intent of the downstream model altogether, causing it to be modified to resemble the other system's model in an ad hoc fashion": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-08"
   },
-  "a layer of mappers that moves data between objects and a database while keeping them independent of each other and the mapper itself.": {
+  "a layer of mappers that moves data between objects and a database while keeping them independent of each other and the mapper itself": {
     "source": "https://martinfowler.com/eaaCatalog/dataMapper.html",
     "date": "2026-10-08"
   },
-  "a link is a connection path between two objects; … more formally, a link is an instance of an association.": {
+  "a link is a connection path between two objects; … more formally, a link is an instance of an association": {
     "source": "larman-2004",
     "date": "2026-10-03"
   },
-  "a lowered representational gap is useful, but arguably secondary to the advantage objects have in supporting ease of change and extension, and managing and hiding complexity.": {
+  "a lowered representational gap is useful, but arguably secondary to the advantage objects have in supporting ease of change and extension, and managing and hiding complexity": {
     "source": "larman-2004",
     "date": "2026-10-08"
+  },
+  "a module should be open for extension but closed for modification": {
+    "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
+    "date": "2026-10-14"
+  },
+  "a module should be responsible to one, and only one, actor": {
+    "source": "https://raw.githubusercontent.com/sdcuike/Clean-Code-Collection-Books/master/Clean%20Architecture%20A%20Craftsman%27s%20Guide%20to%20Software%20Structure%20and%20Design.pdf",
+    "date": "2026-10-14"
   },
   "a number of problems arise due to the mismatch between record-oriented and object-oriented representations of data": {
     "source": "larman-2004",
     "date": "2026-10-08"
   },
-  "a problem or opportunity to be addressed.": {
+  "a problem or opportunity to be addressed": {
     "source": "https://www.iiba.org/globalassets/standards-and-resources/core-standard/iiba-core-standard.pdf",
     "date": "2026-10-03"
   },
-  "a reactive system ..., is characterized by being, to a large extent, event-driven, continuously having to react to external and internal stimuli.": {
+  "a reactive system ..., is characterized by being, to a large extent, event-driven, continuously having to react to external and internal stimuli": {
     "source": "https://dubroy.com/refs/Statecharts_a_visual_formalism_for_complex_systems.pdf",
     "date": "2026-10-03"
   },
@@ -75,31 +103,31 @@
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
     "date": "2026-10-06"
   },
-  "a spec is a structured, behavior-oriented artifact - or a set of related artifacts - written in natural language that expresses software functionality and serves as guidance to ai coding agents.": {
+  "a spec is a structured, behavior-oriented artifact - or a set of related artifacts - written in natural language that expresses software functionality and serves as guidance to ai coding agents": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
     "date": "2026-10-07"
   },
-  "a sphere of knowledge, influence, or activity. the subject area to which the user applies a program is the domain of the software.": {
+  "a sphere of knowledge, influence, or activity. the subject area to which the user applies a program is the domain of the software": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-03"
   },
-  "a state is the condition of an object at a moment in time-the time between events.": {
+  "a state is the condition of an object at a moment in time-the time between events": {
     "source": "larman-2004",
     "date": "2026-10-03"
   },
-  "a state models a situation during which some (usually implicit) invariant condition holds.": {
+  "a state models a situation during which some (usually implicit) invariant condition holds": {
     "source": "https://www.omg.org/spec/UML/2.5.1/PDF",
     "date": "2026-10-03"
   },
-  "a story's behaviour is simply its acceptance criteria: if the system fulfils all the acceptance criteria, it's behaving correctly; if it doesn't, it isn't.": {
+  "a story's behaviour is simply its acceptance criteria: if the system fulfils all the acceptance criteria, it's behaving correctly; if it doesn't, it isn't": {
     "source": "references/inputs/north-2006-introducing-bdd.txt",
     "date": "2026-10-07"
   },
-  "a system of abstractions that describes selected aspects of a domain and can be used to solve problems related to that domain.": {
+  "a system of abstractions that describes selected aspects of a domain and can be used to solve problems related to that domain": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-02"
   },
-  "a system sequence diagram is a picture that shows, for one particular scenario of a use case, the events that external actors generate, their order, and inter-system events.": {
+  "a system sequence diagram is a picture that shows, for one particular scenario of a use case, the events that external actors generate, their order, and inter-system events": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
@@ -107,27 +135,27 @@
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "a transition is a relationship between two states that indicates that when an event occurs, the object moves from the prior state to the subsequent state.": {
+  "a transition is a relationship between two states that indicates that when an event occurs, the object moves from the prior state to the subsequent state": {
     "source": "larman-2004",
     "date": "2026-10-03"
   },
-  "a transition may also have a conditional guard-or boolean test. the transition only occurs if the test passes.": {
+  "a transition may also have a conditional guard-or boolean test. the transition only occurs if the test passes": {
     "source": "larman-2004",
     "date": "2026-10-03"
   },
-  "a uml activity diagram shows sequential and parallel activities in a process. they are useful for modeling business processes, workflows, data flows, and complex algorithms.": {
+  "a uml activity diagram shows sequential and parallel activities in a process. they are useful for modeling business processes, workflows, data flows, and complex algorithms": {
     "source": "larman-2004",
     "date": "2026-10-03"
   },
-  "a uml state machine diagram … illustrates the interesting events and states of an object, and the behavior of an object in reaction to an event.": {
+  "a uml state machine diagram … illustrates the interesting events and states of an object, and the behavior of an object in reaction to an event": {
     "source": "larman-2004",
     "date": "2026-10-03"
   },
-  "a use case diagram is an excellent picture of the system context; it makes a good context diagram, that is, showing the boundary of a system, what lies outside of it, and how it gets used.": {
+  "a use case diagram is an excellent picture of the system context; it makes a good context diagram, that is, showing the boundary of a system, what lies outside of it, and how it gets used": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "a use case is a collection of related success and failure scenarios that describe an actor using a system to support a goal.": {
+  "a use case is a collection of related success and failure scenarios that describe an actor using a system to support a goal": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
@@ -135,7 +163,7 @@
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "agentic systems often trade latency and cost for better task performance, and you should consider when this tradeoff makes sense.": {
+  "agentic systems often trade latency and cost for better task performance, and you should consider when this tradeoff makes sense": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-07"
   },
@@ -143,23 +171,27 @@
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
     "date": "2026-10-12"
   },
-  "agents can be used for open-ended problems where it's difficult or impossible to predict the required number of steps, and where you can't hardcode a fixed path.": {
+  "agents can be used for open-ended problems where it's difficult or impossible to predict the required number of steps, and where you can't hardcode a fixed path": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-07"
   },
-  "agents can then pause for human feedback at checkpoints or when encountering blockers.": {
+  "agents can then pause for human feedback at checkpoints or when encountering blockers": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-07"
   },
-  "agents, on the other hand, are systems where llms dynamically direct their own processes and tool usage, maintaining control over how they accomplish tasks.": {
+  "agents typically use about 4× more tokens than chat interactions, and multi-agent systems use about 15× more tokens than chats": {
+    "source": "https://www.anthropic.com/engineering/multi-agent-research-system",
+    "date": "2026-10-13"
+  },
+  "agents, on the other hand, are systems where llms dynamically direct their own processes and tool usage, maintaining control over how they accomplish tasks": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-06"
   },
-  "all sdd approaches and definitions i've found are spec-first, but not all strive to be spec-anchored or spec-as-source.": {
+  "all sdd approaches and definitions i've found are spec-first, but not all strive to be spec-anchored or spec-as-source": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
     "date": "2026-10-07"
   },
-  "all the members of a subclass set must be members of their superclass set.": {
+  "all the members of a subclass set must be members of their superclass set": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
@@ -167,31 +199,35 @@
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
   },
+  "almost everything i might achieve with an mcp can be handled by a cli tool instead": {
+    "source": "https://www.thoughtworks.com/radar/techniques/mcp-by-default",
+    "date": "2026-10-13"
+  },
   "always follow the tdd cycle: red → green → refactor": {
     "source": "https://newsletter.kentbeck.com/p/augmented-coding-beyond-the-vibes",
     "date": "2026-10-08"
   },
-  "an association is a relationship between classes (more precisely, instances of those classes) that indicates some meaningful and interesting connection.": {
+  "an association is a relationship between classes (more precisely, instances of those classes) that indicates some meaningful and interesting connection": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "an attribute is a logical data value of an object.": {
+  "an attribute is a logical data value of an object": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "an event is a significant or noteworthy occurrence.": {
+  "an event is a significant or noteworthy occurrence": {
     "source": "larman-2004",
     "date": "2026-10-03"
   },
-  "an in-process function call is fast and always succeeds … remote calls, however, are orders of magnitude slower, and there's always a chance that the call will fail due to a failure in the remote process or the connection.": {
+  "an in-process function call is fast and always succeeds … remote calls, however, are orders of magnitude slower, and there's always a chance that the call will fail due to a failure in the remote process or the connection": {
     "source": "https://martinfowler.com/articles/distributed-objects-microservices.html",
     "date": "2026-10-08"
   },
-  "an ontology is an explicit specification of a conceptualization.": {
+  "an ontology is an explicit specification of a conceptualization": {
     "source": "https://tomgruber.org/writing/ontolingua-kaj-1993.pdf",
     "date": "2026-10-03"
   },
-  "analysis emphasizes an investigation of the problem and requirements, rather than a solution.": {
+  "analysis emphasizes an investigation of the problem and requirements, rather than a solution": {
     "source": "larman-2004",
     "date": "2026-10-03"
   },
@@ -199,35 +235,39 @@
     "source": "https://newsletter.kentbeck.com/p/augmented-coding-beyond-the-vibes",
     "date": "2026-10-08"
   },
-  "architecture is about the important stuff. whatever that is.": {
-    "source": "/private/tmp/claude-501/-Users-YoungSan-dev-TrainingMaterials-courses-ooad-sessions/27b1286f-42b1-425b-9585-140a4bfa4ee7/scratchpad/src/fowler2003c.txt",
-    "date": "2026-10-08"
+  "architecture is about the important stuff. whatever that is": {
+    "source": "확인 경위: 2단 PDF라 pdftotext가 단을 섞어 자동 대조가 되지 않는다. https://martinfowler.com/ieeeSoftware/whoNeedsArchitect.pdf 의 3쪽(IEEE Software, 2003-07/08) 지면을 직접 읽어 확인했다(2026-10-14).",
+    "date": "2026-10-14"
   },
-  "architecture is the decisions that you wish you could get right early in a project.": {
-    "source": "/private/tmp/claude-501/-Users-YoungSan-dev-TrainingMaterials-courses-ooad-sessions/27b1286f-42b1-425b-9585-140a4bfa4ee7/scratchpad/src/fowler2003c.txt",
-    "date": "2026-10-08"
+  "architecture is the decisions that you wish you could get right early in a project": {
+    "source": "확인 경위: 2단 PDF라 pdftotext가 단을 섞어 자동 대조가 되지 않는다. https://martinfowler.com/ieeeSoftware/whoNeedsArchitect.pdf 의 3쪽(IEEE Software, 2003-07/08) 지면을 직접 읽어 확인했다(2026-10-14).",
+    "date": "2026-10-14"
   },
   "are in the same subject area-closely related by concept or purpose … are in a class hierarchy together … participate in the same use cases … are strongly associated": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "as a downstream client, create an isolating layer to provide your system with functionality of the upstream system in terms of your own domain model.": {
+  "as a downstream client, create an isolating layer to provide your system with functionality of the upstream system in terms of your own domain model": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-08"
+  },
+  "as code throughput increased, our bottleneck became human qa capacity": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-13"
   },
   "as the number of tokens in the context window increases, the model's ability to accurately recall information from that context decreases": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
   },
-  "assign a responsibility so that cohesion remains high. use this to evaluate alternatives.": {
+  "assign a responsibility so that cohesion remains high. use this to evaluate alternatives": {
     "source": "larman-2004",
     "date": "2026-10-08"
   },
-  "assign a responsibility so that coupling remains low. use this principle to evaluate alternatives.": {
+  "assign a responsibility so that coupling remains low. use this principle to evaluate alternatives": {
     "source": "larman-2004",
     "date": "2026-10-08"
   },
-  "assign the responsibility to an intermediate object to mediate between other components or services so that they are not directly coupled.": {
+  "assign the responsibility to an intermediate object to mediate between other components or services so that they are not directly coupled": {
     "source": "larman-2004",
     "date": "2026-10-08"
   },
@@ -235,7 +275,7 @@
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "avoid a waterfall-mindset big-modeling effort to make a thorough or \"correct\" domain model-it won't ever be either, and such over-modeling efforts lead to analysis paralysis, with little or no return on the investment.": {
+  "avoid a waterfall-mindset big-modeling effort to make a thorough or \"correct\" domain model-it won't ever be either, and such over-modeling efforts lead to analysis paralysis, with little or no return on the investment": {
     "source": "larman-2004",
     "date": "2026-10-08"
   },
@@ -243,19 +283,19 @@
     "source": "https://cucumber.io/docs/bdd/",
     "date": "2026-10-07"
   },
-  "before committing to building an agent, validate that your use case can meet these criteria clearly. otherwise, a deterministic solution may suffice.": {
+  "before committing to building an agent, validate that your use case can meet these criteria clearly. otherwise, a deterministic solution may suffice": {
     "source": "references/inputs/a-practical-guide-to-building-agents.pdf",
     "date": "2026-10-07"
   },
-  "boil the model down. define a core domain … make the core small.": {
+  "boil the model down. define a core domain … make the core small": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-08"
   },
-  "bounded by the current iteration requirements under design: 1. find the conceptual classes … 2. draw them as classes in a uml class diagram. 3. add associations and attributes.": {
+  "bounded by the current iteration requirements under design: 1. find the conceptual classes … 2. draw them as classes in a uml class diagram. 3. add associations and attributes": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "but ultimately the agent ignored the notes that these were descriptions of existing classes, it just took them as a new specification and generated them all over again, creating duplicates.": {
+  "but ultimately the agent ignored the notes that these were descriptions of existing classes, it just took them as a new specification and generated them all over again, creating duplicates": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
     "date": "2026-10-07"
   },
@@ -263,15 +303,15 @@
     "source": "https://ronjeffries.com/xprog/articles/expcardconversationconfirmation/",
     "date": "2026-10-02"
   },
-  "care must be applied with this method; a mechanical noun-to-class mapping isn't possible, and words in natural languages are ambiguous.": {
+  "care must be applied with this method; a mechanical noun-to-class mapping isn't possible, and words in natural languages are ambiguous": {
     "source": "larman-2004",
     "date": "2026-10-08"
   },
-  "classes that aren't reused together should not be grouped together.": {
-    "source": "url-1c611f8361f4",
-    "date": "2026-10-05"
+  "classes that aren't reused together should not be grouped together": {
+    "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
+    "date": "2026-10-14"
   },
-  "classes that change together, belong together.": {
+  "classes that change together, belong together": {
     "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
     "date": "2026-10-05"
   },
@@ -283,15 +323,23 @@
     "source": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
     "date": "2026-10-08"
   },
-  "code solutions are verifiable through automated tests; agents can iterate on solutions using test results as feedback; the problem space is well-defined and structured; and output quality can be measured objectively.": {
+  "code solutions are verifiable through automated tests; agents can iterate on solutions using test results as feedback; the problem space is well-defined and structured; and output quality can be measured objectively": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-07"
   },
-  "cohesion … is a measure of how strongly related and focused the responsibilities of an element are.": {
+  "codex works on a fully isolated version of that app": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-13"
+  },
+  "codex works on a fully isolated version of that app-including its logs and metrics, which get torn down once that task is complete": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-13"
+  },
+  "cohesion … is a measure of how strongly related and focused the responsibilities of an element are": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "communication diagrams illustrate object interactions in a graph or network format, in which objects can be placed anywhere on the diagram.": {
+  "communication diagrams illustrate object interactions in a graph or network format, in which objects can be placed anywhere on the diagram": {
     "source": "larman-2004",
     "date": "2026-10-03"
   },
@@ -303,7 +351,7 @@
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
   },
-  "composition has a nicer property. the coupling is reduced by just having some smaller things you plug into something bigger.": {
+  "composition has a nicer property. the coupling is reduced by just having some smaller things you plug into something bigger": {
     "source": "https://www.artima.com/articles/design-principles-from-design-patterns",
     "date": "2026-10-08"
   },
@@ -311,7 +359,7 @@
     "source": "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf",
     "date": "2026-10-06"
   },
-  "consider state machines for state-dependent objects with complex behavior, not for state-independent objects.": {
+  "consider state machines for state-dependent objects with complex behavior, not for state-independent objects": {
     "source": "larman-2004",
     "date": "2026-10-03"
   },
@@ -319,51 +367,63 @@
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
   },
-  "context, therefore, must be treated as a finite resource with diminishing marginal returns.": {
+  "context, therefore, must be treated as a finite resource with diminishing marginal returns": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-06"
   },
-  "current software projects spend about 40 to 50 percent of their effort on avoidable rework.": {
+  "crucial for the agents to gain \"ground truth\" from the environment at each step": {
+    "source": "https://www.anthropic.com/engineering/building-effective-agents",
+    "date": "2026-10-13"
+  },
+  "current software projects spend about 40 to 50 percent of their effort on avoidable rework": {
     "source": "https://www.cs.umd.edu/users/basili/publications/journals/J81.pdf",
     "date": "2026-10-03"
   },
-  "depend in the direction of stability.": {
-    "source": "url-1c611f8361f4",
-    "date": "2026-10-05"
+  "depend in the direction of stability": {
+    "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
+    "date": "2026-10-14"
   },
-  "depend upon abstractions. do not depend upon concretions.": {
-    "source": "url-1c611f8361f4",
-    "date": "2026-10-05"
+  "depend upon abstractions. do not depend upon concretions": {
+    "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
+    "date": "2026-10-14"
   },
-  "do not model the states of a concept x as subclasses of x.": {
+  "dependency inversion is the strategy of depending upon interfaces or abstract functions and classes, rather than upon concrete functions and classes": {
+    "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
+    "date": "2026-10-14"
+  },
+  "descriptions of communicating objects and classes that are customized to solve a general design problem in a particular context": {
+    "source": "https://cs.lmu.edu/~ray/notes/designpatterns/",
+    "date": "2026-10-14"
+  },
+  "do not model the states of a concept x as subclasses of x": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "do not put application logic (such as a tax calculation) in the ui object methods.": {
+  "do not put application logic (such as a tax calculation) in the ui object methods": {
     "source": "larman-2004",
     "date": "2026-10-08"
   },
-  "domain logic moves into queries and application layer code, and the entities and value objects become mere data containers.": {
+  "domain logic moves into queries and application layer code, and the entities and value objects become mere data containers": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-08"
   },
-  "domain models are not data models.": {
+  "domain models are not data models": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "domain models are not necessarily correct or wrong, but rather more or less useful.": {
+  "domain models are not necessarily correct or wrong, but rather more or less useful": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "don't bother to use aggregation in the uml; rather, use composition when appropriate.": {
+  "don't bother to use aggregation in the uml; rather, use composition when appropriate": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "don't even consider microservices unless you have a system that's too complex to manage as a monolith.": {
+  "don't even consider microservices unless you have a system that's too complex to manage as a monolith": {
     "source": "https://martinfowler.com/bliki/MicroservicePremium.html",
     "date": "2026-10-08"
   },
-  "draw from the model the terminology used in the design and the basic assignment of responsibilities.": {
+  "draw from the model the terminology used in the design and the basic assignment of responsibilities": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-08"
   },
@@ -371,67 +431,91 @@
     "source": "larman-2004",
     "date": "2026-10-03"
   },
-  "each party expects some benefits from the contract and is prepared to incur some obligations to obtain them.": {
-    "source": "/private/tmp/claude-501/-Users-YoungSan-dev-TrainingMaterials-courses-ooad-sessions/27b1286f-42b1-425b-9585-140a4bfa4ee7/scratchpad/src/meyer1992.txt",
-    "date": "2026-10-08"
+  "each party expects some benefits from the contract and is prepared to incur some obligations to obtain them": {
+    "source": "확인 경위: 스캔 PDF라 OCR 추출이 3단을 섞어 자동 대조가 되지 않는다. https://se.inf.ethz.ch/~meyer/publications/computer/contract.pdf 의 41쪽(Computer 25(10), 1992) 지면을 직접 읽어 확인했다(2026-10-14).",
+    "date": "2026-10-14"
   },
   "each requirement represents a \"user story\" (in \"as a…\" format) with acceptance criteria (in \"given… when… then…\" format)": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
     "date": "2026-10-07"
   },
-  "even experienced architects working in familiar domains have great difficulty getting boundaries right at the beginning.": {
+  "enforce boundaries centrally, allow autonomy locally": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-13"
+  },
+  "escalate to a human only when judgment is required": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-13"
+  },
+  "even experienced architects working in familiar domains have great difficulty getting boundaries right at the beginning": {
     "source": "https://martinfowler.com/bliki/MonolithFirst.html",
     "date": "2026-10-08"
   },
-  "even when they don't yet know it, customers want something better.": {
+  "even small refinements to tool descriptions can yield dramatic improvements": {
+    "source": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+    "date": "2026-10-13"
+  },
+  "even when they don't yet know it, customers want something better": {
     "source": "https://www.aboutamazon.com/news/company-news/2016-letter-to-shareholders",
     "date": "2026-10-02"
   },
-  "even with all of these files and templates and prompts and workflows and checklists, i frequently saw the agent ultimately not follow all the instructions.": {
+  "even with all of these files and templates and prompts and workflows and checklists, i frequently saw the agent ultimately not follow all the instructions": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
     "date": "2026-10-07"
   },
-  "every artifact that you create, and then decide to keep, will need to be maintained over time.": {
+  "every artifact that you create, and then decide to keep, will need to be maintained over time": {
     "source": "https://agilemodeling.com/principles.htm",
     "date": "2026-10-08"
   },
-  "everything in an ai agent except the model itself - agent = model + harness.": {
+  "every protocol layer between an agent and an api loses fidelity, and for complex apis those losses compound": {
+    "source": "https://www.thoughtworks.com/radar/techniques/mcp-by-default",
+    "date": "2026-10-13"
+  },
+  "everything in an ai agent except the model itself - agent = model + harness": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
     "date": "2026-10-06"
   },
-  "evolution point-speculative points of variation that may arise in the future, but which are not present in the existing requirements.": {
+  "evolution point-speculative points of variation that may arise in the future, but which are not present in the existing requirements": {
     "source": "larman-2004",
     "date": "2026-10-08"
   },
-  "example mapping is a method designed to make this conversation short and very productive.": {
+  "example mapping is a method designed to make this conversation short and very productive": {
     "source": "https://cucumber.io/docs/bdd/example-mapping/",
     "date": "2026-10-07"
   },
-  "expert designers choose with insight; perhaps a simple and brittle design whose cost of change is balanced against its likelihood.": {
+  "exceeding failure thresholds: set limits on agent retries or actions": {
+    "source": "references/inputs/a-practical-guide-to-building-agents.pdf",
+    "date": "2026-10-13"
+  },
+  "expert designers choose with insight; perhaps a simple and brittle design whose cost of change is balanced against its likelihood": {
     "source": "larman-2004",
     "date": "2026-10-08"
   },
-  "explaining the rationale of rejecting the alternatives is important, as during future product evolution, an architect may reconsider these alternatives, or at least want to know what alternatives were considered, and why one was chosen.": {
+  "explaining the rationale of rejecting the alternatives is important, as during future product evolution, an architect may reconsider these alternatives, or at least want to know what alternatives were considered, and why one was chosen": {
     "source": "larman-2004",
     "date": "2026-10-08"
   },
-  "fortunately, uml activity diagrams can satisfy the same goals-they can be used for data flow modeling, replacing traditional dfd notation.": {
+  "for high-stakes tasks, the human-in-the-loop (hitl) pattern is critical, creating a deliberate pause in the workflow to get approval from a person before an agent takes a significant action": {
+    "source": "references/inputs/Google_IntroductionToAgents.pdf",
+    "date": "2026-10-13"
+  },
+  "fortunately, uml activity diagrams can satisfy the same goals-they can be used for data flow modeling, replacing traditional dfd notation": {
     "source": "larman-2004",
     "date": "2026-10-03"
   },
-  "from the agent's point of view, anything it can't access in-context while running effectively doesn't exist.": {
+  "from the agent's point of view, anything it can't access in-context while running effectively doesn't exist": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
     "date": "2026-10-12"
   },
-  "from the agent's point of view, anything it can't access in-context while running effectively doesn't exist. knowledge that lives in google docs, chat threads, or people's heads are not accessible to the system.": {
+  "from the agent's point of view, anything it can't access in-context while running effectively doesn't exist. knowledge that lives in google docs, chat threads, or people's heads are not accessible to the system": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
     "date": "2026-10-12"
   },
-  "future proofing is arguably rarely perfect, since it is speculation; even if the predicted change occurs, some change in the speculated design is likely.": {
+  "future proofing is arguably rarely perfect, since it is speculation; even if the predicted change occurs, some change in the speculated design is likely": {
     "source": "larman-2004",
     "date": "2026-10-08"
   },
-  "gather together the things that change for the same reasons. separate those things that change for different reasons.": {
+  "gather together the things that change for the same reasons. separate those things that change for different reasons": {
     "source": "https://blog.cleancoder.com/uncle-bob/2014/05/08/SingleReponsibilityPrinciple.html",
     "date": "2026-10-08"
   },
@@ -439,7 +523,7 @@
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
     "date": "2026-10-12"
   },
-  "given some initial context (the givens), when an event occurs, then ensure some outcomes.": {
+  "given some initial context (the givens), when an event occurs, then ensure some outcomes": {
     "source": "references/inputs/north-2006-introducing-bdd.txt",
     "date": "2026-10-07"
   },
@@ -447,23 +531,39 @@
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
   },
-  "good context engineering means finding the smallest possible set of high-signal tokens that maximize the likelihood of some desired outcome.": {
-    "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
-    "date": "2026-10-07"
-  },
   "good stories are: i - independent n - negotiable v - valuable e - estimable s - small t - testable": {
     "source": "references/inputs/wake-2003-invest.txt",
     "date": "2026-10-07"
   },
-  "grasp stands for general responsibility assignment software patterns. … the name was chosen to suggest the importance of grasping these principles to successfully design object-oriented software.": {
+  "grasp stands for general responsibility assignment software patterns. … the name was chosen to suggest the importance of grasping these principles to successfully design object-oriented software": {
     "source": "larman-2004",
     "date": "2026-10-08"
   },
-  "humans always remain in the loop, but work at a different layer of abstraction than we used to. we prioritize work, translate user feedback into acceptance criteria, and validate outcomes.": {
+  "ground truth": {
+    "source": "https://www.anthropic.com/engineering/building-effective-agents",
+    "date": "2026-10-13"
+  },
+  "high-risk actions: actions that are sensitive, irreversible, or have high stakes should trigger human": {
+    "source": "references/inputs/a-practical-guide-to-building-agents.pdf",
+    "date": "2026-10-13"
+  },
+  "high-risk actions: actions that are sensitive, irreversible, or have high stakes should trigger human oversight": {
+    "source": "references/inputs/a-practical-guide-to-building-agents.pdf",
+    "date": "2026-10-13"
+  },
+  "hosts must obtain explicit user consent before invoking any tool": {
+    "source": "https://modelcontextprotocol.io/specification/2025-06-18",
+    "date": "2026-10-13"
+  },
+  "humans always remain in the loop, but work at a different layer of abstraction than we used to. we prioritize work, translate user feedback into acceptance criteria, and validate outcomes": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
     "date": "2026-10-06"
   },
-  "humans steer. agents execute.": {
+  "humans may review pull requests, but aren't required to": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-13"
+  },
+  "humans steer. agents execute": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
     "date": "2026-10-06"
   },
@@ -471,11 +571,11 @@
     "source": "https://www.cs.unc.edu/techreports/86-020.pdf",
     "date": "2026-10-07"
   },
-  "i wonder if spec-as-source, and even spec-anchoring, might end up with the downsides of both mdd and llms: inflexibility and non-determinism.": {
+  "i wonder if spec-as-source, and even spec-anchoring, might end up with the downsides of both mdd and llms: inflexibility and non-determinism": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
     "date": "2026-10-07"
   },
-  "identify points of predicted variation or instability; assign responsibilities to create a stable interface around them.": {
+  "identify points of predicted variation or instability; assign responsibilities to create a stable interface around them": {
     "source": "larman-2004",
     "date": "2026-10-08"
   },
@@ -483,11 +583,11 @@
     "source": "https://martinfowler.com/bliki/FrequencyReducesDifficulty.html",
     "date": "2026-10-08"
   },
-  "if the design, or some central part of it, does not map to the domain model, that model is of little value, and the correctness of the software is suspect.": {
+  "if the design, or some central part of it, does not map to the domain model, that model is of little value, and the correctness of the software is suspect": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-08"
   },
-  "if we do not think of some conceptual class x as a number or text in the real world, x is probably a conceptual class, not an attribute.": {
+  "if we do not think of some conceptual class x as a number or text in the real world, x is probably a conceptual class, not an attribute": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
@@ -499,11 +599,27 @@
     "source": "https://cucumber.io/docs/bdd/",
     "date": "2026-10-08"
   },
-  "in augmented coding you care about the code, its complexity, the tests, & their coverage.": {
+  "in a system where agent throughput far exceeds human attention, corrections are cheap, and waiting is expensive": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-13"
+  },
+  "in augmented coding you care about the code, its complexity, the tests, & their coverage": {
     "source": "https://newsletter.kentbeck.com/p/augmented-coding-beyond-the-vibes",
     "date": "2026-10-06"
   },
-  "in vibe coding you don't care about the code, just the behavior of the system.": {
+  "in the evaluator-optimizer workflow, one llm call generates a response while another provides evaluation and feedback in a loop": {
+    "source": "https://www.anthropic.com/engineering/building-effective-agents",
+    "date": "2026-10-13"
+  },
+  "in the manager pattern, edges represent tool calls whereas in": {
+    "source": "references/inputs/a-practical-guide-to-building-agents.pdf",
+    "date": "2026-10-13"
+  },
+  "in the orchestrator-workers workflow, a central llm dynamically breaks down tasks, delegates them to worker llms, and synthesizes their results": {
+    "source": "https://www.anthropic.com/engineering/building-effective-agents",
+    "date": "2026-10-13"
+  },
+  "in vibe coding you don't care about the code, just the behavior of the system": {
     "source": "https://newsletter.kentbeck.com/p/augmented-coding-beyond-the-vibes",
     "date": "2026-10-06"
   },
@@ -511,15 +627,19 @@
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
     "date": "2026-10-12"
   },
-  "isolate the expression of the domain model and the business logic, and eliminate any dependency on infrastructure, user interface, or even application logic that is not business logic.": {
+  "isolate the expression of the domain model and the business logic, and eliminate any dependency on infrastructure, user interface, or even application logic that is not business logic": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-08"
   },
-  "it is not high coupling per se that is the problem; it is high coupling to elements that are unstable in some dimension, such as their interface, implementation, or mere presence.": {
+  "it also requires a willingness to accept objectives which are limited by physical, logical, and technological constraints, and to accept a compromise when conflicting objectives cannot be met": {
+    "source": "확인 경위: 2단 스캔 PDF라 pdftotext가 두 단을 섞어 자동 대조가 되지 않는다. https://noncombatant.org/hoare-emperors-old-clothes-turing-award/hoare-emperors-old-clothes.pdf 의 81쪽(Communications of the ACM 24(2), 1981) 지면을 직접 읽어 문장을 확인했다(2026-10-14).",
+    "date": "2026-10-14"
+  },
+  "it is not high coupling per se that is the problem; it is high coupling to elements that are unstable in some dimension, such as their interface, implementation, or mere presence": {
     "source": "larman-2004",
     "date": "2026-10-08"
   },
-  "it rots instantly. a monolithic manual turns into a graveyard of stale rules.": {
+  "it rots instantly. a monolithic manual turns into a graveyard of stale rules": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
     "date": "2026-10-12"
   },
@@ -527,25 +647,33 @@
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
     "date": "2026-10-12"
   },
-  "it's common during the creation of the contracts to discover the need to record new conceptual classes, attributes, or associations in the domain model. do not be limited to the prior definition of the domain model; enhance it as you make new discoveries while thinking through operation contracts.": {
+  "it's also common to include stopping conditions (such as a maximum number of iterations) to maintain control": {
+    "source": "https://www.anthropic.com/engineering/building-effective-agents",
+    "date": "2026-10-13"
+  },
+  "it's common during the creation of the contracts to discover the need to record new conceptual classes, attributes, or associations in the domain model. do not be limited to the prior definition of the domain model; enhance it as you make new discoveries while thinking through operation contracts": {
     "source": "larman-2004",
     "date": "2026-10-03"
   },
-  "it's much cheaper to fix problems and defects if we find them immediately-ideally before they are ever checked into version control, by running automated tests locally.": {
+  "it's much cheaper to fix problems and defects if we find them immediately-ideally before they are ever checked into version control, by running automated tests locally": {
     "source": "https://continuousdelivery.com/principles/",
     "date": "2026-10-08"
   },
-  "iterative and the curation phase happens each time we decide what to pass to the model.": {
+  "iterative and the curation phase happens each time we decide what to pass to the model": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
   },
-  "its strength is that it forces you to identify the value of delivering a story when you first define it.": {
+  "its strength is that it forces you to identify the value of delivering a story when you first define it": {
     "source": "references/inputs/north-2006-introducing-bdd.txt",
     "date": "2026-10-07"
   },
-  "keep the bar green to keep the code clean.": {
+  "keep the bar green to keep the code clean": {
     "source": "larman-2004",
     "date": "2026-10-08"
+  },
+  "llms can sometimes work simultaneously on a task and have their outputs aggregated programmatically": {
+    "source": "https://www.anthropic.com/engineering/building-effective-agents",
+    "date": "2026-10-13"
   },
   "llms have an \"attention budget\" that they draw on when parsing large volumes of context": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
@@ -559,49 +687,101 @@
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
   },
-  "make a domain model in the spirit of how a cartographer or mapmaker works: use the existing names in the territory. … exclude irrelevant or out-of-scope features. … do not add things that are not there.": {
+  "make a domain model in the spirit of how a cartographer or mapmaker works: use the existing names in the territory. … exclude irrelevant or out-of-scope features. … do not add things that are not there": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "make it express the meaning of the attributes it conveys and give it related functionality.": {
+  "make it express the meaning of the attributes it conveys and give it related functionality": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-02"
   },
-  "model expressions, like any other phrase, only have meaning in context.": {
+  "make the change easy, then make the easy change": {
+    "source": "https://martinfowler.com/articles/preparatory-refactoring-example.html",
+    "date": "2026-10-14"
+  },
+  "many client specific interfaces are better than one general purpose interface": {
+    "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
+    "date": "2026-10-14"
+  },
+  "mcp provides a standardized way to connect llms with the context they need": {
+    "source": "https://modelcontextprotocol.io/specification/2025-06-18",
+    "date": "2026-10-13"
+  },
+  "model expressions, like any other phrase, only have meaning in context": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-08"
   },
-  "most numeric quantities should not be represented as plain numbers.": {
+  "most coding tasks involve fewer truly parallelizable tasks than research": {
+    "source": "https://www.anthropic.com/engineering/multi-agent-research-system",
+    "date": "2026-10-13"
+  },
+  "most numeric quantities should not be represented as plain numbers": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "multiplicity defines how many instances of a class a can be associated with one instance of a class b.": {
+  "multi-agent systems can be modeled as graphs, with agents represented as nodes": {
+    "source": "references/inputs/a-practical-guide-to-building-agents.pdf",
+    "date": "2026-10-13"
+  },
+  "multi-agent systems can be modeled as graphs, with agents represented as nodes. in the manager pattern, edges represent tool calls whereas in the decentralized pattern, edges represent handoffs": {
+    "source": "references/inputs/a-practical-guide-to-building-agents.pdf",
+    "date": "2026-10-13"
+  },
+  "multi-agent systems can be modeled as graphs, with agents represented as nodes. in the manager pattern, edges represent tool calls whereas in the decentralized pattern, edges represent handoffs that transfer execution between agents": {
+    "source": "references/inputs/a-practical-guide-to-building-agents.pdf",
+    "date": "2026-10-13"
+  },
+  "multi-agent systems require tasks where the value of the task is high enough to pay for the increased performance": {
+    "source": "https://www.anthropic.com/engineering/multi-agent-research-system",
+    "date": "2026-10-13"
+  },
+  "multiplicity defines how many instances of a class a can be associated with one instance of a class b": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "name an association based on a classname-verbphrase-classname format where the verb phrase creates a sequence that is readable and meaningful.": {
+  "name an association based on a classname-verbphrase-classname format where the verb phrase creates a sequence that is readable and meaningful": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "ocp and pv are essentially two expressions of the same principle, with different emphasis: protection at variation and evolution points.": {
+  "namespacing (grouping related tools under common prefixes) can help delineate boundaries between lots of tools": {
+    "source": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+    "date": "2026-10-13"
+  },
+  "ocp and pv are essentially two expressions of the same principle, with different emphasis: protection at variation and evolution points": {
     "source": "larman-2004",
     "date": "2026-10-08"
   },
-  "on composition: if in doubt, leave it out.": {
+  "on composition: if in doubt, leave it out": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "once you depend on interfaces only, you're decoupled from the implementation. that means the implementation can vary, and that's a healthy dependency relationship.": {
+  "once you depend on interfaces only, you're decoupled from the implementation. that means the implementation can vary, and that's a healthy dependency relationship": {
     "source": "https://www.artima.com/articles/design-principles-from-design-patterns",
     "date": "2026-10-08"
   },
-  "organizations which design systems … are constrained to produce designs which are copies of the communication structures of these organizations.": {
-    "source": "/private/tmp/claude-501/-Users-YoungSan-dev-TrainingMaterials-courses-ooad-sessions/27b1286f-42b1-425b-9585-140a4bfa4ee7/scratchpad/src/conway1968.txt",
-    "date": "2026-10-08"
+  "optimizing the quantity of context returned back to agents": {
+    "source": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+    "date": "2026-10-13"
+  },
+  "organizations which design systems … are constrained to produce designs which are copies of the communication structures of these organizations": {
+    "source": "http://www.melconway.com/Home/Committees_Paper.html",
+    "date": "2026-10-14"
+  },
+  "our telemetry showed users approved roughly 93% of permission prompts": {
+    "source": "https://www.anthropic.com/engineering/how-we-contain-claude",
+    "date": "2026-10-13"
   },
   "passes the tests … reveals intention … no duplication … fewest elements": {
     "source": "https://martinfowler.com/bliki/BeckDesignRules.html",
     "date": "2026-10-08"
+  },
+  "plans are treated as first-class artifacts": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-13"
+  },
+  "poka-yoke your tools. change the arguments so that it is harder to make mistakes": {
+    "source": "https://www.anthropic.com/engineering/building-effective-agents",
+    "date": "2026-10-13"
   },
   "program testing can be used very effectively to show the presence of bugs but never to show their absence": {
     "source": "https://www.cs.utexas.edu/~EWD/transcriptions/EWD03xx/EWD303.html",
@@ -611,11 +791,19 @@
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
   },
-  "progressive disclosure-in other words, allows agents to incrementally discover relevant context through exploration.": {
+  "progressive disclosure-in other words, allows agents to incrementally discover relevant context through exploration": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
   },
-  "recognize that a change in the language is a change to the model.": {
+  "prompt chaining decomposes a task into a sequence of steps, where each llm call processes the output of the previous one": {
+    "source": "https://www.anthropic.com/engineering/building-effective-agents",
+    "date": "2026-10-13"
+  },
+  "rather than orchestrating teams of coding agents or coding agent swarms, a single agent works autonomously against a specification": {
+    "source": "https://www.thoughtworks.com/radar/techniques/ralph-loop",
+    "date": "2026-10-13"
+  },
+  "recognize that a change in the language is a change to the model": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-08"
   },
@@ -623,7 +811,7 @@
     "source": "larman-2004",
     "date": "2026-10-08"
   },
-  "relate conceptual classes with an association, not with an attribute.": {
+  "relate conceptual classes with an association, not with an attribute": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
@@ -635,19 +823,39 @@
     "source": "larman-2004",
     "date": "2026-10-02"
   },
+  "rigidity is the tendency for software to be difficult to change, even in simple ways. every change causes a cascade of subsequent changes in dependent modules": {
+    "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
+    "date": "2026-10-14"
+  },
+  "routing classifies an input and directs it to a specialized followup task": {
+    "source": "https://www.anthropic.com/engineering/building-effective-agents",
+    "date": "2026-10-13"
+  },
   "seasoned professionals accelerate their work with llms while staying proudly and confidently accountable for the software they produce": {
     "source": "https://simonwillison.net/2025/Oct/7/vibe-engineering/",
     "date": "2026-10-06"
   },
-  "separately, you get either an agent that keeps repeating the same mistakes (feedback-only) or an agent that encodes rules but never finds out whether they worked (feed-forward-only).": {
+  "sectioning: breaking a task into independent subtasks run in parallel": {
+    "source": "https://www.anthropic.com/engineering/building-effective-agents",
+    "date": "2026-10-13"
+  },
+  "separately, you get either an agent that keeps repeating the same mistakes (feedback-only) or an agent that encodes rules but never finds out whether they worked (feed-forward-only)": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
     "date": "2026-10-06"
   },
-  "sequence diagrams illustrate interactions in a kind of fence format, in which each new object is added to the right.": {
+  "separating the agent doing the work from the agent judging it proves to be a strong lever": {
+    "source": "https://www.anthropic.com/engineering/harness-design-long-running-apps",
+    "date": "2026-10-13"
+  },
+  "separating the agent doing the work from the agent judging it proves to be a strong lever to address this issue": {
+    "source": "https://www.anthropic.com/engineering/harness-design-long-running-apps",
+    "date": "2026-10-13"
+  },
+  "sequence diagrams illustrate interactions in a kind of fence format, in which each new object is added to the right": {
     "source": "larman-2004",
     "date": "2026-10-03"
   },
-  "since there's only a few hours of changes between commits, there's only so many places where the problem could be hiding.": {
+  "since there's only a few hours of changes between commits, there's only so many places where the problem could be hiding": {
     "source": "https://martinfowler.com/articles/continuousIntegration.html",
     "date": "2026-10-08"
   },
@@ -655,31 +863,39 @@
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
     "date": "2026-10-12"
   },
-  "something happened that domain experts care about.": {
+  "some assertions, called preconditions and postconditions, apply to individual routines. others, the class invariants, constrain all the routines of a given class": {
+    "source": "확인 경위: 스캔 PDF의 OCR이 쉼표를 마침표로 읽고 3단을 섞어 자동 대조가 되지 않는다. https://se.inf.ethz.ch/~meyer/publications/computer/contract.pdf 의 42쪽(Computer 25(10), 1992) 지면을 직접 읽어 문장과 문장부호를 확인했다(2026-10-14).",
+    "date": "2026-10-14"
+  },
+  "some domains that require all agents to share the same context or involve many dependencies between agents are not a good fit for multi-agent systems today": {
+    "source": "https://www.anthropic.com/engineering/multi-agent-research-system",
+    "date": "2026-10-13"
+  },
+  "something happened that domain experts care about": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-02"
   },
-  "spec-anchored: the spec is kept even after the task is complete, to continue using it for evolution and maintenance of the respective feature.": {
+  "spec-anchored: the spec is kept even after the task is complete, to continue using it for evolution and maintenance of the respective feature": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
     "date": "2026-10-07"
   },
-  "spec-as-source: the spec is the main source file over time, and only the spec is edited by the human, the human never touches the code.": {
+  "spec-as-source: the spec is the main source file over time, and only the spec is edited by the human, the human never touches the code": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
     "date": "2026-10-07"
   },
-  "spec-driven development means writing a \"spec\" before writing code with ai (\"documentation first\"). the spec becomes the source of truth for the human and the ai.": {
+  "spec-driven development means writing a \"spec\" before writing code with ai (\"documentation first\"). the spec becomes the source of truth for the human and the ai": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
     "date": "2026-10-07"
   },
-  "spec-first: a well thought-out spec is written first, and then used in the ai-assisted development workflow for the task at hand.": {
+  "spec-first: a well thought-out spec is written first, and then used in the ai-assisted development workflow for the task at hand": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
     "date": "2026-10-07"
   },
-  "stable packages should be abstract packages.": {
-    "source": "url-1c611f8361f4",
-    "date": "2026-10-05"
+  "stable packages should be abstract packages": {
+    "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
+    "date": "2026-10-14"
   },
-  "starting in the 1970s, data flow diagrams (dfd) became a popular way to visualize the major steps and data involved in software system processes.": {
+  "starting in the 1970s, data flow diagrams (dfd) became a popular way to visualize the major steps and data involved in software system processes": {
     "source": "larman-2004",
     "date": "2026-10-03"
   },
@@ -691,7 +907,11 @@
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
   },
-  "superficial changes to the ui can actually change business logic.": {
+  "subclasses should be substitutable for their base classes": {
+    "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
+    "date": "2026-10-14"
+  },
+  "superficial changes to the ui can actually change business logic": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-08"
   },
@@ -703,59 +923,59 @@
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
   },
-  "the ability for tracking the relationships between requirements and designs from the original stakeholder need to the actual implemented solution.": {
+  "the ability for tracking the relationships between requirements and designs from the original stakeholder need to the actual implemented solution": {
     "source": "https://www.iiba.org/knowledgehub/the-business-analysis-standard/4-implementing-business-analysis/4-4-understanding-requirements-and-designs/",
     "date": "2026-10-02"
   },
-  "the autonomous nature of agents means higher costs, and the potential for compounding errors.": {
+  "the autonomous nature of agents means higher costs, and the potential for compounding errors": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-07"
   },
-  "the basic building block of agentic systems is an llm enhanced with augmentations such as retrieval, tools, and memory.": {
+  "the basic building block of agentic systems is an llm enhanced with augmentations such as retrieval, tools, and memory": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-07"
   },
-  "the complexity of software is an essential property, not an accidental one.": {
-    "source": "url-0541effb230b",
-    "date": "2026-10-03"
+  "the complexity of software is an essential property, not an accidental one": {
+    "source": "https://www.cs.unc.edu/techreports/86-020.pdf",
+    "date": "2026-10-14"
   },
-  "the component structure cannot be designed from the top down. it is not one of the first things about the system that is designed, but rather evolves as the system grows and changes.": {
+  "the component structure cannot be designed from the top down. it is not one of the first things about the system that is designed, but rather evolves as the system grows and changes": {
     "source": "https://raw.githubusercontent.com/sdcuike/Clean-Code-Collection-Books/master/Clean%20Architecture%20A%20Craftsman%27s%20Guide%20to%20Software%20Structure%20and%20Design.pdf",
     "date": "2026-10-05"
   },
-  "the cost of engineering protection at evolution points can be higher than reworking a simple design.": {
+  "the cost of engineering protection at evolution points can be higher than reworking a simple design": {
     "source": "larman-2004",
     "date": "2026-10-08"
   },
-  "the critical design tool for software development is a mind well educated in design principles. it is not the uml or any other technology.": {
+  "the critical design tool for software development is a mind well educated in design principles. it is not the uml or any other technology": {
     "source": "larman-2004",
     "date": "2026-10-08"
   },
-  "the dependencies betwen packages must not form cycles.": {
-    "source": "url-1c611f8361f4",
-    "date": "2026-10-05"
+  "the dependencies betwen packages must not form cycles": {
+    "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
+    "date": "2026-10-14"
   },
-  "the design style in this book largely follows the principle of \"responsibility-driven design,\" put forward in wirfs-brock et al. 1990 and updated in wirfs-brock 2003. it also draws heavily (especially in part iii) on the ideas of \"design by contract\" described in meyer 1988. it is consistent with the general background of other widely held best practices of object-oriented design, which are described in such books as larman 1998.": {
-    "source": "사용자 확인: 사용자가 Domain-Driven Design(Addison-Wesley, 2004) 인쇄본 서문에서 직접 대조함. 전자 사본은 서문이 빠진 324쪽본만 입수 가능",
+  "the design style in this book largely follows the principle of \"responsibility-driven design,\" put forward in wirfs-brock et al. 1990 and updated in wirfs-brock 2003. it also draws heavily (especially in part iii) on the ideas of \"design by contract\" described in meyer 1988. it is consistent with the general background of other widely held best practices of object-oriented design, which are described in such books as larman 1998": {
+    "source": "확인 경위: 사용자가 Domain-Driven Design(Addison-Wesley, 2004) 인쇄본 서문에서 직접 대조함. 전자 사본은 서문이 빠진 324쪽본만 입수 가능",
     "date": "2026-10-13"
   },
-  "the domain model is a visualization of noteworthy domain concepts and vocabulary. where are those terms found? some are in the use cases.": {
+  "the domain model is a visualization of noteworthy domain concepts and vocabulary. where are those terms found? some are in the use cases": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "the entity-relationship model adopts the more natural view that the real world consists of entities and relationships.": {
+  "the entity-relationship model adopts the more natural view that the real world consists of entities and relationships": {
     "source": "https://www.csc.lsu.edu/~chen/pdf/erd-5-pages.pdf",
     "date": "2026-10-02"
   },
-  "the event list is a narrative list of the \"stimuli\" that occur in the outside world and to which our system must respond.": {
+  "the event list is a narrative list of the \"stimuli\" that occur in the outside world and to which our system must respond": {
     "source": "https://web.archive.org/web/20070214052310/http://yourdon.com/strucanalysis/wiki/index.php?title=Chapter_18",
     "date": "2026-10-02"
   },
-  "the fundamental horror of this anti-pattern is that it's so contrary to the basic idea of object-oriented design; which is to combine data and process together.": {
+  "the fundamental horror of this anti-pattern is that it's so contrary to the basic idea of object-oriented design; which is to combine data and process together": {
     "source": "https://martinfowler.com/bliki/AnemicDomainModel.html",
     "date": "2026-10-08"
   },
-  "the hardest single part of building a software system is deciding precisely what to build.": {
+  "the hardest single part of building a software system is deciding precisely what to build": {
     "source": "https://www.cs.unc.edu/techreports/86-020.pdf",
     "date": "2026-10-07"
   },
@@ -763,11 +983,15 @@
     "source": "https://martinfowler.com/articles/microservices.html",
     "date": "2026-10-08"
   },
+  "the more approvals a user sees, the less attention they pay to each, becoming over time much less diligent in their supervision": {
+    "source": "https://www.anthropic.com/engineering/how-we-contain-claude",
+    "date": "2026-10-13"
+  },
   "the most difficult problem in teaching … programming is getting the learner to give up the global knowledge of control that is possible with procedural programs": {
     "source": "http://c2.com/doc/oopsla89/paper.html",
     "date": "2026-10-08"
   },
-  "the optimal altitude strikes a balance: specific enough to guide behavior effectively, yet flexible enough to provide the model with strong heuristics to guide behavior.": {
+  "the optimal altitude strikes a balance: specific enough to guide behavior effectively, yet flexible enough to provide the model with strong heuristics to guide behavior": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-07"
   },
@@ -775,15 +999,15 @@
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
     "date": "2026-10-07"
   },
-  "the postconditions describe changes in the state of objects in the domain model. domain model state changes include instances created, associations formed or broken, and attributes changed.": {
+  "the postconditions describe changes in the state of objects in the domain model. domain model state changes include instances created, associations formed or broken, and attributes changed": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "the purpose of modeling (sketching uml, …) is primarily to understand, not to document.": {
+  "the purpose of modeling (sketching uml, …) is primarily to understand, not to document": {
     "source": "larman-2004",
     "date": "2026-10-03"
   },
-  "the quality attributes have a strong influence on the architecture of a system.": {
+  "the quality attributes have a strong influence on the architecture of a system": {
     "source": "larman-2004",
     "date": "2026-10-08"
   },
@@ -791,11 +1015,11 @@
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
     "date": "2026-10-07"
   },
-  "the second way is about creating the right to left feedback loops. the goal of almost any process improvement initiative is to shorten and amplify feedback loops so necessary corrections can be continually made.": {
+  "the second way is about creating the right to left feedback loops. the goal of almost any process improvement initiative is to shorten and amplify feedback loops so necessary corrections can be continually made": {
     "source": "https://itrevolution.com/articles/the-three-ways-principles-underpinning-devops/",
     "date": "2026-10-08"
   },
-  "the single responsibility principle (srp) states that each software module should have one and only one reason to change.": {
+  "the single responsibility principle (srp) states that each software module should have one and only one reason to change": {
     "source": "https://blog.cleancoder.com/uncle-bob/2014/05/08/SingleReponsibilityPrinciple.html",
     "date": "2026-10-08"
   },
@@ -803,43 +1027,67 @@
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
   },
-  "the state of an object identifies the values for that object of properties of the classifier of the object.": {
+  "the state of an object identifies the values for that object of properties of the classifier of the object": {
     "source": "https://www.omg.org/spec/UML/2.5.1/PDF",
     "date": "2026-10-02"
   },
-  "the team mines the feedback from realistic building and testing something for crucial practical insight and an opportunity to modify or adapt understanding of the requirements or design.": {
+  "the system contained the following agent personas": {
+    "source": "https://www.anthropic.com/engineering/harness-design-long-running-apps",
+    "date": "2026-10-13"
+  },
+  "the team mines the feedback from realistic building and testing something for crucial practical insight and an opportunity to modify or adapt understanding of the requirements or design": {
     "source": "larman-2004",
     "date": "2026-10-03"
   },
-  "the uml includes interaction diagrams to illustrate how objects interact via messages. they are used for dynamic object modeling.": {
+  "the uml includes interaction diagrams to illustrate how objects interact via messages. they are used for dynamic object modeling": {
     "source": "larman-2004",
     "date": "2026-10-03"
   },
-  "there is a predicate associated with each value set to test whether a value belongs to it.": {
+  "there are two ways of constructing a software design: one way is to make it so simple that there are obviously no deficiencies and the other way is to make it so complicated that there are no obvious deficiencies": {
+    "source": "확인 경위: 2단 스캔 PDF라 pdftotext가 두 단을 섞어 자동 대조가 되지 않는다. https://noncombatant.org/hoare-emperors-old-clothes-turing-award/hoare-emperors-old-clothes.pdf 의 81쪽(Communications of the ACM 24(2), 1981) 지면을 직접 읽어 문장을 확인했다(2026-10-14).",
+    "date": "2026-10-14"
+  },
+  "there is a predicate associated with each value set to test whether a value belongs to it": {
     "source": "https://www.csc.lsu.edu/~chen/pdf/erd-5-pages.pdf",
     "date": "2026-10-02"
+  },
+  "there is no need for meticulous designs when risks are small, nor any excuse for sloppy designs when risks threaten your success": {
+    "source": "https://www.georgefairbanks.com/book/",
+    "date": "2026-10-14"
   },
   "these features were all initially marked as \"failing\" so that later coding agents would have a clear outline of what full functionality looked like": {
     "source": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
     "date": "2026-10-08"
   },
-  "these files are relevant across all ai coding sessions in the codebase, whereas specs only relevant to the tasks that actually create or change that particular functionality.": {
+  "these files are relevant across all ai coding sessions in the codebase, whereas specs only relevant to the tasks that actually create or change that particular functionality": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
     "date": "2026-10-07"
   },
-  "they are used to get a better grip of an interaction situation for an individual designer or for a group that needs to achieve a common understanding of the situation.": {
+  "they are used to get a better grip of an interaction situation for an individual designer or for a group that needs to achieve a common understanding of the situation": {
     "source": "https://www.omg.org/spec/UML/2.5.1/PDF",
     "date": "2026-10-03"
   },
-  "this enables progressive disclosure: agents start with a small, stable entry point and are taught where to look next, rather than being overwhelmed up front.": {
+  "they remain costly and are still far from mature, which is why we advise caution when adopting this technique": {
+    "source": "https://www.thoughtworks.com/radar/techniques/coding-agent-swarms",
+    "date": "2026-10-13"
+  },
+  "think about how much effort goes into human-computer interfaces (hci), and plan to invest just as much effort in creating good": {
+    "source": "https://www.anthropic.com/engineering/building-effective-agents",
+    "date": "2026-10-13"
+  },
+  "this enables progressive disclosure: agents start with a small, stable entry point and are taught where to look next, rather than being overwhelmed up front": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
     "date": "2026-10-12"
   },
-  "this technique proves most valuable for very complex processes, usually involving many parties. use-case text suffices for simple processes.": {
+  "this technique proves most valuable for very complex processes, usually involving many parties. use-case text suffices for simple processes": {
     "source": "larman-2004",
     "date": "2026-10-03"
   },
-  "to be honest, i'd rather review code than all these markdown files.": {
+  "those conditions are not representative of typical product development, where requirements are less defined and verification is harder": {
+    "source": "https://www.thoughtworks.com/radar/techniques/coding-agent-swarms",
+    "date": "2026-10-13"
+  },
+  "to be honest, i'd rather review code than all these markdown files": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
     "date": "2026-10-07"
   },
@@ -847,63 +1095,119 @@
     "source": "larman-2004",
     "date": "2026-10-03"
   },
-  "too much guidance becomes non-guidance. when everything is \"important,\" nothing is. agents end up pattern-matching locally instead of navigating intentionally.": {
+  "too much guidance becomes non-guidance. when everything is \"important,\" nothing is. agents end up pattern-matching locally instead of navigating intentionally": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
     "date": "2026-10-12"
   },
-  "unified modeling language® (uml®) as a standard for visualizing, specifying, and documenting software and systems.": {
-    "source": "url-5982e2b53aa3",
-    "date": "2026-10-03"
+  "tool definitions and specifications should be given just as much prompt engineering attention as your overall prompts": {
+    "source": "https://www.anthropic.com/engineering/building-effective-agents",
+    "date": "2026-10-13"
   },
-  "use cases are text documents, not diagrams, and use-case modeling is primarily an act of writing text, not drawing diagrams.": {
+  "tool implementations should take care to return only high signal information back to agents": {
+    "source": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+    "date": "2026-10-13"
+  },
+  "tools are a new kind of software which reflects a contract between deterministic systems and non-deterministic agents": {
+    "source": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+    "date": "2026-10-13"
+  },
+  "tools can consolidate functionality, handling potentially multiple discrete operations (or api calls) under the hood": {
+    "source": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+    "date": "2026-10-13"
+  },
+  "tools represent arbitrary code execution and must be treated with appropriate caution": {
+    "source": "https://modelcontextprotocol.io/specification/2025-06-18",
+    "date": "2026-10-13"
+  },
+  "unified modeling language® (uml®) as a standard for visualizing, specifying, and documenting software and systems": {
+    "source": "https://www.omg.org/uml/",
+    "date": "2026-10-14"
+  },
+  "use cases are text documents, not diagrams, and use-case modeling is primarily an act of writing text, not drawing diagrams": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
-  "use software class names in the domain layer inspired from names in the domain model, with objects having domain-familiar information and responsibilities.": {
+  "use software class names in the domain layer inspired from names in the domain model, with objects having domain-familiar information and responsibilities": {
     "source": "larman-2004",
     "date": "2026-10-08"
   },
-  "use the model as the backbone of a language. commit the team to exercising that language relentlessly in all communication within the team and in the code.": {
+  "use the model as the backbone of a language. commit the team to exercising that language relentlessly in all communication within the team and in the code": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-07"
   },
-  "user stories have three critical aspects. we can call these card, conversation, and confirmation.": {
+  "user stories have three critical aspects. we can call these card, conversation, and confirmation": {
     "source": "https://ronjeffries.com/xprog/articles/expcardconversationconfirmation/",
     "date": "2026-10-07"
   },
-  "user story: as a developer, i want the transformation function to handle edge cases gracefully, so that the system remains robust when new category formats are introduced.": {
+  "user story: as a developer, i want the transformation function to handle edge cases gracefully, so that the system remains robust when new category formats are introduced": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
     "date": "2026-10-07"
+  },
+  "users must retain control over what data is shared and what actions are taken": {
+    "source": "https://modelcontextprotocol.io/specification/2025-06-18",
+    "date": "2026-10-13"
+  },
+  "using a fresh context window on each iteration avoids the quality degradation that comes from accumulated context, though at significant token cost": {
+    "source": "https://www.thoughtworks.com/radar/techniques/ralph-loop",
+    "date": "2026-10-13"
   },
   "variation point-variations in the existing, current system or requirements": {
     "source": "larman-2004",
     "date": "2026-10-08"
   },
+  "voting: running the same task multiple times to get diverse outputs": {
+    "source": "https://www.anthropic.com/engineering/building-effective-agents",
+    "date": "2026-10-13"
+  },
+  "we caution against using mcp by default": {
+    "source": "https://www.thoughtworks.com/radar/techniques/mcp-by-default",
+    "date": "2026-10-13"
+  },
   "we decided to apply all of this behaviour- driven thinking to defining requirements": {
     "source": "references/inputs/north-2006-introducing-bdd.txt",
     "date": "2026-10-07"
   },
-  "we prioritize work, translate user feedback into acceptance criteria, and validate outcomes.": {
+  "we made the app bootable per git worktree, so codex could launch and drive one instance per change": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
     "date": "2026-10-13"
   },
-  "we want to give the customer the essence of the whole cake, and the best way is to slice vertically through the layers.": {
+  "we prioritize work, translate user feedback into acceptance criteria, and validate outcomes": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-13"
+  },
+  "we recommend extensive testing in sandboxed environments, along with the appropriate guardrails": {
+    "source": "https://www.anthropic.com/engineering/building-effective-agents",
+    "date": "2026-10-13"
+  },
+  "we want to give the customer the essence of the whole cake, and the best way is to slice vertically through the layers": {
     "source": "references/inputs/wake-2003-invest.txt",
     "date": "2026-10-07"
   },
-  "when building applications with llms, we recommend finding the simplest solution possible, and only increasing complexity when needed. this might mean not building agentic systems at all.": {
+  "when building applications with llms, we recommend finding the simplest solution possible, and only increasing complexity when needed. this might mean not building agentic systems at all": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-07"
   },
-  "when related alternatives or behaviors vary by type (class), assign responsibility for the behavior-using polymorphic operations-to the types for which the behavior varies.": {
+  "when related alternatives or behaviors vary by type (class), assign responsibility for the behavior-using polymorphic operations-to the types for which the behavior varies": {
     "source": "larman-2004",
     "date": "2026-10-08"
   },
-  "workflows are systems where llms and tools are orchestrated through predefined code paths.": {
+  "where a team of coding agents is a small, deliberate group, a coding agent swarm applies dozens to hundreds of agents to a problem, with ai determining composition and size dynamically": {
+    "source": "https://www.thoughtworks.com/radar/techniques/coding-agent-swarms",
+    "date": "2026-10-13"
+  },
+  "without the planner, the generator under-scoped": {
+    "source": "https://www.anthropic.com/engineering/harness-design-long-running-apps",
+    "date": "2026-10-13"
+  },
+  "without the planner, the generator under-scoped: given the raw prompt, it would start building without first speccing its work": {
+    "source": "https://www.anthropic.com/engineering/harness-design-long-running-apps",
+    "date": "2026-10-13"
+  },
+  "workflows are systems where llms and tools are orchestrated through predefined code paths": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-06"
   },
-  "workflows offer predictability and consistency for well-defined tasks, whereas agents are the better option when flexibility and model-driven decision-making are needed at scale.": {
+  "workflows offer predictability and consistency for well-defined tasks, whereas agents are the better option when flexibility and model-driven decision-making are needed at scale": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-07"
   },
@@ -911,7 +1215,7 @@
     "source": "https://newsletter.kentbeck.com/p/augmented-coding-beyond-the-vibes",
     "date": "2026-10-08"
   },
-  "write use cases in an essential style; keep the user interface out and focus on actor intent.": {
+  "write use cases in an essential style; keep the user interface out and focus on actor intent": {
     "source": "larman-2004",
     "date": "2026-10-02"
   },
@@ -919,11 +1223,11 @@
     "source": "references/inputs/wake-2003-invest.txt",
     "date": "2026-10-07"
   },
-  "yagni only applies to capabilities built into the software to support a presumptive feature, it does not apply to effort to make the software easier to modify.": {
+  "yagni only applies to capabilities built into the software to support a presumptive feature, it does not apply to effort to make the software easier to modify": {
     "source": "https://martinfowler.com/bliki/Yagni.html",
     "date": "2026-10-08"
   },
-  "you potentially need to use multiple models to develop software because each model describes a single aspect of your software.": {
+  "you potentially need to use multiple models to develop software because each model describes a single aspect of your software": {
     "source": "https://agilemodeling.com/principles.htm",
     "date": "2026-10-03"
   },

@@ -652,20 +652,31 @@ class Builder {
     return page;
   }
 
-  // The reference list of the appendix: as many entries as fit in two 8pt columns per slide, a
-  // heading never left as the last line of a slide. Returns the pages (not left in this.pages).
+  // The reference list of the appendix: entries in two 8pt columns per slide, a heading never left
+  // as the last line of a slide. The list takes as few slides as it can and spreads the entries
+  // evenly over them, so a continuation never carries a line or two (generate.js reports that).
+  // Returns the pages (not left in this.pages).
   referencePages(blocks, heading) {
+    // The largest n (at most `limit`) whose entries fit one slide; 0 when even one does not.
+    const fitCount = (rest, limit) => {
+      for (let n = Math.min(limit, rest.length); n > 0; n--) {
+        if (n < rest.length && rest[n - 1].kind === "heading" && n > 1) continue;
+        if (this.styledPage(rest.slice(0, n), heading, REFERENCE_STYLE, ANSWER_COLUMNS)) {
+          this.pages.pop();
+          return n;
+        }
+      }
+      return 0;
+    };
+    const whole = fitCount(blocks, blocks.length);
+    need(whole, "참고 자료 항목이 한 슬라이드에 들어가지 않는다: " + heading);
+    const even = Math.ceil(blocks.length / Math.ceil(blocks.length / whole));
     const out = [];
     let rest = blocks.slice();
     while (rest.length) {
-      let page = null;
-      let n = rest.length;
-      for (; n > 0; n--) {
-        if (n < rest.length && rest[n - 1].kind === "heading" && n > 1) continue;
-        page = this.styledPage(rest.slice(0, n), heading, REFERENCE_STYLE, ANSWER_COLUMNS);
-        if (page) break;
-      }
-      need(page, "참고 자료 항목이 한 슬라이드에 들어가지 않는다: " + heading);
+      const n = fitCount(rest, even) || fitCount(rest, rest.length);
+      need(n, "참고 자료 항목이 한 슬라이드에 들어가지 않는다: " + heading);
+      this.styledPage(rest.slice(0, n), heading, REFERENCE_STYLE, ANSWER_COLUMNS);
       out.push(this.pages.pop());
       rest = rest.slice(n);
     }
@@ -707,8 +718,12 @@ class Builder {
         return best;
       };
       const best = split(top) || split(() => true);
-      if (!best) return null;
-      parts = [blocks.slice(0, best.i), blocks.slice(best.i)];
+      // Nothing to split -- a last page of one block, or a run that only fits as a whole -- still
+      // belongs on the slide: it stays in the left column.
+      if (!best) {
+        if (!fits(blocks, boxes[0])) return null;
+        parts = [blocks];
+      } else parts = [blocks.slice(0, best.i), blocks.slice(best.i)];
     }
     const page = this.page(ORIGIN.prose, heading);
     if (lead.length) {
