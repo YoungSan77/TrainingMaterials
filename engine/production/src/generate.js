@@ -8,7 +8,7 @@ const { parse } = require("./parse");
 const builder = require("./builder");
 const { inspect, reportJson } = require("./inspect");
 const { checkReferences } = require("./references");
-const { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, numberedBullets, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape } = require("./structure");
+const { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, slideTalk, countsMatchTable, numberedBullets, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape } = require("./structure");
 const { checkCodeSources, checkEnumConsistency } = require("./codeSource");
 
 // A continuation slide that carries only a line or two of text (no table, visual or code) is a
@@ -46,6 +46,8 @@ async function generateFile(inputPath, outputPath, templatePath) {
     refs.warnings.push(...wrappingCells(sections));
     refs.warnings.push(...numberedDiagramLabels(sections));
     refs.warnings.push(...unboldedText(sections));
+    refs.warnings.push(...slideTalk(sections));
+    refs.warnings.push(...countsMatchTable(sections));
     refs.warnings.push(...numberedBullets(sections));
     refs.warnings.push(...unmarkedQuestionTitles(sections));
     if (!/-add\.md$/i.test(inputPath)) refs.warnings.push(...missingNotes(sections));

@@ -14,6 +14,19 @@ const { renderMermaid } = require("./mermaidAdapter");
 const { renderPlantUml } = require("./plantumlAdapter");
 const { renderChart } = require("./chartAdapter");
 const { renderSvg } = require("./svgAdapter");
+// 쪼개 둔 네 묶음: 이름(실습·세션명), 글·코드의 크기, 문서형 슬라이드의 style, 도식의 크기와 자리.
+const { isPractice, isAnswer, appendixSessionName, tocSessionName, sessionNamePt, SESSION_PT } = require("./slideNames");
+const { proseLines, codeHeightPt, splitColumns, planCode, CODE_COL_GAP } = require("./codeFit");
+const {
+  PRACTICE_STYLE, ANSWER_STYLE, REFERENCE_STYLE, REFERENCE_MARKER, isReferenceMarker, shiftStyle,
+  PRACTICE_BOX, ANSWER_COLUMNS, STYLE_SPACE, styleSize, styledCost, restyle, geometry,
+} = require("./styleFit");
+const {
+  EMU, FULL_TEXT, STACKED_TEXT, STACKED_PANEL, DEEP_STACKED_TEXT, DEEP_STACKED_PANEL,
+  PAGE_NUM_Y, VISUAL_ONLY, TREE_TEXT, UML_PANEL,
+  contain, center, naturalSize, fitTarget, pictureTextPt, visualPanel, visualPolicy, isUml,
+  TARGET_PT, MIN_PT, UML_MAX_PT,
+} = require("./visualFit");
 
 const ARCH_TERMS = new Set(["domain", "application", "presentation", "adapter", "infrastructure", "port", "in", "out", "service", "dto", "controller", "gateway", "repository", "mapper"]);
 
@@ -25,59 +38,15 @@ const TOC_FONT_SIZE = 16;
 // production-guide.md "Session 명": the TOC slide title uses only the session name before its
 // " — " subtitle ("03. 정적 모델 — 도메인 개념과 관계" -> "03. 정적 모델"); every other slide's
 // top-right session name keeps the full name.
-// A practice assignment topic ("NN. 실습 — …"), one slide; an older review example ("… 검토 예시") may run longer.
-function isPractice(title) {
-  return /^\d\d\. 실습 — /.test(title) && !/검토 예시/.test(title);
-}
-// Its answer, a topic titled "NN. <산출물> (안)" (session-authoring-guide.md "사례·가정·실습").
-function isAnswer(title) {
-  return /\(안\)$/.test(String(title).trim());
-}
-// production-guide.md "Session 명": slides of the appendix after the summary (practice answers)
-// carry "별첨: " before the session name.
-function appendixSessionName(session) {
-  return "별첨: " + session;
-}
-function tocSessionName(session) {
-  return String(session).split(/\s+—\s+/)[0].trim();
-}
-// production-guide.md "Session 명": the top-right session name stays on one line. The placeholder
-// is 3699901 EMU (~291pt) wide at 14pt bold; a longer name shrinks (0.5pt steps, not below 9pt)
-// instead of wrapping into the slide title.
-const SESSION_BOX_PT = 3699901 / 12700;
-const SESSION_PT = 14;
-const SESSION_MIN_PT = 9;
-function sessionNamePt(session) {
-  let em = 0;
-  for (const cp of codePoints(String(session))) em += wide(cp) ? 1 : 0.6;
-  if (em * SESSION_PT <= SESSION_BOX_PT) return SESSION_PT;
-  return Math.max(SESSION_MIN_PT, Math.floor((SESSION_BOX_PT / em) * 2) / 2);
-}
 // Items per column at 16pt: the column height (435pt) over one line (16pt x 1.2 + 3pt + 3pt spacing).
 const TOC_LEFT_MAX = 17;
 const TOC_LEFT_XFRM = { x: -8822, y: 949064, cx: 4580822, cy: 5530862 };
 const TOC_RIGHT_XFRM = { x: 4426820, y: 949064, cx: 4195811, cy: 5530862 };
 const TOC_RIGHT_ID = 4;
-const EMU = 914400;
-const FULL_TEXT = { x: 0.4, y: 1.05, w: 9.2, h: 5.75 };
-const STACKED_TEXT = { x: 0.4, y: 1.05, w: 9.2, h: 3.05 };
-const STACKED_PANEL = { x: 1.4, y: 4.25, w: 7.2, h: 1.8 };
-// Panel height reduced from 3.55 -> 3.0 (text area grows 1.8 -> 2.75 to match): a simple 2-4 node
-// diagram was being blown up to fill the full 3.55in panel just because it landed in this bucket
-// (low aspect ratio), which both wasted space and starved the text above it. 3.0in is the floor
-// that still keeps a real plantuml sequence diagram's smallest label >=8pt at this panel width
-// (verified against the lecture-java-baseline fixture -- see visualPolicy()); mermaid diagrams clear 8pt with
-// more margin at this size since their SCALE (mermaidAdapter.js) is lower than PlantUML's.
-const DEEP_STACKED_TEXT = { x: 0.4, y: 1.05, w: 9.2, h: 2.75 };
-const DEEP_STACKED_PANEL = { x: 0.5, y: 3.35, w: 9.0, h: 3.0 };
-// The template's sldNum placeholder Y (slideLayout1.xml, 6449625 EMU) -- the floor a
-// diagram panel must clear so it never crowds the footer.
-const PAGE_NUM_Y = 6449625 / EMU;
 // A visual's tool marker, with an optional title after it: "**도식 — PlantUML — 제목**".
 const VISUAL_MARKER = /^\*\*(?:도식\s*[—:-]\s*(?:Mermaid|PlantUML|SVG)|Chart\s*[—:-]\s*matplotlib)(?:\s*—\s*(.+?))?\*\*$/i;
 // A table's title line right before it: "**표 — 제목**".
 const TABLE_CAPTION = /^\*\*표\s*—\s*(.+?)\*\*$/;
-const TREE_TEXT = { x: 2.65, y: 1.05, w: 4.7, h: 5.75 };
 
 const EP = "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties";
 const VT = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";
@@ -149,62 +118,11 @@ function setShapeBounds(sh, bounds) {
   xf.appendChild(el(doc, A, "ext", "cx", String(Math.round(bounds.w * EMU)), "cy", String(Math.round(bounds.h * EMU))));
 }
 
-function contain(bounds, width, height) {
-  const scale = Math.min(bounds.w / width, bounds.h / height);
-  const w = width * scale, h = height * scale;
-  return { x: bounds.x + (bounds.w - w) / 2, y: bounds.y + (bounds.h - h) / 2, w, h };
-}
-
-function center(bounds, w, h) {
-  return { x: bounds.x + (bounds.w - w) / 2, y: bounds.y + (bounds.h - h) / 2, w, h };
-}
-
 // Inverse of visualPolicy()'s legibility estimate: the display width at which the image's
-// diagram text renders at exactly `pt`.
-const TARGET_PT = 10;
-// Smallest diagram text allowed when a diagram must shrink to fit (production-guide.md).
-const MIN_PT = 7;
 // Orphan control for flush(): a remainder costing at most ORPHAN_SHARE of a page stays on the
 // current page as long as the page total stays within ORPHAN_TOLERANCE of its budget.
 const ORPHAN_SHARE = 0.2;
 const ORPHAN_TOLERANCE = 1.2;
-function naturalSize(image, pt) {
-  const w = image.kind === "mermaid" ? (pt * image.width) / (24 * 96)
-    : image.kind === "plantuml" ? (pt * image.width) / (39 * 96)
-    // svg: K is this specific SVG's own smallest authored font-size (svgAdapter.js), not a fixed
-    // constant -- unlike mermaid/plantuml's internally-consistent renderers, an authored SVG's
-    // text size varies per diagram, so the legibility floor has to be read from its own source.
-    : image.kind === "svg" ? (pt * image.width) / (image.fontSize * 96)
-    : (pt * 6) / 10;
-  return { w, h: (w * image.height) / image.width };
-}
-
-// Images are sized so their text reads at TARGET_PT, never larger even when the panel has room to
-// spare (production-guide.md "Visual layout 및 가독성": one text size across all diagrams).
-// UML_MAX_PT is kept equal to TARGET_PT: UML diagrams no longer grow into free space.
-const UML_MAX_PT = TARGET_PT;
-const isUml = (image) => image.kind === "plantuml" || Boolean(image.uml);
-function fitTarget(bounds, image, align) {
-  // Every diagram's text reads at TARGET_PT (10pt); a diagram is never enlarged. When it does not
-  // fit it steps down to 9, 8, 7pt -- the largest step that fits, never past the panel -- and
-  // below MIN_PT it is fitted exactly and reported (generate.js) for the source to be fixed.
-  const natural = naturalSize(image, TARGET_PT);
-  const maxScale = Math.min(1, bounds.w / natural.w, bounds.h / natural.h);
-  let scale = 1;
-  while (scale > maxScale + 1e-9 && scale - 0.1 >= MIN_PT / TARGET_PT - 1e-9) scale = Math.round((scale - 0.1) * 10) / 10;
-  if (scale > maxScale + 1e-9) scale = maxScale;
-  const fitted = center(bounds, natural.w * scale, natural.h * scale);
-  // A diagram under body text sits one line below it ("align: top"); centering it in the leftover
-  // band pushed it toward the footer and left a hole between the last line and the diagram.
-  return align === "top" ? { ...fitted, y: bounds.y } : fitted;
-}
-
-// The text size (pt) a diagram reads at inside `bounds`, and the whole body area a diagram gets
-// when it has a slide to itself.
-function pictureTextPt(image, bounds) {
-  return TARGET_PT * bounds.w / naturalSize(image, TARGET_PT).w;
-}
-const VISUAL_ONLY = { x: 0.5, y: 1.05, w: 9.0, h: PAGE_NUM_Y - 0.15 - 1.05 };
 
 // One blank body line between stacked blocks -- text, table, diagram, caption. The rhythm is the
 // same above and below every block, so a table never hugs the paragraph that follows it and a
@@ -240,81 +158,8 @@ function textEndIn(top, cost, blocks) {
 // text's estimated end and the footer, starting at `top` -- one line below the last line of text.
 // Mermaid/SVG/chart keep the layout's design panel height; an all-UML panel takes the whole free
 // band at the widest body width, so a large UML diagram keeps its 10pt as far as the band allows.
-const UML_PANEL = { x: 0.5, w: 9.0 };
-function visualPanel(layout, top, availableH, images) {
-  const uml = images.length > 0 && images.every(isUml);
-  const panelH = uml ? availableH : Math.min(layout.panel.h, availableH);
-  return uml ? { ...layout.panel, ...UML_PANEL, y: top, h: panelH } : { ...layout.panel, y: top, h: panelH };
-}
-
-function visualPolicy(rendered) {
-  if (!rendered.length) return { name: "none", text: FULL_TEXT, panel: null, width: 620, capacity: 450 };
-  const averageAspect = rendered.reduce((sum, image) => sum + image.width / image.height, 0) / rendered.length;
-  const commonTooSmall = rendered.some((image) => {
-    const bounds = contain(STACKED_PANEL, image.width, image.height);
-    const estimatedPt = image.kind === "mermaid" ? 24 * bounds.w * 96 / image.width
-      : image.kind === "plantuml" ? 39 * bounds.w * 96 / image.width
-      : image.kind === "svg" ? image.fontSize * bounds.w * 96 / image.width
-      : 10 * bounds.w / 6;
-    return estimatedPt < 10;
-  });
-  if (rendered.some((image) => image.kind === "chart") || averageAspect < 1.5 || commonTooSmall) {
-    return { name: "stacked", text: DEEP_STACKED_TEXT, panel: DEEP_STACKED_PANEL, width: 620, capacity: 180 };
-  }
-  return { name: "stacked", text: STACKED_TEXT, panel: STACKED_PANEL, width: 620, capacity: 330 };
-}
-
 // Lines a body paragraph takes: like estimate(), but a "(...)" span is rendered 4pt smaller
 // (production-guide.md, 괄호 -4pt) and is measured at that size.
-function proseLines(text, width, size) {
-  let sum = 0, depth = 0;
-  for (const cp of codePoints(text)) {
-    if (cp === 0x28) depth++;
-    const s = depth > 0 ? size - 4 : size;
-    sum += wide(cp) ? s : s * 0.56;
-    if (cp === 0x29 && depth > 0) depth--;
-  }
-  return Math.max(1, Math.ceil(sum / (width - 12)));
-}
-
-// Source code sizing (production-guide.md "소스 코드").
-const CODE_COL_GAP = 0.2;
-function codeHeightPt(lines, widthPt, size, lineH) {
-  return (lines.reduce((s, l) => s + estimate(plain(l), widthPt, size), 0) + 1) * lineH;
-}
-// The two halves of a code block for side-by-side columns: split at a blank line nearest the
-// middle (between members), else after the least-indented closing "}", so that a column never
-// starts inside a method body.
-function splitColumns(lines) {
-  let best = Math.ceil(lines.length / 2), bestScore = Infinity;
-  for (let i = 1; i < lines.length; i++) {
-    const prev = lines[i - 1];
-    const indent = prev.length - prev.trimStart().length;
-    let score;
-    if (prev.trim() === "") score = Math.abs(i - lines.length / 2);
-    else if (prev.trim() === "}") score = Math.abs(i - lines.length / 2) + 1000 * (indent + 1);
-    else continue;
-    if (score < bestScore) { best = i; bestScore = score; }
-  }
-  return [lines.slice(0, best), lines.slice(best)];
-}
-const wraps = (lines, widthPt, size) => lines.some((l) => estimate(plain(l), widthPt, size) > 1);
-// The layout that fits the whole code in `availPt`, trying 10pt one column, 10pt two columns,
-// then 9pt and 8pt (tighter line spacing) in one and two columns -- first among layouts where no
-// line wraps, then among any. null when none fits.
-function planCode(text, widthPt, availPt) {
-  const lines = text.split("\n");
-  const options = [];
-  for (const [size, lineH] of [[10, 13], [9, 10.8], [8, 9.6]]) {
-    options.push({ size, lineH, cols: [lines] , w: widthPt });
-    const halves = splitColumns(lines);
-    if (halves[1].length) options.push({ size, lineH, cols: halves, w: (widthPt - CODE_COL_GAP * 72) / 2 });
-  }
-  const fits = (o) => Math.max(...o.cols.map((c) => codeHeightPt(c, o.w, o.size, o.lineH))) <= availPt;
-  const pick = options.find((o) => fits(o) && !o.cols.some((c) => wraps(c, o.w, o.size))) || options.find(fits);
-  return pick ? { size: pick.size, lineH: pick.lineH, cols: pick.cols.map((c) => c.join("\n")) } : null;
-}
-
 function addPicture(doc, shapeId, relId, bounds, name, descr) {
   const pic = el(doc, P, "pic");
   const nv = el(doc, P, "nvPicPr");
@@ -456,103 +301,6 @@ function columnWidths(rows, cols) {
   return fitting.reduce((best, ws) => (wrapped(ws) < wrapped(best) ? ws : best));
 }
 
-// production-guide.md "실습 슬라이드": the practice slide and a text answer "(안)" take the sizes
-// of the reference deck. A style gives the size of a plain paragraph (`text`) and of each list
-// level, the size of a line's explanation after "—" and of a "(...)" span for a level size, and
-// how lines are indented: `hang` sets each level 0.25in in with a 0.2in hanging glyph (answer);
-// `aligned` puts an unbulleted "+ " line under its parent's text (practice).
-const PRACTICE_STYLE = { fit: 1.04, text: 16, levels: [18, 16, 14], expl: (L) => L - 2, paren: (L) => Math.max(8, L - 4), aligned: true };
-const ANSWER_STYLE = { fit: 1.1, text: 14, levels: [14, 12, 11], expl: (L) => L - 2, paren: (L) => Math.max(8, L - 4), hang: true };
-// "**참고 자료 목록**" (production-guide.md "별첨 — 참고 자료"): numbered entries at 8pt in two columns.
-// `numberHang` starts a numbered entry at the left edge and its wrapped lines after "N. "; `space` is
-// the space before and after each paragraph (pt, default STYLE_SPACE).
-const REFERENCE_STYLE = { fit: 1.1, text: 8, levels: [8, 8, 8], expl: (L) => L, paren: (L) => L, hang: true, numberHang: true, space: 1 };
-const REFERENCE_MARKER = /^\*\*참고 자료 목록\*\*$/;
-const isReferenceMarker = (b) => b.kind === "text" && REFERENCE_MARKER.test(b.text.trim());
-const shiftStyle = (size) => ({ fit: 1.04, text: size, levels: [size, size - 2, size - 4], expl: (L) => L - 2, paren: (L) => Math.max(8, L - 4), aligned: true });
-const PRACTICE_BOX = { x: 0.4, y: 1.05, w: 9.43, h: 6.04 };
-const ANSWER_COLUMNS = [{ x: 0.255, y: 1.05, w: 4.745, h: 6.04 }, { x: 5.0, y: 1.05, w: 4.855, h: 6.04 }];
-// Glyph widths and line height in em for 맑은 고딕, calibrated against PowerPoint's own output of
-// the practice and answer slides. A style's `fit` is the share of a box's height its text may be
-// estimated at and still fit; the smaller answer sizes wrap less than estimated.
-const KOREAN_EM = 0.9, SPACE_EM = 0.25, LINE_EM = 1.25;
-const STYLE_SPACE = 3;
-const AUTHORED = [18, 16, 14];
-
-function styleSize(style, b) {
-  return b.kind === "bullet" ? style.levels[Math.min(b.depth || 0, 2)] : style.text;
-}
-
-// Height (pt) of `blocks` set in `style` inside `box`: the key before the first " — " at the
-// line's size, the explanation after it at the explanation size, "(...)" at the paren size.
-function styledCost(blocks, style, box) {
-  return blocks.reduce((sum, b) => {
-    const L = styleSize(style, b), E = style.expl(L), P = style.paren(L);
-    const depth = b.kind === "bullet" ? Math.min(b.depth || 0, 2) : -1;
-    const level = depth < 0 ? null : BULLET_LEVELS[depth + 1];
-    const numbered = /^(?:\d+\.|\(\d+\))\s/.test(b.text);
-    const prefix = /^(?:\d+\.|\(\d+\))\s/.exec(plain(b.text));
-    const indent = style.numberHang && prefix ? numberWidthEmu(prefix[0], L) / EMU : depth < 0 ? 0 : style.hang ? (depth + 1) * 0.25
-      : style.aligned && b.meta && b.meta.noGlyph && !numbered ? BULLET_LEVELS[depth].marL / EMU
-      : numbered ? (level.marL + level.indent) / EMU + 0.25 : level.marL / EMU;
-    const text = plain(b.text), cut = text.indexOf(" — ");
-    let w = 0, paren = 0;
-    Array.from(text).forEach((ch, i) => {
-      const cp = ch.codePointAt(0);
-      if (cp === 0x28) paren++;
-      const size = paren > 0 ? P : cut >= 0 && i > cut ? E : L;
-      w += size * (cp >= 0x1100 ? KOREAN_EM : cp === 0x20 ? SPACE_EM : 0.56);
-      if (cp === 0x29 && paren > 0) paren--;
-    });
-    const lines = Math.max(1, Math.ceil(w / ((box.w - indent) * 72 - 12)));
-    return sum + lines * L * LINE_EM + 2 * (style.space != null ? style.space : STYLE_SPACE);
-  }, 0);
-}
-
-// Applies `style` to the paragraphs paragraphs() wrote into `sh` at the authored sizes (18/16/14
-// by level, the explanation 2pt and a "(...)" span 4pt under).
-function restyle(sh, style) {
-  for (const p of all(sh, A, "p")) {
-    const sp = style.space != null ? style.space : STYLE_SPACE;
-    spacing(p, sp, sp, null);
-    const pr = child(p, A, "pPr");
-    const lvl = pr && pr.getAttribute("lvl") ? parseInt(pr.getAttribute("lvl"), 10) : 0;
-    const depth = lvl ? Math.min(lvl - 2, 2) : -1;
-    const from = depth < 0 ? 18 : AUTHORED[depth];
-    const L = depth < 0 ? style.text : style.levels[depth], E = style.expl(L), P = style.paren(L);
-    for (const rp of all(p, A, "rPr")) {
-      const sz = parseInt(rp.getAttribute("sz") || "1800", 10) / 100;
-      const to = sz >= from ? L : sz >= from - 2 ? E : sz >= from - 4 ? P : Math.max(8, Math.min(P, E - 2));
-      rp.setAttribute("sz", String(Math.round(to * 100)));
-    }
-    const number = style.numberHang && /^(?:\d+\.|\(\d+\))\s/.exec(p.textContent);
-    if (number && pr) {
-      const w = numberWidthEmu(number[0], L);
-      pr.setAttribute("marL", String(w));
-      pr.setAttribute("indent", String(-w));
-      continue;
-    }
-    if (!lvl) continue;
-    const bare = Boolean(child(pr, A, "buNone"));
-    const level = BULLET_LEVELS[Math.min(lvl, BULLET_LEVELS.length) - 1];
-    if (style.hang) {
-      pr.setAttribute("marL", String(Math.round((lvl - 1) * 0.25 * EMU)));
-      pr.setAttribute("indent", String(bare ? 0 : Math.round(-0.2 * EMU)));
-    } else if (style.aligned && bare && parseInt(pr.getAttribute("indent"), 10) === level.indent) {
-      pr.setAttribute("marL", String(BULLET_LEVELS[lvl - 2].marL));
-      pr.setAttribute("indent", "0");
-    }
-  }
-}
-
-// Port of LecturePpt.geometry(): reads a template shape's <a:ext> in points, default 630x390.
-function geometry(sh) {
-  const sp = child(sh, P, "spPr");
-  const xf = sp ? child(sp, A, "xfrm") : null;
-  const ext = xf ? child(xf, A, "ext") : null;
-  if (!ext) return [630, 390];
-  return [parseInt(ext.getAttribute("cx"), 10) / 12700, parseInt(ext.getAttribute("cy"), 10) / 12700];
-}
 
 class Builder {
   constructor(templatePath = TEMPLATE_DIR) {

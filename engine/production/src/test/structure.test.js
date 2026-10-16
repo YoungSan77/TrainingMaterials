@@ -83,3 +83,51 @@ test("a practice topic missing 프롬프트·점검 항목 is reported; the full
   const good = parse('## 09. 실습 — 수용 기준\n\n만드십시오.\n\n- **투입물**\n  + 작업 명세서\n- **프롬프트**\n  + "써줘"\n- **점검 항목**\n  1. **대표 예** — 있는가?\n- **결과물** — 수용 기준\n');
   assert.deepEqual(practiceShape(good.sections), []);
 });
+
+test("a sentence that describes the slide's own table is reported; one that states the content is not", () => {
+  const { slideTalk } = require("../structure");
+  const { parse } = require("../parse");
+  const bad = parse([
+    "## 02. 가드레일이란?",
+    "",
+    "표는 넷이 지키는 쪽·작동 시점에서 어떻게 다른지를 나란히 둔 것이다.",
+    "",
+    "- 표의 오른쪽 열이 각 수단의 한계다.",
+    "- 지금까지 넷이 나왔다. 셋째 줄이 이 세션이다.",
+    "",
+  ].join("\n"));
+  const w = slideTalk(bad.sections);
+  assert.equal(w.length, 3);
+  assert.match(w[0], /무엇으로 만들었는지/);
+  assert.match(w[1], /열·행 위치/);
+  const good = parse([
+    "## 02. 가드레일이란?",
+    "",
+    "사람에게는 지키면 되는 규칙이지만, 에이전트에게는 **지켜질 확률**이다.",
+    "",
+    "**표 — 어긋난 실행을 막는 네 수단**",
+    "",
+    "| 수단 | 한계 |",
+    "|---|---|",
+    "| **가드레일** | 기계가 판정할 수 있는 규칙만 담는다 |",
+    "",
+    "- 위가 도메인 모델, 아래가 물리 모델이다.",
+    "",
+  ].join("\n"));
+  assert.deepEqual(slideTalk(good.sections), []);
+});
+
+test("a lead that counts is checked against the one table under it", () => {
+  const { countsMatchTable } = require("../structure");
+  const { parse } = require("../parse");
+  const table = ["", "| 위험 | 등급 |", "|---|---|", "| **a** | 높음 |", "| **b** | 높음 |", "| **c** | 중간 |", ""];
+  const bad = parse(["## 03. 위험", "", "막을 위험은 **다섯**이다.", ...table].join("\n"));
+  const w = countsMatchTable(bad.sections);
+  assert.equal(w.length, 1);
+  assert.match(w[0], /다섯=5 ↔ 3행/);
+  const good = parse(["## 03. 위험", "", "막을 위험은 **셋**이다.", ...table].join("\n"));
+  assert.deepEqual(countsMatchTable(good.sections), []);
+  // 세는 말이 아닌 쓰임("세 능력을 끊는 자리")은 보지 않는다.
+  const other = parse(["## 03. 위험", "", "끊는 자리는 능력마다 다르다.", ...table].join("\n"));
+  assert.deepEqual(countsMatchTable(other.sections), []);
+});

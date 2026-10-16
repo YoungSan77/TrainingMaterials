@@ -42,24 +42,31 @@ async function main() {
     process.exit((await check(inputs)) ? 1 : 0);
   }
   const opts = {};
-  let input = null;
+  const inputs = [];
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
-    if (a.startsWith("--")) {
-      opts[a] = args[++i];
-    } else {
-      input = a;
-    }
+    if (a.startsWith("--")) opts[a] = args[++i];
+    else inputs.push(a);
   }
-  if (!input) { console.error("사용법: node src/cli.js <session.md> | --check <session.md...>"); process.exit(1); }
-  const name = path.basename(input).replace(/\.[^.]+$/, "") + ".pptx";
-  const output = opts["--output"] ? path.resolve(opts["--output"]) : path.resolve(path.dirname(input), name);
-  try {
-    await generateFile(path.resolve(input), output, TEMPLATE_DIR);
-  } catch (ex) {
-    console.error("생성 중단: " + ex.message);
+  if (!inputs.length) { console.error("사용법: node src/cli.js <session.md...> | --check <session.md...>"); process.exit(1); }
+  // 원고를 여러 개 주면 모두 만든다. 예전에는 마지막 하나만 만들고 나머지는 조용히 건너뛰어,
+  // 일괄 재렌더링이 돌지 않았는데도 돈 것처럼 보였다.
+  if (inputs.length > 1 && opts["--output"]) {
+    console.error("--output은 원고 하나에만 쓴다.");
     process.exit(1);
   }
+  let failed = 0;
+  for (const input of inputs) {
+    const name = path.basename(input).replace(/\.[^.]+$/, "") + ".pptx";
+    const output = opts["--output"] ? path.resolve(opts["--output"]) : path.resolve(path.dirname(input), name);
+    try {
+      await generateFile(path.resolve(input), output, TEMPLATE_DIR);
+    } catch (ex) {
+      failed++;
+      console.error("생성 중단(" + input + "): " + ex.message);
+    }
+  }
+  if (failed) process.exit(1);
 }
 
 main();

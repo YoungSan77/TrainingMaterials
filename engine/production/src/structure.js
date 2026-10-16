@@ -100,6 +100,60 @@ function unboldedText(sections) {
   return warnings;
 }
 
+// A body sentence that describes the slide's own furniture instead of teaching ("표는 넷을 나란히 둔
+// 것이다", "표의 왼쪽은 …", "지금까지 넷이 나왔다", "셋째 줄이 이 세션이다"). The sentence before a
+// table or diagram says what the reader must pick or decide, not how to read the columns
+// (session-authoring-guide.md "6. 표와 목록", "문체와 용어"). Warning only.
+const SLIDE_TALK = [
+  { re: /(?:표|도식|그림)(?:는|은|이|가)[^.\n]{0,50}(?:둔|놓은|모은|정리한|나열한|적은|보인)\s*것이다/, what: "표·도식을 무엇으로 만들었는지 말하는 문장" },
+  { re: /(?:표|도식|그림)의\s*(?:왼쪽|오른쪽|가운데|첫|둘째|셋째|넷째|마지막)\s*(?:열|칸|줄|행)/, what: "표의 열·행 위치로 대신하는 설명" },
+  { re: /(?:첫째|둘째|셋째|넷째|마지막)\s*줄이\s/, what: "줄 번호로 내용을 가리키는 말" },
+  { re: /지금까지\s*\S{0,8}\s*(?:나왔다|보았다|다뤘다)/, what: "진행 순서를 말하는 문장" },
+  { re: /나란히\s*(?:둔|놓은|적은)\s*것이다/, what: "배치를 설명하는 문장" },
+];
+function slideTalk(sections) {
+  const warnings = [];
+  for (const section of sections) for (const block of section.blocks || []) {
+    if (!["text", "bullet"].includes(block.kind)) continue;
+    if (block.meta && (block.meta.quote || block.meta.anchor)) continue;
+    const text = String(block.text).replace(/\*\*/g, "").trim();
+    // 「표 — 제목」·「도식 — …」 표식과 코드·경로 표기는 본문 문장이 아니다.
+    if (/^(?:표|도식|다이어그램|인용문|주석|문서 형식|배치|페이지 분할|강사 노트)\s*(?:—|$)/.test(text)) continue;
+    for (const rule of SLIDE_TALK) {
+      if (!rule.re.test(text)) continue;
+      warnings.push(`슬라이드를 설명하는 문장(${rule.what}): "${section.title}"의 "${text.slice(0, 34)}"`);
+      break;
+    }
+  }
+  return warnings;
+}
+
+// A lead that counts ("막을 위험은 여섯이다") against the table under it: the two drift apart when a
+// row is added later (session-authoring-guide.md "세션 목표와 요약": 개수를 센 말은 목표·본문·요약
+// ·별첨에서 같아야 한다). Only checked when the topic has exactly one table. Warning only.
+// "열"(column·열다)과 "둘"(둘러싸다)은 세는 말이 아닌 쓰임이 많아 넣지 않는다.
+const COUNT_WORDS = { 셋: 3, 넷: 4, 다섯: 5, 여섯: 6, 일곱: 7, 여덟: 8, 아홉: 9 };
+function countsMatchTable(sections) {
+  const warnings = [];
+  for (const section of sections) {
+    const blocks = section.blocks || [];
+    const tables = blocks.filter((b) => b.kind === "table");
+    if (tables.length !== 1) continue;
+    const rows = tables[0].rows.length - 1;
+    const lead = blocks.find((b) => ["text", "bullet"].includes(b.kind) && !/^\*\*/.test(String(b.text).trim()));
+    if (!lead) continue;
+    const text = String(lead.text).replace(/\*\*/g, "");
+    const found = [];
+    for (const [word, n] of Object.entries(COUNT_WORDS)) {
+      // 세는 말로 쓰인 꼴만 본다 — "…는 여섯이다", "여섯 가지", "여섯 개".
+      if (new RegExp("(?:는|은|이|가)\\s*" + word + "(?:이다|다)|" + word + "\\s*(?:가지|개)(?![가-힣])").test(text)) found.push([word, n]);
+    }
+    if (!found.length || found.some(([, n]) => n === rows)) continue;
+    warnings.push(`센 개수와 표의 행 수가 다르다(${found.map(([w, n]) => w + "=" + n).join("·")} ↔ ${rows}행): "${section.title}"`);
+  }
+  return warnings;
+}
+
 // A bullet that starts with its own number ("- **① 승인**") shows a bullet glyph and a number
 // together; ordered items are a numbered list ("1. ") instead (session-authoring-guide.md "6. 표와
 // 목록"). Warning only.
@@ -165,4 +219,4 @@ function missingNotes(sections) {
   return sections.filter((s) => (!s.blocks || s.blocks.length) && !(s.notes && s.notes.length)).map((s) => `강사 노트가 없다: "${s.title}"`);
 }
 
-module.exports = { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, numberedBullets, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape, MAX_GOALS };
+module.exports = { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, slideTalk, countsMatchTable, numberedBullets, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape, MAX_GOALS };
