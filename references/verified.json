@@ -59,6 +59,10 @@
     "source": "https://www.thoughtworks.com/radar/techniques/ralph-loop",
     "date": "2026-10-13"
   },
+  "a globally peer-reviewed framework that identifies the most critical security risks facing autonomous and agentic ai systems": {
+    "source": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+    "date": "2026-10-14"
+  },
   "a large interface with an upstream system can eventually overwhelm the intent of the downstream model altogether, causing it to be modified to resemble the other system's model in an ad hoc fashion": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-08"
@@ -163,6 +167,14 @@
     "source": "larman-2004",
     "date": "2026-10-02"
   },
+  "access to your private data - one of the most common purposes of tools in the first place": {
+    "source": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
+    "date": "2026-10-15"
+  },
+  "access to your private data -one of the most common purposes of tools in the first place": {
+    "source": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
+    "date": "2026-10-14"
+  },
   "agentic systems often trade latency and cost for better task performance, and you should consider when this tradeoff makes sense": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-07"
@@ -235,6 +247,10 @@
     "source": "https://newsletter.kentbeck.com/p/augmented-coding-beyond-the-vibes",
     "date": "2026-10-08"
   },
+  "any probabilistic defense has a non-zero miss rate": {
+    "source": "https://www.anthropic.com/engineering/how-we-contain-claude",
+    "date": "2026-10-14"
+  },
   "architecture is about the important stuff. whatever that is": {
     "source": "확인 경위: 2단 PDF라 pdftotext가 단을 섞어 자동 대조가 되지 않는다. https://martinfowler.com/ieeeSoftware/whoNeedsArchitect.pdf 의 3쪽(IEEE Software, 2003-07/08) 지면을 직접 읽어 확인했다(2026-10-14).",
     "date": "2026-10-14"
@@ -259,6 +275,46 @@
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
   },
+  "asi01 - agent goal hijack": {
+    "source": "https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/",
+    "date": "2026-10-14"
+  },
+  "asi02 - tool misuse": {
+    "source": "https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/",
+    "date": "2026-10-14"
+  },
+  "asi03 - identity & privilege abuse": {
+    "source": "https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/",
+    "date": "2026-10-14"
+  },
+  "asi04 - agentic supply chain vulnerabilities": {
+    "source": "https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/",
+    "date": "2026-10-14"
+  },
+  "asi05 - unexpected code execution": {
+    "source": "https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/",
+    "date": "2026-10-14"
+  },
+  "asi06 - memory & context poisoning": {
+    "source": "https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/",
+    "date": "2026-10-14"
+  },
+  "asi07 - insecure inter-agent communication": {
+    "source": "https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/",
+    "date": "2026-10-14"
+  },
+  "asi08 - cascading failures": {
+    "source": "https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/",
+    "date": "2026-10-14"
+  },
+  "asi09 - human-agent trust exploitation": {
+    "source": "https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/",
+    "date": "2026-10-14"
+  },
+  "asi10 - rogue agents": {
+    "source": "https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/",
+    "date": "2026-10-14"
+  },
   "assign a responsibility so that cohesion remains high. use this to evaluate alternatives": {
     "source": "larman-2004",
     "date": "2026-10-08"
@@ -274,6 +330,10 @@
   "associations for which knowledge of the relationship needs to be preserved for some duration": {
     "source": "larman-2004",
     "date": "2026-10-02"
+  },
+  "attempting to eliminate negative risk entirely can be counterproductive in practice": {
+    "source": "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-1.pdf",
+    "date": "2026-10-14"
   },
   "avoid a waterfall-mindset big-modeling effort to make a thorough or \"correct\" domain model-it won't ever be either, and such over-modeling efforts lead to analysis paralysis, with little or no return on the investment": {
     "source": "larman-2004",
@@ -354,6 +414,14 @@
   "composition has a nicer property. the coupling is reduced by just having some smaller things you plug into something bigger": {
     "source": "https://www.artima.com/articles/design-principles-from-design-patterns",
     "date": "2026-10-08"
+  },
+  "computational - deterministic and fast, run by the cpu. tests, linters, type checkers, structural analysis": {
+    "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
+    "date": "2026-10-14"
+  },
+  "computational guides increase the probability of good results with deterministic tooling": {
+    "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
+    "date": "2026-10-14"
   },
   "confabulation: the production of confidently stated but erroneous or false content": {
     "source": "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf",
@@ -495,6 +563,14 @@
     "source": "larman-2004",
     "date": "2026-10-08"
   },
+  "exposure to untrusted content - any mechanism by which text (or images) controlled by a malicious attacker could become available to your llm": {
+    "source": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
+    "date": "2026-10-15"
+  },
+  "exposure to untrusted content -any mechanism by which text (or images) controlled by a malicious attacker could become available to your llm": {
+    "source": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
+    "date": "2026-10-14"
+  },
   "for high-stakes tasks, the human-in-the-loop (hitl) pattern is critical, creating a deliberate pause in the workflow to get approval from a person before an agent takes a significant action": {
     "source": "references/inputs/Google_IntroductionToAgents.pdf",
     "date": "2026-10-13"
@@ -591,6 +667,10 @@
     "source": "larman-2004",
     "date": "2026-10-02"
   },
+  "if your agent combines these three features, an attacker can easily trick it into accessing your private data and sending it to that attacker": {
+    "source": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
+    "date": "2026-10-14"
+  },
   "if your project has a robust, comprehensive and stable test suite agentic coding tools can fly with it. without tests? your agent might claim something works without having actually tested it at all": {
     "source": "https://simonwillison.net/2025/Oct/7/vibe-engineering/",
     "date": "2026-10-08"
@@ -622,6 +702,14 @@
   "in vibe coding you don't care about the code, just the behavior of the system": {
     "source": "https://newsletter.kentbeck.com/p/augmented-coding-beyond-the-vibes",
     "date": "2026-10-06"
+  },
+  "in web application security 95% is very much a failing grade": {
+    "source": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
+    "date": "2026-10-14"
+  },
+  "inferential - semantic analysis, ai code review, \"llm as judge\". typically run by a gpu or npu. slower and more expensive; results are more non-deterministic": {
+    "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
+    "date": "2026-10-14"
   },
   "instead of treating agents.md as the encyclopedia, we treat it as the table of contents": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
@@ -803,6 +891,10 @@
     "source": "https://www.thoughtworks.com/radar/techniques/ralph-loop",
     "date": "2026-10-13"
   },
+  "reads are allowed, writes are allowed inside the workspace, but network is denied by default": {
+    "source": "https://www.anthropic.com/engineering/how-we-contain-claude",
+    "date": "2026-10-14"
+  },
   "recognize that a change in the language is a change to the model": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-08"
@@ -825,6 +917,14 @@
   },
   "rigidity is the tendency for software to be difficult to change, even in simple ways. every change causes a cascade of subsequent changes in dependent modules": {
     "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
+    "date": "2026-10-14"
+  },
+  "risk refers to the composite measure of an event's probability of occurring and the magnitude or degree of the consequences of the corresponding event": {
+    "source": "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-1.pdf",
+    "date": "2026-10-14"
+  },
+  "risk tolerance refers to the organization's or ai actor's … readiness to bear the risk in order to achieve its objectives": {
+    "source": "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-1.pdf",
     "date": "2026-10-14"
   },
   "routing classifies an input and directs it to a specialized followup task": {
@@ -927,6 +1027,14 @@
     "source": "https://www.iiba.org/knowledgehub/the-business-analysis-standard/4-implementing-business-analysis/4-4-understanding-requirements-and-designs/",
     "date": "2026-10-02"
   },
+  "the ability to externally communicate in a way that could be used to steal your data": {
+    "source": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
+    "date": "2026-10-14"
+  },
+  "the agentic top 10 distils this new reality into a framework the world can use with actionable mitigations and new architectural blueprints": {
+    "source": "https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/",
+    "date": "2026-10-14"
+  },
   "the autonomous nature of agents means higher costs, and the potential for compounding errors": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-07"
@@ -962,6 +1070,10 @@
   "the domain model is a visualization of noteworthy domain concepts and vocabulary. where are those terms found? some are in the use cases": {
     "source": "larman-2004",
     "date": "2026-10-02"
+  },
+  "the engineering question becomes how to cap the blast radius": {
+    "source": "https://www.anthropic.com/engineering/how-we-contain-claude",
+    "date": "2026-10-14"
   },
   "the entity-relationship model adopts the more natural view that the real world consists of entities and relationships": {
     "source": "https://www.csc.lsu.edu/~chen/pdf/erd-5-pages.pdf",
@@ -1014,6 +1126,10 @@
   "the requirements document turned this small bug into 4 \"user stories\" with a total of 16 acceptance criteria": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
     "date": "2026-10-07"
+  },
+  "the result was an 84% reduction in permission prompts, and we open-sourced the runtime, so the boundary is auditable": {
+    "source": "https://www.anthropic.com/engineering/how-we-contain-claude",
+    "date": "2026-10-14"
   },
   "the second way is about creating the right to left feedback loops. the goal of almost any process improvement initiative is to shorten and amplify feedback loops so necessary corrections can be continually made": {
     "source": "https://itrevolution.com/articles/the-three-ways-principles-underpinning-devops/",
@@ -1074,6 +1190,10 @@
   "think about how much effort goes into human-computer interfaces (hci), and plan to invest just as much effort in creating good": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-13"
+  },
+  "think of guardrails as a layered defense mechanism. while a single one is unlikely to provide sufficient protection, using multiple, specialized guardrails together creates more resilient agents": {
+    "source": "references/inputs/a-practical-guide-to-building-agents.pdf",
+    "date": "2026-10-14"
   },
   "this enables progressive disclosure: agents start with a small, stable entry point and are taught where to look next, rather than being overwhelmed up front": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
@@ -1163,6 +1283,10 @@
     "source": "https://www.thoughtworks.com/radar/techniques/mcp-by-default",
     "date": "2026-10-13"
   },
+  "we constrain where and how an agent can act with process sandboxes, vms, filesystem boundaries, and egress controls": {
+    "source": "https://www.anthropic.com/engineering/how-we-contain-claude",
+    "date": "2026-10-14"
+  },
   "we decided to apply all of this behaviour- driven thinking to defining requirements": {
     "source": "references/inputs/north-2006-introducing-bdd.txt",
     "date": "2026-10-07"
@@ -1178,6 +1302,14 @@
   "we recommend extensive testing in sandboxed environments, along with the appropriate guardrails": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-13"
+  },
+  "we see sandboxing as a sensible default rather than an optional enhancement": {
+    "source": "https://www.thoughtworks.com/radar/techniques/sandboxed-execution-for-coding-agents",
+    "date": "2026-10-14"
+  },
+  "we still don't know how to 100% reliably prevent this from happening": {
+    "source": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
+    "date": "2026-10-14"
   },
   "we want to give the customer the essence of the whole cake, and the best way is to slice vertically through the layers": {
     "source": "references/inputs/wake-2003-invest.txt",
