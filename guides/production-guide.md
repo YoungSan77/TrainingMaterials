@@ -28,7 +28,13 @@ node src/cli.js ../../courses/ooad/sessions/s01.md
 
 제목·출처·템플릿 같은 presentation metadata를 따로 받지 않는다. 세션명은 원고의 헤더에서 읽는다.
 
-출력은 입력 Markdown과 같은 디렉터리에 같은 basename으로 생성한다(`s01.md` → `s01.pptx`). `--output`은 결과를 다른 경로에 두어 비교할 때만 쓴다.
+출력은 입력 Markdown과 같은 디렉터리에 같은 basename으로 생성한다(`s01.md` → `s01.pptx`). `--output`은 결과를 다른 경로에 두어 비교할 때만 쓰며, 원고 하나에만 쓴다.
+
+원고를 **여러 개 주면 모두 만든다**(한 과정을 다시 렌더링할 때). 하나라도 실패하면 그 원고를 밝히고 종료 코드 1로 끝낸다.
+
+```bash
+node src/cli.js ../../courses/ai-native/sessions/s0*.md
+```
 
 ## 템플릿
 
@@ -234,10 +240,11 @@ Anchor Message는 Production 전용 시각 타입이 아니다. Course Design의
   - "?"가 없는 의문문 topic 제목·표 칸 — "~란·~인가·~는가" 등으로 끝나는 것(`structure.js`의 `unmarkedQuestionTitles`).
   - 별첨 밖의 실습 답 "(안)" topic(`structure.js`의 `answersOutsideAppendix`).
   - 실습 topic에 빠진 구성 — 투입물(첫 실습은 서비스 개요)·프롬프트·점검 항목·결과물(`structure.js`의 `practiceShape`). 다른 모양으로 쓴 실습은 렌더 결과만으로는 드러나지 않는다.
-- 전자 사본이 없어 **사람이 인쇄본에서 확인한** 인용은 `node tools/verify-quote.js --attest "<확인 경위>" "<영문 인용>"`로 기록한다. 기록에 확인 경위가 남아 나중에 근거를 되짚을 수 있다. 확인하지 않고 쓰는 수단이 아니다.
-- 원전을 구하지 못해 확인이 **사용자 조치를 기다리는** 인용은 `references/pending-sources.json`에 사유·대기 사항과 함께 적는다(없으면 만들고, 해결되면 지운다). Production은 그대로 경고하므로 완료 기준(경고 0개)은 충족되지 않으며, 턴 종료 검사(`tools/session-check-hook.js`)만 같은 항목을 반복해 막지 않는다 — 경고를 감추는 수단이 아니다.
+  - 슬라이드 자신을 설명하는 본문 문장 — "표는 … 둔 것이다", "표의 오른쪽 열이 …", "셋째 줄이 …", "지금까지 … 나왔다"(`structure.js`의 `slideTalk`). 고치는 방법은 `session-authoring-guide.md`의 「6. 표와 목록」에 있다. 강사 노트는 검사하지 않는다.
   - 무시한 `**배치 — 좌우**` — 본문이 왼쪽 반을 넘거나 도식이 오른쪽 반에서 7pt보다 작아질 때(`builder.js`의 `layoutWarnings`).
   - 앞 세션의 코드와 값이 다른 `enum` — 관통 사례의 공통 식별자가 세션 사이에서 바뀐 것(`codeSource.js`). 뒤 세션이 값을 더하는 것(진화)은 허용한다. 분석 코드의 한글 enum(`주문상태`)과 설계 코드의 영문 enum(`OrderStatus`)은 같은 과정 `course-design.md`의 **영한 용어집** 표로 대응시켜 비교한다. 용어집에 없는 한글 값은 대응을 확인할 수 없다고 보고한다.
+- 전자 사본이 없어 **사람이 인쇄본에서 확인한** 인용은 `node tools/verify-quote.js --attest "<확인 경위>" "<영문 인용>"`로 기록한다. 기록에 확인 경위가 남아 나중에 근거를 되짚을 수 있다. 확인하지 않고 쓰는 수단이 아니다.
+- 원전을 구하지 못해 확인이 **사용자 조치를 기다리는** 인용은 `references/pending-sources.json`에 사유·대기 사항과 함께 적는다(없으면 만들고, 해결되면 지운다). Production은 그대로 경고하므로 완료 기준(경고 0개)은 충족되지 않으며, 턴 종료 검사(`tools/session-check-hook.js`)만 같은 항목을 반복해 막지 않는다 — 경고를 감추는 수단이 아니다.
 
 ## Visual layout 및 가독성
 
