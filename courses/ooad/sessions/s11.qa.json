@@ -4,5 +4,5 @@
   "checked_blocks": 54,
   "visual_status": "NOT_VERIFIED",
   "errors": [],
-  "warnings": []
+  "warnings": ["슬라이드 24: \"23. 요약\" 본문이 한 장의 용량을 5% 넘겼다. 글을 줄인다."]
 }
