@@ -26,6 +26,22 @@ function sparseContinuations(m) {
   return warnings;
 }
 
+// 한 장의 본문 용량(flush()의 capacity)을 넘겨 담은 장. 짧은 꼬리가 continuation 슬라이드가 되지
+// 않게 하는 여유(ORPHAN_TOLERANCE)가 마지막 장에도 적용되어, 요약처럼 나눌 수 없는 topic은 글이
+// 넘친 채로 한 장에 담긴다. 넘친 것은 원고에서 줄인다(session-authoring-guide.md 「세션 목표와 요약」).
+function overfullPages(m) {
+  const CAPACITY = 450;
+  const warnings = [];
+  m.pages.forEach((p, i) => {
+    const cost = p.textCost || 0;
+    if (p.isToc || cost <= CAPACITY) return;
+    const heading = String(p.heading || "").split("\n")[0];
+    warnings.push("슬라이드 " + (i + 1) + ": \"" + heading + "\" 본문이 한 장의 용량을 "
+      + Math.round(((cost / CAPACITY) - 1) * 100) + "% 넘겼다. 글을 줄인다.");
+  });
+  return warnings;
+}
+
 async function generateFile(inputPath, outputPath, templatePath) {
   need(fs.existsSync(inputPath) && fs.statSync(inputPath).isFile(), "입력 파일이 없다: " + inputPath);
   need(path.resolve(inputPath) !== path.resolve(outputPath), "입력과 출력 경로는 달라야 한다.");
@@ -61,7 +77,7 @@ async function generateFile(inputPath, outputPath, templatePath) {
       const pt = builder.pictureTextPt(pic, pic.bounds);
       if (pt < builder.MIN_PT - 0.05) refs.warnings.push(`슬라이드 ${i + 1}: 도식 글자가 ${pt.toFixed(1)}pt로 ${builder.MIN_PT}pt보다 작다.`);
     }));
-    const warnings = refs.warnings.concat(sparseContinuations(m));
+    const warnings = refs.warnings.concat(sparseContinuations(m), overfullPages(m));
     const errors = inspected.errors.concat(refs.errors);
     const report = { errors, slides: inspected.slides, blocks: inspected.blocks, json: () => reportJson(errors, inspected.slides, inspected.blocks, warnings) };
     const filename = path.basename(outputPath);

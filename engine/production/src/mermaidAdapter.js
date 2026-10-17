@@ -64,12 +64,25 @@ function runMmdc(sourcePath, outPath, puppeteerPath, extra) {
   });
 }
 
+// 렌더된 SVG에서 도식의 실제 크기(CSS px)와 기본 글자 크기를 읽는다. mmdc는 어떤 도식이든 같은
+// 픽셀 너비의 캔버스에 맞춰 그리므로, PNG의 픽셀 수로는 글자가 얼마나 작아졌는지 알 수 없다
+// (가로로 긴 도식일수록 같은 캔버스 안에서 글자가 작아진다). 글자 크기는 SVG 자신의 단위로 재야
+// 한다 — visualFit.naturalSize()가 이 둘로 10pt에 해당하는 표시 너비를 구한다.
+function svgMetrics(svg) {
+  const viewBox = /viewBox="([\d.\-eE+ ]+)"/.exec(svg);
+  const parts = viewBox ? viewBox[1].trim().split(/\s+/).map(Number) : [];
+  const width = parts.length === 4 && parts[2] > 0 ? parts[2] : 0;
+  const base = /#[\w-]+\{[^}]*font-size:\s*([\d.]+)px/.exec(svg);
+  return { svgWidth: width, fontPx: base ? Number(base[1]) : 16 };
+}
+
 async function renderMermaid({ source }) {
   if (!source || !String(source).trim()) throw new Error("Mermaid source가 비어 있다");
   fs.mkdirSync(CACHE_DIR, { recursive: true });
   const hash = crypto.createHash("sha1").update("v12-uniform-node\n" + source).digest("hex").slice(0, 16);
   const pngPath = path.join(CACHE_DIR, hash + ".png");
-  if (!fs.existsSync(pngPath)) {
+  const metricsPath = path.join(CACHE_DIR, hash + ".json");
+  if (!fs.existsSync(pngPath) || !fs.existsSync(metricsPath)) {
     // Per-process temp names: concurrent renders of the same diagram (parallel test files, two
     // decks) share `hash`, and a shared temp file could be deleted or rewritten under the other.
     const tmp = path.join(CACHE_DIR, `${hash}.${process.pid}.${crypto.randomBytes(4).toString("hex")}`);
@@ -88,8 +101,12 @@ async function renderMermaid({ source }) {
       // "neutral" theme avoids the default theme's colored node-fill boxes behind labels, so slide
       // text next to the diagram doesn't read as inconsistent "some labels have a background".
       fs.writeFileSync(sourcePath, styleSource(source, box), "utf8");
+      // 같은 원본을 SVG로 한 번 더 그려 도식 자신의 너비와 글자 크기를 잰다(svgMetrics).
+      runMmdc(sourcePath, svgPath, puppeteerPath, []);
+      const metrics = svgMetrics(fs.readFileSync(svgPath, "utf8"));
       runMmdc(sourcePath, tmpPng, puppeteerPath, ["-b", "white", "-s", "2"]);
       fs.renameSync(tmpPng, pngPath);
+      fs.writeFileSync(metricsPath, JSON.stringify(metrics), "utf8");
     } catch (error) {
       const detail = String(error.stderr || error.stdout || error.message || error).trim().slice(0, 2000);
       throw new Error("Mermaid 렌더 실패: " + detail);
@@ -103,7 +120,8 @@ async function renderMermaid({ source }) {
   const data = fs.readFileSync(pngPath);
   const size = pngSize(data);
   if (!size.width || !size.height) throw new Error("Mermaid 렌더 출력이 유효한 PNG가 아니다");
-  return { path: pngPath, data, width: size.width, height: size.height };
+  const metrics = fs.existsSync(metricsPath) ? JSON.parse(fs.readFileSync(metricsPath, "utf8")) : {};
+  return { path: pngPath, data, width: size.width, height: size.height, svgWidth: metrics.svgWidth || 0, fontPx: metrics.fontPx || 0 };
 }
 
-module.exports = { renderMermaid, pngSize, CACHE_DIR, styleLabel, styleSource, maxNodeLabelBox };
+module.exports = { renderMermaid, pngSize, CACHE_DIR, styleLabel, styleSource, maxNodeLabelBox, svgMetrics };

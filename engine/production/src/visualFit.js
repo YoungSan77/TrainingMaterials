@@ -39,7 +39,12 @@ const TARGET_PT = 10;
 // Smallest diagram text allowed when a diagram must shrink to fit (production-guide.md).
 const MIN_PT = 7;
 function naturalSize(image, pt) {
-  const w = image.kind === "mermaid" ? (pt * image.width) / (24 * 96)
+  // mermaid: 도식 자신의 너비(SVG 단위)와 글자 크기로 잰다. mmdc가 어떤 도식이든 같은 픽셀 너비로
+  // 그리기 때문에 PNG의 픽셀 수로는 글자 크기를 알 수 없다(mermaidAdapter.svgMetrics). 옛 캐시처럼
+  // 그 값이 없을 때만 예전 상수로 돌아간다.
+  const w = image.kind === "mermaid" ? (image.svgWidth && image.fontPx
+      ? (pt * image.svgWidth) / (72 * image.fontPx)
+      : (pt * image.width) / (24 * 96))
     : image.kind === "plantuml" ? (pt * image.width) / (39 * 96)
     // svg: K is this specific SVG's own smallest authored font-size (svgAdapter.js), not a fixed
     // constant -- unlike mermaid/plantuml's internally-consistent renderers, an authored SVG's

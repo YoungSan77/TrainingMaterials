@@ -230,6 +230,7 @@ Anchor Message는 Production 전용 시각 타입이 아니다. Course Design의
 - `node src/cli.js --check <원고…>`는 여러 원고를 검사만 하고 덱·`.qa.json`을 남기지 않는다. 세션 번호를 바꾼 뒤 참조하는 세션을 함께 검사할 때 쓴다.
 - 다음은 **경고**로 보고한다. 경고는 `.qa.json`의 `warnings`와 콘솔에 출력하며 생성을 중단하지 않는다. 원고를 고쳐 0개로 만드는 것이 기준이다.
   - 본문이 한두 줄뿐인 continuation 슬라이드(표·visual·코드 없음).
+  - **한 장의 본문 용량을 넘긴 슬라이드**(`generate.js`의 `overfullPages`). 짧은 꼬리가 continuation 슬라이드가 되지 않게 두는 여유(`builder.js`의 `ORPHAN_TOLERANCE`) 때문에, 넘친 글도 한 장에 담긴 채 렌더된다. 경고는 몇 % 넘겼는지를 함께 적으며, 원고에서 줄 수를 줄여 없앤다(`session-authoring-guide.md`의 「세션 목표와 요약」).
   - 한 줄을 넘는 표 셀(「표의 행 높이와 열 너비」, `structure.js`).
   - 7pt 미만으로 줄어든 도식(「Visual layout 및 가독성」, `generate.js`).
   - 도식 라벨의 topic 번호(`structure.js`).
@@ -257,6 +258,7 @@ Anchor Message는 Production 전용 시각 타입이 아니다. Course Design의
 - 도식만의 슬라이드에서도 7pt 미만이면 영역에 맞춘 출력은 **진단용**이며 **경고**로 보고한다(`generate.js`). 경고가 남은 원고는 완료할 수 없다. 이 경고는 도식의 **밀도**에 대한 원고 검토 질문이다 — 한 도식이 서로 다른 질문을 함께 담았다면 SA가 의미 단위로 나눈다(`session-authoring-guide.md`의 「8. Visual」). 크기를 맞추려고 노드·관계를 지우지 않는다.
 - 표 아래의 남은 영역에는 도식이 7pt 이상으로 들어갈 때만 쌓는다. 아니면 도식은 다음 슬라이드로 간다. 코드 위·옆의 도식도 10 → 9 → 8 → 7pt 중 코드가 한 장에 들어가는 가장 큰 크기를 쓴다.
 - Mermaid, PlantUML, Chart, Image에 같은 가독성 기준(최소 크기와 축소 규칙)을 적용한다.
+- **글자 크기는 도식 자신의 단위로 잰다.** mmdc는 어떤 Mermaid 도식이든 **같은 픽셀 너비의 캔버스**에 맞춰 그리므로, PNG의 픽셀 수로 글자 크기를 추정하면 가로로 긴 도식일수록 실제보다 크게 잡힌다(한 줄로 늘어선 도식이 3pt로 그려져도 10pt로 보고되었다, 2026-10-17). Mermaid는 렌더한 SVG의 `viewBox` 너비와 그 SVG의 기본 글자 크기(px)로 10pt에 해당하는 표시 너비를 구한다(`mermaidAdapter.svgMetrics` → `visualFit.naturalSize`). SVG는 자기 원본의 최소 글자 크기를, PlantUML은 렌더러의 고정 비율을 쓴다.
 - 한 도식 안에서 같은 종류의 박스(클래스·열거형 — 패키지 다이어그램 안의 클래스 포함, 상태, 유스케이스, 시퀀스 참여자, Mermaid 노드)는 라벨 길이에 따라 제각각 크기가 되지 않게 **가장 넓은 박스의 폭과 가장 높은 박스의 높이**에 맞춘다. 글자 크기는 바꾸지 않고 박스만 넓힌다. 클래스는 속성·오퍼레이션 칸의 줄 수도 맞춘다. 액터 아이콘, subgraph·경계 사각형, `-`로 두 줄이 되는 라벨처럼 다른 종류이거나 채우기로 배치가 틀어지는 요소는 제외한다. 구현은 `engine/production/src/uniformSize.js`와 각 adapter의 2단계 렌더(측정 → 재렌더)다.
 - 클래스 박스는 이름이 두 글자여도 **한글 4글자 폭 이상**을 확보한다.
 - 클래스·패키지 다이어그램은 원형 표시(C·E·I·A)를 숨긴다(`hide circle`, `plantumlAdapter.js`). 원고에 쓰지 않는다. 열거형·인터페이스는 원고의 `«enumeration»`·`«interface»` 스테레오타입으로 구분한다.
