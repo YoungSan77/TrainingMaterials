@@ -588,3 +588,28 @@ test("a summary citation written as a bullet renders 18pt Korean + 10pt original
   assert.equal(bulletCitation("항목 하나, 항목 둘, 항목 셋"), null, "prose without an English original stays a bullet");
   assert.equal(bulletCitation('요약, "English original."'), null, "no label: not a citation");
 });
+
+test("marked summary citation keeps Korean after commas at 18pt and only original/source at 10pt", () => {
+  const page = fixturePage(13);
+  const korean = "맥락 구성은 **반복적인 작업**이며, 모델에 무엇을 전달할지 결정할 때마다 정보를 선별한다";
+  paragraphs(page, 13, [{ ...textBlock(`${korean}, "Iterative, with information selected each time.", [Example 2026]`), meta: { quote: true } }], false);
+  const p = child(body(shape(page.doc, 13)), A, "p");
+  const runs = kids(p, A, "r").map((r) => ({ text: textOf(r), sz: child(r, A, "rPr").getAttribute("sz") }));
+  const boundary = runs.findIndex((r) => r.text === ", ");
+  assert.ok(boundary > 0);
+  assert.equal(runs.slice(0, boundary).map((r) => r.text).join(""), korean.replace(/\*\*/g, ""));
+  assert.ok(runs.slice(0, boundary).every((r) => r.sz === "1800"), "all Korean, including punctuation and bold spans, stays 18pt");
+  assert.ok(runs.slice(boundary).every((r) => r.sz === "1000"));
+  assert.equal(runs.map((r) => r.text).join(""), korean.replace(/\*\*/g, "") + ', "Iterative, with information selected each time.", [Example 2026]');
+});
+
+test("marked source-only citation splits at reference labels, preserving Korean commas", () => {
+  const page = fixturePage(13);
+  paragraphs(page, 13, [{ ...textBlock("규칙을 확인하고, **사례를 검토한다**, [Example 2026, 재인용], [Other 2025]"), meta: { quote: true } }], false);
+  const p = child(body(shape(page.doc, 13)), A, "p");
+  const runs = kids(p, A, "r").map((r) => ({ text: textOf(r), sz: child(r, A, "rPr").getAttribute("sz") }));
+  const boundary = runs.findIndex((r) => r.text === ", ");
+  assert.equal(runs.slice(0, boundary).map((r) => r.text).join(""), "규칙을 확인하고, 사례를 검토한다");
+  assert.ok(runs.slice(0, boundary).every((r) => r.sz === "1800"));
+  assert.deepEqual(runs.slice(boundary), [{ text: ", ", sz: "1000" }, { text: "[Example 2026, 재인용], [Other 2025]", sz: "1000" }]);
+});

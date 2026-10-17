@@ -115,18 +115,20 @@ function paragraphs(page, id, blocks, toc) {
     // one -- 한글 문장 또는 통계, 저자, 출처 (no quotes at all around the Korean part). Both forms
     // render as 18pt Korean + 10pt English/source (guides/production-guide.md "Typography 계약").
     const markedQuote = block.meta && (block.meta.quote || block.meta.anchor);
-    // Straight quotes ("...") -- matches the actual authored format in s01.md. This used to look
-    // for curly quotes ("..."), which no longer appear anywhere in the source, so this branch
-    // silently never matched and every citation fell through to markedPartsB's plain top-level-
-    // comma split -- which cuts at the FIRST comma even when it's inside the Korean sentence
-    // itself (e.g. "...논리적·물리적, 정적·동적...", not the real Korean/English boundary),
-    // stranding the tail of the Korean text in the 10pt run instead of the 18pt one.
+    // Recognise both quoted translations and unquoted summaries before the legacy comma split.
+    // A comma inside Korean prose is punctuation, not the start of the 10pt English/source zone.
     const bulletCite = !markedQuote && block.kind === "bullet" ? bulletCitation(block.text) : null;
-    const markedPartsA = (markedQuote && citationParts(block.text)) || bulletCite;
+    const markedPartsA = (markedQuote && (citationParts(block.text) || summaryParts(block.text))) || bulletCite;
     let markedPartsB = null;
     if (markedQuote && !markedPartsA) {
-      const idx = topLevelSplit(block.text);
-      if (idx > 0) markedPartsB = { korean: block.text.slice(0, idx).trim(), rest: block.text.slice(idx + 1).trim() };
+      // Without an English original, the trailing reference labels delimit the source.
+      // Preserve Korean commas and all labels, including commas inside a label.
+      const labeled = /^(.+?)\s*,\s*(\[[^\]"]+\](?:\s*[,·]\s*\[[^\]"]+\])*)\s*$/.exec(block.text);
+      if (labeled) markedPartsB = { korean: labeled[1].trim(), rest: labeled[2].trim() };
+      else {
+        const idx = topLevelSplit(block.text);
+        if (idx > 0) markedPartsB = { korean: block.text.slice(0, idx).trim(), rest: block.text.slice(idx + 1).trim() };
+      }
     }
     const anchor = /^(?:\*\*)?(?:Anchor Message|앵커 메시지)(?:\*\*)?\s*[:—-]\s*(.+)$/i.exec(block.text);
     const quoteText = anchor ? anchor[1] : block.text;
