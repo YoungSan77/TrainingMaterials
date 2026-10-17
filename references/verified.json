@@ -103,6 +103,10 @@
     "source": "https://www.wirfs-brock.com/PDFs/A_Brief-Tour-of-RDD.pdf",
     "date": "2026-10-08"
   },
+  "a robust framework generates detailed traces and logs, exposing the entire reasoning trajectory: the model's internal monologue, the tool it chose, the parameters it generated, and the result it observed": {
+    "source": "/Users/YoungSan/dev/TrainingMaterials/references/inputs/Google_IntroductionToAgents.pdf",
+    "date": "2026-10-17"
+  },
   "a software engineering team's primary job is no longer to write code, but to design environments, specify intent, and build feedback loops": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
     "date": "2026-10-06"
@@ -179,6 +183,10 @@
     "source": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
     "date": "2026-10-14"
   },
+  "adding full production tracing let us diagnose why agents failed and fix issues systematically": {
+    "source": "https://www.anthropic.com/engineering/multi-agent-research-system",
+    "date": "2026-10-17"
+  },
   "agentic systems often trade latency and cost for better task performance, and you should consider when this tradeoff makes sense": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-07"
@@ -186,6 +194,10 @@
   "agents are most effective in environments with strict boundaries and predictable structure": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
     "date": "2026-10-12"
+  },
+  "agents are stateful and errors compound. agents can run for long periods of time, maintaining state across many tool calls": {
+    "source": "https://www.anthropic.com/engineering/multi-agent-research-system",
+    "date": "2026-10-17"
   },
   "agents can be used for open-ended problems where it's difficult or impossible to predict the required number of steps, and where you can't hardcode a fixed path": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
@@ -398,6 +410,10 @@
   "code solutions are verifiable through automated tests; agents can iterate on solutions using test results as feedback; the problem space is well-defined and structured; and output quality can be measured objectively": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-07"
+  },
+  "codex replicates patterns that already exist in the repository-even uneven or suboptimal ones. over time, this inevitably leads to drift": {
+    "source": "/Users/YoungSan/dev/TrainingMaterials/references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-17"
   },
   "codex works on a fully isolated version of that app": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
@@ -703,6 +719,10 @@
     "source": "https://simonwillison.net/2025/Oct/7/vibe-engineering/",
     "date": "2026-10-08"
   },
+  "ignoring durability in agent workflows is an anti-pattern we've seen across many teams, resulting in systems that work in development but fail in production": {
+    "source": "https://www.thoughtworks.com/radar/techniques/ignoring-durability-in-agent-workflows",
+    "date": "2026-10-17"
+  },
   "implement the behaviour described by each documented example, starting with an automated test to guide the development of the code": {
     "source": "https://cucumber.io/docs/bdd/",
     "date": "2026-10-08"
@@ -895,6 +915,10 @@
     "source": "http://www.melconway.com/Home/Committees_Paper.html",
     "date": "2026-10-14"
   },
+  "our team used to spend every friday (20% of the week) cleaning up \"ai slop.\" unsurprisingly, that didn't scale": {
+    "source": "/Users/YoungSan/dev/TrainingMaterials/references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-17"
+  },
   "our telemetry showed users approved roughly 93% of permission prompts": {
     "source": "https://www.anthropic.com/engineering/how-we-contain-claude",
     "date": "2026-10-13"
@@ -950,6 +974,10 @@
   "requirements are capabilities and conditions to which the system … must conform": {
     "source": "larman-2004",
     "date": "2026-10-02"
+  },
+  "restarts are expensive and frustrating for users. instead, we built systems that can resume from where the agent was when the errors occurred": {
+    "source": "https://www.anthropic.com/engineering/multi-agent-research-system",
+    "date": "2026-10-17"
   },
   "reuse or modify existing models. this is the first, best, and usually easiest approach": {
     "source": "larman-2004",
@@ -1063,6 +1091,10 @@
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
   },
+  "teams can lose track of design intent and hidden coupling. this, combined with rising technical debt, creates a reinforcing loop that makes systems progressively harder to reason about": {
+    "source": "https://www.thoughtworks.com/radar/techniques/codebase-cognitive-debt",
+    "date": "2026-10-17"
+  },
   "teams will often stuff a laundry list of edge cases into a prompt in an attempt to articulate every possible rule": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
@@ -1098,6 +1130,10 @@
   "the component structure cannot be designed from the top down. it is not one of the first things about the system that is designed, but rather evolves as the system grows and changes": {
     "source": "https://raw.githubusercontent.com/sdcuike/Clean-Code-Collection-Books/master/Clean%20Architecture%20A%20Craftsman%27s%20Guide%20to%20Software%20Structure%20and%20Design.pdf",
     "date": "2026-10-05"
+  },
+  "the core challenge of long-running agents is that they must work in discrete sessions, and each new session begins with no memory of what came before": {
+    "source": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+    "date": "2026-10-17"
   },
   "the cost of engineering protection at evolution points can be higher than reworking a simple design": {
     "source": "larman-2004",
@@ -1375,6 +1411,10 @@
     "source": "https://www.thoughtworks.com/radar/techniques/sandboxed-execution-for-coding-agents",
     "date": "2026-10-14"
   },
+  "we started encoding what we call \"golden principles\" directly into the repository and built a recurring cleanup process": {
+    "source": "/Users/YoungSan/dev/TrainingMaterials/references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-17"
+  },
   "we still don't know how to 100% reliably prevent this from happening": {
     "source": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
     "date": "2026-10-14"
@@ -1398,6 +1438,10 @@
   "wired into agentic workflows so that failures trigger timely self-correction": {
     "source": "https://www.thoughtworks.com/radar/techniques/feedback-sensors-for-coding-agents",
     "date": "2026-10-16"
+  },
+  "without effective mitigations, minor system failures can be catastrophic for agents": {
+    "source": "https://www.anthropic.com/engineering/multi-agent-research-system",
+    "date": "2026-10-17"
   },
   "without the planner, the generator under-scoped": {
     "source": "https://www.anthropic.com/engineering/harness-design-long-running-apps",
