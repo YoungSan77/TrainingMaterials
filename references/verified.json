@@ -187,6 +187,10 @@
     "source": "https://www.anthropic.com/engineering/multi-agent-research-system",
     "date": "2026-10-17"
   },
+  "agent evaluations typically combine three types of graders: code-based, model-based, and human": {
+    "source": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+    "date": "2026-10-17"
+  },
   "agentic systems often trade latency and cost for better task performance, and you should consider when this tradeoff makes sense": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-07"
@@ -234,6 +238,10 @@
   "always follow the tdd cycle: red → green → refactor": {
     "source": "https://newsletter.kentbeck.com/p/augmented-coding-beyond-the-vibes",
     "date": "2026-10-08"
+  },
+  "an agent processes a prompt, and a grader checks if the output matches expectations": {
+    "source": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+    "date": "2026-10-17"
   },
   "an association is a relationship between classes (more precisely, instances of those classes) that indicates some meaningful and interesting connection": {
     "source": "larman-2004",
@@ -355,6 +363,10 @@
     "source": "larman-2004",
     "date": "2026-10-08"
   },
+  "baselines and regression tests for free: latency, token usage, cost per task, and error rates can be tracked on a static bank of tasks": {
+    "source": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+    "date": "2026-10-17"
+  },
   "basically: fitness functions": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
     "date": "2026-10-16"
@@ -362,6 +374,10 @@
   "bdd is a way for software teams to work that closes the gap between business people and technical people by: encouraging collaboration across roles to build shared understanding of the problem to be solved": {
     "source": "https://cucumber.io/docs/bdd/",
     "date": "2026-10-07"
+  },
+  "because they can quickly go stale as models improve": {
+    "source": "https://www.anthropic.com/engineering/harness-design-long-running-apps",
+    "date": "2026-10-17"
   },
   "before committing to building an agent, validate that your use case can meet these criteria clearly. otherwise, a deterministic solution may suffice": {
     "source": "references/inputs/a-practical-guide-to-building-agents.pdf",
@@ -378,6 +394,10 @@
   "but ultimately the agent ignored the notes that these were descriptions of existing classes, it just took them as a new specification and generated them all over again, creating duplicates": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
     "date": "2026-10-07"
+  },
+  "capability or \"quality\" evals ask, \"what can this agent do well?\" they should start at a low pass rate, targeting tasks the agent struggles with": {
+    "source": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+    "date": "2026-10-17"
   },
   "card, conversation, confirmation": {
     "source": "https://ronjeffries.com/xprog/articles/expcardconversationconfirmation/",
@@ -494,6 +514,10 @@
   "descriptions of communicating objects and classes that are customized to solve a general design problem in a particular context": {
     "source": "https://cs.lmu.edu/~ray/notes/designpatterns/",
     "date": "2026-10-14"
+  },
+  "developers expected ai to speed them up by 24%, and even after experiencing the slowdown, they still believed ai had sped them up by 20%": {
+    "source": "https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/",
+    "date": "2026-10-17"
   },
   "do not model the states of a concept x as subclasses of x": {
     "source": "larman-2004",
@@ -855,6 +879,10 @@
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-08"
   },
+  "model risks (or risk from malfunction): confabulation; dangerous or violent recommendations; data privacy; value chain and component integration; harmful bias, and homogenization": {
+    "source": "https://doi.org/10.6028/NIST.AI.600-1",
+    "date": "2026-10-17"
+  },
   "most coding tasks involve fewer truly parallelizable tasks than research": {
     "source": "https://www.anthropic.com/engineering/multi-agent-research-system",
     "date": "2026-10-13"
@@ -966,6 +994,10 @@
   "refactoring … is a structured, disciplined method to rewrite or restructure existing code without changing its external behavior": {
     "source": "larman-2004",
     "date": "2026-10-08"
+  },
+  "regression evals ask, \"does the agent still handle all the tasks it used to?\" and should have a nearly 100% pass rate": {
+    "source": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+    "date": "2026-10-17"
   },
   "relate conceptual classes with an association, not with an attribute": {
     "source": "larman-2004",
@@ -1093,6 +1125,10 @@
   },
   "teams can lose track of design intent and hidden coupling. this, combined with rising technical debt, creates a reinforcing loop that makes systems progressively harder to reason about": {
     "source": "https://www.thoughtworks.com/radar/techniques/codebase-cognitive-debt",
+    "date": "2026-10-17"
+  },
+  "teams can't distinguish real regressions from noise, automatically test changes against hundreds of scenarios before shipping, or measure improvements": {
+    "source": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
     "date": "2026-10-17"
   },
   "teams will often stuff a laundry list of edge cases into a prompt in an attempt to articulate every possible rule": {
@@ -1287,6 +1323,10 @@
     "source": "references/inputs/a-practical-guide-to-building-agents.pdf",
     "date": "2026-10-14"
   },
+  "this automated evaluation, run against a golden dataset of prompts, provides a consistent measure of quality": {
+    "source": "/Users/YoungSan/dev/TrainingMaterials/references/inputs/Google_IntroductionToAgents.pdf",
+    "date": "2026-10-17"
+  },
   "this enables progressive disclosure: agents start with a small, stable entry point and are taught where to look next, rather than being overwhelmed up front": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
     "date": "2026-10-12"
@@ -1383,6 +1423,10 @@
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-13"
   },
+  "we also released opus 4.6, which provided further motivation to reduce harness complexity. there was good reason to expect 4.6 would need less scaffolding than 4.5 did": {
+    "source": "https://www.anthropic.com/engineering/harness-design-long-running-apps",
+    "date": "2026-10-17"
+  },
   "we caution against using mcp by default": {
     "source": "https://www.thoughtworks.com/radar/techniques/mcp-by-default",
     "date": "2026-10-13"
@@ -1423,13 +1467,25 @@
     "source": "references/inputs/wake-2003-invest.txt",
     "date": "2026-10-07"
   },
+  "we're increasingly seeing organizations measure success using superficial indicators such as lines of code generated or the number of pull requests (prs)": {
+    "source": "https://www.thoughtworks.com/radar/techniques/coding-throughput-as-a-measure-of-productivity",
+    "date": "2026-10-17"
+  },
   "when building applications with llms, we recommend finding the simplest solution possible, and only increasing complexity when needed. this might mean not building agentic systems at all": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-07"
   },
+  "when developers use ai tools, they take 19% longer than without-ai makes them slower": {
+    "source": "https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/",
+    "date": "2026-10-17"
+  },
   "when related alternatives or behaviors vary by type (class), assign responsibility for the behavior-using polymorphic operations-to the types for which the behavior varies": {
     "source": "larman-2004",
     "date": "2026-10-08"
+  },
+  "when these coding throughput metrics are used in isolation, they can negatively shape employee behavior": {
+    "source": "https://www.thoughtworks.com/radar/techniques/coding-throughput-as-a-measure-of-productivity",
+    "date": "2026-10-17"
   },
   "where a team of coding agents is a small, deliberate group, a coding agent swarm applies dozens to hundreds of agents to a problem, with ai determining composition and size dynamically": {
     "source": "https://www.thoughtworks.com/radar/techniques/coding-agent-swarms",
