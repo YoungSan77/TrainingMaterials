@@ -12,3 +12,6 @@ references/inputs/
 
 # 테스트 실행용 라이브러리(Maven Central에서 받는다, 각 run-tests.sh 참조)
 courses/*/sessions/code/**/lib/*.jar
+
+# PowerPoint가 덱을 열어 둔 동안 만드는 잠금 파일
+~$*.pptx
