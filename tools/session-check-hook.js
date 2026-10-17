@@ -31,7 +31,9 @@ function changedManuscripts() {
   for (const line of out.split("\n")) {
     // "XY path" -- a rename shows "R  old -> new"; take the destination.
     const file = line.slice(3).trim().split(" -> ").pop();
-    if (file && TARGET.test(file) && !/-add\.md$/.test(file)) files.push(file);
+    // "-add.md"는 원고의 추가분, "-…-check.md"는 렌더링 검토 기록이다. 둘 다 Session Source가
+    // 아니므로 "Session 명:" 헤더가 없고, 검사 대상이 아니다.
+    if (file && TARGET.test(file) && !/-add\.md$/.test(file) && !/-[^/]*check\.md$/.test(file)) files.push(file);
   }
   return files;
 }
