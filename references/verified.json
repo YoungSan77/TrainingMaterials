@@ -163,6 +163,10 @@
     "source": "larman-2004",
     "date": "2026-10-02"
   },
+  "a useful reminder that when it matters, it's often worth running an llm-based analysis multiple times, to get a fuller picture": {
+    "source": "https://martinfowler.com/articles/sensors-for-coding-agents.html",
+    "date": "2026-10-16"
+  },
   "a weakness of this approach is the imprecision of natural language": {
     "source": "larman-2004",
     "date": "2026-10-02"
@@ -339,6 +343,10 @@
     "source": "larman-2004",
     "date": "2026-10-08"
   },
+  "basically: fitness functions": {
+    "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
+    "date": "2026-10-16"
+  },
   "bdd is a way for software teams to work that closes the gap between business people and technical people by: encouraging collaboration across roles to build shared understanding of the problem to be solved": {
     "source": "https://cucumber.io/docs/bdd/",
     "date": "2026-10-07"
@@ -366,6 +374,10 @@
   "care must be applied with this method; a mechanical noun-to-class mapping isn't possible, and words in natural languages are ambiguous": {
     "source": "larman-2004",
     "date": "2026-10-08"
+  },
+  "check if the ai-generated test suite is green, has reasonably high coverage, some might even monitor its quality with mutation testing": {
+    "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
+    "date": "2026-10-16"
   },
   "classes that aren't reused together should not be grouped together": {
     "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
@@ -446,6 +458,10 @@
   "current software projects spend about 40 to 50 percent of their effort on avoidable rework": {
     "source": "https://www.cs.umd.edu/users/basili/publications/journals/J81.pdf",
     "date": "2026-10-03"
+  },
+  "custom linter messages that include instructions for the self-correction - a positive kind of prompt injection": {
+    "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
+    "date": "2026-10-16"
   },
   "depend in the direction of stability": {
     "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
@@ -615,9 +631,17 @@
     "source": "larman-2004",
     "date": "2026-10-08"
   },
+  "greenfield teams can bake harnessability in from day one - technology decisions and architecture choices determine how governable the codebase will be": {
+    "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
+    "date": "2026-10-16"
+  },
   "ground truth": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-13"
+  },
+  "guides (feedforward controls) - anticipate the agent's behaviour and aim to steer it before it acts. guides increase the probability that the agent creates good results in the first attempt": {
+    "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
+    "date": "2026-10-16"
   },
   "high-risk actions: actions that are sensitive, irreversible, or have high stakes should trigger human": {
     "source": "references/inputs/a-practical-guide-to-building-agents.pdf",
@@ -630,6 +654,10 @@
   "hosts must obtain explicit user consent before invoking any tool": {
     "source": "https://modelcontextprotocol.io/specification/2025-06-18",
     "date": "2026-10-13"
+  },
+  "human evaluation catches what automation misses. people testing agents find edge cases that evals miss": {
+    "source": "https://www.anthropic.com/engineering/multi-agent-research-system",
+    "date": "2026-10-16"
   },
   "humans always remain in the loop, but work at a different layer of abstraction than we used to. we prioritize work, translate user feedback into acceptance criteria, and validate outcomes": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
@@ -687,6 +715,10 @@
     "source": "https://newsletter.kentbeck.com/p/augmented-coding-beyond-the-vibes",
     "date": "2026-10-06"
   },
+  "in spite of their non-determinism, inferential sensors can particularly increase our trust when used with a strong model, or rather a model that is suitable to the task at hand": {
+    "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
+    "date": "2026-10-16"
+  },
   "in the evaluator-optimizer workflow, one llm call generates a response while another provides evaluation and feedback in a loop": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-13"
@@ -726,6 +758,10 @@
   "it is not high coupling per se that is the problem; it is high coupling to elements that are unstable in some dimension, such as their interface, implementation, or mere presence": {
     "source": "larman-2004",
     "date": "2026-10-08"
+  },
+  "it provides a feedback loop that self-corrects as many issues as possible before they even reach human eyes": {
+    "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
+    "date": "2026-10-16"
   },
   "it rots instantly. a monolithic manual turns into a graveyard of stale rules": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
@@ -835,6 +871,10 @@
     "source": "https://www.anthropic.com/engineering/writing-tools-for-agents",
     "date": "2026-10-13"
   },
+  "neither catches reliably some of the higher-impact problems: misdiagnosis of issues, overengineering and unnecessary features, misunderstood instructions": {
+    "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
+    "date": "2026-10-16"
+  },
   "ocp and pv are essentially two expressions of the same principle, with different emphasis: protection at variation and evolution points": {
     "source": "larman-2004",
     "date": "2026-10-08"
@@ -939,6 +979,10 @@
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-13"
   },
+  "sensors (feedback controls) - observe after the agent acts and help it self-correct. particularly powerful when they produce signals that are optimised for llm consumption, e.g. custom linter messages": {
+    "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
+    "date": "2026-10-16"
+  },
   "separately, you get either an agent that keeps repeating the same mistakes (feedback-only) or an agent that encodes rules but never finds out whether they worked (feed-forward-only)": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
     "date": "2026-10-06"
@@ -1031,6 +1075,10 @@
     "source": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
     "date": "2026-10-14"
   },
+  "the agent harness acts like a cybernetic governor, combining feed-forward and feedback to regulate the codebase towards its desired state": {
+    "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
+    "date": "2026-10-16"
+  },
   "the agentic top 10 distils this new reality into a framework the world can use with actionable mitigations and new architectural blueprints": {
     "source": "https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/",
     "date": "2026-10-14"
@@ -1082,6 +1130,10 @@
   "the event list is a narrative list of the \"stimuli\" that occur in the outside world and to which our system must respond": {
     "source": "https://web.archive.org/web/20070214052310/http://yourdon.com/strucanalysis/wiki/index.php?title=Chapter_18",
     "date": "2026-10-02"
+  },
+  "the following are three categories that seem useful to me as of now": {
+    "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
+    "date": "2026-10-16"
   },
   "the fundamental horror of this anti-pattern is that it's so contrary to the basic idea of object-oriented design; which is to combine data and process together": {
     "source": "https://martinfowler.com/bliki/AnemicDomainModel.html",
@@ -1171,6 +1223,10 @@
     "source": "https://www.georgefairbanks.com/book/",
     "date": "2026-10-14"
   },
+  "these checks reduce routine steering work for the human in the loop": {
+    "source": "https://www.thoughtworks.com/radar/techniques/feedback-sensors-for-coding-agents",
+    "date": "2026-10-16"
+  },
   "these features were all initially marked as \"failing\" so that later coding agents would have a clear outline of what full functionality looked like": {
     "source": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
     "date": "2026-10-08"
@@ -1199,6 +1255,10 @@
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
     "date": "2026-10-12"
   },
+  "this is at the moment the easiest type of harness, as we have a lot of pre-existing tooling that we can use for this": {
+    "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
+    "date": "2026-10-16"
+  },
   "this technique proves most valuable for very complex processes, usually involving many parties. use-case text suffices for simple processes": {
     "source": "larman-2004",
     "date": "2026-10-03"
@@ -1210,6 +1270,10 @@
   "to be honest, i'd rather review code than all these markdown files": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
     "date": "2026-10-07"
+  },
+  "to harness a coding agent we both anticipate unwanted outputs and try to prevent them, and we put sensors in place to allow the agent to self-correct": {
+    "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
+    "date": "2026-10-16"
   },
   "to support conditional and looping constructs (among many other things), the uml uses frames. … they have an operator or label (such as loop) and a guard": {
     "source": "larman-2004",
@@ -1238,6 +1302,10 @@
   "tools represent arbitrary code execution and must be treated with appropriate caution": {
     "source": "https://modelcontextprotocol.io/specification/2025-06-18",
     "date": "2026-10-13"
+  },
+  "ultimately it should reduce the review toil and increase the system quality": {
+    "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
+    "date": "2026-10-16"
   },
   "unified modeling language® (uml®) as a standard for visualizing, specifying, and documenting software and systems": {
     "source": "https://www.omg.org/uml/",
@@ -1327,6 +1395,10 @@
     "source": "https://www.thoughtworks.com/radar/techniques/coding-agent-swarms",
     "date": "2026-10-13"
   },
+  "wired into agentic workflows so that failures trigger timely self-correction": {
+    "source": "https://www.thoughtworks.com/radar/techniques/feedback-sensors-for-coding-agents",
+    "date": "2026-10-16"
+  },
   "without the planner, the generator under-scoped": {
     "source": "https://www.anthropic.com/engineering/harness-design-long-running-apps",
     "date": "2026-10-13"
@@ -1366,5 +1438,9 @@
   "you should be striving for the minimal set of information that fully outlines your expected behavior": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
+  },
+  "you want to have checks as far left in the path to production as possible, since the earlier you find issues, the cheaper they are to fix": {
+    "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
+    "date": "2026-10-16"
   }
 }

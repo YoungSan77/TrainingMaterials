@@ -1,0 +1,79 @@
+의존 규칙 센서의 실행 기록 — "09. 검증 하네스·결과 점검·피드백"
+
+실행: code/s09/order에서 ./run-tests.sh (JDK 25, JUnit 5.13.4, 2026-10-16)
+
+=== 1. 에이전트가 결제 연동을 직접 조립한 상태 — 수용 테스트는 통과, 의존 규칙 센서가 실패한다 ===
+╷
+├─ JUnit Platform Suite ✔
+├─ JUnit Jupiter ✔
+│  ├─ PayAcceptanceTest ✔
+│  │  ├─ 판매가가 1,200원으로 바뀌어도 2,000원의 승인을 요청한다 ✔
+│  │  ├─ 거절되면 결제대기로 남고 배송을 요청하지 않는다 ✔
+│  │  ├─ 승인되면 결제완료이고 배송을 1건 요청한다 ✔
+│  │  └─ 거절 뒤 다른 카드로 승인되면 결제완료다 ✔
+│  └─ DependencyRuleTest ✔
+│     ├─ 패키지 의존에 순환이 없다 ✔
+│     └─ 업무 패키지는 연동·영속을 import하지 않는다 ✘ 업무 패키지가 연동·영속을 import했다:
+│                order.OrderService → paymentadapter.PaymentAdapter
+│                  고치는 방법: order는 payment.PaymentGateway 인터페이스에 의존하고, paymentadapter의 객체는 생성자로 받는다. ==> expected: <true> but was: <false>
+└─ JUnit Vintage ✔
+
+Failures (1):
+  JUnit Jupiter:DependencyRuleTest:업무 패키지는 연동·영속을 import하지 않는다
+    MethodSource [className = 'test.DependencyRuleTest', methodName = 'businessDependsOnInterfacesOnly', methodParameterTypes = '']
+    => org.opentest4j.AssertionFailedError: 업무 패키지가 연동·영속을 import했다:
+  order.OrderService → paymentadapter.PaymentAdapter
+    고치는 방법: order는 payment.PaymentGateway 인터페이스에 의존하고, paymentadapter의 객체는 생성자로 받는다. ==> expected: <true> but was: <false>
+       org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+       org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+       org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+       org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+       org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:214)
+       test.DependencyRuleTest.businessDependsOnInterfacesOnly(DependencyRuleTest.java:33)
+       java.base/java.lang.reflect.Method.invoke(Method.java:565)
+       java.base/java.util.ArrayList.forEach(ArrayList.java:1612)
+       java.base/java.util.ArrayList.forEach(ArrayList.java:1612)
+
+Test run finished after 73 ms
+[         5 containers found      ]
+[         0 containers skipped    ]
+[         5 containers started    ]
+[         0 containers aborted    ]
+[         5 containers successful ]
+[         0 containers failed     ]
+[         6 tests found           ]
+[         0 tests skipped         ]
+[         6 tests started         ]
+[         0 tests aborted         ]
+[         5 tests successful      ]
+[         1 tests failed          ]
+
+
+=== 2. 조립을 바깥으로 돌려 고친 상태 — 센서 둘이 모두 통과한다 ===
+╷
+├─ JUnit Platform Suite ✔
+├─ JUnit Jupiter ✔
+│  ├─ PayAcceptanceTest ✔
+│  │  ├─ 판매가가 1,200원으로 바뀌어도 2,000원의 승인을 요청한다 ✔
+│  │  ├─ 거절되면 결제대기로 남고 배송을 요청하지 않는다 ✔
+│  │  ├─ 승인되면 결제완료이고 배송을 1건 요청한다 ✔
+│  │  └─ 거절 뒤 다른 카드로 승인되면 결제완료다 ✔
+│  └─ DependencyRuleTest ✔
+│     ├─ 패키지 의존에 순환이 없다 ✔
+│     └─ 업무 패키지는 연동·영속을 import하지 않는다 ✔
+└─ JUnit Vintage ✔
+
+Test run finished after 56 ms
+[         5 containers found      ]
+[         0 containers skipped    ]
+[         5 containers started    ]
+[         0 containers aborted    ]
+[         5 containers successful ]
+[         0 containers failed     ]
+[         6 tests found           ]
+[         0 tests skipped         ]
+[         6 tests started         ]
+[         0 tests aborted         ]
+[         6 tests successful      ]
+[         0 tests failed          ]
+
