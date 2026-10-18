@@ -219,6 +219,10 @@
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-06"
   },
+  "ai tools amplify existing expertise. the more skills and experience you have as a software engineer the faster and better the results you can get from working with llms and coding agents": {
+    "source": "https://simonwillison.net/2025/Oct/7/vibe-engineering/",
+    "date": "2026-10-17"
+  },
   "all sdd approaches and definitions i've found are spec-first, but not all strive to be spec-anchored or spec-as-source": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
     "date": "2026-10-07"
@@ -1450,6 +1454,10 @@
   "we recommend extensive testing in sandboxed environments, along with the appropriate guardrails": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-13"
+  },
+  "we regularly see single codex runs work on a single task for upwards of six hours (often while the humans are sleeping)": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-17"
   },
   "we see sandboxing as a sensible default rather than an optional enhancement": {
     "source": "https://www.thoughtworks.com/radar/techniques/sandboxed-execution-for-coding-agents",

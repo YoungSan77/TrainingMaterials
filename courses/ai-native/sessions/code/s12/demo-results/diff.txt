@@ -1,0 +1,58 @@
+diff -ru ../demo-results/before/order/Order.java ./order/Order.java
+--- ../demo-results/before/order/Order.java	2026-10-17 23:24:32
++++ ./order/Order.java	2026-10-17 23:38:06
+@@ -28,8 +28,26 @@
+         return total;
+     }
+ 
++    // 결제대기 → 결제완료 : 결제 승인됨
++    public boolean payable() { return status == OrderStatus.PENDING_PAYMENT; }
++
+     public void onPaid() {
+         if (status != OrderStatus.PENDING_PAYMENT) throw new IllegalStateException("허용되지 않은 상태 전이");
+         status = OrderStatus.PAID;
++    }
++
++    // 결제완료 → 배송중 : 배송 시작 통보
++    public void onDeliveryStarted() {
++        if (status != OrderStatus.PAID) throw new IllegalStateException("허용되지 않은 상태 전이");
++        status = OrderStatus.IN_DELIVERY;
++    }
++
++    // 취소할 수 있는 상태 — 결제완료인 주문만 취소할 수 있다
++    public boolean cancellable() { return status == OrderStatus.PAID; }
++
++    // 결제완료 → 취소됨 : 주문을 취소한다
++    public void cancel() {
++        if (!cancellable()) throw new IllegalStateException("허용되지 않은 상태 전이");
++        status = OrderStatus.CANCELLED;
+     }
+ }
+diff -ru ../demo-results/before/order/OrderService.java ./order/OrderService.java
+--- ../demo-results/before/order/OrderService.java	2026-10-17 23:24:32
++++ ./order/OrderService.java	2026-10-17 23:38:18
+@@ -19,6 +19,8 @@
+ 
+     public void pay(OrderNumber number, PaymentMethod method) {
+         Order order = repository.findBy(number);
++        // 취소 뒤 — 취소된 주문은 다시 결제할 수 없다. 결제대기가 아니면 승인을 요청하지 않는다
++        if (!order.payable()) return;
+         // 주문 금액 — 주문이 생길 때 확정한 단가로 계산한다
+         if (paymentGateway.requestApproval(order.totalAmount(), method)) {
+             order.onPaid();
+@@ -26,6 +28,15 @@
+             deliveryGateway.requestDelivery(number.value(), order.shippingAddress());
+         }
+         // 결제 거절 — 결제대기로 남아 다른 결제 수단으로 다시 결제할 수 있다
++        repository.save(order);
++    }
++
++    public void cancel(OrderNumber number) {
++        Order order = repository.findBy(number);
++        // 취소할 수 없는 상태 — 배송중·배송완료·취소됨·결제대기는 아무것도 바뀌지 않는다
++        // (고객에게 무엇을 안내할지는 업무 담당자가 아직 정하지 않았다 — docs/task-spec.md 「미정」)
++        if (!order.cancellable()) return;
++        order.cancel();
+         repository.save(order);
+     }
+ }

@@ -1,0 +1,32 @@
+╷
+├─ JUnit Platform Suite ✔
+├─ JUnit Jupiter ✔
+│  ├─ PayAcceptanceTest ✔
+│  │  ├─ 판매가가 1,200원으로 바뀌어도 2,000원의 승인을 요청한다 ✔
+│  │  ├─ 거절되면 결제대기로 남고 배송을 요청하지 않는다 ✔
+│  │  ├─ 승인되면 결제완료이고 배송을 1건 요청한다 ✔
+│  │  └─ 거절 뒤 다른 카드로 승인되면 결제완료다 ✔
+│  ├─ CancelAcceptanceTest ✔
+│  │  ├─ 결제완료 주문을 취소하면 취소됨이다 ✔
+│  │  ├─ 취소된 주문은 다시 결제할 수 없다 ✔
+│  │  ├─ 결제대기 주문은 취소할 수 없고 상태가 그대로다 ✔
+│  │  └─ 배송중 주문은 취소할 수 없고 상태가 그대로다 ✔
+│  └─ DependencyRuleTest ✔
+│     ├─ 패키지 의존에 순환이 없다 ✔
+│     └─ 업무 패키지는 연동·영속을 import하지 않는다 ✔
+└─ JUnit Vintage ✔
+
+Test run finished after 89 ms
+[         6 containers found      ]
+[         0 containers skipped    ]
+[         6 containers started    ]
+[         0 containers aborted    ]
+[         6 containers successful ]
+[         0 containers failed     ]
+[        10 tests found           ]
+[         0 tests skipped         ]
+[        10 tests started         ]
+[         0 tests aborted         ]
+[        10 tests successful      ]
+[         0 tests failed          ]
+
