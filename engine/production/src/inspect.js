@@ -33,9 +33,10 @@ async function inspect(outputPath, m) {
       ids.add(v);
     }
     if (text(shape(doc, 2)) !== p.heading) errors.push(prefix + "heading mismatch");
-    // The TOC slide intentionally carries no top-right session name (see builder.js `p.isToc`).
+    // The cover and TOC slides intentionally carry no top-right session name (builder.js
+    // `p.isCover`, `p.isToc`): neither is a "일반 슬라이드" in production-guide.md's sense.
     // An appendix slide reads "별첨: <세션명>" (builder.js appendixSessionName).
-    if (text(shape(doc, 5)) !== (p.isToc ? "" : p.appendix ? "별첨: " + m.title : m.title)) errors.push(prefix + "title mismatch");
+    if (text(shape(doc, 5)) !== (p.isToc || p.isCover ? "" : p.appendix ? "별첨: " + m.title : m.title)) errors.push(prefix + "title mismatch");
     if (text(shape(doc, 7)) !== m.source) errors.push(prefix + "source mismatch");
     for (const item of p.items) {
       const sh = shape(doc, item.id);

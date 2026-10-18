@@ -43,6 +43,10 @@ const TOC_LEFT_MAX = 17;
 const TOC_LEFT_XFRM = { x: -8822, y: 949064, cx: 4580822, cy: 5530862 };
 const TOC_RIGHT_XFRM = { x: 4426820, y: 949064, cx: 4195811, cy: 5530862 };
 const TOC_RIGHT_ID = 4;
+// 표지(production-guide.md 「표지」): 과정명 한 줄을 본문 영역 가운데에 둔다. 세션명은 바로 다음
+// 목차 슬라이드의 제목이 보인다.
+const COVER_TEXT = { x: 0.4, y: 2.9, w: 9.2, h: 1.4 };
+const COVER_PT = 40;
 // A visual's tool marker, with an optional title after it: "**도식 — PlantUML — 제목**".
 const VISUAL_MARKER = /^\*\*(?:도식\s*[—:-]\s*(?:Mermaid|PlantUML|SVG)|Chart\s*[—:-]\s*matplotlib)(?:\s*—\s*(.+?))?\*\*$/i;
 // A table's title line right before it: "**표 — 제목**".
@@ -1104,7 +1108,36 @@ class Builder {
     }
   }
 
-  async render(sections, outputPath, toc) {
+  // 표지 — 과정명만 가운데에 둔 첫 장(production-guide.md 「표지와 과정 목차」). 제목도 우측 상단
+  // 세션명도 두지 않는다. 과정의 첫 세션 덱에만 있다.
+  renderCover(name) {
+    const p = this.page(ORIGIN.prose, "");
+    p.isCover = true;
+    const id = this.cloneShape(p, 13);
+    const sh = shape(p.doc, id);
+    setShapeBounds(sh, COVER_TEXT);
+    const tb = body(sh);
+    for (const old of kids(tb, A, "p")) tb.removeChild(old);
+    const par = el(p.doc, A, "p");
+    tb.appendChild(par);
+    child(par, A, "pPr") || par.insertBefore(el(p.doc, A, "pPr"), par.firstChild);
+    child(par, A, "pPr").setAttribute("algn", "ctr");
+    runParen(par, name, COVER_PT, true);
+    return p;
+  }
+
+  // 과정 목차 — 과정의 세션 전체를 세션 목차와 같은 모양으로 보이는 둘째 장. 표지와 함께 과정의
+  // 첫 세션 덱에만 있고, 항목은 `course-design.md`의 세션 목록이다.
+  renderCourseToc(course) {
+    const items = course.sessions.map((s) => ({ text: s.name }));
+    const p = this.page(ORIGIN.toc, course.name + " 목차");
+    p.isToc = true;
+    this.tocColumn(p, 10, TOC_LEFT_XFRM, items.slice(0, TOC_LEFT_MAX));
+    this.tocColumn(p, TOC_RIGHT_ID, TOC_RIGHT_XFRM, items.slice(TOC_LEFT_MAX));
+    return p;
+  }
+
+  async render(sections, outputPath, toc, course) {
     for (const nm of ["ProductMapper", "ProductRepository", "ProductPort", "OrderRepository", "PlaceOrderUseCase", "Product", "ProductEntity", "placeOrder", "decreaseStock", "load", "save", "findById", "updateStock"]) this.names.add(nm);
     for (const s of sections) {
       for (const b of s.blocks) {
@@ -1124,6 +1157,12 @@ class Builder {
     const appendix = !toc && sections.length > 0 && sections.every((sec) => sec.blocks.some(isReferenceMarker));
     if (!appendix) {
       this.validateToc(toc, sections);
+      // 과정의 첫 세션 덱만 표지와 과정 목차로 시작한다 — 뒤 세션은 자기 목차가 첫 장이다.
+      // 과정 밖의 덱(옆에 course-design.md가 없다)에는 둘 다 없다.
+      if (course && /^01\./.test(String(this.session))) {
+        this.renderCover(course.name);
+        if (course.sessions.length) this.renderCourseToc(course);
+      }
       this.renderToc(toc, this.session);
     }
 
@@ -1715,8 +1754,9 @@ class Builder {
       // stay blank (no source/copyright string).
       // An appendix slide (after the summary, "## 별첨. …") reads "별첨: <세션명>".
       const label = p.appendix ? appendixSessionName(this.session) : this.session;
-      setText(shape(p.doc, 5), p.isToc ? "" : label);
-      if (!p.isToc) {
+      const plain = p.isToc || p.isCover;
+      setText(shape(p.doc, 5), plain ? "" : label);
+      if (!plain) {
         const pt = sessionNamePt(label);
         if (pt !== SESSION_PT) for (const rpr of all(shape(p.doc, 5), A, "rPr")) rpr.setAttribute("sz", String(Math.round(pt * 100)));
       }
@@ -1771,10 +1811,10 @@ class Builder {
   }
 }
 
-async function render(sections, templatePath, outputPath, session, toc) {
+async function render(sections, templatePath, outputPath, session, toc, course) {
   const b = new Builder(templatePath);
   await b.init(session);
-  return b.render(sections, outputPath, toc);
+  return b.render(sections, outputPath, toc, course);
 }
 
 module.exports = { styledCost, PRACTICE_STYLE, ANSWER_STYLE, REFERENCE_STYLE, PRACTICE_BOX, ANSWER_COLUMNS, Builder, render, isPractice, isAnswer, geometry, naturalSize, pictureTextPt, fitTarget, visualPanel, columnWidths, tocSessionName, appendixSessionName, sessionNamePt, TARGET_PT, MIN_PT, UML_MAX_PT, PAGE_NUM_Y };

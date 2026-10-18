@@ -8,6 +8,7 @@ const { parse } = require("./parse");
 const builder = require("./builder");
 const { inspect, reportJson } = require("./inspect");
 const { checkReferences } = require("./references");
+const { courseInfo } = require("./course");
 const { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, slideTalk, countsMatchTable, numberedBullets, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape } = require("./structure");
 const { checkCodeSources, checkEnumConsistency } = require("./codeSource");
 
@@ -17,7 +18,7 @@ function sparseContinuations(m) {
   const warnings = [];
   m.pages.forEach((p, i) => {
     const heading = String(p.heading || "").split("\n")[0];
-    if (p.isToc || !/\(\d+\/\d+\)$/.test(heading)) return;
+    if (p.isToc || p.isCover || !/\(\d+\/\d+\)$/.test(heading)) return;
     if ((p.pictures || []).length) return;
     if (p.items.some((it) => ["table", "code", "tree", "source"].includes(it.kind))) return;
     if ((p.textCost || 0) >= 0.25 * 450) return;
@@ -34,7 +35,7 @@ function overfullPages(m) {
   const warnings = [];
   m.pages.forEach((p, i) => {
     const cost = p.textCost || 0;
-    if (p.isToc || cost <= CAPACITY) return;
+    if (p.isToc || p.isCover || cost <= CAPACITY) return;
     const heading = String(p.heading || "").split("\n")[0];
     warnings.push("슬라이드 " + (i + 1) + ": \"" + heading + "\" 본문이 한 장의 용량을 "
       + Math.round(((cost / CAPACITY) - 1) * 100) + "% 넘겼다. 글을 줄인다.");
@@ -51,7 +52,7 @@ async function generateFile(inputPath, outputPath, templatePath) {
   const tmp = path.join(parent, "lecture-candidate-" + process.pid + "-" + Date.now() + ".pptx");
   try {
     need(session, "Markdown 상단에 'Session 명: <값>' 헤더가 필요하다.");
-    const m = await builder.render(sections, templatePath, tmp, session, toc);
+    const m = await builder.render(sections, templatePath, tmp, session, toc, courseInfo(inputPath));
     const inspected = await inspect(tmp, m);
     const source = fs.readFileSync(inputPath, "utf-8");
     const refs = checkReferences(inputPath, source);
