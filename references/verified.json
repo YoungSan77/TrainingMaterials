@@ -231,6 +231,10 @@
     "source": "larman-2004",
     "date": "2026-10-02"
   },
+  "allow an application to equally be driven by users, programs, automated test or batch scripts, and to be developed and tested in isolation from its eventual run-time devices and databases": {
+    "source": "https://alistair.cockburn.us/hexagonal-architecture/",
+    "date": "2026-10-18"
+  },
   "allows agents to incrementally discover relevant context through exploration": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
@@ -630,6 +634,10 @@
   "exposure to untrusted content -any mechanism by which text (or images) controlled by a malicious attacker could become available to your llm": {
     "source": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
     "date": "2026-10-14"
+  },
+  "following aristotle, i divide them into essence, the difficulties inherent in the nature of the software, and accidents, those difficulties which today attend its production but which are not inherent": {
+    "source": "https://www.cs.unc.edu/techreports/86-020.pdf",
+    "date": "2026-10-18"
   },
   "for high-stakes tasks, the human-in-the-loop (hitl) pattern is critical, creating a deliberate pause in the workflow to get approval from a person before an agent takes a significant action": {
     "source": "references/inputs/Google_IntroductionToAgents.pdf",
