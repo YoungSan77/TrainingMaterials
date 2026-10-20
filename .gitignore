@@ -15,3 +15,10 @@ courses/*/sessions/code/**/lib/*.jar
 
 # PowerPoint가 덱을 열어 둔 동안 만드는 잠금 파일
 ~$*.pptx
+
+# 로컬 정리 백업: 실제 작업물은 별도로 추적하고 복구용 압축본만 제외한다
+.codex/archives/
+# 로컬 Python 실행 환경·자동 생성물
+.venv/
+__pycache__/
+*.pyc

@@ -86,7 +86,7 @@ function numberedDiagramLabels(sections) {
 // Warning only.
 function unboldedText(sections) {
   const warnings = [];
-  for (const section of sections) section.blocks.forEach((block, i) => {
+  for (const section of sections.filter(s => !s.verbatimResponse)) section.blocks.forEach((block, i) => {
     if (!["text", "bullet"].includes(block.kind)) return;
     if (block.meta && (block.meta.quote || block.meta.anchor)) return;
     // A footnote (the paragraph after "**주석**") is reference text, not a sentence to emphasize.
@@ -197,9 +197,9 @@ function answersOutsideAppendix(sections) {
 // 개요 for the first one), 프롬프트, 점검 항목, 결과물. Without this check a practice written in some
 // other shape -- 과제/평가 기준/구성 요소 -- renders cleanly and the gap only shows in review.
 const PRACTICE_PARTS = [
-  { label: "투입물", re: /\*\*(?:투입물|서비스 개요)\*\*/ },
-  { label: "프롬프트", re: /\*\*프롬프트\*\*/ },
-  { label: "점검 항목", re: /\*\*점검 항목\*\*/ },
+  { label: "투입물", re: /\*\*(?:투입물|서비스 개요|프롬프트 — 요청사항 포함)\*\*/ },
+  { label: "프롬프트", re: /\*\*프롬프트(?: — 요청사항 포함)?\*\*/ },
+  { label: "점검 항목 또는 진행 방법", re: /\*\*(?:점검 항목|진행 방법)\*\*/ },
   { label: "결과물", re: /\*\*결과물\*\*/ },
 ];
 function practiceShape(sections) {

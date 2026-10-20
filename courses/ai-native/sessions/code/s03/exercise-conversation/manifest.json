@@ -1,0 +1,12 @@
+{
+  "provider": "Codex CLI",
+  "templates": "templates.json",
+  "sample_turns": 7,
+  "finalization_rounds": 3,
+  "workflow": "시작 → 반복 가능한 보완 → 최종 MD 생성·검토·재생성",
+  "final": "정기배송-최초신청-도메인모델.md",
+  "final_response": "codex-response-05.md",
+  "sha256": "722d0af2504cab8c9dd0edc192c5f4c7729472efb2abba51404b89b1a0362d77",
+  "presentation_scope": "용어·업무 규칙 절 전체와 세 다이어그램 원본 발췌; 도식 전후 설명문은 MD에 보존",
+  "prior_inputs": "prompt-01~04.txt와 codex-input-05.txt에 실행 당시 입력과 이전 응답 보존"
+}

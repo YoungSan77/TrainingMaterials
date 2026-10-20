@@ -79,7 +79,7 @@ test("a practice topic missing 프롬프트·점검 항목 is reported; the full
   const bad = parse('## 09. 실습 — 수용 기준\n\n만드십시오.\n\n- **투입물**\n  + 작업 명세서\n- **평가 기준**\n  + 좋은가?\n');
   const w = practiceShape(bad.sections);
   assert.equal(w.length, 1);
-  assert.match(w[0], /프롬프트·점검 항목·결과물이\(가\) 없다/);
+  assert.match(w[0], /프롬프트·점검 항목 또는 진행 방법·결과물이\(가\) 없다/);
   const good = parse('## 09. 실습 — 수용 기준\n\n만드십시오.\n\n- **투입물**\n  + 작업 명세서\n- **프롬프트**\n  + "써줘"\n- **점검 항목**\n  1. **대표 예** — 있는가?\n- **결과물** — 수용 기준\n');
   assert.deepEqual(practiceShape(good.sections), []);
 });
@@ -130,4 +130,32 @@ test("a lead that counts is checked against the one table under it", () => {
   // 세는 말이 아닌 쓰임("세 능력을 끊는 자리")은 보지 않는다.
   const other = parse(["## 03. 위험", "", "끊는 자리는 능력마다 다르다.", ...table].join("\n"));
   assert.deepEqual(countsMatchTable(other.sections), []);
+});
+
+
+test("practice inputs may be included directly in the prompt", () => {
+  const { practiceShape } = require("../structure");
+  const { parse } = require("../parse");
+  const { sections } = parse("## 01. 실습 — 질문\n\n**프롬프트 — 요청사항 포함**\n+ 정기배송 신청의 업무 질문을 제시해라.\n\n**점검 항목**\n1. **미결** — 임의로 정했는가?\n\n**결과물**\n+ 질문 문서\n");
+  assert.deepEqual(practiceShape(sections), []);
+});
+
+
+test("a focused prompt practice may provide 진행 방법 instead of a hidden checklist", () => {
+  const { practiceShape } = require("../structure");
+  const { parse } = require("../parse");
+  const { sections } = parse("## 01. 실습 — 질문\n\n**프롬프트 — 요청사항 포함**\n+ 첫 신청에 필요한 질문만 제시해라.\n\n**진행 방법**\n+ 답을 읽고 두 번째 프롬프트로 파일을 받아라.\n\n**결과물**\n+ 질문 문서\n");
+  assert.deepEqual(practiceShape(sections), []);
+});
+
+test("verbatim LLM appendix preserves plain response text without requiring editorial emphasis", () => {
+  const { unboldedText } = require("../structure");
+  const text = "사람이 결정하지 않은 추가 정책을 저자가 편집하여 원문에 넣지 않는다.";
+  const { sections } = parse(`## 별첨. 실습 답\n\n## 실제 답\n\n**실제 LLM 응답**\n\n- ${text}\n\n## 일반 설명\n\n- ${text}\n`);
+  assert.equal(sections[1].verbatimResponse, true);
+  assert.equal(sections[1].blocks[0].text, text);
+  const warnings = unboldedText(sections);
+  assert.equal(warnings.length, 1);
+  assert.match(warnings[0], /일반 설명/);
+  assert.throws(() => parse("## 01. 일반 본문\n\n**실제 LLM 응답**\n"), /별첨/);
 });

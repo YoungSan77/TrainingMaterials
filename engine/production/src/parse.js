@@ -105,6 +105,11 @@ function parse(input) {
     // section.blocks. The marker line itself is consumed, never emitted as a block, so it can
     // never show up as slide body text.
     if (isNotesHeading(line)) { inNotes = true; continue; }
+    if (!inNotes && line.trim() === "**실제 LLM 응답**") {
+      need(current.appendix, "실제 LLM 응답 표식은 별첨 topic에만 쓴다.");
+      current.verbatimResponse = true;
+      continue;
+    }
     // TM parser extension (NOT present in lecture-ppt-java): "**페이지 분할**" is an explicit,
     // author-placed page break -- unlike every other split point in this pipeline (which the
     // builder infers from an estimated content-height budget), this one is guaranteed. It forces

@@ -15,7 +15,7 @@ const { A, P, all, shape, body, kids, child } = require("../xml");
 
 async function deck(md) {
   const { sections } = parse(md);
-  const toc = sections.map((s) => ({ kind: "bullet", text: s.title, rows: [], depth: 0, meta: null }));
+  const toc = sections.filter(s => !s.appendix).map((s) => ({ kind: "bullet", text: s.title, rows: [], depth: 0, meta: null }));
   const out = path.join(os.tmpdir(), `tm-lead-${process.pid}-${Date.now()}.pptx`);
   try {
     return (await render(sections, TEMPLATE_DIR, out, "테스트", toc)).pages.filter((p) => !p.isToc);
@@ -137,4 +137,166 @@ test("**문서 형식** sets a topic on one slide in two columns at the answer s
   assert.equal(ps.length, 1, "one slide");
   assert.equal(ps[0].answerColumns, 2);
   for (const it of ps[0].items) assert.equal(String(it.text).includes("문서 형식"), false, "the marker never shows");
+});
+
+
+test("10pt document keeps both columns and every body run at 10pt", async () => {
+  const [p] = await deck("## 01. 문서\n\n**문서 형식 — 10pt**\n\n### 전제\n\n- **항목** — 설명 (미결)\n  - 세부 질문\n\n### 후속\n\n- 후속 질문\n");
+  assert.equal(p.answerColumns, 2);
+  const shapes = all(p.doc, P, "sp").filter(s => all(s, A, "t").some(t => /전제|항목|후속|세부/.test(t.textContent)));
+  assert.equal(shapes.length, 1, "short document stays entirely in the left column");
+  for (const s of shapes) {
+    for (const p of all(s, A, "p")) {
+      if (!all(p, A, "t").length) continue;
+      const pr = child(p, A, "pPr");
+      assert.ok(Number(pr.getAttribute("marL")) >= 0.2 * 914400);
+      for (const name of ["spcBef", "spcAft"]) {
+        const spacing = child(child(pr, A, name), A, "spcPts");
+        assert.equal(spacing.getAttribute("val"), "300");
+      }
+    }
+    assert.equal(all(s, A, "t").some(t => t.textContent.includes("문서 형식")), false);
+    const runs = all(s, A, "rPr");
+    assert.ok(runs.length);
+    for (const r of runs) assert.equal(r.getAttribute("sz"), "1000");
+  }
+});
+
+
+test("practice prompt continuation hangs after its circled number", async () => {
+  const [p] = await deck("## 01. 실습 — 확인\n\n안내\n\n**프롬프트**\n  + ① “첫 번째 요청이다.”\n  + ② “두 번째 요청이다.”\n");
+  const ps = all(p.doc, A, "p").filter(p => all(p, A, "buAutoNum").some(n => n.getAttribute("type") === "circleNumDbPlain"));
+  assert.equal(ps.length, 2);
+  const { numberedText } = require("../inspect");
+  const bodyShape = all(p.doc, P, "sp").find(s => all(s, A, "buAutoNum").length);
+  assert.match(numberedText(bodyShape), /① “첫 번째 요청이다.”/);
+  assert.match(numberedText(bodyShape), /② “두 번째 요청이다.”/);
+  for (const p of ps) {
+    assert.equal(child(p, A, "pPr").getAttribute("marL"), "981075");
+    assert.equal(child(p, A, "pPr").getAttribute("indent"), "-268288");
+    assert.equal(/^[①②]/.test(p.textContent), false);
+  }
+});
+
+
+test("10pt document fills the left column before continuing on the right", async () => {
+  const items = Array.from({ length: 34 }, (_, i) => `- **항목 ${i + 1}** 내용이다.`).join("\n");
+  const [p] = await deck("## 01. 문서\n\n**문서 형식 — 10pt**\n\n" + items);
+  const shapes = all(p.doc, P, "sp").filter(s => all(s, A, "t").some(t => /항목/.test(t.textContent)));
+  assert.equal(shapes.length, 2);
+  const counts = shapes.map(s => all(s, A, "p").filter(p => /항목/.test(p.textContent)).length);
+  assert.ok(counts[0] > counts[1], String(counts));
+  assert.equal(counts[0] + counts[1], 34);
+});
+
+
+test("progressive practice prompts retain native circle numbers through five", async () => {
+  const marks = ["①", "②", "③", "④", "⑤"];
+  const [p] = await deck("## 01. 실습 — 질문\n\n안내\n\n**프롬프트**\n" + marks.map(m => `  + ${m} “**요청**을 수행해라.”`).join("\n"));
+  const nums = all(p.doc, A, "buAutoNum").filter(n => n.getAttribute("type") === "circleNumDbPlain");
+  assert.deepEqual(nums.map(n => n.getAttribute("startAt")), ["1", "2", "3", "4", "5"]);
+});
+
+
+test("long document title keeps its complete text and shrinks before wrapping onto its subtitle", async () => {
+  const title = "정기배송 최초 신청 및 계약 성립을 위한 질문";
+  const [p] = await deck(`## 01. ${title}\n\n**문서 형식 — 10pt**\n\n- **질문**을 제시한다.\n`);
+  const titleShape = shape(p.doc, 2);
+  assert.ok(all(titleShape, A, "t").some(t => t.textContent.includes(title)));
+  const size = Number(all(titleShape, A, "rPr")[0].getAttribute("sz"));
+  assert.ok(size >= 1800 && size < 2400, String(size));
+});
+
+
+test("long 10pt document continues without reducing the number of entries or increasing text size", async () => {
+  const items = Array.from({length: 100}, (_, i) => `- **업무${i + 1}** 결정 질문이다.`).join("\n");
+  const pages = await deck("## 01. 긴 문서\n\n**문서 형식 — 10pt**\n\n" + items);
+  assert.ok(pages.length > 1);
+  let count = 0;
+  for (const p of pages) {
+    assert.equal(p.answerColumns, 2);
+    for (const sh of all(p.doc, P, "sp")) {
+      const ps = all(sh, A, "p").filter(p => /업무\d+/.test(p.textContent));
+      count += ps.length;
+      for (const p of ps) for (const rp of all(p, A, "rPr")) assert.equal(rp.getAttribute("sz"), "1000");
+    }
+  }
+  assert.equal(count, 100);
+});
+
+
+test("continued long document titles fit the full title and page counter without losing text", async () => {
+  const title = "정기배송 최초 신청 접수 및 계약 성립 정책 질문 목록 (1/8)";
+  const [p] = await deck(`## 01. ${title}\n\n**문서 형식 — 10pt**\n\n- **질문**을 유지한다.\n`);
+  const sh = shape(p.doc, 2);
+  assert.ok(all(sh, A, "t").some(t => t.textContent.includes("정기배송 최초 신청 접수 및 계약 성립 정책 질문 목록")));
+  const pt = Number(all(sh, A, "rPr")[0].getAttribute("sz"));
+  assert.ok(pt >= 1600 && pt <= 1800, String(pt));
+});
+
+test("verbatim response marker is invisible and does not add emphasis to raw answer", async () => {
+  const text = "고객은 기존에 등록된 배송지를 선택한다.";
+  const pages = await deck(`## 01. 본문\n\n**안내**다.\n\n## 별첨. 실습 답\n\n## 실제 답\n\n**문서 형식 — 10pt**\n\n**실제 LLM 응답**\n\n- ${text}\n- **미정:** 고객이 결정한다.\n`);
+  const paragraphs = pages.flatMap(p => all(p.doc, A, "p"));
+  assert.equal(paragraphs.some(p => pText(p).includes("실제 LLM 응답")), false);
+  const p = paragraphs.find(p => pText(p) === text);
+  assert.ok(p);
+  for (const rp of all(p, A, "rPr")) assert.notEqual(rp.getAttribute("b"), "1");
+  assert.ok(paragraphs.some(p => pText(p).includes("미정:")));
+});
+
+test("five-stage practice preserves iterative feedback and repeatable final MD instructions", async () => {
+  const instruction = "①로 시작해 답·질문·수정 요청을 주고받는다. ②~④는 횟수 제한 없는 보완 예시다. ⑤로 MD를 만들고 필요하면 보완·재생성한다.";
+  const md = `## 01. 실습 — 피드백\n\n${instruction}\n\n**프롬프트 — 요청사항 포함**\n  + ① “**초안**을 작성해라.”\n  + ② “**답**을 반영해라. [앞선 질문에 대한 답] [추가 질문·수정 요청]”\n  + ③ “필요한 **품질**을 질문해라.”\n  + ④ “**기준**을 반영하고 검토해라.”\n  + ⑤ “합의한 **MD 파일**을 생성해라. 새 결정을 추가하지 마라.”\n\n**점검 항목**\n  1. **근거** — 답을 반영했는가?\n\n**결과물**\n  + **합의한 문서**\n\n**강사 노트**\n\n- 이것은 강사만 보는 실행 기록이다.\n`;
+  const pages = await deck(md);
+  assert.equal(pages.length, 1);
+  const text = all(pages[0].doc, A, "t").map(t => t.textContent).join("");
+  assert.ok(text.includes(instruction));
+  assert.ok(text.includes("합의한 MD 파일을 생성해라. 새 결정을 추가하지 마라."));
+  assert.ok(text.includes("[앞선 질문에 대한 답] [추가 질문·수정 요청]"));
+  assert.equal(text.includes("강사만 보는 실행 기록"), false);
+  const nums = all(pages[0].doc, A, "buAutoNum").filter(n => n.getAttribute("type") === "circleNumDbPlain");
+  assert.deepEqual(nums.map(n => n.getAttribute("startAt")), ["1", "2", "3", "4", "5"]);
+});
+
+test("verbatim diagram answer uses answer prose sizes without changing the original title or emphasis", async () => {
+  const sentence = "원래 응답의 문장과 강조를 그대로 보존한다.";
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="80" viewBox="0 0 160 80"><text x="10" y="40" font-size="16">개념</text></svg>';
+  const pages = await deck(`## 01. 본문\n\n**안내**다.\n\n## 별첨. 실습 답\n\n## 원래 제목\n\n**실제 LLM 응답**\n\n${sentence}\n\n- 용어 설명\n\n\`\`\`svg\n${svg}\n\`\`\`\n`);
+  const page = pages.find(p => all(p.doc, A, "t").some(t => t.textContent === sentence));
+  assert.ok(page);
+  const paragraph = all(page.doc, A, "p").find(p => pText(p) === sentence);
+  const runs = all(paragraph, A, "rPr");
+  assert.ok(runs.length);
+  for (const rp of runs) {
+    assert.equal(rp.getAttribute("sz"), "1400");
+    assert.notEqual(rp.getAttribute("b"), "1");
+  }
+  assert.ok(all(page.doc, A, "t").some(t => t.textContent === "원래 제목"));
+  assert.equal(all(page.doc, A, "t").some(t => /실제 LLM 응답|원래 제목 \(안\)/.test(t.textContent)), false);
+});
+
+test("explicit 10pt document with a diagram keeps prose at 10pt and renders the diagram", async () => {
+  const sentence = "실제 응답의 설명을 줄이거나 편집하지 않고 배치한다.";
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="80" viewBox="0 0 160 80"><text x="10" y="40" font-size="16">개념</text></svg>';
+  const pages = await deck(`## 01. 문서\n\n**문서 형식 — 10pt**\n\n${sentence}\n\n\`\`\`svg\n${svg}\n\`\`\`\n`);
+  assert.equal(pages.length, 1);
+  assert.equal(pages[0].pictures.length, 1);
+  const paragraph = all(pages[0].doc, A, "p").find(p => pText(p) === sentence);
+  assert.ok(paragraph);
+  for (const rp of all(paragraph, A, "rPr")) assert.equal(rp.getAttribute("sz"), "1000");
+  assert.equal(all(pages[0].doc, A, "t").some(t => t.textContent.includes("문서 형식")), false);
+});
+
+test("a 10pt diagram document keeps the diagram and trailing rules together without dropping text", async () => {
+  const { pictureTextPt } = require("../visualFit");
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="500" height="600" viewBox="0 0 500 600"><text x="10" y="40" font-size="16">모델</text></svg>';
+  const rules = Array.from({length: 6}, (_, i) => `- 규칙 ${i + 1}: 합의한 업무 의미와 원문을 그대로 보존해 모든 내용을 확인할 수 있다.`).join("\n");
+  const pages = await deck(`## 01. 도식 문서\n\n**문서 형식 — 10pt**\n\n\`\`\`svg\n${svg}\n\`\`\`\n\n### 규칙\n\n${rules}\n`);
+  assert.equal(pages.length, 1);
+  const page = pages[0];
+  assert.equal(page.pictures.length, 1);
+  assert.ok(pictureTextPt(page.pictures[0], page.pictures[0].bounds) >= 7);
+  const text = all(page.doc, A, "t").map(t => t.textContent).join("");
+  for (let i = 1; i <= 6; i++) assert.ok(text.includes(`규칙 ${i}:`));
 });

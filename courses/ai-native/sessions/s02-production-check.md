@@ -1,0 +1,66 @@
+# 세션 02 제작 검토 기록
+
+
+## 실습 완성 답안 보완 — 2026-10-18T18:57:04+09:00
+- 이번 기록은 위의 이전 원고 검토 이후, 현재 별첨 답안 보완 범위에 대한 기록이다.
+- 최종 덱: 23장. 자동 검사 PASS, 오류 0·경고 0.
+- 원고 렌더링: 이번 보완 작업에서 3회. Renderer·템플릿·예제 코드는 수정하지 않아 전체 renderer 테스트나 예제 실행을 반복하지 않음.
+- 내용 검증 PASS: 요청/회의 메모 근거, 가치가 있는 세 스토리와 수용 값, 회차·거절·재결제의 확정 답, 남은 질문의 담당·처리 범위, 제외 기능이 작성됨.
+- 시각 검토 PASS: PowerPoint PDF 출력 50DPI, 변경 슬라이드 21, 22, 23장. 겹침·잘림·순서와 완성 산출물의 가독성 확인.
+- 사용자 의도 반영: 학습자가 점검 항목을 반영해 제출할 완성 산출물을 별첨에 두고, 작성·검토 방법은 강사 노트로 분리. 보완 (안)은 실제 반영 문장과 결정의 기록으로 작성.
+- 도식 글자 전체의 최종 pt 정밀 계측은 NOT VERIFIED. 자동 검사와 실제 출력 검토 PASS를 전체 Production 정밀 검증 완료로 확대하지 않음.
+- 과정 전체 --check는 세션 01–05 PASS. 뒤 7세션의 기존 참조 오류 183건은 과정 개편 대상. 로그: `/tmp/exercise-answers-cross-check.log`.
+- 22장 질문·답의 계층을 보완해 소제목과 내용의 단 분리를 수정하고 해당 장만 재검토함. review-pdf.sh 재실행으로 현재 보존 이미지는 p-22.png 한 장이며, 21·23장은 직전 출력으로 검토함.
+- 현재 파일: `/Users/YoungSan/dev/TrainingMaterials/courses/ai-native/sessions/s02.md`
+  - 수정 시각: 2026-10-18T18:56:20+09:00
+  - SHA-256: `fc7e5a82afe96aaaf8bde61700759b999f40ff14598b76f6ea7b2b0f4bca3c6e`
+- 현재 파일: `/Users/YoungSan/dev/TrainingMaterials/courses/ai-native/sessions/s02.pptx`
+  - 수정 시각: 2026-10-18T18:56:21+09:00
+  - SHA-256: `60df1f97cd41f2e9ef8397df378b3ce4c95976a58e8545fa9cf2ff3b5805885c`
+
+
+## S02 사용자 이야기·품질·실제 실습 통합 — 2026-10-19T23:19:36.277810+09:00
+
+- 최종 원고: /Users/YoungSan/dev/TrainingMaterials/courses/ai-native/sessions/s02.md
+- 최종 PPT: /Users/YoungSan/dev/TrainingMaterials/courses/ai-native/sessions/s02.pptx
+- renderer: engine/production/src/cli.js, 저장소 현재 작업본. 총 25장.
+- 사용자 이야기와 요구사항 정의서의 관계를 먼저 설명하는 12장을 추가했다. 최초 신청은 고객 가치가 있는 이야기 하나로 다룬다.
+- 품질 토픽 15~16장: 필요한 속성만 선택하고 시험 조건·합격 기준으로 적으며 구현 수단은 설계에서 정한다. 교육용 성능 수치는 실제 운영 보장으로 설명하지 않는다.
+- 실습 22장: 승인한 5개 프롬프트. ②~④는 앞선 질문의 답과 추가 질문·수정 요청을 붙이는 안내. 기본 업무·품질 조건과 실제 피드백은 코드 자료에 보존했다.
+- 별첨 24~25장: code/s02/exercise-conversation/codex-response-05.md의 실제 최종 응답. 제목 단계·들여쓰기 외 문장·순서·강조 편집 없음. 별도 Q&A·중복 요약·임의 모범 답안 없음.
+- 검토 전 ④의 날짜 해석 모호함은 before-date-review/에 기록하고 실제 피드백에 포함 기준을 명시해 재실행했다. ⑤는 해당 최종 대화에서 실행했다.
+- 자동 검사 PASS: 오류 0, 경고 0. 참조 검사: s01·s03·s05 PASS. renderer·템플릿은 변경하지 않아 전체 Production 테스트는 재실행하지 않았다.
+- 실습 1 메모의 입력 파일 일치, 다섯 실제 입력의 기본 프롬프트 일치, 이전 실제 응답의 연속 전달, 최종 응답 원문과 원고·PPT의 문장 보존을 검사했다. 배송 7회와 마지막 배송 2028-01-26을 검산했다.
+- PowerPoint PDF로 변경한 1·2·12·15·16·22·23·24·25장 시각 검토 PASS. 표·목록·두 단의 겹침 및 잘림 없음. 증거: /tmp/tm-s02-final-01.png, -02.png, -12.png, -15.png, -16.png, -22.png, -23.png, -24.png, -25.png
+- 최종 강사 노트만 보완한 재생성 전후 전체 슬라이드 XML의 바이트 단위 동일성을 확인했다. 따라서 같은 시각 검토 증거가 최종 슬라이드 본문에도 적용된다.
+- 최종 원고 SHA-256: `c8f61db9cd871462d9074844f1e07f9b8e706b8e2477188488e66000cd1f0555`
+- 최종 PPT SHA-256: `8e72d9c5436e3ee73066ac77905bdd3bc0ab0c809bb589416b614b45664876ad`
+- 실제 최종 응답 SHA-256: `e316c1987c56b0839782160f251b6be3f4b879c1b224773745c5e80a9725402e`
+- 원고 수정 시각: 2026-10-19T23:18:24.698756+09:00
+- PPT 수정 시각: 2026-10-19T23:18:25.741566+09:00
+- 이번 작업 렌더링: 본편 4회·검토 원고 2회, 합계 6회. 최종 시각 검토 9장.
+
+
+## 반복 대화·최종 MD 방식 반영 — 2026-10-20 (Asia/Seoul)
+
+- 범위: 실습 과제와 실제 최종 응답 별첨. ①~⑤는 단계이며 보완 대화와 MD 재생성을 반복한다.
+- 실습 프롬프트에서 PPT 분량·폰트·배치 조건을 제거했다. 최종 MD를 다음 실습에 명시적으로 첨부한다.
+- Codex CLI로 앞선 실제 합의 내용을 이어 새 ⑤를 실행했다. CLI는 도구 없이 문서 본문을 출력하고 실행기가 MD 파일로 저장했다. 대화 이력과 생성 로그는 해당 exercise-conversation 폴더에 보존한다.
+- 별첨은 최종 MD 전체를 원문 그대로 사용했다. 제목 단계·목록 들여쓰기만 변환했고 도식 원본은 동일하다.
+- 자동 검사 PASS: 25장, 오류 0개·경고 0개. 원고 전체를 검사했고 시각 검토는 변경 슬라이드 22·24·25에 한정했다.
+- PowerPoint PDF 내보내기 후 변경 슬라이드 시각 검토 완료. 원문 설명·도식 누락 검사 통과.
+- 학습자용 다섯 기본 문구가 원고와 일치하며, 실제 ⑤의 응답과 배포 MD 바이트 일치. 과거 ①~④ 입력·응답은 실행 당시 그대로 보존한다.
+- renderer 회귀 테스트 173개 통과, 실패 0개. 이번 변경에 새 renderer 문법·서식은 없으며 기존 parser/builder로 구현된다. 테스트 fixture의 대화 안내·MD 재생성·원문 보존 계약을 갱신해 확인했다.
+
+### 이번 산출물 식별
+
+- /Users/YoungSan/dev/TrainingMaterials/courses/ai-native/sessions/s02.md: SHA-256 `f845f3acb92f399a0f69b0f366023e83c0a3f3de702c87daff8c8e2d7ae5fd3a`
+- /Users/YoungSan/dev/TrainingMaterials/courses/ai-native/sessions/s02.pptx: SHA-256 `adbef2b5cb9ea2fcd818d02a7ef98b4fb0ae0059c36ab1d7ed966d27bc06dfdf`
+- /Users/YoungSan/dev/TrainingMaterials/courses/ai-native/sessions/code/s02/exercise-conversation/정기배송-최초신청-요구사항.md: SHA-256 `f7405de67f790dfc5692fc64ceea8e45535872416a6738940f50e6adb2a82bb9`
+
+- 이번 작업 렌더링 2회(본편·검토용 원고 포함), 변경 슬라이드 시각 검토 3장. 
+
+
+## 저장소 정리 — 2026-10-20
+
+- 본편 반영 완료 후 중복된 s01~03-add 및 채택되지 않은 시도·검토본을 정리했다. 당시 파일은 로컬 복구 백업에 보존했다. 과거 기록의 경로는 당시 실행 경로다. 현재 원고·PPT·최종 MD와 대화 이력은 변경하지 않았다. 위치와 검사 결과는 저장소 루트 REPOSITORY-STATUS.md를 본다.

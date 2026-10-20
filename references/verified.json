@@ -53,7 +53,7 @@
   },
   "a domain model is a visual representation of conceptual classes or real-situation objects in a domain": {
     "source": "larman-2004",
-    "date": "2026-10-02"
+    "date": "2026-10-18"
   },
   "a fixed prompt is fed to an agent in an infinite loop": {
     "source": "https://www.thoughtworks.com/radar/techniques/ralph-loop",
@@ -269,7 +269,7 @@
   },
   "an ontology is an explicit specification of a conceptualization": {
     "source": "https://tomgruber.org/writing/ontolingua-kaj-1993.pdf",
-    "date": "2026-10-03"
+    "date": "2026-10-18"
   },
   "analysis emphasizes an investigation of the problem and requirements, rather than a solution": {
     "source": "larman-2004",
@@ -379,6 +379,10 @@
     "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
     "date": "2026-10-16"
   },
+  "bdd is a way for software teams to work that closes the gap between business people and technical people": {
+    "source": "https://cucumber.io/docs/bdd/",
+    "date": "2026-10-18"
+  },
   "bdd is a way for software teams to work that closes the gap between business people and technical people by: encouraging collaboration across roles to build shared understanding of the problem to be solved": {
     "source": "https://cucumber.io/docs/bdd/",
     "date": "2026-10-07"
@@ -453,7 +457,7 @@
   },
   "cohesion … is a measure of how strongly related and focused the responsibilities of an element are": {
     "source": "larman-2004",
-    "date": "2026-10-02"
+    "date": "2026-10-18"
   },
   "communication diagrams illustrate object interactions in a graph or network format, in which objects can be placed anywhere on the diagram": {
     "source": "larman-2004",
@@ -495,6 +499,10 @@
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-06"
   },
+  "coupling is a measure of how strongly one element is connected to, has knowledge of, or relies on other elements": {
+    "source": "larman-2004",
+    "date": "2026-10-18"
+  },
   "crucial for the agents to gain \"ground truth\" from the environment at each step": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-13"
@@ -513,7 +521,7 @@
   },
   "depend upon abstractions. do not depend upon concretions": {
     "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
-    "date": "2026-10-14"
+    "date": "2026-10-18"
   },
   "dependency inversion is the strategy of depending upon interfaces or abstract functions and classes, rather than upon concrete functions and classes": {
     "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
@@ -614,6 +622,10 @@
   "example mapping is a method designed to make this conversation short and very productive": {
     "source": "https://cucumber.io/docs/bdd/example-mapping/",
     "date": "2026-10-07"
+  },
+  "examples to illustrate these rules are written on a green card": {
+    "source": "https://cucumber.io/docs/bdd/example-mapping/",
+    "date": "2026-10-18"
   },
   "exceeding failure thresholds: set limits on agent retries or actions": {
     "source": "references/inputs/a-practical-guide-to-building-agents.pdf",
@@ -750,6 +762,10 @@
   "if your agent combines these three features, an attacker can easily trick it into accessing your private data and sending it to that attacker": {
     "source": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
     "date": "2026-10-14"
+  },
+  "if your project has a robust, comprehensive and stable test suite agentic coding tools can fly with it": {
+    "source": "https://simonwillison.net/2025/Oct/7/vibe-engineering/",
+    "date": "2026-10-18"
   },
   "if your project has a robust, comprehensive and stable test suite agentic coding tools can fly with it. without tests? your agent might claim something works without having actually tested it at all": {
     "source": "https://simonwillison.net/2025/Oct/7/vibe-engineering/",
@@ -1001,7 +1017,7 @@
   },
   "recognize that a change in the language is a change to the model": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
-    "date": "2026-10-08"
+    "date": "2026-10-18"
   },
   "refactoring … is a structured, disciplined method to rewrite or restructure existing code without changing its external behavior": {
     "source": "larman-2004",
@@ -1193,7 +1209,7 @@
   },
   "the dependencies betwen packages must not form cycles": {
     "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
-    "date": "2026-10-14"
+    "date": "2026-10-18"
   },
   "the design style in this book largely follows the principle of \"responsibility-driven design,\" put forward in wirfs-brock et al. 1990 and updated in wirfs-brock 2003. it also draws heavily (especially in part iii) on the ideas of \"design by contract\" described in meyer 1988. it is consistent with the general background of other widely held best practices of object-oriented design, which are described in such books as larman 1998": {
     "source": "확인 경위: 사용자가 Domain-Driven Design(Addison-Wesley, 2004) 인쇄본 서문에서 직접 대조함. 전자 사본은 서문이 빠진 324쪽본만 입수 가능",
@@ -1355,6 +1371,10 @@
     "source": "https://www.thoughtworks.com/radar/techniques/coding-agent-swarms",
     "date": "2026-10-13"
   },
+  "to be developed and tested in isolation from its eventual run-time devices and databases": {
+    "source": "https://alistair.cockburn.us/hexagonal-architecture/",
+    "date": "2026-10-18"
+  },
   "to be honest, i'd rather review code than all these markdown files": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
     "date": "2026-10-07"
@@ -1407,6 +1427,10 @@
     "source": "larman-2004",
     "date": "2026-10-08"
   },
+  "use the model as the backbone of a language": {
+    "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
+    "date": "2026-10-18"
+  },
   "use the model as the backbone of a language. commit the team to exercising that language relentlessly in all communication within the team and in the code": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-07"
@@ -1457,7 +1481,7 @@
   },
   "we prioritize work, translate user feedback into acceptance criteria, and validate outcomes": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-13"
+    "date": "2026-10-18"
   },
   "we recommend extensive testing in sandboxed environments, along with the appropriate guardrails": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
@@ -1523,6 +1547,10 @@
     "source": "https://www.anthropic.com/engineering/harness-design-long-running-apps",
     "date": "2026-10-13"
   },
+  "work on only one feature at a time": {
+    "source": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+    "date": "2026-10-18"
+  },
   "workflows are systems where llms and tools are orchestrated through predefined code paths": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-06"
@@ -1554,6 +1582,10 @@
   "you should be striving for the minimal set of information that fully outlines your expected behavior": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
+  },
+  "you shouldn't start a new project with microservices, even if you're sure your application will be big enough to make it worthwhile": {
+    "source": "https://martinfowler.com/bliki/MonolithFirst.html",
+    "date": "2026-10-18"
   },
   "you want to have checks as far left in the path to production as possible, since the earlier you find issues, the cheaper they are to fix": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",

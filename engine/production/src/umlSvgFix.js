@@ -223,7 +223,11 @@ function fitViewBox(svg, margin = 6) {
   for (const m of svg.matchAll(/\s(x|x1|x2|cx)="(-?[\d.]+)"/g)) xs.push(Number(m[2]));
   for (const m of svg.matchAll(/\s(y|y1|y2|cy)="(-?[\d.]+)"/g)) ys.push(Number(m[2]));
   // Text is positioned by its baseline: allow for the glyph height above it.
-  for (const m of svg.matchAll(/<text\b[^>]*\sy="(-?[\d.]+)"/g)) ys.push(Number(m[1]) - 16);
+  for (const m of svg.matchAll(/<text\b[^>]*>/g)) {
+    const y = /\sy="(-?[\d.]+)"/.exec(m[0]);
+    const font = /\sfont-size="([\d.]+)"/.exec(m[0]);
+    if (y) ys.push(Number(y[1]) - (font ? Number(font[1]) : 16));
+  }
   for (const m of svg.matchAll(/\s(?:d|points)="([^"]*)"/g)) {
     const nums = m[1].match(/-?[\d.]+/g) || [];
     for (let i = 0; i + 1 < nums.length; i += 2) { xs.push(Number(nums[i])); ys.push(Number(nums[i + 1])); }

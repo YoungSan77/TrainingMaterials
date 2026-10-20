@@ -76,3 +76,17 @@ test("fitViewBox widens a viewBox that clips content drawn at negative coordinat
   assert.ok(vb[1] <= -36, "top grows to cover the label above y=-20 and the path at y=-30");
   assert.equal(fitViewBox('<svg viewBox="0 0 10 10"><rect x="1" y="1"/></svg>'), '<svg viewBox="0 0 10 10"><rect x="1" y="1"/></svg>');
 });
+
+test("state self-transition and its scaled label stay inside the raster viewport", () => {
+  const { svgFixes } = require("../plantumlAdapter");
+  // Smetana puts the self-loop above the state at y=0; PlantUML scale 4 makes
+  // its 13px label 52 SVG units high. A fixed 16-unit allowance clips the label.
+  const svg = '<svg width="500px" height="200px" viewBox="0 0 500 200"><text font-size="52" x="100" y="-20">거절</text><path d="M100,0 C100,-55 150,-55 150,0"/></svg>';
+  const fixes = svgFixes("state", "state PENDING_PAYMENT\nPENDING_PAYMENT --> PENDING_PAYMENT : 거절");
+  assert.ok(fixes.length, "state diagrams must receive the viewport correction");
+  const fixed = fixes.reduce((out, fix) => fix(out), svg);
+  const box = /viewBox="([\d.-]+) ([\d.-]+) ([\d.]+) ([\d.]+)"/.exec(fixed).slice(1).map(Number);
+  assert.ok(box[1] <= -78, "the label and self-loop must both fit with margin");
+  assert.equal(box[1] + box[3], 200, "the existing bottom edge is retained");
+  assert.ok(fixed.includes('height="278px"'));
+});

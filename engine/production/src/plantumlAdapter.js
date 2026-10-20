@@ -244,7 +244,8 @@ function svgFixes(kind, inner) {
   if (kind === "usecase") fixes.push(fitUsecaseEllipses);
   if (kind === "usecase" && hasActor) fixes.push((svg) => shrinkUsecaseActors(svg, ACTOR_SCALE));
   if (kind === "class" && /^\s*\([^)]*,[^)]*\)\s*\.\./m.test(inner)) fixes.push(fixAssociationClasses);
-  if (["communication", "collaboration"].includes(kind)) fixes.push(fitViewBox);
+  // Smetana can also draw state self-transitions above the SVG's initial viewport.
+  if (["communication", "collaboration", "state"].includes(kind)) fixes.push(fitViewBox);
   return fixes;
 }
 

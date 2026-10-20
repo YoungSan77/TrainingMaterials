@@ -105,7 +105,10 @@ function updateDocProps(result, pages, session) {
 }
 
 // A table's lead text may end with its "**표 — 제목**" title: that title is drawn on its own, 6pt
-// above the table, not as part of the lead text box.
+// above the table, not as part of the lead text box. It is 14pt bold on one line plus that gap --
+// costing it as 18pt prose (what blockCost does) overstates the lead by ~8pt and pushed tables
+// that did fit onto a slide of their own.
+const CAPTION_H = 14 * 1.25 + 6;
 function splitCaption(lead) {
   const last = lead[lead.length - 1];
   if (last && last.meta && last.meta.caption) return { lead: lead.slice(0, -1), caption: last.meta.caption };
@@ -380,7 +383,7 @@ class Builder {
     const full = fitBox(FULL_TEXT), practice = fitBox(PRACTICE_BOX);
     const half = (full.w - 0.3) / 2;
     const two = [{ ...full, w: half }, { ...full, x: full.x + half + 0.3, w: half }];
-    const tries = [[PRACTICE_STYLE, [practice]], [shiftStyle(16), [full]], [shiftStyle(14), [full]], [shiftStyle(14), two]];
+    const tries = [[PRACTICE_STYLE, [practice]], [shiftStyle(16), [full]], [shiftStyle(14), [full]], [shiftStyle(14), two], [shiftStyle(12), [full]], [shiftStyle(12), two]];
     for (const [style, boxes] of tries) {
       const page = this.styledPage(blocks, heading, style, boxes);
       if (!page) continue;
@@ -391,17 +394,95 @@ class Builder {
     return null;
   }
 
+  // A 10pt document with one diagram: keep source order, diagram above its trailing prose.
+  // Try full-width prose and two columns, selecting the larger readable diagram without omissions.
+  documentDiagramPage(blocks, heading, png, style) {
+    const at = blocks.findIndex(b => ["mermaid", "plantuml", "svg", "chart"].includes(b.kind));
+    if (at < 0 || blocks.some(b => !["text", "bullet", "heading", "mermaid", "plantuml", "svg", "chart"].includes(b.kind))) return null;
+    const before = blocks.slice(0, at), after = blocks.slice(at + 1);
+    const box = { ...FULL_TEXT, h: this.contentBottomY() - FULL_TEXT.y };
+    const height = (bs, area) => bs.length ? styledCost(bs, style, area) / 72 / style.fit : 0;
+    const beforeH = height(before, box);
+    const gap = BLOCK_GAP;
+    const options = [{ parts: [after], areas: [box] }];
+    if (after.length > 1) {
+      const w = (box.w - 0.3) / 2;
+      const areas = [{ ...box, w }, { ...box, x: box.x + w + 0.3, w }];
+      let best = null;
+      for (let i = 1; i < after.length; i++) {
+        if (after[i - 1].kind === "heading") continue;
+        const parts = [after.slice(0, i), after.slice(i)];
+        const h = Math.max(...parts.map((part, k) => height(part, areas[k])));
+        if (!best || h < best.h) best = { parts, areas, h };
+      }
+      if (best) options.push(best);
+    }
+    let chosen = null;
+    for (const option of options) {
+      const afterH = Math.max(...option.parts.map((part, k) => height(part, option.areas[k])));
+      const y = box.y + beforeH + (before.length ? gap : 0);
+      const panel = { x: box.x, y, w: box.w, h: this.contentBottomY() - y - afterH - (after.length ? gap : 0) };
+      if (panel.h <= 0) continue;
+      const bounds = fitTarget(panel, png, "top");
+      const pt = pictureTextPt(png, bounds);
+      if (pt < MIN_PT - 0.05) continue;
+      if (!chosen || pt > chosen.pt + 0.05) chosen = { ...option, bounds, pt, beforeH, afterH };
+    }
+    if (!chosen) return null;
+    const page = this.page(ORIGIN.prose, heading);
+    paragraphs(page, 8, [], false);
+    const write = (bs, area) => {
+      if (!bs.length) return;
+      const id = this.cloneShape(page, 8);
+      setShapeBounds(shape(page.doc, id), area);
+      paragraphs(page, id, bs, false);
+      restyle(shape(page.doc, id), style);
+    };
+    write(before, { ...box, h: beforeH });
+    const y = chosen.bounds.y + chosen.bounds.h + (after.length ? gap : 0);
+    chosen.parts.forEach((part, k) => write(part, { ...chosen.areas[k], y, h: chosen.afterH }));
+    page.pictures = [{ ...png, bounds: chosen.bounds }];
+    page.visualLayout = "document-stacked";
+    page.textCost = styledCost(before, style, box) + Math.max(...chosen.parts.map((part, k) => styledCost(part, style, chosen.areas[k])));
+    return page;
+  }
+
   // A text answer "(안)": the reference style in two columns split before a level-0 item where
   // possible. Returns null when it does not fit (structure.js then reports it).
-  answerPage(blocks, heading) {
+  answerPage(blocks, heading, requestedStyle = ANSWER_STYLE) {
     const boxes = ANSWER_COLUMNS.map((box) => ({ ...box, h: Math.min(box.h, this.contentBottomY() - box.y) }));
     // Keep the contracted 14/12/11pt answer sizes. When a footnote owns the bottom strip, reclaim
     // the needed height from paragraph spacing (1pt instead of 3pt), not from the font size or by
     // letting the footnote cover the last lines.
-    const style = this.hasFootnote ? { ...ANSWER_STYLE, space: 1 } : ANSWER_STYLE;
+    const style = this.hasFootnote ? { ...requestedStyle, space: 1 } : requestedStyle;
     const page = this.styledPage(blocks, heading, style, boxes);
     if (page) page.answerColumns = 2;
     return page;
+  }
+
+  // Preserve all document blocks at the requested size, continuing left then right on each page.
+  documentPages(blocks, heading, style) {
+    const out = [];
+    let rest = blocks.slice();
+    while (rest.length) {
+      let found = 0, bestPage = null, low = 1, high = rest.length;
+      while (low <= high) {
+        const n = Math.floor((low + high) / 2);
+        if (this.answerPage(rest.slice(0, n), heading, style)) {
+          bestPage = this.pages.pop();
+          found = n;
+          low = n + 1;
+        } else high = n - 1;
+      }
+      if (found < rest.length && found && rest[found - 1].kind === "heading") {
+        found--;
+        bestPage = found && this.answerPage(rest.slice(0, found), heading, style) ? this.pages.pop() : null;
+      }
+      need(found && bestPage, "문서의 한 항목이 한 장에 들어가지 않는다: " + heading);
+      out.push(bestPage);
+      rest = rest.slice(found);
+    }
+    return out;
   }
 
   // The reference list of the appendix: entries in two 8pt columns per slide, a heading never left
@@ -458,14 +539,16 @@ class Builder {
     if (boxes.length === 1) {
       if (!fits(blocks, boxes[0])) return null;
       parts = [blocks];
+    } else if (style.leftFirst && fits(blocks, boxes[0])) {
+      parts = [blocks];
     } else {
       const top = (b) => b.kind !== "bullet" || !b.depth;
       const split = (allowed) => {
         let best = null;
         for (let i = 1; i < blocks.length; i++) {
-          if (!allowed(blocks[i]) || !fits(blocks.slice(0, i), boxes[0]) || !fits(blocks.slice(i), boxes[1])) continue;
+          if ((style.leftFirst && blocks[i - 1].kind === "heading") || !allowed(blocks[i]) || !fits(blocks.slice(0, i), boxes[0]) || !fits(blocks.slice(i), boxes[1])) continue;
           const h = Math.max(styledCost(blocks.slice(0, i), style, boxes[0]), styledCost(blocks.slice(i), style, boxes[1]));
-          if (!best || h < best.h) best = { i, h };
+          if (!best || (style.leftFirst ? i > best.i : h < best.h)) best = { i, h };
         }
         return best;
       };
@@ -911,7 +994,10 @@ class Builder {
     if (this.tableGroups(block.rows, widths).length !== 1) return 0;
     const tableH = block.rows.reduce((sum, row) => sum + this.rowHeight(row, widths), 0);
     const band = (PAGE_NUM_Y - 0.15 - 1.05) * 72;
-    const used = (lead.length ? this.textHeightPt(lead) + BLOCK_GAP_PT : 0) + (mid.length ? this.textHeightPt(mid) + BLOCK_GAP_PT : 0) + tableH + BLOCK_GAP_PT;
+    const m = splitCaption(mid);
+    const used = (lead.length ? this.textHeightPt(lead) + BLOCK_GAP_PT : 0)
+      + (m.lead.length ? this.textHeightPt(m.lead) + BLOCK_GAP_PT : 0)
+      + (m.caption ? CAPTION_H : 0) + tableH + BLOCK_GAP_PT;
     const room = band - used;
     const natural = naturalSize(png, TARGET_PT);
     // The legend shares the slide only while it still reads at MIN_PT (production-guide.md).
@@ -928,7 +1014,7 @@ class Builder {
     if (groups.length !== 1) return false;
     const tableH = groups[0].reduce((sum, row) => sum + this.rowHeight(row, widths), 0);
     const leadH = lead.length ? this.textHeightPt(lead) + BLOCK_GAP_PT : 0;
-    const capH = caption ? 14 * 1.25 + 6 : 0;
+    const capH = caption ? CAPTION_H : 0;
     if (leadH + capH + tableH > this.roomBelowPt(page)) return false;
     if (lead.length) this.appendTextBelow(page, lead);
     let yPt = page.tableBottom * 72 + BLOCK_GAP_PT;
@@ -1180,8 +1266,10 @@ class Builder {
       let footnote = null;
       // "**문서 형식**": a document shown as one (e.g. a use-case specification) -- the topic is set
       // like a text answer, two columns at 14/12/11pt on one slide (production-guide.md "문서 형식").
-      const docAt = section.blocks.findIndex((b) => b.kind === "text" && /^\*\*문서 형식\*\*$/.test(b.text.trim()));
+      const docAt = section.blocks.findIndex((b) => b.kind === "text" && /^\*\*문서 형식(?: — 10pt)?\*\*$/.test(b.text.trim()));
       const docLayout = docAt >= 0;
+      const documentStyle = docLayout && section.blocks[docAt].text.includes("10pt")
+        ? { ...ANSWER_STYLE, fit: 0.9, uniform: true, text: 10, levels: [10, 10, 10], expl: () => 10, paren: () => 10, space: 3, documentIndent: true, leftFirst: true } : ANSWER_STYLE;
       if (docLayout) section = { ...section, blocks: section.blocks.filter((b, i) => i !== docAt && b.kind !== "pagebreak") };
       const refLayout = section.blocks.some(isReferenceMarker);
       if (refLayout) section = { ...section, blocks: section.blocks.filter((b) => !isReferenceMarker(b) && b.kind !== "pagebreak") };
@@ -1205,7 +1293,9 @@ class Builder {
       };
       // A diagram answer "(안)" keeps the usual text-above-diagram layout, its text in the answer
       // sizes (production-guide.md "실습 슬라이드").
-      this.sectionStyle = isAnswer(section.title) && visuals.length ? ANSWER_STYLE : null;
+      this.sectionStyle = visuals.length
+        ? (docLayout ? documentStyle : (isAnswer(section.title) || section.verbatimResponse) ? ANSWER_STYLE : null)
+        : null;
       const renderedVisuals = await Promise.all(visuals.map(async (b) => {
         // A render failure names the topic and the diagram (production-guide.md "자동 검사").
         const where = `"${section.title}"의 ${visualCaption(b) ? `"${visualCaption(b)}"` : b.kind + " 도식"}`;
@@ -1491,8 +1581,16 @@ class Builder {
           const tableWidths = columnWidths(b.rows, b.rows[0].length);
           const tableContentH = b.rows.reduce((sum, row) => sum + this.rowHeight(row, tableWidths), 0);
           const leadCap = Math.max(0, (PAGE_NUM_Y - 1.05) * 72 - 8 - Math.min(tableContentH, 365));
-          const lead = pending.length && this.tableLeadHeight(pending, leadCap) < leadCap ? pending.slice() : [];
-          if (!lead.length) this.flush(pending, section.title, layout.width, capacity);
+          const split = splitCaption(pending);
+          const leadPt = this.tableLeadHeight(split.lead, leadCap) + (split.caption ? CAPTION_H : 0);
+          let lead = pending.length && leadPt < leadCap ? pending.slice() : [];
+          if (!lead.length) {
+            // The lead is too tall to share the table's slide, so it goes to its own prose page --
+            // but the table's own title ("**표 — 제목**") must travel WITH the table, not stay
+            // behind at the bottom of that page (production-guide.md "표·도식 제목").
+            this.flush(split.lead, section.title, layout.width, capacity);
+            if (split.caption) lead = [pending[pending.length - 1]];
+          }
           this.table(b, section.title, lead, leadCap, { widths });
           open = this.pages[this.pages.length - 1];
           pending = [];
@@ -1657,15 +1755,27 @@ class Builder {
       // 16 then 14pt, then in two columns at 14pt (production-guide.md "실습 슬라이드"). Its answer
       // is set on one slide at 14/12/11pt by level, in two columns if needed; if even that runs
       // over it keeps its 18pt continuation slides.
+      if (docLayout && documentStyle.uniform && renderedVisuals.length === 1) {
+        const compact = this.documentDiagramPage(section.blocks, section.title, renderedVisuals[0], documentStyle);
+        if (compact) {
+          this.pages.pop();
+          this.pages.splice(firstIdx, end - firstIdx, compact);
+          end = firstIdx + 1;
+        }
+      }
       const practicePages = this.pages.slice(firstIdx, end);
       if (isPractice(section.title) || isAnswer(section.title) || docLayout) {
         const pages = practicePages;
         const textOnly = pages.every((p) => !(p.pictures || []).length && p.tableBottom == null && !p.items.some((it) => it.kind === "source" || it.kind === "table"));
-        const one = textOnly && (isPractice(section.title) ? this.practicePage(this.sectionBlocks, section.title) : this.answerPage(this.sectionBlocks, section.title));
+        const one = textOnly && (isPractice(section.title) ? this.practicePage(this.sectionBlocks, section.title) : this.answerPage(this.sectionBlocks, section.title, documentStyle));
         if (one) {
           this.pages.splice(firstIdx, end - firstIdx);
           this.pages.splice(firstIdx, 0, this.pages.pop());
           end = firstIdx + 1;
+        } else if (textOnly && docLayout && documentStyle.uniform) {
+          const built = this.documentPages(this.sectionBlocks, section.title, documentStyle);
+          this.pages.splice(firstIdx, end - firstIdx, ...built);
+          end = firstIdx + built.length;
         }
       }
       if (refLayout) {
@@ -1737,6 +1847,10 @@ class Builder {
         const titleBody = body(shape(p.doc, 2));
         for (const par of kids(titleBody, A, "p")) titleBody.removeChild(par);
         const lines = p.heading.split("\n");
+        // The template title placeholder is about 496pt wide. Leave its insets and a bold-glyph
+        // margin intact; fit long document titles without wrapping over the appendix subtitle.
+        const titleUnits = Array.from(lines[0]).reduce((n, ch) => n + (/\s/.test(ch) ? 0.33 : ch.codePointAt(0) >= 0x1100 ? 1.05 : 0.6), 0);
+        const titlePt = p.answerColumns ? Math.min(24, Math.max(16, Math.floor(470 / titleUnits))) : 24;
         for (let li = 0; li < lines.length; li++) {
           const par = el(p.doc, A, "p");
           titleBody.appendChild(par);
@@ -1746,7 +1860,7 @@ class Builder {
             runParen(par, draft[1] + " ", 24, true);
             run(par, draft[2], 18, true);
             if (draft[3]) runParen(par, draft[3], 24, true);
-          } else runParen(par, lines[li], li === 0 ? 24 : 11, true);
+          } else runParen(par, lines[li], li === 0 ? titlePt : 11, true);
         }
       }
       // Shape 5 (top-right, idx=11) is the session name -- production-guide.md ("Session 명")

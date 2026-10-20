@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/tools/session-authoring-hook.js\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/tools/session-check-hook.js\"",
+            "timeout": 300,
+            "statusMessage": "세션 원고 자동 검사"
+          }
+        ]
+      }
+    ]
+  }
+}

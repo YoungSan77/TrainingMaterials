@@ -2,7 +2,7 @@
 // 문서형 슬라이드(실습·실습 답·별첨)의 글자 크기와 높이 — 어떤 크기로 놓을지(style), 그 크기로
 // 블록이 차지하는 높이(styledCost), 템플릿이 써 둔 크기를 그 style로 바꾸는 일(restyle)
 // (production-guide.md 「실습 슬라이드」·「별첨 — 참고 자료」).
-const { A, P, all, child, spacing } = require("./xml");
+const { A, P, all, child, spacing, el, kids } = require("./xml");
 const { plain } = require("./text");
 const { BULLET_LEVELS, numberWidthEmu } = require("./paragraphs");
 const { EMU } = require("./visualFit");
@@ -12,7 +12,7 @@ const { EMU } = require("./visualFit");
 // level, the size of a line's explanation after "—" and of a "(...)" span for a level size, and
 // how lines are indented: `hang` sets each level 0.25in in with a 0.2in hanging glyph (answer);
 // `aligned` puts an unbulleted "+ " line under its parent's text (practice).
-const PRACTICE_STYLE = { fit: 1.04, text: 16, levels: [18, 16, 14], expl: (L) => L - 2, paren: (L) => Math.max(8, L - 4), aligned: true };
+const PRACTICE_STYLE = { fit: 0.9, text: 16, levels: [18, 16, 14], expl: (L) => L - 2, paren: (L) => Math.max(8, L - 4), aligned: true };
 const ANSWER_STYLE = { fit: 1.1, text: 14, levels: [14, 12, 11], expl: (L) => L - 2, paren: (L) => Math.max(8, L - 4), hang: true };
 // "**참고 자료 목록**" (production-guide.md "별첨 — 참고 자료"): numbered entries at 8pt in two columns.
 // `numberHang` starts a numbered entry at the left edge and its wrapped lines after "N. "; `space` is
@@ -43,7 +43,7 @@ function styledCost(blocks, style, box) {
     const level = depth < 0 ? null : BULLET_LEVELS[depth + 1];
     const numbered = /^(?:\d+\.|\(\d+\))\s/.test(b.text);
     const prefix = /^(?:\d+\.|\(\d+\))\s/.exec(plain(b.text));
-    const indent = style.numberHang && prefix ? numberWidthEmu(prefix[0], L) / EMU : depth < 0 ? 0 : style.hang ? (depth + 1) * 0.25
+    const indent = style.documentIndent ? (depth < 0 ? 0.2 : 0.45 + depth * 0.35) : style.numberHang && prefix ? numberWidthEmu(prefix[0], L) / EMU : depth < 0 ? 0 : style.hang ? (depth + 1) * 0.25
       : style.aligned && b.meta && b.meta.noGlyph && !numbered ? BULLET_LEVELS[depth].marL / EMU
       : numbered ? (level.marL + level.indent) / EMU + 0.25 : level.marL / EMU;
     const text = plain(b.text), cut = text.indexOf(" — ");
@@ -73,7 +73,7 @@ function restyle(sh, style) {
     const L = depth < 0 ? style.text : style.levels[depth], E = style.expl(L), P = style.paren(L);
     for (const rp of all(p, A, "rPr")) {
       const sz = parseInt(rp.getAttribute("sz") || "1800", 10) / 100;
-      const to = sz >= from ? L : sz >= from - 2 ? E : sz >= from - 4 ? P : Math.max(8, Math.min(P, E - 2));
+      const to = style.uniform ? L : sz >= from ? L : sz >= from - 2 ? E : sz >= from - 4 ? P : Math.max(8, Math.min(P, E - 2));
       rp.setAttribute("sz", String(Math.round(to * 100)));
     }
     const number = style.numberHang && /^(?:\d+\.|\(\d+\))\s/.exec(p.textContent);
@@ -82,6 +82,39 @@ function restyle(sh, style) {
       pr.setAttribute("marL", String(w));
       pr.setAttribute("indent", String(-w));
       continue;
+    }
+    if (style.documentIndent && pr) {
+      const x = depth < 0 ? 0.2 : 0.45 + depth * 0.35;
+      const bare = Boolean(child(pr, A, "buNone"));
+      const prefix = /^(?:\d+\.)\s/.exec(p.textContent);
+      if (prefix) {
+        const w = numberWidthEmu(prefix[0], L);
+        pr.setAttribute("marL", String(Math.round(x * EMU) + w));
+        pr.setAttribute("indent", String(-w));
+        continue;
+      }
+      pr.setAttribute("marL", String(Math.round(x * EMU)));
+      pr.setAttribute("indent", String(depth < 0 || bare ? 0 : Math.round(-0.15 * EMU)));
+      continue;
+    }
+    if (style.aligned && pr) {
+      const prefix = /^(?:([①-⑤])|(\d+)\.)\s/.exec(p.textContent);
+      if (prefix) {
+        let count = prefix[0].length;
+        for (const t of all(p, A, "t")) {
+          const take = Math.min(count, t.textContent.length);
+          t.textContent = t.textContent.slice(take);
+          count -= take;
+          if (!count) break;
+        }
+        for (const n of kids(pr, A, "buNone").concat(kids(pr, A, "buChar"), kids(pr, A, "buAutoNum"), kids(pr, A, "buFont"))) pr.removeChild(n);
+        const circled = Boolean(prefix[1]);
+        pr.setAttribute("marL", circled ? "981075" : "1028700");
+        pr.setAttribute("indent", circled ? "-268288" : "-304800");
+        pr.appendChild(el(p.ownerDocument, A, "buFont", "typeface", circled ? "+mj-ea" : "+mj-lt"));
+        pr.appendChild(el(p.ownerDocument, A, "buAutoNum", "type", circled ? "circleNumDbPlain" : "arabicPeriod", "startAt", circled ? String(prefix[1].codePointAt(0) - 0x2460 + 1) : prefix[2]));
+        continue;
+      }
     }
     if (!lvl) continue;
     const bare = Boolean(child(pr, A, "buNone"));

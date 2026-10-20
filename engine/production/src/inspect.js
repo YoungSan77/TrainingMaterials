@@ -2,9 +2,20 @@
 // Port of LecturePpt.inspect()/Report: re-reads the written PPTX and checks it against the
 // Manifest that produced it — the same "render, then re-read and verify" self-check the Java
 // original performs before ever declaring PASS.
-const { A, P, all, shape, text, body, kids, child, children } = require("./xml");
+const { A, P, all, shape, text, body, kids, child, children, paragraph } = require("./xml");
 const { readZip } = require("./zip");
 const { slideParts } = require("./template");
+
+function numberedText(sh) {
+  return all(sh, A, "p").map(p => {
+    const auto = all(p, A, "buAutoNum")[0];
+    if (!auto) return paragraph(p);
+    const n = Number(auto.getAttribute("startAt") || 1);
+    const kind = auto.getAttribute("type");
+    const prefix = kind === "circleNumDbPlain" ? String.fromCodePoint(0x2460 + n - 1) + " " : kind === "arabicPeriod" ? n + ". " : "";
+    return prefix + paragraph(p);
+  }).join("\n");
+}
 
 function reportJson(errors, slides, blocks, warnings) {
   const q = (s) => JSON.stringify(s);
@@ -54,7 +65,7 @@ async function inspect(outputPath, m) {
         if (JSON.stringify(rows) !== JSON.stringify(item.rows)) errors.push(prefix + "table content mismatch");
         for (const rp of all(sh, A, "rPr")) if (rp.getAttribute("sz") !== "1000") errors.push(prefix + "table font !=10pt");
       } else {
-        if (text(sh) !== item.text) errors.push(prefix + "text/code mismatch");
+        if ((all(sh, A, "buAutoNum").length ? numberedText(sh) : text(sh)) !== item.text) errors.push(prefix + "text/code mismatch");
         if (item.kind === "source") {
           for (const rp of all(sh, A, "rPr")) if (!["800", "900", "1000"].includes(rp.getAttribute("sz"))) errors.push(prefix + "source font outside 8~10pt");
         }
@@ -78,4 +89,4 @@ async function inspect(outputPath, m) {
   return { errors, slides: parts.length, blocks, json: () => reportJson(errors, parts.length, blocks) };
 }
 
-module.exports = { inspect, reportJson };
+module.exports = { inspect, reportJson, numberedText };
