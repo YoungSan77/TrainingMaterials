@@ -521,6 +521,10 @@ class Builder {
   styledPage(blocks, heading, style, boxes) {
     if (!blocks.length) return null;
     const fits = (bs, box) => styledCost(bs, style, box) <= box.h * 72 * style.fit;
+    // 왼쪽 단은 제 여유(style.leftFit)로 잰다 — 여유를 너무 줄이면 들어갈 항목이 오른쪽으로 넘어가
+    // 왼쪽 아래가 비고, 너무 늘리면 글이 쪽 번호를 덮는다(production-guide.md 「문서 형식」).
+    const leftFit = style.leftFit != null ? style.leftFit : style.fit;
+    const fitsLeft = (bs, box) => styledCost(bs, style, box) <= box.h * 72 * leftFit;
     // In two columns, the leading unbulleted paragraphs (a governing message) span both columns
     // above them.
     let lead = [], leadBox = null;
@@ -539,20 +543,21 @@ class Builder {
     if (boxes.length === 1) {
       if (!fits(blocks, boxes[0])) return null;
       parts = [blocks];
-    } else if (style.leftFirst && fits(blocks, boxes[0])) {
+    } else if (style.leftFirst && fitsLeft(blocks, boxes[0])) {
       parts = [blocks];
     } else {
       const top = (b) => b.kind !== "bullet" || !b.depth;
-      const split = (allowed) => {
+      const split = (allowed, left) => {
         let best = null;
         for (let i = 1; i < blocks.length; i++) {
-          if ((style.leftFirst && blocks[i - 1].kind === "heading") || !allowed(blocks[i]) || !fits(blocks.slice(0, i), boxes[0]) || !fits(blocks.slice(i), boxes[1])) continue;
+          if ((style.leftFirst && blocks[i - 1].kind === "heading") || !allowed(blocks[i]) || !left(blocks.slice(0, i), boxes[0]) || !fits(blocks.slice(i), boxes[1])) continue;
           const h = Math.max(styledCost(blocks.slice(0, i), style, boxes[0]), styledCost(blocks.slice(i), style, boxes[1]));
           if (!best || (style.leftFirst ? i > best.i : h < best.h)) best = { i, h };
         }
         return best;
       };
-      const best = split(top) || split(() => true);
+      // 나누는 자리는 level 0 항목 앞을 우선하고, 그런 자리가 없을 때만 아무 블록 앞에서 나눈다.
+      const best = split(top, fitsLeft) || split(() => true, fitsLeft);
       // Nothing to split -- a last page of one block, or a run that only fits as a whole -- still
       // belongs on the slide: it stays in the left column.
       if (!best) {
@@ -1269,7 +1274,7 @@ class Builder {
       const docAt = section.blocks.findIndex((b) => b.kind === "text" && /^\*\*문서 형식(?: — 10pt)?\*\*$/.test(b.text.trim()));
       const docLayout = docAt >= 0;
       const documentStyle = docLayout && section.blocks[docAt].text.includes("10pt")
-        ? { ...ANSWER_STYLE, fit: 0.9, uniform: true, text: 10, levels: [10, 10, 10], expl: () => 10, paren: () => 10, space: 3, documentIndent: true, leftFirst: true } : ANSWER_STYLE;
+        ? { ...ANSWER_STYLE, fit: 0.9, leftFit: 0.9, uniform: true, text: 10, levels: [10, 10, 10], expl: () => 10, paren: () => 10, space: 3, documentIndent: true, leftFirst: true } : ANSWER_STYLE;
       if (docLayout) section = { ...section, blocks: section.blocks.filter((b, i) => i !== docAt && b.kind !== "pagebreak") };
       const refLayout = section.blocks.some(isReferenceMarker);
       if (refLayout) section = { ...section, blocks: section.blocks.filter((b) => !isReferenceMarker(b) && b.kind !== "pagebreak") };

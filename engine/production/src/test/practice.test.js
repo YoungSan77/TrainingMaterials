@@ -106,13 +106,53 @@ test("an indented numbered item nests under the list item above it", () => {
 });
 
 test("an answer's leading paragraph spans both columns above them", async () => {
-  const { pages } = await pagesOf("## 01. 명세서 (안)\n\n**정기배송** 서비스의 개요를 한 문단으로 적는다.\n\n" + levelled(4) + "\n");
-  assert.equal(pages.length, 1);
-  const boxes = Array.from(pages[0].doc.getElementsByTagName("a:off")).map((o) => [+o.getAttribute("x"), +o.getAttribute("y")]);
-  const body = boxes.filter(([, y]) => y >= 960120);
-  assert.equal(body.length, 3);
-  const lead = body.find(([x, y]) => y === 960120);
-  assert.ok(lead && body.filter(([, y]) => y > 960120).length === 2);
+  // 왼쪽을 먼저 채운다(production-guide.md 「문서 형식」): 짧은 답은 거버닝 메시지 + 왼쪽 단뿐이고,
+  // 길어져 왼쪽을 넘길 때만 오른쪽 단이 생긴다.
+  const short = await pagesOf("## 01. 명세서 (안)\n\n**정기배송** 서비스의 개요를 한 문단으로 적는다.\n\n" + levelled(4) + "\n");
+  assert.equal(short.pages.length, 1);
+  const boxesOf = (page) => Array.from(page.doc.getElementsByTagName("a:off"))
+    .map((o) => [+o.getAttribute("x"), +o.getAttribute("y")]).filter(([, y]) => y >= 960120);
+  const shortBody = boxesOf(short.pages[0]);
+  assert.equal(shortBody.length, 2, "거버닝 메시지와 왼쪽 단뿐이다");
+  assert.ok(shortBody.some(([, y]) => y === 960120), "거버닝 메시지가 두 단 위에 있다");
+
+  const long = await pagesOf("## 01. 명세서 (안)\n\n**정기배송** 서비스의 개요를 한 문단으로 적는다.\n\n" + levelled(9) + "\n");
+  assert.equal(long.pages.length, 1);
+  const longBody = boxesOf(long.pages[0]);
+  assert.equal(longBody.length, 3, "넘치면 오른쪽 단이 생긴다");
+  const columns = longBody.filter(([, y]) => y > 960120).map(([x]) => x).sort((a, b) => a - b);
+  assert.ok(columns[1] > columns[0], "두 단이 좌우로 놓인다");
+
+  // 왼쪽을 먼저 채우되 제 여유(leftFit)를 넘기지 않는다 — 넘기면 글이 쪽 번호 위로 흐른다.
+  const { ANSWER_COLUMNS, ANSWER_STYLE, styledCost } = require("../builder");
+  const { sections } = parse("## 01. 명세서 (안)\n\n" + levelled(9) + "\n");
+  const body = sections[0].blocks.filter((b) => b.kind === "bullet");
+  const box = ANSWER_COLUMNS[0];
+  const leftOnly = styledCost(body, ANSWER_STYLE, box);
+  assert.ok(leftOnly > box.h * 72 * ANSWER_STYLE.leftFit, "이 분량은 한 단을 넘는다(두 단 분할이 일어난다)");
+});
+
+// production-guide.md 「문서 형식」: 왼쪽 단은 제 여유(leftFit)까지 채우고, 넘는 것만 오른쪽으로
+// 보낸다. 여유를 빼면 들어갈 항목이 오른쪽으로 넘어가 왼쪽 아래가 비고, 오른쪽 단의 여유(fit)까지
+// 열면 왼쪽 글이 쪽 번호를 덮는다. 추정과 실제 출력의 차이를 실제 덱으로 맞춘 값이다.
+test("the left column fills to its own tolerance, between the box height and fit", async () => {
+  const { ANSWER_COLUMNS, ANSWER_STYLE, styledCost, PAGE_NUM_Y } = require("../builder");
+  assert.ok(1 < ANSWER_STYLE.leftFit && ANSWER_STYLE.leftFit < ANSWER_STYLE.fit, "여유는 제 높이와 fit 사이다");
+  const col = ANSWER_COLUMNS[0];
+  const box = { ...col, h: Math.min(col.h, PAGE_NUM_Y - 0.15 - col.y) };
+  const long = (i) => `- **규칙 ${i}** 답의 규칙은 수강생이 LLM과 함께 정한 내용을 한 줄로 적는다.`;
+  const body = (m) => "## 01. 명세서 (안)\n\n"
+    + Array.from({ length: 10 }, (_, i) => long(i + 1)).join("\n") + "\n"
+    + Array.from({ length: m }, (_, i) => `  - 짧은 조건 ${i + 1}이다.`).join("\n") + "\n";
+  const ratio = (md) => styledCost(parse(md).sections[0].blocks.filter((b) => b.kind === "bullet"), ANSWER_STYLE, box) / (box.h * 72);
+  // 제 높이를 조금 넘는 분량(여유 안)은 왼쪽 단에 남는다 — 오른쪽으로 넘기면 왼쪽 아래가 빈다.
+  const inside = body(1);
+  assert.ok(ratio(inside) > 1 && ratio(inside) <= ANSWER_STYLE.leftFit, `여유 안: ${ratio(inside).toFixed(3)}배`);
+  assert.equal((await pagesOf(inside)).pages[0].columns, 1);
+  // 여유를 넘으면 나머지를 오른쪽으로 보낸다 — 더 받으면 글이 쪽 번호를 덮는다.
+  const over = body(2);
+  assert.ok(ratio(over) > ANSWER_STYLE.leftFit, `여유 밖: ${ratio(over).toFixed(3)}배`);
+  assert.equal((await pagesOf(over)).pages[0].columns, 2);
 });
 
 test("a diagram answer keeps its text above the diagram, in the answer sizes", async () => {

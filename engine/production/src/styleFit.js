@@ -13,7 +13,11 @@ const { EMU } = require("./visualFit");
 // how lines are indented: `hang` sets each level 0.25in in with a 0.2in hanging glyph (answer);
 // `aligned` puts an unbulleted "+ " line under its parent's text (practice).
 const PRACTICE_STYLE = { fit: 0.9, text: 16, levels: [18, 16, 14], expl: (L) => L - 2, paren: (L) => Math.max(8, L - 4), aligned: true };
-const ANSWER_STYLE = { fit: 1.1, text: 14, levels: [14, 12, 11], expl: (L) => L - 2, paren: (L) => Math.max(8, L - 4), hang: true };
+// `leftFirst`: 두 단은 왼쪽을 먼저 채우고 넘는 것만 오른쪽에 둔다(production-guide.md 「문서 형식」).
+// `leftFit`: 왼쪽 단만의 여유. 오른쪽 단과 한 단짜리 장은 추정이 넉넉한 만큼 fit 1.1까지 받지만,
+// 왼쪽 단이 넘치면 글이 쪽 번호를 덮으므로 1.04까지만 받고 나머지는 오른쪽으로 보낸다. 실제 출력으로
+// 맞춘 값이다 — 1.0이면 들어가는 항목이 오른쪽으로 넘어가 왼쪽 아래가 비고, 1.1이면 넘친다.
+const ANSWER_STYLE = { fit: 1.1, leftFit: 1.04, text: 14, levels: [14, 12, 11], expl: (L) => L - 2, paren: (L) => Math.max(8, L - 4), hang: true, leftFirst: true };
 // "**참고 자료 목록**" (production-guide.md "별첨 — 참고 자료"): numbered entries at 8pt in two columns.
 // `numberHang` starts a numbered entry at the left edge and its wrapped lines after "N. "; `space` is
 // the space before and after each paragraph (pt, default STYLE_SPACE).
