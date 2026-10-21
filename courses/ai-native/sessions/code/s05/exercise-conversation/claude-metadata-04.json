@@ -1,0 +1,16 @@
+{
+  "tool": "claude",
+  "started": "2026-10-21T08:27:19.682203+09:00",
+  "finished": "2026-10-21T08:30:00.929980+09:00",
+  "command": [
+    "claude",
+    "-p",
+    "--model",
+    "claude-opus-5-5",
+    "--output-format",
+    "json",
+    "--allowed-tools",
+    ""
+  ],
+  "returncode": 0
+}

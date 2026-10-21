@@ -1,6 +1,6 @@
 # 실습 1 — 현재 채택된 실제 대화
 
-현재 원천은 `focused-prompts/` 하나다.
+실습 2·3과 같은 자리에 같은 이름으로 둔다.
 
 - `templates.json`: 수강생용 진행 단계의 기본 문구
 - `prompt-01.txt`~`prompt-05.txt`: 실제 입력

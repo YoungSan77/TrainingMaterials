@@ -24,4 +24,4 @@ node --test engine/production/src/test/*.test.js
 
 실습은 대화로 검토·보완하고 최종 MD를 다음 실습에 첨부한다. 수강생에게 교재 renderer는 필요하지 않다. 교재 슬라이드는 최종 MD와 별도로 제작한다.
 
-현재 완성 범위·검사 결과·정리 내역은 [REPOSITORY-STATUS.md](REPOSITORY-STATUS.md)를 본다. AI-native 전체를 완료 상태로 간주하지 않는다.
+세션별 진행과 검사 상태는 [redesign-map.md](courses/ai-native/checks/redesign-map.md), 저장소 정리와 복구 방법은 [REPOSITORY-STATUS.md](REPOSITORY-STATUS.md)를 본다. AI-native 전체를 완료 상태로 간주하지 않는다.
