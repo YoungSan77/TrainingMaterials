@@ -24,7 +24,8 @@ function javaFiles(dir) {
 }
 
 function javaBlocks(markdown) {
-  return Array.from(markdown.matchAll(/^```java[ \t]*\n([\s\S]*?)^```[ \t]*$/gm), (m) => m[1].replace(/\n$/, ""));
+  return Array.from(markdown.matchAll(/^( {0,3})```java[ \t]*\n([\s\S]*?)^ {0,3}```[ \t]*$/gm),
+    (m) => m[2].replace(/\n$/, "").split("\n").map(line => line.replace(new RegExp("^ {0," + m[1].length + "}"), "")).join("\n"));
 }
 
 function runs(block) {
@@ -75,8 +76,12 @@ function enumValues(dir) {
   const out = new Map();
   for (const f of javaFiles(dir)) {
     const text = fs.readFileSync(f, "utf-8");
+    // Counterexamples and superseded sources remain available for excerpt verification,
+    // but their intentionally wrong/obsolete values must not become a model baseline.
+    if (/^\/\/ production-enum-baseline: exclude — \S[^\r\n]*$/m.test(text)) continue;
     for (const m of text.matchAll(/\benum\s+([^\s{]+)\s*\{([^}]*)\}/g)) {
-      out.set(m[1], m[2].split(";")[0].split(",").map((v) => v.trim()).filter(Boolean));
+      const values = m[2].split(";")[0].split(",").map((v) => v.trim()).filter(Boolean);
+      out.set(m[1], [...new Set([...(out.get(m[1]) || []), ...values])]);
     }
   }
   return out;

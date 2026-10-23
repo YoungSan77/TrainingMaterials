@@ -15,40 +15,42 @@ Session 명: 별첨. 참고 자료
 7. **[Anthropic 2026a]**  Demystifying evals for AI agents, Anthropic, 2026, https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
 8. **[Anthropic 2026b]**  Harness design for long-running application development, Anthropic, 2026, https://www.anthropic.com/engineering/harness-design-long-running-apps
 9. **[Anthropic 2026c]**  How we contain Claude across products, Anthropic, 2026, https://www.anthropic.com/engineering/how-we-contain-claude
-10. **[Beck 2025]**  Augmented Coding: Beyond the Vibes, Kent Beck, 2025, https://newsletter.kentbeck.com/p/augmented-coding-beyond-the-vibes
-11. **[Blount 외 2026]**  Introduction to Agents, Alan Blount·Antonio Gulli·Shubham Saboo·Michael Zimmermann·Vladimir Vuskovic, Google, 2026
-12. **[Brooks 1986]**  No Silver Bullet — Essence and Accidents of Software Engineering, Frederick P. Brooks Jr., UNC Technical Report TR86-020, 1986, https://www.cs.unc.edu/techreports/86-020.pdf
-13. **[Böckeler 2025]**  Understanding Spec-Driven-Development: Kiro, spec-kit, and Tessl, Birgitta Böckeler, martinfowler.com, 2025, https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html
-14. **[Böckeler 2026a]**  Harness engineering for coding agent users, Birgitta Böckeler, martinfowler.com, 2026, https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html
-15. **[Böckeler 2026b]**  Maintainability sensors for coding agents, Birgitta Böckeler, martinfowler.com, 2026, https://martinfowler.com/articles/sensors-for-coding-agents.html
-16. **[Cockburn 2005]**  Hexagonal architecture, Alistair Cockburn, 2005, https://alistair.cockburn.us/hexagonal-architecture/
-17. **[Cucumber]**  Behaviour-Driven Development, Cucumber, https://cucumber.io/docs/bdd/
-18. **[Cucumber: Example Mapping]**  Example Mapping, Cucumber, https://cucumber.io/docs/bdd/example-mapping/
-19. **[DORA 2025]**  State of AI-assisted Software Development 2025, DORA, 2025, https://dora.dev/research/2025/dora-report/
-20. **[Evans 2015]**  Domain-Driven Design Reference, Eric Evans, Domain Language, 2015, https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf
-21. **[Fowler 2015c]**  MonolithFirst, Martin Fowler, martinfowler.com, 2015, https://martinfowler.com/bliki/MonolithFirst.html
-22. **[Fowler 2025]**  LLMs bring new nature of abstraction, Martin Fowler, martinfowler.com, 2025, https://martinfowler.com/articles/2025-nature-abstraction.html
-23. **[GitHub Spec Kit]**  Spec Kit, GitHub, https://github.com/github/spec-kit
-24. **[Gruber 1993]**  A Translation Approach to Portable Ontology Specifications, Thomas R. Gruber, Knowledge Acquisition 5(2), 1993
-25. **[Jeffries 2001]**  Essential XP: Card, Conversation, Confirmation, Ron Jeffries, 2001, https://ronjeffries.com/xprog/articles/expcardconversationconfirmation/
-26. **[Karpathy 2025]**  Software Is Changing (Again), Andrej Karpathy, Y Combinator, 2025, https://www.ycombinator.com/library/MW-andrej-karpathy-software-is-changing-again
-27. **[Larman 2004]**  Applying UML and Patterns, 3rd ed., Craig Larman, Prentice Hall, 2004
-28. **[Lewis·Fowler 2014]**  Microservices, James Lewis·Martin Fowler, martinfowler.com, 2014, https://martinfowler.com/articles/microservices.html
-29. **[Lopopolo 2026]**  Harness engineering: leveraging Codex in an agent-first world, Ryan Lopopolo, OpenAI, 2026, https://openai.com/index/harness-engineering/
-30. **[Martin 2000]**  Design Principles and Design Patterns, Robert C. Martin, 2000, https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf
-31. **[Martin 2014]**  The Single Responsibility Principle, Robert C. Martin, The Clean Code Blog, 2014, https://blog.cleancoder.com/uncle-bob/2014/05/08/SingleReponsibilityPrinciple.html
-32. **[MCP 2025]**  Model Context Protocol Specification, 2025-06-18, https://modelcontextprotocol.io/specification/2025-06-18
-33. **[METR 2025]**  Measuring the Impact of Early-2025 AI on Experienced Open-Source Developer Productivity, METR, 2025, https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/
-34. **[NIST 2023]**  Artificial Intelligence Risk Management Framework (AI RMF 1.0), NIST AI 100-1, National Institute of Standards and Technology, 2023, https://doi.org/10.6028/NIST.AI.100-1
-35. **[NIST 2024]**  Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile, NIST AI 600-1, National Institute of Standards and Technology, 2024, https://doi.org/10.6028/NIST.AI.600-1
-36. **[North 2006]**  Introducing BDD, Dan North, 2006, https://dannorth.net/blog/introducing-bdd/
-37. **[OpenAI 2025]**  A practical guide to building agents, OpenAI, 2025
-38. **[Osmani 2025]**  The AI-Native Software Engineer, Addy Osmani, 2025, https://addyo.substack.com/p/the-ai-native-software-engineer
-39. **[OWASP 2025]**  OWASP Top 10 for Agentic Applications for 2026, OWASP Gen AI Security Project, 2025, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/
-40. **[Thoughtworks 2026]**  Technology Radar, Vol. 34, Thoughtworks, 2026, https://www.thoughtworks.com/radar
-41. **[Wake 2003]**  INVEST in Good Stories, and SMART Tasks, Bill Wake, 2003, https://xp123.com/invest-in-good-stories-and-smart-tasks/
-42. **[Willison 2025a]**  The lethal trifecta for AI agents: private data, untrusted content, and external communication, Simon Willison, 2025, https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/
-43. **[Willison 2025b]**  Vibe engineering, Simon Willison, 2025, https://simonwillison.net/2025/Oct/7/vibe-engineering/
+10. **[Anthropic: Prompt caching]**  Prompt caching, Anthropic, https://platform.claude.com/docs/en/docs/build-with-claude/prompt-caching (2026-10 확인)
+11. **[Beck 2025]**  Augmented Coding: Beyond the Vibes, Kent Beck, 2025, https://newsletter.kentbeck.com/p/augmented-coding-beyond-the-vibes
+12. **[Blount 외 2026]**  Introduction to Agents, Alan Blount·Antonio Gulli·Shubham Saboo·Michael Zimmermann·Vladimir Vuskovic, Google, 2026
+13. **[Brooks 1986]**  No Silver Bullet — Essence and Accidents of Software Engineering, Frederick P. Brooks Jr., UNC Technical Report TR86-020, 1986, https://www.cs.unc.edu/techreports/86-020.pdf
+14. **[Böckeler 2025]**  Understanding Spec-Driven-Development: Kiro, spec-kit, and Tessl, Birgitta Böckeler, martinfowler.com, 2025, https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html
+15. **[Böckeler 2026a]**  Harness engineering for coding agent users, Birgitta Böckeler, martinfowler.com, 2026, https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html
+16. **[Böckeler 2026b]**  Maintainability sensors for coding agents, Birgitta Böckeler, martinfowler.com, 2026, https://martinfowler.com/articles/sensors-for-coding-agents.html
+17. **[Cockburn 2005]**  Hexagonal architecture, Alistair Cockburn, 2005, https://alistair.cockburn.us/hexagonal-architecture/
+18. **[Cucumber]**  Behaviour-Driven Development, Cucumber, https://cucumber.io/docs/bdd/
+19. **[Cucumber: Example Mapping]**  Example Mapping, Cucumber, https://cucumber.io/docs/bdd/example-mapping/
+20. **[DORA 2025]**  State of AI-assisted Software Development 2025, DORA, 2025, https://dora.dev/research/2025/dora-report/
+21. **[Evans 2015]**  Domain-Driven Design Reference, Eric Evans, Domain Language, 2015, https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf
+22. **[Fowler 2015c]**  MonolithFirst, Martin Fowler, martinfowler.com, 2015, https://martinfowler.com/bliki/MonolithFirst.html
+23. **[Fowler 2025]**  LLMs bring new nature of abstraction, Martin Fowler, martinfowler.com, 2025, https://martinfowler.com/articles/2025-nature-abstraction.html
+24. **[GitHub Spec Kit]**  Spec Kit, GitHub, https://github.com/github/spec-kit
+25. **[Gruber 1993]**  A Translation Approach to Portable Ontology Specifications, Thomas R. Gruber, Knowledge Acquisition 5(2), 1993
+26. **[Jeffries 2001]**  Essential XP: Card, Conversation, Confirmation, Ron Jeffries, 2001, https://ronjeffries.com/xprog/articles/expcardconversationconfirmation/
+27. **[Karpathy 2025]**  Software Is Changing (Again), Andrej Karpathy, Y Combinator, 2025, https://www.ycombinator.com/library/MW-andrej-karpathy-software-is-changing-again
+28. **[Larman 2004]**  Applying UML and Patterns, 3rd ed., Craig Larman, Prentice Hall, 2004
+29. **[Lewis·Fowler 2014]**  Microservices, James Lewis·Martin Fowler, martinfowler.com, 2014, https://martinfowler.com/articles/microservices.html
+30. **[Lopopolo 2026]**  Harness engineering: leveraging Codex in an agent-first world, Ryan Lopopolo, OpenAI, 2026, https://openai.com/index/harness-engineering/
+31. **[Martin 2000]**  Design Principles and Design Patterns, Robert C. Martin, 2000, https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf
+32. **[Martin 2014]**  The Single Responsibility Principle, Robert C. Martin, The Clean Code Blog, 2014, https://blog.cleancoder.com/uncle-bob/2014/05/08/SingleReponsibilityPrinciple.html
+33. **[MCP 2025]**  Model Context Protocol Specification, 2025-06-18, https://modelcontextprotocol.io/specification/2025-06-18
+34. **[METR 2025]**  Measuring the Impact of Early-2025 AI on Experienced Open-Source Developer Productivity, METR, 2025, https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/
+35. **[NIST 2023]**  Artificial Intelligence Risk Management Framework (AI RMF 1.0), NIST AI 100-1, National Institute of Standards and Technology, 2023, https://doi.org/10.6028/NIST.AI.100-1
+36. **[NIST 2024]**  Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile, NIST AI 600-1, National Institute of Standards and Technology, 2024, https://doi.org/10.6028/NIST.AI.600-1
+37. **[North 2006]**  Introducing BDD, Dan North, 2006, https://dannorth.net/blog/introducing-bdd/
+38. **[OpenAI 2025]**  A practical guide to building agents, OpenAI, 2025
+39. **[OpenAI: Permissions]**  Permissions, OpenAI, https://learn.chatgpt.com/docs/permissions (2026-10 확인)
+40. **[Osmani 2025]**  The AI-Native Software Engineer, Addy Osmani, 2025, https://addyo.substack.com/p/the-ai-native-software-engineer
+41. **[OWASP 2025]**  OWASP Top 10 for Agentic Applications for 2026, OWASP Gen AI Security Project, 2025, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/
+42. **[Thoughtworks 2026]**  Technology Radar, Vol. 34, Thoughtworks, 2026, https://www.thoughtworks.com/radar
+43. **[Wake 2003]**  INVEST in Good Stories, and SMART Tasks, Bill Wake, 2003, https://xp123.com/invest-in-good-stories-and-smart-tasks/
+44. **[Willison 2025a]**  The lethal trifecta for AI agents: private data, untrusted content, and external communication, Simon Willison, 2025, https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/
+45. **[Willison 2025b]**  Vibe engineering, Simon Willison, 2025, https://simonwillison.net/2025/Oct/7/vibe-engineering/
 
 **강사 노트**
 
@@ -57,3 +59,5 @@ Session 명: 별첨. 참고 자료
 - [OpenAI 2025]는 받은 PDF(`references/inputs/`)로 확인했다. 공개 URL은 사이트가 자동 요청을 막아 확인하지 못해 적지 않았다.
 - [Lopopolo 2026]은 openai.com이 한국어판으로 자동 전환하므로, 영문판(en-US) 본문을 추출해 `references/inputs/lopopolo-2026-harness-engineering.txt`에 두고 인용을 그 파일로 확인한다.
 - [Blount 외 2026]은 Kaggle에서 받은 PDF(`references/inputs/Google_IntroductionToAgents.pdf`, "Updated May 2026" 판)로 확인했다. 첫 판은 2025년 11월이며 판이 바뀌면 다시 확인한다. 공개 URL은 로그인이 필요해 적지 않았다.
+
+46. **[Chen 1976]**  The Entity-Relationship Model — Toward a Unified View of Data, Peter Pin-Shan Chen, ACM Transactions on Database Systems, 1976, https://www.csc.lsu.edu/~chen/pdf/erd-5-pages.pdf

@@ -113,3 +113,10 @@ test("a parenthesized annotation after a space is a field, not a method", () => 
   assert.deepEqual(decls[0].fields.map((s) => s.trim()), ["* 주문번호", "--", "고객번호 (FK)"]);
   assert.deepEqual(decls[0].methods.map((s) => s.trim()), ["취소()"]);
 });
+
+
+test("class diagram cardinalities remain literal and are never styled as flowchart labels", () => {
+  const source = 'classDiagram\n    direction LR\n    class Order\n    class OrderItem\n    Order "1" -- "1..*" OrderItem : items';
+  assert.equal(styleSource(source), source);
+  assert.equal(styleSource(source, { w: 300, h: 100 }), source);
+});

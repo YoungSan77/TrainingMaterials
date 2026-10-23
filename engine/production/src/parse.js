@@ -3,6 +3,8 @@
 // pass that classifies each line into heading/bullet/text/code/tree/table blocks.
 const { need } = require("./xml");
 const { linesOf, HEADING, BULLET, INDENT, separator, cells } = require("./text");
+const FENCE = /^( {0,3})```(.*)$/;
+const QUOTE_MARKER = /^\*\*(?:인용문|Anchor Message|앵커 메시지)\*\*$/;
 
 function block(kind, text, depth = 0, rows = [], meta = null) {
   return { kind, text, rows, depth, meta };
@@ -34,7 +36,7 @@ function parse(input) {
   let top = 7;
   let fence = false;
   for (const line of lines) {
-    if (line.startsWith("```")) { fence = !fence; continue; }
+    if (FENCE.test(line)) { fence = !fence; continue; }
     const m = HEADING.exec(line);
     if (!fence && m) top = Math.min(top, m[1].length);
   }
@@ -127,10 +129,14 @@ function parse(input) {
       continue;
     }
     if (line.trim() === "**디렉토리 구조**" || line.trim() === "**주요 구현 코드**") continue;
-    if (line.startsWith("```")) {
-      const info = line.slice(3).trim();
+    const openingFence = FENCE.exec(line);
+    if (openingFence) {
+      const info = openingFence[2].trim();
+      const indent = openingFence[1].length;
       const raw = [];
-      while (i < lines.length && !lines[i].startsWith("```")) raw.push(lines[i++]);
+      while (i < lines.length && !FENCE.test(lines[i])) {
+        raw.push(lines[i++].replace(new RegExp("^ {0," + indent + "}"), ""));
+      }
       need(i < lines.length, "닫히지 않은 코드 fence");
       i++;
       const value = raw.join("\n");
@@ -155,7 +161,7 @@ function parse(input) {
     if (["Java", "SQL", "Plaintext", "Python", "JavaScript"].includes(line.trim())) {
       let j = i;
       while (j < lines.length && lines[j].trim() === "") j++;
-      if (j < lines.length && lines[j].startsWith("```")) continue;
+      if (j < lines.length && FENCE.test(lines[j])) continue;
     }
     if (line.startsWith("|")) {
       need(i < lines.length && separator(lines[i]), "표 구분선이 없다.");
@@ -199,8 +205,9 @@ function parse(input) {
       continue;
     }
     need(!/^(!\[|<).*/.test(line), "지원하지 않는 Markdown: " + line);
+    if (QUOTE_MARKER.test(line.trim())) { push(block("text", line.trim(), 0)); continue; }
     let value = line;
-    while (i < lines.length && lines[i].trim() !== "" && !isNotesHeading(lines[i]) && !/^(#|\s*[-+] |\s*\d+\.\s|\||```)/.test(lines[i])) {
+    while (i < lines.length && lines[i].trim() !== "" && !isNotesHeading(lines[i]) && !QUOTE_MARKER.test(lines[i].trim()) && !FENCE.test(lines[i]) && !/^(#|\s*[-+] |\s*\d+\.\s|\|)/.test(lines[i])) {
       value += " " + lines[i++].trim();
     }
     push(block("text", value, 0));

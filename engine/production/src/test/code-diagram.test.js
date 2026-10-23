@@ -158,6 +158,42 @@ test("a design session's English enum is compared with the analysis Korean enum 
   assert.ok(unmapped.some((w) => w.includes("취소됨") && w.includes("영한 용어집")), "a value outside the glossary section is reported, not silently passed");
 });
 
+test("counterexample and superseded enums do not define the baseline, but excerpts stay checked", (t) => {
+  const { checkEnumConsistency } = require("../codeSource");
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "tm-enum-role-"));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const put = (s, name, text) => {
+    const dir = path.join(root, "code", s);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, name), text);
+  };
+  put("s01", "wrong.java", "// production-enum-baseline: exclude — intentional counterexample\nenum Status { WAITING, CANCELLED }");
+  put("s02", "old.java", "// production-enum-baseline: exclude — superseded by current.java\nenum Status { WAITING, CANCELLED }");
+  put("s02", "current.java", "enum Status { WAITING, PAID }");
+  put("s03", "current.java", "enum Status { WAITING, PAID }");
+  assert.deepEqual(checkEnumConsistency(path.join(root, "s03.md")), []);
+  put("s04", "current.java", "enum Status { WAITING }");
+  const warnings = checkEnumConsistency(path.join(root, "s04.md"));
+  assert.equal(warnings.length, 2, "a real lost value is still reported for s02 and s03");
+  assert.ok(warnings.every(w => w.includes("PAID")));
+  const excerpt = "```java\nenum Status { WAITING, CANCELLED }\n```";
+  assert.deepEqual(checkCodeSources(path.join(root, "s01.md"), excerpt), { errors: [], warnings: [] });
+  assert.equal(checkCodeSources(path.join(root, "s01.md"), excerpt.replace("CANCELLED", "BOGUS")).errors.length, 1);
+});
+
+test("enum exclusion needs a reason and duplicate normal sources cannot overwrite lost values", (t) => {
+  const { checkEnumConsistency } = require("../codeSource");
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "tm-enum-union-"));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  for (const s of ["s01", "s02"]) fs.mkdirSync(path.join(root, "code", s), { recursive: true });
+  fs.writeFileSync(path.join(root, "code/s01/a.java"), "// production-enum-baseline: exclude — \nenum Status { WAITING, PAID }");
+  fs.writeFileSync(path.join(root, "code/s01/z.java"), "enum Status { WAITING }");
+  fs.writeFileSync(path.join(root, "code/s02/a.java"), "enum Status { WAITING }");
+  assert.match(checkEnumConsistency(path.join(root, "s02.md"))[0], /PAID/);
+  fs.writeFileSync(path.join(root, "code/s01/a.java"), "enum Status { WAITING, PAID }");
+  assert.match(checkEnumConsistency(path.join(root, "s02.md"))[0], /PAID/);
+});
+
 test("a code block right after another one stacks on the same slide when it fits, otherwise starts a new one", async () => {
   const pagesOf = async (md) => {
     const { sections } = parse(md);
@@ -212,4 +248,97 @@ test("diagram and code on continuation slides stay above the page number", async
   } finally {
     if (fs.existsSync(output)) fs.unlinkSync(output);
   }
+});
+
+test("a standalone quote marker does not need a blank line before its quoted paragraph", async () => {
+  const { sections } = parse('## 01. 인용\n\n**인용문**\n한글 **정의**다, "English original", [Author 2000]\n');
+  assert.deepEqual(sections[0].blocks.map(b => b.text), ['**인용문**', '한글 **정의**다, "English original", [Author 2000]']);
+  const out = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "tm-quote-line-")), "out.pptx");
+  const m = await render(sections, TEMPLATE, out, "01. 인용", [block("bullet", sections[0].title)]);
+  assert.ok(!m.pages.flatMap(p => p.items).some(i => i.text === '인용문'));
+  const { all, A, text } = require('../xml');
+  const runs = m.pages.flatMap(p => all(p.doc, A, 'r')).map(r => [r.textContent, all(r, A, 'rPr')[0]?.getAttribute('sz')]);
+  assert.ok(runs.some(([t,s]) => t.includes('English original') && s === '1000'));
+  assert.ok(runs.some(([t,s]) => t.includes('한글') && s === '1800'));
+});
+
+test("indented fenced examples retain content and are not misread as text or topic headings", () => {
+  const { sections } = parse('## 01. 예\n\n- 설명\n\n  ```text\n  합계 = 단가 × 수량\n  ## 코드 속 제목\n  ```\n\n- 뒤 설명\n');
+  assert.equal(sections.length, 1);
+  assert.equal(sections[0].blocks[1].kind, 'code');
+  assert.equal(sections[0].blocks[1].text, '합계 = 단가 × 수량\n## 코드 속 제목');
+  const p = session('class 주문 {}', 'class 주문 {}');
+  assert.deepEqual(checkCodeSources(p, '  ```java\n  class 주문 {}\n  ```'), { errors: [], warnings: [] });
+  assert.equal(checkCodeSources(p, '  ```java\n  class 가짜 {}\n  ```').errors.length, 1);
+});
+
+test("10pt document prose keeps its size around a code example and a table", async () => {
+  const md = '## 01. 문서\n\n**문서 형식 — 10pt**\n\n문서의 도입 문장이다.\n\n- 앞 조건\n\n  ```text\n  합계 = 단가 × 수량\n  ```\n\n- 중간 조건\n\n| 값 | 전 | 후 |\n|---|---|---|\n| 단가 | 1000 | 1000 |\n\n- 뒤 조건\n';
+  const { sections } = parse(md);
+  const out = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "tm-mixed-doc-")), "out.pptx");
+  const m = await render(sections, TEMPLATE, out, "01. 문서", [block("bullet", sections[0].title)]);
+  const { all, A, text } = require('../xml');
+  const runs = m.pages.flatMap(p => all(p.doc, A, 'r'));
+  for (const token of ['문서의 도입', '앞 조건', '중간 조건', '뒤 조건']) {
+    const selected = runs.filter(r => r.textContent.includes(token));
+    assert.ok(selected.length, token);
+    assert.ok(selected.every(r => all(r, A, 'rPr')[0].getAttribute('sz') === '1000'), token);
+  }
+  assert.equal(m.pages.filter(p => !p.isToc).length, 1, 'short mixed document does not spill because of 18pt estimates');
+  assert.ok(m.codes.some(c => c.source === '합계 = 단가 × 수량'));
+});
+
+test("short trailing explanation uses printed line height instead of pagination slack", async () => {
+  const code = Array.from({length: 16}, (_, i) => `int value${i} = ${i};`).join('\n');
+  const explanation = '판매가가 바뀌어도 기존 항목의 확정 단가와 주문 총액은 바뀌지 않는다. 계산의 원천은 확정 단가다.';
+  const { sections } = parse('## 01. 코드\n\n확정 값을 사용하여 금액을 계산한다.\n\n```java\n'+code+'\n```\n\n'+Array.from({length:3},()=>'- '+explanation).join('\n')+'\n');
+  const out = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "tm-trailing-line-")), "out.pptx");
+  const m = await render(sections, TEMPLATE, out, "01. 코드", [block("bullet", sections[0].title)]);
+  const pages = m.pages.filter(p => !p.isToc);
+  assert.equal(pages.length, 1);
+  assert.ok(pages[0].items.some(i => i.kind === 'source'));
+  assert.ok(pages[0].items.some(i => i.text.includes('계산의 원천')));
+});
+
+test("mixed 10pt document fills a preceding code page with table rows before continuing", async () => {
+  const rows = Array.from({ length: 14 }, (_, i) => `| 항목${i + 1} | 값${i + 1} |`).join('\n');
+  const md = '## 01. 문서\n\n**문서 형식 — 10pt**\n\n- 첫 조건\n\n```text\n합계 = 단가 × 수량\n```\n\n- 표 앞 조건\n\n| 항목 | 값 |\n|---|---|\n'+rows+'\n\n- 표 뒤 조건\n';
+  const { sections } = parse(md);
+  const out = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'tm-mixed-flow-')), 'out.pptx');
+  const m = await render(sections, TEMPLATE, out, '문서', [block('bullet', sections[0].title)]);
+  const pages = m.pages.filter(p => !p.isToc);
+  assert.equal(pages.length, 2);
+  assert.ok(pages[0].items.some(i => i.kind === 'source'));
+  const tables = pages.map(p => p.items.find(i => i.kind === 'table'));
+  assert.ok(tables.every(Boolean), 'both pages carry data rows, rather than a vacant code-only page');
+  assert.ok(tables[0].rows.length > 2);
+  assert.deepEqual(tables.map(t => t.rows[0]), [['항목', '값'], ['항목', '값']]);
+  assert.deepEqual(tables.flatMap(t => t.rows.slice(1).map(r => r[0])), Array.from({length:14}, (_,i)=>`항목${i+1}`));
+  assert.ok(pages[1].items.some(i => i.text.includes('표 뒤 조건')));
+});
+
+test("a mixed document that fits at equal 8pt gaps stays on one slide without dropping its final row", async (t) => {
+  const input = fs.readFileSync(path.join(__dirname, 'fixtures/mixed-document-conditions.md'), 'utf8');
+  const { sections } = parse(input);
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'tm-equal-gap-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const m = await render(sections, TEMPLATE, path.join(root, 'out.pptx'), '문서', [block('bullet', sections[0].title)]);
+  const pages = m.pages.filter(p => !p.isToc);
+  assert.equal(pages.length, 1);
+  const p = pages[0];
+  const table = p.items.find(i => i.kind === 'table');
+  assert.equal(table.rows.length, 8, 'all seven data rows and the header remain on the same slide');
+  assert.equal(table.rows.at(-1)[0], 'Order.shippingAddress');
+  assert.ok(p.items.some(i => i.text.includes('생성 시점에는')));
+  const { shape, all, A } = require('../xml');
+  const bounds = p.items.map(item => {
+    const s = shape(p.doc, item.id), off = all(s, A, 'off')[0], ext = all(s, A, 'ext').find(e => e.hasAttribute('cy'));
+    for (const r of all(s, A, 'rPr')) assert.equal(r.getAttribute('sz'), '1000');
+    const y = Number(off.getAttribute('y')) / 12700;
+    const h = item.kind === 'table' ? 8 * 0.8 / 2.54 * 72 : Number(ext.getAttribute('cy')) / 12700;
+    return { y, h };
+  }).sort((a,b) => a.y-b.y);
+  assert.equal(bounds.length, 5);
+  for (let i = 1; i < bounds.length; i++) assert.ok(Math.abs(bounds[i].y - bounds[i-1].y - bounds[i-1].h - 8) < .001);
+  assert.ok(bounds.at(-1).y + bounds.at(-1).h <= require('../builder').PAGE_NUM_Y * 72 - .15 * 72);
 });

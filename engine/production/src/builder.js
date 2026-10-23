@@ -396,6 +396,64 @@ class Builder {
 
   // A 10pt document with one diagram: keep source order, diagram above its trailing prose.
   // Try full-width prose and two columns, selecting the larger readable diagram without omissions.
+  // A short 10pt document can mix prose, a literal example and a table. Measure the whole
+  // sequence before pagination, using one 8pt gap and printed heights rather than the
+  // normal 18pt prose gap, fit slack or the code planner's spare trailing line.
+  compactMixedDocumentPage(blocks, heading, style) {
+    if (!blocks.some(b => b.kind === "code") || !blocks.some(b => b.kind === "table")) return null;
+    if (blocks.some(b => !["text", "bullet", "heading", "code", "table"].includes(b.kind))) return null;
+    if (blocks.some(b => b.kind === "text" && (TABLE_CAPTION.test(b.text.trim()) || /^\*\*인용문\*\*$/.test(b.text.trim())))) return null;
+    const gap = 8 / 72;
+    const box = { ...FULL_TEXT, h: this.contentBottomY() - FULL_TEXT.y };
+    const groups = [];
+    let prose = [];
+    const flush = () => {
+      if (prose.length) groups.push({ kind: "text", blocks: prose, h: styledCost(prose, style, box) / 72 });
+      prose = [];
+    };
+    for (const b of blocks) {
+      if (["text", "bullet", "heading"].includes(b.kind)) { prose.push(b); continue; }
+      flush();
+      if (b.kind === "code") {
+        const h = (codeHeightPt(b.text.split("\n"), box.w * 72, 10, 13) - 13) / 72;
+        groups.push({ kind: "code", block: b, h });
+      } else {
+        const widths = columnWidths(b.rows, b.rows[0].length);
+        const h = b.rows.reduce((sum, row) => sum + this.rowHeight(row, widths), 0) / 72;
+        groups.push({ kind: "table", block: b, widths, h });
+      }
+    }
+    flush();
+    const h = groups.reduce((sum, g) => sum + g.h, 0) + gap * (groups.length - 1);
+    if (h > box.h + 1e-9) return null;
+    const page = this.page(ORIGIN.code, heading);
+    let y = box.y;
+    for (const g of groups) {
+      let id;
+      if (g.kind === "text") {
+        id = this.cloneShape(page, 8);
+        setShapeBounds(shape(page.doc, id), { ...box, y, h: g.h });
+        paragraphs(page, id, g.blocks, false);
+        restyle(shape(page.doc, id), style);
+      } else if (g.kind === "code") {
+        const before = page.items.length;
+        this.fillCode(page, [g.block.text], box.x, y, box.w, 10, 13, y + g.h, []);
+        id = page.items[before].id;
+      } else {
+        id = this.cloneShape(page, 11);
+        this.fillTable(page, shape(page.doc, id), g.block.rows, g.widths, y * 72);
+      }
+      if (g.kind !== "table") {
+        const pr = child(body(shape(page.doc, id)), A, "bodyPr");
+        pr.setAttribute("tIns", "0");
+        pr.setAttribute("bIns", "0");
+      }
+      y += g.h + gap;
+    }
+    page.tableBottom = y - gap;
+    return page;
+  }
+
   documentDiagramPage(blocks, heading, png, style) {
     const at = blocks.findIndex(b => ["mermaid", "plantuml", "svg", "chart"].includes(b.kind));
     if (at < 0 || blocks.some(b => !["text", "bullet", "heading", "mermaid", "plantuml", "svg", "chart"].includes(b.kind))) return null;
@@ -404,6 +462,10 @@ class Builder {
     const height = (bs, area) => bs.length ? styledCost(bs, style, area) / 72 / style.fit : 0;
     const beforeH = height(before, box);
     const gap = BLOCK_GAP;
+    // captionPicture() moves a titled diagram down by the title's height after this layout is
+    // chosen, so the title's band has to be reserved here -- otherwise the diagram slides onto the
+    // text below it (production-guide.md "표·도식 제목").
+    const capH = png.caption ? CAPTION_LEAD + CAPTION_LINE + CAPTION_GAP : 0;
     const options = [{ parts: [after], areas: [box] }];
     if (after.length > 1) {
       const w = (box.w - 0.3) / 2;
@@ -421,7 +483,7 @@ class Builder {
     for (const option of options) {
       const afterH = Math.max(...option.parts.map((part, k) => height(part, option.areas[k])));
       const y = box.y + beforeH + (before.length ? gap : 0);
-      const panel = { x: box.x, y, w: box.w, h: this.contentBottomY() - y - afterH - (after.length ? gap : 0) };
+      const panel = { x: box.x, y, w: box.w, h: this.contentBottomY() - y - afterH - (after.length ? gap : 0) - capH };
       if (panel.h <= 0) continue;
       const bounds = fitTarget(panel, png, "top");
       const pt = pictureTextPt(png, bounds);
@@ -439,7 +501,7 @@ class Builder {
       restyle(shape(page.doc, id), style);
     };
     write(before, { ...box, h: beforeH });
-    const y = chosen.bounds.y + chosen.bounds.h + (after.length ? gap : 0);
+    const y = chosen.bounds.y + capH + chosen.bounds.h + (after.length ? gap : 0);
     chosen.parts.forEach((part, k) => write(part, { ...chosen.areas[k], y, h: chosen.afterH }));
     page.pictures = [{ ...png, bounds: chosen.bounds }];
     page.visualLayout = "document-stacked";
@@ -654,13 +716,22 @@ class Builder {
   // for it (see textEndIn). Box heights keep using textHeightPt; only advances use this.
   textAdvancePt(blocks) {
     if (!blocks.length) return 0;
+    if (this.sectionStyle && this.sectionStyle.uniform) return this.textHeightPt(blocks);
     const cost = blocks.reduce((sum, b) => sum + this.blockCost(b), 0);
     return Math.max(BLOCK_GAP_PT, textRunPt(cost, blocks.length));
   }
 
   // Height (pt) a run of text blocks needs in a full-width text box on a table page.
   textHeightPt(blocks) {
+    if (this.sectionStyle && this.sectionStyle.uniform) return styledCost(blocks, this.sectionStyle, FULL_TEXT) / this.sectionStyle.fit;
     return blocks.length ? blocks.reduce((sum, b) => sum + this.blockCost(b), 0) / 1.087 + 10 : 0;
+  }
+
+  // Adjacent paragraphs share their spacing in PowerPoint. Use the line-based advance plus
+  // the outer spacing for a trailing stack; pagination slack is not another printed line.
+  stackedTextHeightPt(blocks) {
+    if (this.sectionStyle && this.sectionStyle.uniform) return this.textHeightPt(blocks);
+    return Math.min(this.textHeightPt(blocks), this.textAdvancePt(blocks) + BLOCK_SPACING_PT);
   }
 
   tableGroups(rows, widths) {
@@ -890,6 +961,7 @@ class Builder {
         const leadId = this.cloneShape(page, 8);
         setShapeBounds(shape(page.doc, leadId), { x: X, y: TOP, w: W, h: h / 72 });
         paragraphs(page, leadId, lead, false);
+        if (this.sectionStyle && this.sectionStyle.uniform) restyle(shape(page.doc, leadId), this.sectionStyle);
         y += (h + 8) / 72;
       }
       const top = y;
@@ -953,10 +1025,11 @@ class Builder {
 
   // Stack text below the content already on a table page (a second lead-style text box).
   appendTextBelow(page, blocks) {
-    const h = this.textHeightPt(blocks);
+    const h = this.stackedTextHeightPt(blocks);
     const id = this.cloneShape(page, 13);
     setShapeBounds(shape(page.doc, id), { x: 0.4, y: page.tableBottom + BLOCK_GAP, w: 9.2, h: h / 72 });
     paragraphs(page, id, blocks, false);
+    if (this.sectionStyle && this.sectionStyle.uniform) restyle(shape(page.doc, id), this.sectionStyle);
     page.tableBottom += BLOCK_GAP + this.textAdvancePt(blocks) / 72;
   }
 
@@ -1012,20 +1085,38 @@ class Builder {
 
   // Append a whole (single-group) table, with its lead text, below the content already on a
   // table page. Returns false (nothing changed) when it doesn't fit.
-  appendTableBelow(page, block, leadIn, widthsOverride) {
+  appendTableBelow(page, block, leadIn, widthsOverride, continueHeading = null) {
     const { lead, caption } = splitCaption(leadIn);
     const widths = widthsOverride || columnWidths(block.rows, block.rows[0].length);
     const groups = this.tableGroups(block.rows, widths);
-    if (groups.length !== 1) return false;
+    if (groups.length !== 1 && !continueHeading) return false;
     const tableH = groups[0].reduce((sum, row) => sum + this.rowHeight(row, widths), 0);
     const leadH = lead.length ? this.textHeightPt(lead) + BLOCK_GAP_PT : 0;
     const capH = caption ? CAPTION_H : 0;
-    if (leadH + capH + tableH > this.roomBelowPt(page)) return false;
+    let rows = groups[0], remaining = [];
+    if (leadH + capH + tableH > this.roomBelowPt(page) || groups.length !== 1) {
+      if (!continueHeading) return false;
+      // Mixed documents flow in source order. Fill the current page with as many whole rows
+      // as fit, then repeat the header on the next page instead of moving the entire table.
+      const available = this.roomBelowPt(page) - leadH - capH;
+      let used = this.rowHeight(block.rows[0], widths), count = 1;
+      while (count < block.rows.length && used + this.rowHeight(block.rows[count], widths) <= available) {
+        used += this.rowHeight(block.rows[count], widths);
+        count++;
+      }
+      if (count === 1) return false; // Never strand a header without its first data row.
+      rows = block.rows.slice(0, count);
+      remaining = block.rows.slice(count);
+    }
     if (lead.length) this.appendTextBelow(page, lead);
     let yPt = page.tableBottom * 72 + BLOCK_GAP_PT;
     if (caption) yPt = this.tableCaption(page, caption, yPt);
     const id = this.cloneShape(page, 11);
-    this.fillTable(page, shape(page.doc, id), groups[0], widths, yPt);
+    this.fillTable(page, shape(page.doc, id), rows, widths, yPt);
+    if (remaining.length) {
+      const lead = caption ? [{ kind: "text", text: "", rows: [], depth: 0, meta: { caption } }] : [];
+      this.table({ ...block, rows: [block.rows[0], ...remaining] }, continueHeading, lead, 160, { widths });
+    }
     return true;
   }
 
@@ -1054,6 +1145,7 @@ class Builder {
         if (lead.length) {
           setShapeBounds(shape(page.doc, 13), { x: 0.4, y: 1.05, w: 9.2, h: leadHeightPt / 72 });
           paragraphs(page, 13, lead, false);
+          if (this.sectionStyle && this.sectionStyle.uniform) restyle(shape(page.doc, 13), this.sectionStyle);
           yPt += this.textAdvancePt(lead) + BLOCK_GAP_PT;
         }
         if (opts.visual) {
@@ -1298,7 +1390,7 @@ class Builder {
       };
       // A diagram answer "(안)" keeps the usual text-above-diagram layout, its text in the answer
       // sizes (production-guide.md "실습 슬라이드").
-      this.sectionStyle = visuals.length
+      this.sectionStyle = docLayout && documentStyle.uniform ? documentStyle : visuals.length
         ? (docLayout ? documentStyle : (isAnswer(section.title) || section.verbatimResponse) ? ANSWER_STYLE : null)
         : null;
       const renderedVisuals = await Promise.all(visuals.map(async (b) => {
@@ -1419,7 +1511,7 @@ class Builder {
       };
       let visualInline = false;
       const flushPending = () => {
-        if (open && pending.length && this.textHeightPt(pending) <= this.roomBelowPt(open)) {
+        if (open && pending.length && this.stackedTextHeightPt(pending) <= this.roomBelowPt(open)) {
           this.appendTextBelow(open, pending);
           pending.length = 0;
           return;
@@ -1573,8 +1665,9 @@ class Builder {
             if (multiVisual) claimVisualPage(d.vi); else this.flush(pending, section.title, layout.width, capacity);
             pending = mid;
           }
-          if (open && this.appendTableBelow(open, b, pending, widths)) {
+          if (open && this.appendTableBelow(open, b, pending, widths, docLayout && documentStyle.uniform ? section.title : null)) {
             pending = [];
+            open = this.pages[this.pages.length - 1];
             governingSeen = true;
             continue;
           }
@@ -1609,7 +1702,7 @@ class Builder {
           let k = blockIndex + 1;
           const trail = [];
           while (k < section.blocks.length && ["text", "heading", "bullet"].includes(section.blocks[k].kind)) trail.push(section.blocks[k++]);
-          const trailPt = this.textHeightPt(trail);
+          const trailPt = this.stackedTextHeightPt(trail);
           // The text before the code joins the code's slide when it is short (three lines), or when
           // the whole code still fits below it at 10pt -- e.g. a governing message and a quotation
           // above a short excerpt -- instead of leaving that text alone on a near-empty slide.
@@ -1760,8 +1853,19 @@ class Builder {
       // 16 then 14pt, then in two columns at 14pt (production-guide.md "실습 슬라이드"). Its answer
       // is set on one slide at 14/12/11pt by level, in two columns if needed; if even that runs
       // over it keeps its 18pt continuation slides.
+      // "**도식 — … — 제목**" captions the visual; it is never body text, so the one-slide document
+      // layouts below see the same blocks as the normal flow does (the loop above skips it).
+      const documentBlocks = section.blocks.filter((b) => !(b.kind === "text" && VISUAL_MARKER.test(b.text.trim())));
+      if (docLayout && documentStyle.uniform && renderedVisuals.length === 0) {
+        const compact = this.compactMixedDocumentPage(documentBlocks, section.title, documentStyle);
+        if (compact) {
+          this.pages.pop();
+          this.pages.splice(firstIdx, end - firstIdx, compact);
+          end = firstIdx + 1;
+        }
+      }
       if (docLayout && documentStyle.uniform && renderedVisuals.length === 1) {
-        const compact = this.documentDiagramPage(section.blocks, section.title, renderedVisuals[0], documentStyle);
+        const compact = this.documentDiagramPage(documentBlocks, section.title, renderedVisuals[0], documentStyle);
         if (compact) {
           this.pages.pop();
           this.pages.splice(firstIdx, end - firstIdx, compact);

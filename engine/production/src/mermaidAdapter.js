@@ -41,6 +41,10 @@ function styleLabel(raw, box) {
 // `box` (optional) applies to node labels only -- a subgraph title is a container caption, not a
 // box of the same kind as the nodes, so it keeps its own size.
 function styleSource(source, box) {
+  // Class diagrams use quoted strings for multiplicities, not flowchart node labels.
+  // HTML-bold wrappers change both their displayed value and the layout's measured extent.
+  // Mermaid already bolds class headings; keep cardinalities and member text verbatim.
+  if (/^\s*classDiagram\b/m.test(String(source))) return String(source);
   return String(source).split("\n").map((line) => {
     const lineBox = /^\s*subgraph\b/.test(line) ? null : box;
     return line.replace(/"([^"]*)"/g, (whole, inner) => '"' + styleLabel(inner, lineBox) + '"');
@@ -58,8 +62,13 @@ function maxNodeLabelBox(svg) {
   return w && h ? { w, h } : null;
 }
 
-function runMmdc(sourcePath, outPath, puppeteerPath, extra) {
-  execFileSync(MMDC, ["-i", sourcePath, "-o", outPath, "-t", "neutral", "-p", puppeteerPath, ...extra], {
+// 시퀀스 다이어그램의 참여자 상자는 위에만 둔다. mermaid는 기본으로 아래에도 같은 상자를 한 번
+// 더 그리는데(mirrorActors), 같은 참여자가 두 군데 있는 것으로 읽히고 도식만 그만큼 높아진다.
+const MERMAID_CONFIG = { sequence: { mirrorActors: false } };
+
+function runMmdc(sourcePath, outPath, puppeteerPath, extra, configPath) {
+  execFileSync(MMDC, ["-i", sourcePath, "-o", outPath, "-t", "neutral", "-p", puppeteerPath,
+    ...(configPath ? ["-c", configPath] : []), ...extra], {
     encoding: "utf8", cwd: path.resolve(__dirname, ".."), timeout: 30000,
   });
 }
@@ -79,7 +88,8 @@ function svgMetrics(svg) {
 async function renderMermaid({ source }) {
   if (!source || !String(source).trim()) throw new Error("Mermaid source가 비어 있다");
   fs.mkdirSync(CACHE_DIR, { recursive: true });
-  const hash = crypto.createHash("sha1").update("v12-uniform-node\n" + source).digest("hex").slice(0, 16);
+  const version = /^\s*classDiagram\b/m.test(String(source)) ? "v13-class-cardinalities" : "v15-no-mirror-actors";
+  const hash = crypto.createHash("sha1").update(version + "\n" + source).digest("hex").slice(0, 16);
   const pngPath = path.join(CACHE_DIR, hash + ".png");
   const metricsPath = path.join(CACHE_DIR, hash + ".json");
   if (!fs.existsSync(pngPath) || !fs.existsSync(metricsPath)) {
@@ -90,21 +100,23 @@ async function renderMermaid({ source }) {
     const svgPath = tmp + ".measure.svg";
     const tmpPng = tmp + ".png";
     const puppeteerPath = tmp + ".puppeteer.json";
+    const configPath = tmp + ".mermaid.json";
     try {
       if (!fs.existsSync(MMDC)) throw new Error("Mermaid CLI가 설치되지 않았다: " + MMDC);
       if (!fs.existsSync(CHROME)) throw new Error("Mermaid 렌더용 Chrome이 없다: " + CHROME);
       fs.writeFileSync(puppeteerPath, JSON.stringify({ executablePath: CHROME, args: ["--no-sandbox"] }), "utf8");
+      fs.writeFileSync(configPath, JSON.stringify(MERMAID_CONFIG), "utf8");
       // Pass 1 measures every node's label box; pass 2 renders with all nodes at the largest one.
       fs.writeFileSync(sourcePath, styleSource(source), "utf8");
-      runMmdc(sourcePath, svgPath, puppeteerPath, []);
+      runMmdc(sourcePath, svgPath, puppeteerPath, [], configPath);
       const box = maxNodeLabelBox(fs.readFileSync(svgPath, "utf8"));
       // "neutral" theme avoids the default theme's colored node-fill boxes behind labels, so slide
       // text next to the diagram doesn't read as inconsistent "some labels have a background".
       fs.writeFileSync(sourcePath, styleSource(source, box), "utf8");
       // 같은 원본을 SVG로 한 번 더 그려 도식 자신의 너비와 글자 크기를 잰다(svgMetrics).
-      runMmdc(sourcePath, svgPath, puppeteerPath, []);
+      runMmdc(sourcePath, svgPath, puppeteerPath, [], configPath);
       const metrics = svgMetrics(fs.readFileSync(svgPath, "utf8"));
-      runMmdc(sourcePath, tmpPng, puppeteerPath, ["-b", "white", "-s", "2"]);
+      runMmdc(sourcePath, tmpPng, puppeteerPath, ["-b", "white", "-s", "2"], configPath);
       fs.renameSync(tmpPng, pngPath);
       fs.writeFileSync(metricsPath, JSON.stringify(metrics), "utf8");
     } catch (error) {
@@ -115,6 +127,7 @@ async function renderMermaid({ source }) {
       if (fs.existsSync(svgPath)) fs.unlinkSync(svgPath);
       if (fs.existsSync(tmpPng)) fs.unlinkSync(tmpPng);
       if (fs.existsSync(puppeteerPath)) fs.unlinkSync(puppeteerPath);
+      if (fs.existsSync(configPath)) fs.unlinkSync(configPath);
     }
   }
   const data = fs.readFileSync(pngPath);

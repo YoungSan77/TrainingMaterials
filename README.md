@@ -10,7 +10,7 @@ SW 공학 교육과정의 설계·원고·PowerPoint를 관리한다.
 | 세션 원고 | `courses/<course>/sessions/sNN.md` |
 | 제작 결과 | 원고 옆의 `sNN.pptx`, `sNN.qa.json` |
 | 실습 근거 | `sessions/code/sNN/exercise-conversation/`의 실제 대화와 최종 MD |
-| 제작 기록 | `sessions/sNN-production-check.md` |
+| 제작 기록 | `courses/<course>/checks/sNN-production-check.md` |
 
 규칙은 [AGENTS.md](AGENTS.md)와 [guides/](guides/)가 정한다. 작성 기준 예시는 OOAD의 `s01.md`~`s05.md`다. 과거 산출물과 검토 기록은 규칙의 원천이 아니다.
 

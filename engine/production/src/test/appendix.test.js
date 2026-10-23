@@ -71,6 +71,31 @@ test("labels without an appendix are an error; the old author, year tail is a wa
   assert.match(r.warnings[0], /레이블/);
 });
 
+test("inline code identifiers are not sources, while adjacent prose labels are still checked", () => {
+  const body = [
+    "- **`[H]` 비회원:** 미정이다. [Known 2024]",
+    "- ``[B]``와 `` `[G]` ``도 식별자다. [Missing 2025]",
+    "- [E]는 코드 밖이므로 출처 검사를 받는다.",
+  ].join("\n");
+  const ap = "1. **[Known 2024]** Existing source\n";
+  const dir = course(body, ap);
+  const expected = checkLabels(path.join(dir, "s01.md"), body);
+  assert.equal(expected.errors.length, 2);
+  assert.match(expected.errors[0], /2행.*\[Missing 2025\]/);
+  assert.match(expected.errors[1], /3행.*\[E\]/);
+  assert.deepEqual(expected.warnings, []);
+  const appendixCheck = checkLabels(path.join(dir, "references.md"), ap);
+  assert.equal(appendixCheck.errors.length, 2);
+  assert.ok(appendixCheck.errors.every((e) => /\[Missing 2025\]|\[E\]/.test(e)));
+});
+
+test("literal code needs no bibliography, but an unmatched backtick does not hide a source", () => {
+  const body = "**`[H]`**와 ``[B]``는 미정 식별자다.\n";
+  const dir = course(body, null);
+  assert.deepEqual(checkLabels(path.join(dir, "s01.md"), body), { errors: [], warnings: [] });
+  assert.match(checkLabels(path.join(dir, "s01.md"), "닫히지 않은 `[Missing 2025]").errors[0], /references\.md/);
+});
+
 test("a duplicated appendix label is an error", () => {
   const ap = "1. **[Larman 2004]** A\n2. **[Larman 2004]** B\n";
   const dir = course("본문\n", ap);

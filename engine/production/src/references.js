@@ -84,6 +84,9 @@ function summaryWithLabel(text) {
 // A label starts with a capital (author, organization, "Wikipedia: …") and carries the year when it
 // is known: [Larman 2004], [Ambler], [Jacobson 1992, 재인용]. A markdown link text "[…](url)" is not one.
 const LABEL = /\[([A-Z][^\[\]\n()"]*?)(?:, 재인용)?\](?!\()/g;
+// Literal identifiers such as `[H]` are not bibliography labels. Match complete,
+// same-line code spans with equal backtick runs; leave unmatched delimiters alone.
+const INLINE_CODE = /(?<!`)(`+)(?!`)(.*?)(?<!`)\1(?!`)/g;
 const ENTRY = /^\d+\.\s+\*\*\[([^\]]+)\]\*\*/;
 // The old citation tail "…", 저자, 년도 (before labels).
 const OLD_TAIL = /"\s*,\s*[A-Z][^"\[\]\n]*,\s*\d{4}(?:,\s*www)?\s*$/;
@@ -91,9 +94,10 @@ const OLD_TAIL = /"\s*,\s*[A-Z][^"\[\]\n]*,\s*\d{4}(?:,\s*www)?\s*$/;
 function labelsIn(text) {
   const out = [];
   stripCode(text).forEach((line, i) => {
+    const prose = line.replace(INLINE_CODE, " ");
     let m;
     LABEL.lastIndex = 0;
-    while ((m = LABEL.exec(line))) out.push({ label: m[1], line: i + 1 });
+    while ((m = LABEL.exec(prose))) out.push({ label: m[1], line: i + 1 });
   });
   return out;
 }

@@ -1,0 +1,12 @@
+; macOS Seatbelt example. TASK_ROOT is replaced with the disposable workspace.
+; This demonstrates selected file and network boundaries, not full host isolation.
+(version 1)
+(allow default)
+(deny file-write*)
+(allow file-write*
+  (subpath "TASK_ROOT/src")
+  (subpath "TASK_ROOT/tests")
+  (subpath "TASK_ROOT/build")
+  (literal "/dev/null"))
+(deny file-read* (subpath "TASK_ROOT/secrets"))
+(deny network*)

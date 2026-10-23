@@ -53,11 +53,15 @@
   },
   "a domain model is a visual representation of conceptual classes or real-situation objects in a domain": {
     "source": "larman-2004",
-    "date": "2026-10-18"
+    "date": "2026-10-22"
   },
   "a fixed prompt is fed to an agent in an infinite loop": {
     "source": "https://www.thoughtworks.com/radar/techniques/ralph-loop",
     "date": "2026-10-13"
+  },
+  "a giant instruction file crowds out the task, the code, and the relevant docs": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-21"
   },
   "a globally peer-reviewed framework that identifies the most critical security risks facing autonomous and agentic ai systems": {
     "source": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
@@ -99,6 +103,10 @@
     "source": "https://dubroy.com/refs/Statecharts_a_visual_formalism_for_complex_systems.pdf",
     "date": "2026-10-03"
   },
+  "a readme for agents": {
+    "source": "https://agents.md/",
+    "date": "2026-10-21"
+  },
   "a responsibility = an obligation to perform a task or know information": {
     "source": "https://www.wirfs-brock.com/PDFs/A_Brief-Tour-of-RDD.pdf",
     "date": "2026-10-08"
@@ -121,7 +129,7 @@
   },
   "a state is the condition of an object at a moment in time-the time between events": {
     "source": "larman-2004",
-    "date": "2026-10-03"
+    "date": "2026-10-23"
   },
   "a state models a situation during which some (usually implicit) invariant condition holds": {
     "source": "https://www.omg.org/spec/UML/2.5.1/PDF",
@@ -137,7 +145,7 @@
   },
   "a system sequence diagram is a picture that shows, for one particular scenario of a use case, the events that external actors generate, their order, and inter-system events": {
     "source": "larman-2004",
-    "date": "2026-10-02"
+    "date": "2026-10-23"
   },
   "a task performed by one person in one place at one time, in response to a business event, which adds measurable business value and leaves the data in a consistent state": {
     "source": "larman-2004",
@@ -145,11 +153,15 @@
   },
   "a transition is a relationship between two states that indicates that when an event occurs, the object moves from the prior state to the subsequent state": {
     "source": "larman-2004",
-    "date": "2026-10-03"
+    "date": "2026-10-23"
   },
   "a transition may also have a conditional guard-or boolean test. the transition only occurs if the test passes": {
     "source": "larman-2004",
     "date": "2026-10-03"
+  },
+  "a uml activity diagram shows sequential and parallel activities in a process": {
+    "source": "larman-2004",
+    "date": "2026-10-23"
   },
   "a uml activity diagram shows sequential and parallel activities in a process. they are useful for modeling business processes, workflows, data flows, and complex algorithms": {
     "source": "larman-2004",
@@ -203,6 +215,10 @@
     "source": "https://www.anthropic.com/engineering/multi-agent-research-system",
     "date": "2026-10-17"
   },
+  "agents are uniquely suited to workflows where traditional deterministic and rule-based approaches fall short": {
+    "source": "references/inputs/a-practical-guide-to-building-agents.pdf",
+    "date": "2026-10-22"
+  },
   "agents can be used for open-ended problems where it's difficult or impossible to predict the required number of steps, and where you can't hardcode a fixed path": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-07"
@@ -237,7 +253,7 @@
   },
   "allows agents to incrementally discover relevant context through exploration": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
-    "date": "2026-10-12"
+    "date": "2026-10-21"
   },
   "almost everything i might achieve with an mcp can be handled by a cli tool instead": {
     "source": "https://www.thoughtworks.com/radar/techniques/mcp-by-default",
@@ -261,7 +277,11 @@
   },
   "an event is a significant or noteworthy occurrence": {
     "source": "larman-2004",
-    "date": "2026-10-03"
+    "date": "2026-10-23"
+  },
+  "an event's probability of occurring and the magnitude or degree of the consequences of the corresponding event": {
+    "source": "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-1.pdf",
+    "date": "2026-10-21"
   },
   "an in-process function call is fast and always succeeds … remote calls, however, are orders of magnitude slower, and there's always a chance that the call will fail due to a failure in the remote process or the connection": {
     "source": "https://martinfowler.com/articles/distributed-objects-microservices.html",
@@ -269,11 +289,11 @@
   },
   "an ontology is an explicit specification of a conceptualization": {
     "source": "https://tomgruber.org/writing/ontolingua-kaj-1993.pdf",
-    "date": "2026-10-18"
+    "date": "2026-10-22"
   },
   "analysis emphasizes an investigation of the problem and requirements, rather than a solution": {
     "source": "larman-2004",
-    "date": "2026-10-03"
+    "date": "2026-10-22"
   },
   "any indication that the genie was cheating, for example by disabling or deleting tests": {
     "source": "https://newsletter.kentbeck.com/p/augmented-coding-beyond-the-vibes",
@@ -281,7 +301,7 @@
   },
   "any probabilistic defense has a non-zero miss rate": {
     "source": "https://www.anthropic.com/engineering/how-we-contain-claude",
-    "date": "2026-10-14"
+    "date": "2026-10-21"
   },
   "architecture is about the important stuff. whatever that is": {
     "source": "확인 경위: 2단 PDF라 pdftotext가 단을 섞어 자동 대조가 되지 않는다. https://martinfowler.com/ieeeSoftware/whoNeedsArchitect.pdf 의 3쪽(IEEE Software, 2003-07/08) 지면을 직접 읽어 확인했다(2026-10-14).",
@@ -401,7 +421,7 @@
   },
   "bounded by the current iteration requirements under design: 1. find the conceptual classes … 2. draw them as classes in a uml class diagram. 3. add associations and attributes": {
     "source": "larman-2004",
-    "date": "2026-10-02"
+    "date": "2026-10-23"
   },
   "but ultimately the agent ignored the notes that these were descriptions of existing classes, it just took them as a new specification and generated them all over again, creating duplicates": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
@@ -461,15 +481,19 @@
   },
   "communication diagrams illustrate object interactions in a graph or network format, in which objects can be placed anywhere on the diagram": {
     "source": "larman-2004",
-    "date": "2026-10-03"
+    "date": "2026-10-23"
   },
   "compaction": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
   },
+  "compaction is the practice of taking a conversation nearing the context window limit, summarizing its contents, and reinitiating a new context window with the summary": {
+    "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "date": "2026-10-21"
+  },
   "compaction, structured note-taking, and multi-agent architectures": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
-    "date": "2026-10-12"
+    "date": "2026-10-21"
   },
   "composition has a nicer property. the coupling is reduced by just having some smaller things you plug into something bigger": {
     "source": "https://www.artima.com/articles/design-principles-from-design-patterns",
@@ -481,7 +505,7 @@
   },
   "computational guides increase the probability of good results with deterministic tooling": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
-    "date": "2026-10-14"
+    "date": "2026-10-21"
   },
   "confabulation: the production of confidently stated but erroneous or false content": {
     "source": "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf",
@@ -491,17 +515,25 @@
     "source": "larman-2004",
     "date": "2026-10-03"
   },
+  "context engineering is the art and science of curating what will go into the limited context window from that constantly evolving universe of possible information": {
+    "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "date": "2026-10-21"
+  },
   "context engineering refers to the set of strategies for curating and maintaining the optimal set of tokens (information) during llm inference": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
   },
   "context, therefore, must be treated as a finite resource with diminishing marginal returns": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
-    "date": "2026-10-06"
+    "date": "2026-10-21"
   },
   "coupling is a measure of how strongly one element is connected to, has knowledge of, or relies on other elements": {
     "source": "larman-2004",
     "date": "2026-10-18"
+  },
+  "crowds out": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-21"
   },
   "crucial for the agents to gain \"ground truth\" from the environment at each step": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
@@ -651,13 +683,17 @@
     "source": "https://www.cs.unc.edu/techreports/86-020.pdf",
     "date": "2026-10-18"
   },
+  "for economic viability, multi-agent systems require tasks where the value of the task is high enough to pay for the increased performance": {
+    "source": "https://www.anthropic.com/engineering/multi-agent-research-system",
+    "date": "2026-10-22"
+  },
   "for high-stakes tasks, the human-in-the-loop (hitl) pattern is critical, creating a deliberate pause in the workflow to get approval from a person before an agent takes a significant action": {
     "source": "references/inputs/Google_IntroductionToAgents.pdf",
     "date": "2026-10-13"
   },
   "fortunately, uml activity diagrams can satisfy the same goals-they can be used for data flow modeling, replacing traditional dfd notation": {
     "source": "larman-2004",
-    "date": "2026-10-03"
+    "date": "2026-10-23"
   },
   "from the agent's point of view, anything it can't access in-context while running effectively doesn't exist": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
@@ -677,7 +713,7 @@
   },
   "give codex a map, not a 1,000-page instruction manual": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-12"
+    "date": "2026-10-21"
   },
   "given some initial context (the givens), when an event occurs, then ensure some outcomes": {
     "source": "references/inputs/north-2006-introducing-bdd.txt",
@@ -863,6 +899,10 @@
     "source": "references/inputs/north-2006-introducing-bdd.txt",
     "date": "2026-10-07"
   },
+  "just in time": {
+    "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "date": "2026-10-21"
+  },
   "keep the bar green to keep the code clean": {
     "source": "larman-2004",
     "date": "2026-10-08"
@@ -870,6 +910,10 @@
   "llms can sometimes work simultaneously on a task and have their outputs aggregated programmatically": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-13"
+  },
+  "llms follow instructions in content": {
+    "source": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
+    "date": "2026-10-21"
   },
   "llms have an \"attention budget\" that they draw on when parsing large volumes of context": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
@@ -899,6 +943,10 @@
     "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
     "date": "2026-10-14"
   },
+  "map": {
+    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
+    "date": "2026-10-21"
+  },
   "mcp provides a standardized way to connect llms with the context they need": {
     "source": "https://modelcontextprotocol.io/specification/2025-06-18",
     "date": "2026-10-13"
@@ -906,6 +954,10 @@
   "model expressions, like any other phrase, only have meaning in context": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
     "date": "2026-10-08"
+  },
+  "model information about activity in the domain as a series of discrete events": {
+    "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
+    "date": "2026-10-23"
   },
   "model risks (or risk from malfunction): confabulation; dangerous or violent recommendations; data privacy; value chain and component integration; harmful bias, and homogenization": {
     "source": "https://doi.org/10.6028/NIST.AI.600-1",
@@ -997,7 +1049,7 @@
   },
   "progressive disclosure": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
-    "date": "2026-10-12"
+    "date": "2026-10-21"
   },
   "progressive disclosure-in other words, allows agents to incrementally discover relevant context through exploration": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
@@ -1017,7 +1069,7 @@
   },
   "recognize that a change in the language is a change to the model": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
-    "date": "2026-10-18"
+    "date": "2026-10-22"
   },
   "refactoring … is a structured, disciplined method to rewrite or restructure existing code without changing its external behavior": {
     "source": "larman-2004",
@@ -1033,7 +1085,7 @@
   },
   "requirements are capabilities and conditions to which the system … must conform": {
     "source": "larman-2004",
-    "date": "2026-10-02"
+    "date": "2026-10-22"
   },
   "restarts are expensive and frustrating for users. instead, we built systems that can resume from where the agent was when the errors occurred": {
     "source": "https://www.anthropic.com/engineering/multi-agent-research-system",
@@ -1117,7 +1169,7 @@
   },
   "spec-driven development means writing a \"spec\" before writing code with ai (\"documentation first\"). the spec becomes the source of truth for the human and the ai": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
-    "date": "2026-10-07"
+    "date": "2026-10-22"
   },
   "spec-first: a well thought-out spec is written first, and then used in the ai-assisted development workflow for the task at hand": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
@@ -1225,7 +1277,7 @@
   },
   "the entity-relationship model adopts the more natural view that the real world consists of entities and relationships": {
     "source": "https://www.csc.lsu.edu/~chen/pdf/erd-5-pages.pdf",
-    "date": "2026-10-02"
+    "date": "2026-10-23"
   },
   "the event list is a narrative list of the \"stimuli\" that occur in the outside world and to which our system must respond": {
     "source": "https://web.archive.org/web/20070214052310/http://yourdon.com/strucanalysis/wiki/index.php?title=Chapter_18",
@@ -1242,6 +1294,10 @@
   "the hardest single part of building a software system is deciding precisely what to build": {
     "source": "https://www.cs.unc.edu/techreports/86-020.pdf",
     "date": "2026-10-07"
+  },
+  "the lethal trifecta of capabilities is": {
+    "source": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
+    "date": "2026-10-21"
   },
   "the microservice architectural style … is an approach to developing a single application as a suite of small services, each running in its own process and communicating with lightweight mechanisms": {
     "source": "https://martinfowler.com/articles/microservices.html",
@@ -1277,7 +1333,7 @@
   },
   "the requirements document turned this small bug into 4 \"user stories\" with a total of 16 acceptance criteria": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
-    "date": "2026-10-07"
+    "date": "2026-10-22"
   },
   "the result was an 84% reduction in permission prompts, and we open-sourced the runtime, so the boundary is auditable": {
     "source": "https://www.anthropic.com/engineering/how-we-contain-claude",
@@ -1293,11 +1349,15 @@
   },
   "the smallest possible set of high-signal tokens": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
-    "date": "2026-10-12"
+    "date": "2026-10-21"
   },
   "the state of an object identifies the values for that object of properties of the classifier of the object": {
     "source": "https://www.omg.org/spec/UML/2.5.1/PDF",
     "date": "2026-10-02"
+  },
+  "the system checks if a prompt prefix, up to a specified cache breakpoint, is already cached from a recent query. if found, it uses the cached version, reducing processing time and costs": {
+    "source": "https://platform.claude.com/docs/en/docs/build-with-claude/prompt-caching",
+    "date": "2026-10-22"
   },
   "the system contained the following agent personas": {
     "source": "https://www.anthropic.com/engineering/harness-design-long-running-apps",
@@ -1401,7 +1461,7 @@
   },
   "tools are a new kind of software which reflects a contract between deterministic systems and non-deterministic agents": {
     "source": "https://www.anthropic.com/engineering/writing-tools-for-agents",
-    "date": "2026-10-13"
+    "date": "2026-10-21"
   },
   "tools can consolidate functionality, handling potentially multiple discrete operations (or api calls) under the hood": {
     "source": "https://www.anthropic.com/engineering/writing-tools-for-agents",
@@ -1462,6 +1522,10 @@
   "we also released opus 4.6, which provided further motivation to reduce harness complexity. there was good reason to expect 4.6 would need less scaffolding than 4.5 did": {
     "source": "https://www.anthropic.com/engineering/harness-design-long-running-apps",
     "date": "2026-10-17"
+  },
+  "we can classify agentic systems into a few broad levels, each building on the capabilities of the last": {
+    "source": "references/inputs/Google_IntroductionToAgents.pdf",
+    "date": "2026-10-22"
   },
   "we caution against using mcp by default": {
     "source": "https://www.thoughtworks.com/radar/techniques/mcp-by-default",
@@ -1530,6 +1594,10 @@
   "where a team of coding agents is a small, deliberate group, a coding agent swarm applies dozens to hundreds of agents to a problem, with ai determining composition and size dynamically": {
     "source": "https://www.thoughtworks.com/radar/techniques/coding-agent-swarms",
     "date": "2026-10-13"
+  },
+  "while mcp itself cannot enforce these security principles at the protocol level": {
+    "source": "https://modelcontextprotocol.io/specification/2025-06-18",
+    "date": "2026-10-21"
   },
   "wired into agentic workflows so that failures trigger timely self-correction": {
     "source": "https://www.thoughtworks.com/radar/techniques/feedback-sensors-for-coding-agents",

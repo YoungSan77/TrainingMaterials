@@ -99,6 +99,39 @@ test("a tall diagram stays below the text unless the topic asks for the side lay
   assert.equal(ps.some((x) => x.visualLayout === "side"), false);
 });
 
+// production-guide.md "문서 형식" + "표·도식 제목": a 10pt document topic with one diagram is set on
+// one slide. The diagram's "**도식 — … — 제목**" marker is its title, never a line of the document,
+// and the title's own band is reserved so the diagram never slides onto the text below it.
+const docDiagramDeck = (text) => {
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="220" viewBox="0 0 320 220"><style>text{font-size:16px}</style>'
+    + '<rect width="320" height="220" fill="#fff"/><text x="20" y="40">가</text><text x="20" y="200">나</text></svg>';
+  return deck("## 01. 문서\n\n**문서 형식 — 10pt**\n\n**도식 — SVG — 상태 기계**\n\n```svg\n" + svg + "\n```\n\n" + text);
+};
+
+test("a 10pt document's diagram marker is its title, not a line of the document", async () => {
+  const ps = await docDiagramDeck("- **첫째** 읽는 법을 적는다.\n- **둘째** 범위를 적는다.\n");
+  const p = ps.find((x) => (x.pictures || []).length);
+  assert.ok(p, "the diagram is placed");
+  for (const sp of all(p.doc, P, "sp")) {
+    const line = all(sp, A, "t").map((t) => t.textContent).join("");
+    assert.equal(line.includes("도식 —"), false, `the marker never shows: ${line}`);
+  }
+  assert.equal(p.pictures[0].caption, "상태 기계");
+});
+
+test("a 10pt document's diagram leaves its title's band free, so it never covers the text below", async () => {
+  const ps = await docDiagramDeck("- **첫째** 읽는 법을 적는다.\n- **둘째** 범위를 적는다.\n- **셋째** 미정을 적는다.\n");
+  const p = ps.find((x) => (x.pictures || []).length);
+  assert.ok(p, "the diagram is placed");
+  const b = p.pictures[0].bounds;
+  const bottom = b.y + b.h;
+  const below = all(p.doc, P, "sp")
+    .filter((sp) => all(sp, A, "t").map((t) => t.textContent).join("").includes("셋째"))
+    .flatMap((sp) => all(sp, A, "off").map((off) => Number(off.getAttribute("y")) / 914400));
+  assert.ok(below.length, "the text below the diagram is on this slide");
+  for (const y of below) assert.ok(y >= bottom - 1e-6, `text at ${y.toFixed(2)}" sits under the diagram ending at ${bottom.toFixed(2)}"`);
+});
+
 test("an unnumbered heading is a sub-topic: its own title, the group as the 11pt second line, not a TOC item", async () => {
   const md = "## 목차\n\n01. 연관\n02. 요약\n\n## 01. 연관\n\n## 연관의 이름\n\n**이름** 문장이다.\n\n## 다중성\n\n**다중성** 문장이다.\n\n## 02. 요약\n\n**요약** 문장이다.\n";
   const { sections, toc } = parse(md);

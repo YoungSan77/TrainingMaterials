@@ -25,6 +25,21 @@ function pendingQuotes() {
   }
 }
 
+// 과정을 전면 보완하는 동안에는 아직 다시 쓰지 않은 원고가 "헤더는 새 세션명, 본문은 옛 축"으로
+// 남는다 — 참조 검사가 같은 폴더의 헤더를 함께 보므로 헤더를 먼저 바꿔야 다시 쓴 세션의 참조가
+// 성립한다. 그 원고를 courses/<course>/checks/rewrite-pending.json에 적어 두면 이 훅이 검사
+// 대상에서 뺀다. 세션을 다시 쓸 때 목록에서 지우고, 끝나면 파일을 지운다. 지금 고치는 원고의
+// 완료 기준은 그대로 오류 0 · 경고 0이다.
+function rewritePending(file) {
+  const course = file.split("/")[1];
+  const list = path.join(ROOT, "courses", course, "checks", "rewrite-pending.json");
+  try {
+    return (JSON.parse(fs.readFileSync(list, "utf-8")).pending || []).some((p) => file.endsWith(p));
+  } catch {
+    return false;
+  }
+}
+
 function changedManuscripts() {
   const out = execFileSync("git", ["status", "--porcelain"], { cwd: ROOT, encoding: "utf-8" });
   const files = [];
@@ -33,7 +48,8 @@ function changedManuscripts() {
     const file = line.slice(3).trim().split(" -> ").pop();
     // "-add.md"는 원고의 추가분, "-…-check.md"는 렌더링 검토 기록이다. 둘 다 Session Source가
     // 아니므로 "Session 명:" 헤더가 없고, 검사 대상이 아니다.
-    if (file && TARGET.test(file) && !/-add\.md$/.test(file) && !/-[^/]*check\.md$/.test(file)) files.push(file);
+    if (file && TARGET.test(file) && !/-add\.md$/.test(file) && !/-[^/]*check\.md$/.test(file) && !rewritePending(file))
+      files.push(file);
   }
   return files;
 }
