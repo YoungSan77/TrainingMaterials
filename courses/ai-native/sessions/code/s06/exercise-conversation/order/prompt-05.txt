@@ -1,0 +1,60 @@
+「패키지 다이어그램 — 포트의 구현」 그림을 앞 그림과 같은 방식으로 바꿔 다시 생성해라. 업무 경계 그림은 패키지를 탭 달린 사각형으로, 클래스를 그 안의 상자로 그리는데, 포트 구현 그림만 Mermaid라 두 그림의 표기가 다르다.
+
+아래 SVG를 그대로 그 자리에 넣어라. 요소와 관계는 지금 응답과 같다 — 업무 패키지 셋과 각자의 포트, 연동·영속 패키지 셋과 그 클래스, 외부 제공자 둘과 저장소 하나, 그리고 구현·통신 관계다. 노드나 관계를 더하거나 빼지 마라.
+
+문서의 다른 절(스타일과 근거, 업무 경계 그림, 패키지별 배치, 의존 규칙, 결제 포트 연동 규격)은 바꾸지 마라. 범례 문장도 그대로 두되, 외부 제공자와 저장소를 구분해 표시했다는 설명은 유지해라.
+
+```svg:uml
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="430" viewBox="0 0 960 430">
+<defs><marker id="dependency" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#222" stroke-width="1.3"/></marker></defs>
+<rect width="960" height="430" fill="white"/>
+<path d="M10,27 V5 H125 V27 H300 V130 H10 Z" fill="#fafafa" stroke="#555" stroke-width="1.5"/>
+<text x="20" y="21" font-family="Arial" font-size="14" font-weight="bold">payment</text>
+<rect x="25" y="47" width="260" height="44" fill="#eee" stroke="#777"/>
+<text x="155" y="64" text-anchor="middle" font-family="Arial" font-size="14">«port»</text>
+<text x="155" y="82" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">PaymentGateway</text>
+<path d="M360,27 V5 H475 V27 H650 V130 H360 Z" fill="#fafafa" stroke="#555" stroke-width="1.5"/>
+<text x="370" y="21" font-family="Arial" font-size="14" font-weight="bold">paymentadapter</text>
+<rect x="375" y="47" width="260" height="44" fill="#eee" stroke="#777"/>
+<text x="505" y="74" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">PaymentAdapter</text>
+<rect x="710" y="47" width="240" height="44" fill="#eee" stroke="#777"/>
+<text x="830" y="64" text-anchor="middle" font-family="Arial" font-size="14">«system»</text>
+<text x="830" y="82" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">외부 결제 제공자</text>
+<path d="M360,69 H300" fill="none" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#dependency)"/>
+<text x="330" y="63" text-anchor="middle" font-family="Arial" font-size="12">구현</text>
+<path d="M650,69 H710" fill="none" stroke="#222" stroke-width="1.6" marker-end="url(#dependency)"/>
+<text x="680" y="63" text-anchor="middle" font-family="Arial" font-size="12">통신</text>
+<path d="M10,172 V150 H125 V172 H300 V275 H10 Z" fill="#fafafa" stroke="#555" stroke-width="1.5"/>
+<text x="20" y="166" font-family="Arial" font-size="14" font-weight="bold">delivery</text>
+<rect x="25" y="192" width="260" height="44" fill="#eee" stroke="#777"/>
+<text x="155" y="209" text-anchor="middle" font-family="Arial" font-size="14">«port»</text>
+<text x="155" y="227" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">DeliveryGateway</text>
+<path d="M360,172 V150 H475 V172 H650 V275 H360 Z" fill="#fafafa" stroke="#555" stroke-width="1.5"/>
+<text x="370" y="166" font-family="Arial" font-size="14" font-weight="bold">deliveryadapter</text>
+<rect x="375" y="192" width="260" height="44" fill="#eee" stroke="#777"/>
+<text x="505" y="219" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">DeliveryAdapter</text>
+<rect x="710" y="192" width="240" height="44" fill="#eee" stroke="#777"/>
+<text x="830" y="209" text-anchor="middle" font-family="Arial" font-size="14">«system»</text>
+<text x="830" y="227" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">외부 배송 제공자</text>
+<path d="M360,214 H300" fill="none" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#dependency)"/>
+<text x="330" y="208" text-anchor="middle" font-family="Arial" font-size="12">구현</text>
+<path d="M650,214 H710" fill="none" stroke="#222" stroke-width="1.6" marker-end="url(#dependency)"/>
+<text x="680" y="208" text-anchor="middle" font-family="Arial" font-size="12">통신</text>
+<path d="M10,317 V295 H125 V317 H300 V420 H10 Z" fill="#fafafa" stroke="#555" stroke-width="1.5"/>
+<text x="20" y="311" font-family="Arial" font-size="14" font-weight="bold">order</text>
+<rect x="25" y="337" width="260" height="44" fill="#eee" stroke="#777"/>
+<text x="155" y="354" text-anchor="middle" font-family="Arial" font-size="14">«port»</text>
+<text x="155" y="372" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">OrderRepository</text>
+<path d="M360,317 V295 H475 V317 H650 V420 H360 Z" fill="#fafafa" stroke="#555" stroke-width="1.5"/>
+<text x="370" y="311" font-family="Arial" font-size="14" font-weight="bold">persistence</text>
+<rect x="375" y="337" width="260" height="44" fill="#eee" stroke="#777"/>
+<text x="505" y="364" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">OrderPersistenceAdapter</text>
+<rect x="710" y="337" width="240" height="44" fill="#eee" stroke="#777"/>
+<text x="830" y="354" text-anchor="middle" font-family="Arial" font-size="14">«store»</text>
+<text x="830" y="372" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">주문 저장소</text>
+<path d="M360,359 H300" fill="none" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#dependency)"/>
+<text x="330" y="353" text-anchor="middle" font-family="Arial" font-size="12">구현</text>
+<path d="M650,359 H710" fill="none" stroke="#222" stroke-width="1.6" marker-end="url(#dependency)"/>
+<text x="680" y="353" text-anchor="middle" font-family="Arial" font-size="12">통신</text>
+</svg>
+```

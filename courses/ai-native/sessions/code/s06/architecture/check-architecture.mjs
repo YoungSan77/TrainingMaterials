@@ -5,7 +5,8 @@ export function inspect(classes) {
   const output = execFileSync('jdeps', ['-verbose:package', '-filter:none', classes], { encoding: 'utf8' });
   const graph = new Map();
   const problems = [];
-  const business = new Set(['order', 'payment', 'delivery', 'product', 'subscription']);
+  const business = new Set(['order', 'payment', 'delivery', 'product']);
+  const allowedBusiness = new Set(['order->payment', 'order->delivery', 'order->product']);
   for (const line of output.split('\n')) {
     const edge = /^\s+([\w.]+)\s+->\s+([\w.]+)\s+/.exec(line);
     if (!edge) continue;
@@ -17,6 +18,10 @@ export function inspect(classes) {
     const target = to.split('.')[0];
     if (business.has(root) && (target.endsWith('adapter') || target === 'persistence')) {
       problems.push(`${from} -> ${to}: 업무에서 연동·영속 의존 금지`);
+    }
+    if (business.has(root) && business.has(target) && root !== target
+        && !allowedBusiness.has(`${root}->${target}`)) {
+      problems.push(`${from} -> ${to}: 허용 목록 밖의 업무 간 의존`);
     }
   }
   const done = new Set(), active = [];
@@ -40,5 +45,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const problems = inspect(process.argv[2]);
   for (const problem of problems) console.error(problem);
   if (problems.length) process.exitCode = 1;
-  else console.log('PASS: 업무의 연동·영속 의존 없음, 패키지 순환 없음');
+  else console.log('PASS: 업무의 연동·영속 의존 없음, 업무 간 허용 목록 준수, 패키지 순환 없음');
 }

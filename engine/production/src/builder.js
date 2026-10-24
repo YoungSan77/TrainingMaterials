@@ -667,6 +667,7 @@ class Builder {
         if (this.sectionStyle) restyle(shape(p.doc, 8), this.sectionStyle);
         p.textCost = cost;
         p.textBlocks = chunk.length;
+        p.capacity = pageCapacity;
         chunk = [];
         cost = 0;
         pageCapacity = 450;
@@ -680,6 +681,7 @@ class Builder {
       if (this.sectionStyle) restyle(shape(p.doc, 8), this.sectionStyle);
       p.textCost = cost;
       p.textBlocks = chunk.length;
+      p.capacity = pageCapacity;
     }
     pending.length = 0;
   }

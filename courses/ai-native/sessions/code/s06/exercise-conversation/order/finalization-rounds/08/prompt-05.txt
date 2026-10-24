@@ -1,0 +1,46 @@
+문서의 업무 판단과 모든 문장은 직전 응답 그대로 유지한다. 첫 업무 경계 Mermaid만 아래 원본으로 교체하고 완성 문서 전체를 출력해라. 이는 각 패키지 내부의 direction TB 명시와 포트 표식 뒤 줄바꿈만 더한 배치 보완이며, 노드·업무 연관·패키지 의존은 모두 직전과 같다. 둘째 포트 구현 그림과 모든 본문은 직전 그대로 유지한다.
+
+```mermaid
+flowchart TB
+    subgraph OrderPackage["package order"]
+        direction TB
+        Order["Order"]
+        OrderItem["OrderItem"]
+        OrderStatus["OrderStatus"]
+        OrderRepository["«port»<br/>OrderRepository"]
+
+        Order --- OrderItem
+        OrderItem ~~~ OrderStatus ~~~ OrderRepository
+    end
+
+    subgraph PaymentPackage["package payment"]
+        direction TB
+        CardApprovalRequest["CardApprovalRequest"]
+        CardApprovalResult["CardApprovalResult"]
+        ApproveCardPort["«port»<br/>ApproveCardPort"]
+
+        CardApprovalRequest ~~~ CardApprovalResult ~~~ ApproveCardPort
+    end
+
+    subgraph DeliveryPackage["package delivery"]
+        direction TB
+        DeliveryRequest["DeliveryRequest"]
+        RequestDeliveryPort["«port»<br/>RequestDeliveryPort"]
+
+        DeliveryRequest ~~~ RequestDeliveryPort
+    end
+
+    subgraph ProductPackage["package product"]
+        direction TB
+        Product["Product"]
+        LoadProductPricePort["«port»<br/>LoadProductPricePort"]
+
+        Product ~~~ LoadProductPricePort
+    end
+
+    OrderItem --- Product
+
+    OrderPackage -. "의존" .-> PaymentPackage
+    OrderPackage -. "의존" .-> DeliveryPackage
+    OrderPackage -. "의존" .-> ProductPackage
+```

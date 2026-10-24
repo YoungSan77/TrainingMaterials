@@ -1,0 +1,1 @@
+공통 식별자를 마지막으로 대조했다. 같은 포트에 다른 이름을 붙인 오류를 고쳐라. 직전 완성 문서 전체에서 ApproveCardPort는 PaymentGateway로, RequestDeliveryPort는 DeliveryGateway로, LoadProductPricePort는 ProductGateway로 바꿔라. 도식의 노드 ID·라벨·목록·본문·규격에서 모두 같은 이름을 써라. 이는 과정의 공통 식별자와 맞추는 이름 변경일 뿐 책임·정책·관계·자료형은 그대로다. 그 외 문장·도식 방향·direction TB·줄바꿈·보이지 않는 연결·본문 내용은 한 글자도 바꾸지 말고 최종 문서 전체를 출력해라.

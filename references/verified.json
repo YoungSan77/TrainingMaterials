@@ -223,6 +223,10 @@
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-07"
   },
+  "agents can help write structural tests, generate draft rules from observed patterns": {
+    "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
+    "date": "2026-10-24"
+  },
   "agents can then pause for human feedback at checkpoints or when encountering blockers": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-07"
@@ -249,7 +253,7 @@
   },
   "allow an application to equally be driven by users, programs, automated test or batch scripts, and to be developed and tested in isolation from its eventual run-time devices and databases": {
     "source": "https://alistair.cockburn.us/hexagonal-architecture/",
-    "date": "2026-10-18"
+    "date": "2026-10-24"
   },
   "allows agents to incrementally discover relevant context through exploration": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
@@ -266,6 +270,10 @@
   "an agent processes a prompt, and a grader checks if the output matches expectations": {
     "source": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
     "date": "2026-10-17"
+  },
+  "an approach to developing a single application as a suite of small services, each running in its own process and communicating with lightweight mechanisms": {
+    "source": "https://martinfowler.com/articles/microservices.html",
+    "date": "2026-10-24"
   },
   "an association is a relationship between classes (more precisely, instances of those classes) that indicates some meaningful and interesting connection": {
     "source": "larman-2004",
@@ -479,6 +487,10 @@
     "source": "larman-2004",
     "date": "2026-10-18"
   },
+  "cohesion (or more specifically, functional cohesion) is a measure of how strongly related and focused the responsibilities of an element are": {
+    "source": "larman-2004",
+    "date": "2026-10-24"
+  },
   "communication diagrams illustrate object interactions in a graph or network format, in which objects can be placed anywhere on the diagram": {
     "source": "larman-2004",
     "date": "2026-10-23"
@@ -553,7 +565,7 @@
   },
   "depend upon abstractions. do not depend upon concretions": {
     "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
-    "date": "2026-10-18"
+    "date": "2026-10-24"
   },
   "dependency inversion is the strategy of depending upon interfaces or abstract functions and classes, rather than upon concrete functions and classes": {
     "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
@@ -709,7 +721,7 @@
   },
   "gather together the things that change for the same reasons. separate those things that change for different reasons": {
     "source": "https://blog.cleancoder.com/uncle-bob/2014/05/08/SingleReponsibilityPrinciple.html",
-    "date": "2026-10-08"
+    "date": "2026-10-24"
   },
   "give codex a map, not a 1,000-page instruction manual": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
@@ -1261,7 +1273,7 @@
   },
   "the dependencies betwen packages must not form cycles": {
     "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
-    "date": "2026-10-18"
+    "date": "2026-10-24"
   },
   "the design style in this book largely follows the principle of \"responsibility-driven design,\" put forward in wirfs-brock et al. 1990 and updated in wirfs-brock 2003. it also draws heavily (especially in part iii) on the ideas of \"design by contract\" described in meyer 1988. it is consistent with the general background of other widely held best practices of object-oriented design, which are described in such books as larman 1998": {
     "source": "확인 경위: 사용자가 Domain-Driven Design(Addison-Wesley, 2004) 인쇄본 서문에서 직접 대조함. 전자 사본은 서문이 빠진 324쪽본만 입수 가능",
@@ -1653,7 +1665,7 @@
   },
   "you shouldn't start a new project with microservices, even if you're sure your application will be big enough to make it worthwhile": {
     "source": "https://martinfowler.com/bliki/MonolithFirst.html",
-    "date": "2026-10-18"
+    "date": "2026-10-24"
   },
   "you want to have checks as far left in the path to production as possible, since the earlier you find issues, the cheaper they are to fix": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",

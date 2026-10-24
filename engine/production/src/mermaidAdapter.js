@@ -64,7 +64,13 @@ function maxNodeLabelBox(svg) {
 
 // 시퀀스 다이어그램의 참여자 상자는 위에만 둔다. mermaid는 기본으로 아래에도 같은 상자를 한 번
 // 더 그리는데(mirrorActors), 같은 참여자가 두 군데 있는 것으로 읽히고 도식만 그만큼 높아진다.
-const MERMAID_CONFIG = { sequence: { mirrorActors: false } };
+// flowchart의 기본 간격(nodeSpacing·rankSpacing 50)은 패키지처럼 subgraph가 여럿인 도식을 가로로
+// 길게 벌려 놓는다. 캔버스 폭에 맞춰 줄이면 글자가 MIN_PT 아래로 내려가므로, 간격을 좁혀 도식
+// 자신의 너비를 줄인다 — 글자 크기는 그대로이므로 표시 글자 크기가 그만큼 커진다(2026-10-24).
+const MERMAID_CONFIG = {
+  sequence: { mirrorActors: false },
+  flowchart: { nodeSpacing: 22, rankSpacing: 30, padding: 6, subGraphTitleMargin: { top: 2, bottom: 2 } },
+};
 
 function runMmdc(sourcePath, outPath, puppeteerPath, extra, configPath) {
   execFileSync(MMDC, ["-i", sourcePath, "-o", outPath, "-t", "neutral", "-p", puppeteerPath,
@@ -88,7 +94,7 @@ function svgMetrics(svg) {
 async function renderMermaid({ source }) {
   if (!source || !String(source).trim()) throw new Error("Mermaid source가 비어 있다");
   fs.mkdirSync(CACHE_DIR, { recursive: true });
-  const version = /^\s*classDiagram\b/m.test(String(source)) ? "v13-class-cardinalities" : "v15-no-mirror-actors";
+  const version = /^\s*classDiagram\b/m.test(String(source)) ? "v13-class-cardinalities" : "v16-compact-flowchart";
   const hash = crypto.createHash("sha1").update(version + "\n" + source).digest("hex").slice(0, 16);
   const pngPath = path.join(CACHE_DIR, hash + ".png");
   const metricsPath = path.join(CACHE_DIR, hash + ".json");

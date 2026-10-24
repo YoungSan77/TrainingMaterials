@@ -30,15 +30,19 @@ function sparseContinuations(m) {
 // 한 장의 본문 용량(flush()의 capacity)을 넘겨 담은 장. 짧은 꼬리가 continuation 슬라이드가 되지
 // 않게 하는 여유(ORPHAN_TOLERANCE)가 마지막 장에도 적용되어, 요약처럼 나눌 수 없는 topic은 글이
 // 넘친 채로 한 장에 담긴다. 넘친 것은 원고에서 줄인다(session-authoring-guide.md 「세션 목표와 요약」).
+//
+// 도식이 글 아래 붙는 장은 용량이 그만큼 줄어 있다(builder.js의 visualCapacity). 그 줄어든 용량을
+// 넘기면 도식이 글과 겹치므로, 기본 450이 아니라 그 장이 실제로 쓴 용량과 견준다(2026-10-24).
 function overfullPages(m) {
   const CAPACITY = 450;
   const warnings = [];
   m.pages.forEach((p, i) => {
     const cost = p.textCost || 0;
-    if (p.isToc || p.isCover || cost <= CAPACITY) return;
+    const CAP = Math.min(CAPACITY, p.capacity || CAPACITY);
+    if (p.isToc || p.isCover || cost <= CAP) return;
     const heading = String(p.heading || "").split("\n")[0];
     warnings.push("슬라이드 " + (i + 1) + ": \"" + heading + "\" 본문이 한 장의 용량을 "
-      + Math.round(((cost / CAPACITY) - 1) * 100) + "% 넘겼다. 글을 줄인다.");
+      + Math.round(((cost / CAP) - 1) * 100) + "% 넘겼다. 글을 줄인다.");
   });
   return warnings;
 }
@@ -94,4 +98,4 @@ async function generateFile(inputPath, outputPath, templatePath) {
   }
 }
 
-module.exports = { generateFile, sparseContinuations };
+module.exports = { generateFile, sparseContinuations, overfullPages };

@@ -1,17 +1,17 @@
-# 세션 04 아키텍처 실행 예
+# 세션 06 아키텍처 실행 예
 
 저장소 루트에서 JDK 17 이상과 Node.js로 실행한다. 외부 의존성 다운로드나 실제 결제·배송 호출은 없다.
 
 ```sh
-node courses/ai-native/sessions/code/s04/architecture/run.mjs
+node courses/ai-native/sessions/code/s06/architecture/run.mjs
 ```
 
-실행기는 임시 폴더에 소스를 컴파일하고, 결제 거절·재결제 승인·배송 순서와 횟수를 검사한다. jdeps로 정상 구조를 확인한 뒤 금지 import·완전한 이름의 금지 의존·패키지 순환 fixture를 각각 컴파일해 탐지와 CLI 실패 종료를 확인한다. 종료 시 자신이 만든 임시 폴더만 정리한다.
+실행기는 임시 폴더에 소스를 컴파일하고, 결제 거절·재결제 승인·배송 순서와 횟수를 검사한다. jdeps로 정상 구조를 확인한 뒤 금지 import·완전한 이름의 금지 의존·순환 없는 허용 목록 위반·하위 패키지 위반·패키지 순환 fixture를 각각 컴파일해 탐지와 CLI 실패 종료를 확인한다. 종료 시 자신이 만든 임시 폴더만 정리한다.
 
 독립 의존 검사:
 
 ```sh
-node courses/ai-native/sessions/code/s04/architecture/check-architecture.mjs <컴파일된 클래스 폴더>
+node courses/ai-native/sessions/code/s06/architecture/check-architecture.mjs <컴파일된 클래스 폴더>
 ```
 
 검사 범위는 정적 클래스 의존이다. 리플렉션과 동적 로딩은 검사하지 않는다. Java 표준 패키지를 제외하고 자기 패키지 간선은 제거한 뒤 순환을 찾는다.
@@ -20,4 +20,5 @@ node courses/ai-native/sessions/code/s04/architecture/check-architecture.mjs <�
 
 PaymentAdapter와 DeliveryAdapter는 주입한 연결 함수에 위임하는 교육용 구현이다. 테스트는 통제된 함수만 넣는다. 실제 제공자의 API 변환을 구현한 것으로 보지 않는다. 상품 포트는 선언만 있으며 상품 조회와 productadapter 구현은 생략했다. 영속 구현은 테스트용 메모리 저장소다.
 
-상위 `order/`와 `demo-results/`는 이전 과정 구성의 별도 기록이며 현재 예제 실행에 포함하지 않는다.
+
+업무 간 허용 목록은 `order → payment·delivery·product`다. 이외 업무 간 의존은 순환 여부와 무관하게 실패한다. 업무 이름 아래의 하위 패키지에도 같은 허용 규칙을 적용한다.

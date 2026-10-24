@@ -372,6 +372,8 @@ test("text after an explicit page split that follows the topic's only visual get
   const m = await renderOnce(sections, toc, "split-budget");
   const topicPages = m.pages.filter((pg) => pg.heading && pg.heading.startsWith("01. 도식"));
   assert.equal(topicPages.length, 2, "visual page + one text-only page, not a third continuation");
+  assert.ok(topicPages[0].capacity < 450, "diagram page records reduced text capacity");
+  assert.equal(topicPages[1].capacity, 450, "text-only page restores full capacity");
 });
 
 test("an explicit page split between a table and the topic's only visual puts the visual on its own page", async () => {

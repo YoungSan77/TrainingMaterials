@@ -36,13 +36,36 @@
       "Bash(git diff*)",
       "Bash(git log*)",
       "Bash(git show*)",
-      "Bash(node *)", "Bash(python3 *)", "Bash(sed *)", "Bash(cp *)", "Bash(mkdir *)", "Bash(sh *)",
-      "Bash(cat *)", "Bash(echo *)", "Bash(printf *)", "Bash(cut *)", "Bash(sort *)",
-      "Bash(diff *)", "Bash(unzip *)", "Bash(basename *)", "Bash(dirname *)", "Bash(git ls-files*)"
+      "Bash(node *)",
+      "Bash(python3 *)",
+      "Bash(sed *)",
+      "Bash(cp *)",
+      "Bash(mkdir *)",
+      "Bash(sh *)",
+      "Bash(cat *)",
+      "Bash(echo *)",
+      "Bash(printf *)",
+      "Bash(cut *)",
+      "Bash(sort *)",
+      "Bash(diff *)",
+      "Bash(unzip *)",
+      "Bash(basename *)",
+      "Bash(dirname *)",
+      "Bash(git ls-files*)"
     ]
   },
   "hooks": {
     "PreToolUse": [
+      {
+        "matcher": "Write|Edit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/tools/active-course-hook.js\"",
+            "timeout": 10
+          }
+        ]
+      },
       {
         "matcher": "Write|Edit",
         "hooks": [

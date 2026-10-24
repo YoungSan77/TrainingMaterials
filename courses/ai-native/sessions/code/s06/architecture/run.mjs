@@ -20,10 +20,12 @@ try {
   compile(join(base, 'src'), classes);
   process.stdout.write(execFileSync('java', ['-cp', classes, 'test.ArchitectureExample'], { encoding: 'utf8' }));
   assert.deepEqual(inspect(classes), []);
-  console.log('PASS 정상 구조: 업무의 연동·영속 의존 없음, 패키지 순환 없음');
+  console.log('PASS 정상 구조: 업무의 연동·영속 의존 없음, 업무 간 허용 목록 준수, 패키지 순환 없음');
   const fixtures = [
     ['직접 import', {'order/Bad.java': 'package order; import paymentadapter.Adapter; public class Bad { Adapter adapter; }', 'paymentadapter/Adapter.java': 'package paymentadapter; public class Adapter {}'}, 'order -> paymentadapter'],
     ['완전한 이름의 의존', {'order/Bad.java': 'package order; public class Bad { persistence.Store store; }', 'persistence/Store.java': 'package persistence; public class Store {}'}, 'order -> persistence'],
+    ['순환 없는 허용 목록 위반', {'payment/Bad.java': 'package payment; public class Bad { delivery.Bad delivery; }', 'delivery/Bad.java': 'package delivery; public class Bad {}'}, 'payment -> delivery: 허용 목록 밖의 업무 간 의존'],
+    ['하위 패키지의 허용 목록 위반', {'payment/internal/Bad.java': 'package payment.internal; public class Bad { delivery.api.Bad delivery; }', 'delivery/api/Bad.java': 'package delivery.api; public class Bad {}'}, 'payment.internal -> delivery.api: 허용 목록 밖의 업무 간 의존'],
     ['패키지 순환', {'order/Bad.java': 'package order; public class Bad { payment.Bad payment; }', 'payment/Bad.java': 'package payment; public class Bad { order.Bad order; }'}, '순환:'],
   ];
   for (const [label, files, expected] of fixtures) {
