@@ -75,15 +75,16 @@ test("a session referenced by number alone is an error that names the session to
   assert.match(errors[0], /"02\. 요구 분석과 유스케이스"로 쓴다/);
 });
 
-test("a continuation slide with only a line of text is reported as a warning", () => {
+test("a continuation slide with only a line of text is reported only when more follows it", () => {
   const m = { pages: [
-    { heading: "01. 주제 (1/2)", items: [{ kind: "body" }], textCost: 400 },
-    { heading: "01. 주제 (2/2)", items: [{ kind: "body" }], textCost: 40 },
+    { heading: "01. 주제 (1/3)", items: [{ kind: "body" }], textCost: 40 },
+    { heading: "01. 주제 (2/3)", items: [{ kind: "body" }], textCost: 400 },
+    { heading: "01. 주제 (3/3)", items: [{ kind: "body" }], textCost: 40 },
     { heading: "02. 표 (2/2)", items: [{ kind: "table" }], textCost: 0 },
   ] };
   const w = sparseContinuations(m);
   assert.equal(w.length, 1);
-  assert.match(w[0], /슬라이드 2/);
+  assert.match(w[0], /슬라이드 1/);
 });
 
 test("a review deck sNN-add.md resolves own-session references against its full candidate sNN.md", () => {

@@ -14,11 +14,17 @@ const { checkCodeSources, checkEnumConsistency } = require("./codeSource");
 
 // A continuation slide that carries only a line or two of text (no table, visual or code) is a
 // layout smell the author should look at (production-guide.md, "continuation"). Warning only.
+// A continuation that carries a line or two is a layout defect only when more of the topic
+// follows it: the pagination broke before the slide was full (production-guide.md "문서 형식":
+// 앞 장을 끝까지 채운 뒤 다음 장으로 넘긴다). The topic's *last* slide always carries the
+// remainder, so it may be short.
 function sparseContinuations(m) {
   const warnings = [];
   m.pages.forEach((p, i) => {
     const heading = String(p.heading || "").split("\n")[0];
-    if (p.isToc || p.isCover || !/\(\d+\/\d+\)$/.test(heading)) return;
+    const m2 = /\((\d+)\/(\d+)\)$/.exec(heading);
+    if (p.isToc || p.isCover || !m2) return;
+    if (Number(m2[1]) === Number(m2[2])) return;
     if ((p.pictures || []).length) return;
     if (p.items.some((it) => ["table", "code", "tree", "source"].includes(it.kind))) return;
     if ((p.textCost || 0) >= 0.25 * 450) return;
@@ -33,6 +39,11 @@ function sparseContinuations(m) {
 //
 // 도식이 글 아래 붙는 장은 용량이 그만큼 줄어 있다(builder.js의 visualCapacity). 그 줄어든 용량을
 // 넘기면 도식이 글과 겹치므로, 기본 450이 아니라 그 장이 실제로 쓴 용량과 견준다(2026-10-24).
+//
+// topic의 **마지막 장**은 남은 내용을 그대로 받으므로 용량을 조금 넘는 것이 정상이다(「문서 형식」:
+// 앞 장을 끝까지 채우고 마지막 장이 나머지를 담는다). 이 장은 다음 장이 없어 넘칠 글을 옮길 곳이
+// 없고, 용량은 0.9배 여유를 뺀 값이라 10%까지는 글자가 본문 상자 안에 남는다(2026-10-25).
+const LAST_PAGE_TOLERANCE = 1.1;
 function overfullPages(m) {
   const CAPACITY = 450;
   const warnings = [];
@@ -40,6 +51,8 @@ function overfullPages(m) {
     const cost = p.textCost || 0;
     const CAP = Math.min(CAPACITY, p.capacity || CAPACITY);
     if (p.isToc || p.isCover || cost <= CAP) return;
+    const m2 = /\((\d+)\/(\d+)\)$/.exec(String(p.heading || "").split("\n")[0]);
+    if (m2 && Number(m2[1]) === Number(m2[2]) && cost <= CAP * LAST_PAGE_TOLERANCE) return;
     const heading = String(p.heading || "").split("\n")[0];
     warnings.push("슬라이드 " + (i + 1) + ": \"" + heading + "\" 본문이 한 장의 용량을 "
       + Math.round(((cost / CAP) - 1) * 100) + "% 넘겼다. 글을 줄인다.");

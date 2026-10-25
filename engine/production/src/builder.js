@@ -524,25 +524,39 @@ class Builder {
 
   // Preserve all document blocks at the requested size, continuing left then right on each page.
   documentPages(blocks, heading, style) {
+    const build = (bs) => (this.answerPage(bs, heading, style) ? this.pages.pop() : null);
     const out = [];
+    const slices = [];
     let rest = blocks.slice();
     while (rest.length) {
       let found = 0, bestPage = null, low = 1, high = rest.length;
       while (low <= high) {
         const n = Math.floor((low + high) / 2);
-        if (this.answerPage(rest.slice(0, n), heading, style)) {
-          bestPage = this.pages.pop();
+        const page = build(rest.slice(0, n));
+        if (page) {
+          bestPage = page;
           found = n;
           low = n + 1;
         } else high = n - 1;
       }
       if (found < rest.length && found && rest[found - 1].kind === "heading") {
         found--;
-        bestPage = found && this.answerPage(rest.slice(0, found), heading, style) ? this.pages.pop() : null;
+        bestPage = found ? build(rest.slice(0, found)) : null;
       }
       need(found && bestPage, "문서의 한 항목이 한 장에 들어가지 않는다: " + heading);
       out.push(bestPage);
+      slices.push(rest.slice(0, found));
       rest = rest.slice(found);
+    }
+    // A second slide that carries only a short remainder is not worth a slide of its own when the
+    // whole text still fits inside the two column boxes at fit 1.0: one full slide reads better
+    // than 96% + 21% (production-guide.md "문서 형식": 앞 장을 끝까지 채운다, 2026-10-25).
+    if (out.length === 2) {
+      const tail = out[1].fillParts && out[1].fillParts[out[1].fillParts.length - 1];
+      if (tail != null && tail < 0.3) {
+        const tight = this.answerPage(blocks, heading, { ...style, fit: 1, leftFit: 1 });
+        if (tight) return [this.pages.pop()];
+      }
     }
     return out;
   }
@@ -642,48 +656,102 @@ class Builder {
     });
     page.textCost = styledCost(parts[0], style, boxes[0]);
     page.columns = parts.length;
+    // Fill per column: what the fit test compares against (boxes[k].h*72*fit). The fill report
+    // reads this -- a page is only finished when its last column is full.
+    page.fillParts = parts.map((part, k) => styledCost(part, style, boxes[k])
+      / (boxes[k].h * 72 * (k === 0 ? leftFit : style.fit)));
+    page.textParts = parts;
     return page;
   }
 
   flush(pending, heading, width = 620, capacity = 450) {
     if (pending.length === 0) return;
     if (this.sectionBlocks) this.sectionBlocks.push(...pending);
+    const items = pending.map((b) => ({ b, c: this.blockCost(b) }));
+    const chunks = [];
     let chunk = [];
     let cost = 0;
     let pageCapacity = capacity;
-    const costs = pending.map((b) => this.blockCost(b));
-    for (let i = 0; i < pending.length; i++) {
-      const b = pending[i];
-      const c = costs[i];
+    // A `###` heading opens the content that follows it, so it never stays as the last line of a
+    // slide (production-guide.md "한 장의 메시지"). When the break lands right after a heading, the
+    // heading moves to the next slide together with that content.
+    const close = () => {
+      const carried = chunk.length > 1 && chunk[chunk.length - 1].b.kind === "heading" ? [chunk.pop()] : [];
+      const carriedCost = carried.reduce((s, it) => s + it.c, 0);
+      chunks.push({ items: chunk, cost: cost - carriedCost, capacity: pageCapacity });
+      chunk = carried;
+      cost = carriedCost;
+      pageCapacity = 450;
+    };
+    for (let i = 0; i < items.length; i++) {
+      const { b, c } = items[i];
       need(c <= Math.max(capacity, 450), "본문 한 문단이 너무 길다. 원고에서 나눠라.");
       // production-guide.md: a short trailing remainder (a line or two) must not become its own
       // continuation slide. If everything left fits within ORPHAN_TOLERANCE of this page's budget,
       // keep it here (the visual panel is placed below the actual text end -- see textEndY).
-      const remaining = costs.slice(i).reduce((s, x) => s + x, 0);
+      const remaining = items.slice(i).reduce((s, it) => s + it.c, 0);
       const keep = remaining <= pageCapacity * ORPHAN_SHARE && cost + remaining <= pageCapacity * ORPHAN_TOLERANCE;
-      if (!keep && cost + c > pageCapacity && chunk.length) {
-        const p = this.page(ORIGIN.prose, heading);
-        paragraphs(p, 8, chunk, false);
-        if (this.sectionStyle) restyle(shape(p.doc, 8), this.sectionStyle);
-        p.textCost = cost;
-        p.textBlocks = chunk.length;
-        p.capacity = pageCapacity;
-        chunk = [];
-        cost = 0;
-        pageCapacity = 450;
-      }
-      chunk.push(b);
+      if (!keep && cost + c > pageCapacity && chunk.length) close();
+      chunk.push({ b, c });
       cost += c;
     }
-    if (chunk.length) {
+    if (chunk.length) chunks.push({ items: chunk, cost, capacity: pageCapacity });
+    // The last slide of a continuation is balanced by rebalanceTail() once the topic's pages are
+    // final -- not here, because a visual page may be inserted between these chunks afterwards.
+    for (const ch of chunks) {
       const p = this.page(ORIGIN.prose, heading);
-      paragraphs(p, 8, chunk, false);
+      paragraphs(p, 8, ch.items.map((it) => it.b), false);
       if (this.sectionStyle) restyle(shape(p.doc, 8), this.sectionStyle);
-      p.textCost = cost;
-      p.textBlocks = chunk.length;
-      p.capacity = pageCapacity;
+      p.textCost = ch.cost;
+      p.textBlocks = ch.items.length;
+      p.capacity = ch.capacity;
+      p.textItems = ch.items.map((it) => it.b);
+      p.fillParts = [ch.cost / ch.capacity];
     }
     pending.length = 0;
+  }
+
+  // The last slide of a document topic takes whatever the previous one could not: the previous
+  // slide is only ever *filled*, never emptied to even out the pair (2026-10-25). The one
+  // exception is a last slide that overflows its capacity while the slide before it still has
+  // room -- then the two share the remainder instead of leaving a slide a few percent over.
+  rebalanceTail(firstIdx, end, heading) {
+    if (end - firstIdx < 2) return;
+    const last = this.pages[end - 1];
+    const prev = this.pages[end - 2];
+    const prose = (p) => p && p.textItems && p.textItems.length && !(p.pictures || []).length
+      && !p.items.some((it) => ["table", "code", "tree", "source"].includes(it.kind));
+    if (!prose(last) || !prose(prev)) return;
+    let a = prev.textItems.slice();
+    let b = last.textItems.slice();
+    const cost = (bs) => bs.reduce((s, x) => s + this.blockCost(x), 0);
+    let ca = prev.textCost || cost(a);
+    let cb = last.textCost || cost(b);
+    if (cb <= 450 || ca >= 450) return;
+    while (b.length > 1 && cb > 450 && b[0].kind !== "heading") {
+      const mc = this.blockCost(b[0]);
+      if (ca + mc > 450) break;
+      const moved = b[0];
+      b = b.slice(1);
+      a = a.concat([moved]);
+      ca += mc;
+      cb -= mc;
+    }
+    if (b.length === last.textItems.length) return;
+    // paragraphs() appends the page's body item; drop the one from the previous split first, or
+    // inspect() compares the shape against a stale copy ("text/code mismatch").
+    const rewrite = (page, blocks) => {
+      page.items = page.items.filter((it) => it.kind !== "body");
+      paragraphs(page, 8, blocks, false);
+      if (this.sectionStyle) restyle(shape(page.doc, 8), this.sectionStyle);
+      page.textItems = blocks;
+    };
+    rewrite(prev, a);
+    prev.textCost = ca;
+    prev.textBlocks = a.length;
+    rewrite(last, b);
+    last.textCost = cb;
+    last.textBlocks = b.length;
   }
 
   // Every table row is TABLE_ROW_PT (0.8cm) high (production-guide.md "표"); a cell that still
@@ -988,14 +1056,22 @@ class Builder {
       // far as it fits).
       let cols = null, size = 10, lineH = LINE, placed = png ? place(1) : null;
       if (first) {
-        for (const step of png ? STEPS : [1]) {
-          const at = png ? place(step) : null;
-          const codeTop = at && stacked ? top + at.bounds.h + GAP : top;
-          const width = at && !stacked ? W - at.box.w - GAP : W;
-          const avail = (BOTTOM - codeTop) * 72 - (opts.trailPt ? opts.trailPt + 8 : 0);
-          const plan = planCode(remaining, width * 72, avail);
-          if (plan) { ({ cols, size, lineH } = plan); placed = at; break; }
-        }
+        // Try the whole code plus the text that follows it first, then the code alone (the text
+        // then takes the next slide). Splitting the code and repeating the diagram is worse than
+        // moving the trailing text: production-guide.md "Visual layout 및 가독성".
+        const attempt = (reserveTrail) => {
+          for (const step of png ? STEPS : [1]) {
+            const at = png ? place(step) : null;
+            const codeTop = at && stacked ? top + at.bounds.h + GAP : top;
+            const width = at && !stacked ? W - at.box.w - GAP : W;
+            const avail = (BOTTOM - codeTop) * 72 - (reserveTrail && opts.trailPt ? opts.trailPt + 8 : 0);
+            const plan = planCode(remaining, width * 72, avail);
+            if (plan) return { plan, at };
+          }
+          return null;
+        };
+        const chosen = attempt(true) || attempt(false);
+        if (chosen) { ({ cols, size, lineH } = chosen.plan); placed = chosen.at; }
       }
       if (png) {
         const { box, bounds } = placed;
@@ -1512,6 +1588,9 @@ class Builder {
         return columnWidths(a.rows.concat(b2.rows.slice(1)), a.rows[0].length);
       };
       let visualInline = false;
+      // The capacity a batch of pending text started with. A diagram's reserve applies to the text
+      // written before it; the text after it gets the full body area back (see the visual branch).
+      let pendingCapacity = capacity;
       const flushPending = () => {
         if (open && pending.length && this.stackedTextHeightPt(pending) <= this.roomBelowPt(open)) {
           this.appendTextBelow(open, pending);
@@ -1519,7 +1598,7 @@ class Builder {
           return;
         }
         const before = this.pages.length;
-        this.flush(pending, section.title, layout.width, capacity);
+        this.flush(pending, section.title, layout.width, pendingCapacity);
         if (this.pages.length > before) open = null;
       };
       // A diagram goes below a table only when it still reads at MIN_PT or more there.
@@ -1539,7 +1618,7 @@ class Builder {
       };
       const claimVisualPage = (vi) => {
         const before = this.pages.length;
-        this.flush(pending, section.title, layout.width, capacity);
+        this.flush(pending, section.title, layout.width, pendingCapacity);
         let target;
         if (this.pages.length > before) {
           target = this.pages[this.pages.length - 1];
@@ -1566,8 +1645,12 @@ class Builder {
         // prose pages are composed (or, for a multi-visual topic, right here -- each visual
         // claims the page its own preceding caption text just flushed onto).
         if (["mermaid", "plantuml", "chart", "svg"].includes(b.kind)) {
+          // Only text may stand between a diagram and the code it maps
+          // (production-guide.md "소스 코드"). A `###` heading opens a new sub-topic, so a diagram
+          // above it belongs to the previous sub-topic, not to the code below -- pairing across the
+          // heading repeated that diagram on every slide of an unrelated code block.
           let j = blockIndex + 1;
-          while (j < section.blocks.length && ["text", "heading", "bullet"].includes(section.blocks[j].kind)) j++;
+          while (j < section.blocks.length && ["text", "bullet"].includes(section.blocks[j].kind)) j++;
           if (j < section.blocks.length && section.blocks[j].kind === "code") {
             deferredCode = { vi: visualIndex, png: renderedVisuals[visualIndex] };
             visualIndex++;
@@ -1605,6 +1688,10 @@ class Builder {
             claimVisualPage(visualIndex);
           }
           visualIndex++;
+          // Every diagram of the topic is now on its slide: the text that follows gets the whole
+          // body area back instead of reserving room for a diagram that is already placed -- the
+          // reserve left the next text slide at a third of its height (2026-10-25).
+          if (visualIndex >= visuals.length) capacity = fullCapacity;
           continue;
         }
         if (["text", "heading", "bullet"].includes(b.kind)) {
@@ -1632,6 +1719,7 @@ class Builder {
             contentSeen = true;
             block = { ...block, depth: block.depth + headingDepthBoost };
           }
+          if (!pending.length) pendingCapacity = capacity;
           pending.push(block);
           quoteKind = null;
           continue;
@@ -1664,7 +1752,7 @@ class Builder {
             }
             // Doesn't fit on one slide: the visual goes with its preceding text, as before.
             pending = before;
-            if (multiVisual) claimVisualPage(d.vi); else this.flush(pending, section.title, layout.width, capacity);
+            if (multiVisual) claimVisualPage(d.vi); else this.flush(pending, section.title, layout.width, pendingCapacity);
             pending = mid;
           }
           if (open && this.appendTableBelow(open, b, pending, widths, docLayout && documentStyle.uniform ? section.title : null)) {
@@ -1703,7 +1791,9 @@ class Builder {
           deferredCode = null;
           let k = blockIndex + 1;
           const trail = [];
-          while (k < section.blocks.length && ["text", "heading", "bullet"].includes(section.blocks[k].kind)) trail.push(section.blocks[k++]);
+          // A heading opens a new sub-topic, so the trail stops there -- it is not the code's
+          // explanation (production-guide.md "소스 코드").
+          while (k < section.blocks.length && ["text", "bullet"].includes(section.blocks[k].kind)) trail.push(section.blocks[k++]);
           const trailPt = this.stackedTextHeightPt(trail);
           // The text before the code joins the code's slide when it is short (three lines), or when
           // the whole code still fits below it at 10pt -- e.g. a governing message and a quotation
@@ -1711,9 +1801,17 @@ class Builder {
           const leadPt = pending.length ? this.textHeightPt(pending) : 0;
           const roomPt = (PAGE_NUM_Y - 0.15 - 1.05) * 72 - leadPt - 8 - (trailPt ? trailPt + 8 : 0);
           const fitsBelowLead = () => { const plan = planCode(b.text, 9.2 * 72, roomPt); return !!plan && plan.size === 10; };
-          const lead = pending.length && (leadPt <= 3 * 40 || (!pair && fitsBelowLead())) ? pending.slice() : [];
-          if (!lead.length) flushPending();
-          if (!pair && !pending.length && open && open.codeArea && this.appendCodeBelow(open, b, trailPt)) {
+          let lead = pending.length && (leadPt <= 3 * 40 || (!pair && fitsBelowLead())) ? pending.slice() : [];
+          // A `###` heading never ends the text slide (production-guide.md "한 장의 메시지"): when it
+          // is the last line before the code, it moves to the code slide as its lead instead of
+          // sitting alone above the page number while its code starts on the next slide.
+          if (!lead.length && pending.length && pending[pending.length - 1].kind === "heading") {
+            const carried = pending.pop();
+            flushPending();
+            lead = [carried];
+            if (this.sectionBlocks) this.sectionBlocks.push(carried);
+          }
+          if (!lead.length) flushPending();          if (!pair && !pending.length && open && open.codeArea && this.appendCodeBelow(open, b, trailPt)) {
             governingSeen = true;
             continue;
           }
@@ -1721,6 +1819,14 @@ class Builder {
           if (pair) { if (multiVisual) visualTargets[pair.vi] = "placed"; else visualInline = true; }
           pending = [];
           governingSeen = true;
+          // A short explanation right after the code stacks below it when the free band holds it
+          // (production-guide.md "소스 코드"). Without this it waited for every later block of the
+          // topic to fit as well, so a single trailing paragraph always started a new slide.
+          if (trail.length && this.stackedTextHeightPt(trail) <= this.roomBelowPt(open)) {
+            this.appendTextBelow(open, trail);
+            if (this.sectionBlocks) this.sectionBlocks.push(...trail);
+            blockIndex += trail.length;
+          }
           continue;
         }
         const paired = b.kind === "tree" && pending.length === 1 && pending[0].kind === "text" && !governingSeen;
@@ -1888,6 +1994,7 @@ class Builder {
           this.pages.splice(firstIdx, end - firstIdx, ...built);
           end = firstIdx + built.length;
         }
+        if (docLayout) this.rebalanceTail(firstIdx, end, section.title);
       }
       if (refLayout) {
         const built = this.referencePages(this.sectionBlocks, section.title);
@@ -1915,6 +2022,33 @@ class Builder {
           q.visualLayout = "visual-only";
           sectionEnd++;
         }
+      }
+      // A diagram that did not fit below the text it follows takes the free band of the next page
+      // rather than a page of its own -- the page before a code block would otherwise stay half
+      // empty (production-guide.md "Visual layout 및 가독성"). Only a page with nothing but the
+      // picture can give it up, and the picture must still read at MIN_PT there.
+      for (let k = firstIdx; k < sectionEnd - 1; k++) {
+        const p = this.pages[k];
+        if (!p.pictures || p.pictures.length !== 1) continue;
+        if (p.items.some((it) => ["table", "source", "code", "tree"].includes(it.kind))) continue;
+        if (p.items.some((it) => String(it.text || "").trim() !== "")) continue;
+        const next = this.pages[k + 1];
+        if (!next || (next.pictures || []).length) continue;
+        if (next.items.some((it) => ["table", "source", "code", "tree"].includes(it.kind))) continue;
+        const png = p.pictures[0];
+        const endY = textEndIn(layout.text.y, next.textCost || 0, next.textBlocks);
+        const top = endY + BLOCK_GAP;
+        const availableH = this.contentBottomY() - BLOCK_GAP - top;
+        if (availableH < 0.6) continue;
+        const panel = visualPanel(layout, top, availableH, [png]);
+        const bounds = fitTarget({ x: panel.x, y: panel.y, w: panel.w, h: panel.h }, png, "top");
+        if (pictureTextPt(png, bounds) < MIN_PT - 0.05) continue;
+        if ((next.textCost || 0) > (layout.capacity || 0)) setShapeBounds(shape(next.doc, 8), { ...layout.text, h: endY - layout.text.y });
+        next.pictures = [{ ...png, bounds }];
+        next.visualLayout = "stacked";
+        this.pages.splice(k, 1);
+        sectionEnd--;
+        k--;
       }
       if (section.notes && section.notes.length && sectionEnd > firstIdx) this.pages[firstIdx].notes = section.notes;
       if (section.appendix) for (let k = firstIdx; k < sectionEnd; k++) this.pages[k].appendix = true;

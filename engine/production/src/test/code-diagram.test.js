@@ -89,6 +89,26 @@ test("a stacked diagram shrinks (down to 70%) before the code beneath it is spli
   assert.ok(Math.abs(split[0].pictures[0].bounds.h - full) < 1e-6, "and then the diagram keeps its size");
 });
 
+test("text after a stacked diagram's code moves to the next slide instead of splitting the code", async () => {
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="300" viewBox="0 0 900 300"><style>text{font-size:16px}</style>'
+    + '<rect x="10" y="10" width="880" height="280" fill="#EBF1F8"/><text x="450" y="150">가로로 넓은 도식</text></svg>';
+  const code = Array.from({ length: 16 }, (_, i) => "        값" + i + " = 계산한다(첫째, 둘째, 셋째);").join("\n");
+  const trail = Array.from({ length: 4 }, (_, i) => "뒤따르는 해설 " + i + "은 코드와 함께 두면 한 장을 넘기므로 다음 장으로 보낸다.");
+  const sections = [{ heading: "01. 코드", title: "01. 코드", notes: [], blocks: [
+    block("text", "도식과 코드."), block("svg", svg), block("code", code), ...trail.map((t) => block("bullet", t))] }];
+  const output = path.join(os.tmpdir(), `tm-code-trail-${process.pid}-${Date.now()}.pptx`);
+  try {
+    const m = await render(sections, TEMPLATE, output, "T", [block("bullet", "01. 코드")]);
+    const pages = m.pages.filter((p) => String(p.heading).startsWith("01. 코드"));
+    assert.equal(pages.length, 2, "the code keeps its slide and the trailing text takes the next");
+    assert.equal(pages.filter((p) => p.items.some((it) => it.kind === "source")).length, 1, "the code is not split");
+    assert.equal((pages[1].pictures || []).length, 0, "the diagram is not repeated");
+    assert.ok(pages[1].items.some((it) => String(it.text).includes("뒤따르는")), "the trailing text follows");
+  } finally {
+    if (fs.existsSync(output)) fs.unlinkSync(output);
+  }
+});
+
 test("a governing message and a quotation above a short code block share its slide", async () => {
   const quote = "인용한 문장의 한글 요약이 두 줄에 걸칠 만큼 길다. 원문과 출처가 그 뒤에 이어진다";
   const sections = [{ heading: "01. 코드", title: "01. 코드", notes: [], blocks: [

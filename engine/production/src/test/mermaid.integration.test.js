@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
-const { renderMermaid, pngSize } = require("../mermaidAdapter");
+const { renderMermaid, pngSize, MERMAID_CONFIG } = require("../mermaidAdapter");
 const { render } = require("../builder");
 const { parse } = require("../parse");
 const { readZip } = require("../zip");
@@ -20,6 +20,18 @@ test("Mermaid source renders to a valid PNG", async () => {
   assert.equal(png.data.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
   assert.deepEqual(pngSize(png.data), { width: png.width, height: png.height });
   assert.ok(png.width > 100 && png.height > 40);
+});
+
+test("a long sequence message label wraps instead of stretching the diagram sideways", async () => {
+  // 라벨이 길면 mermaid는 그 라벨을 한 줄에 담으려고 참여자 사이를 벌린다. 줄바꿈이 꺼지면 도식이
+  // 가로로 늘어나 슬라이드 폭에 맞출 때 글자가 7pt 아래로 내려간다(production-guide.md).
+  assert.equal(MERMAID_CONFIG.sequence.wrap, true);
+  const source = "sequenceDiagram\n    participant A as OrderApplicationService\n"
+    + "    participant B as PaymentGateway\n"
+    + "    A->>B: approve(orderNumber, order.totalAmount(), cardApprovalData)\n";
+  const png = await renderMermaid({ source });
+  assert.ok(png.width < 1400, `도식이 가로로 늘어났다: ${png.width}px`);
+  assert.ok(png.height > 200, `줄바꿈된 라벨의 높이가 없다: ${png.height}px`);
 });
 
 test("two Mermaid diagrams with no separating text each get their own slide and produce valid OOXML image parts", async () => {

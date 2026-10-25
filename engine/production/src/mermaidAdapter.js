@@ -67,8 +67,11 @@ function maxNodeLabelBox(svg) {
 // flowchart의 기본 간격(nodeSpacing·rankSpacing 50)은 패키지처럼 subgraph가 여럿인 도식을 가로로
 // 길게 벌려 놓는다. 캔버스 폭에 맞춰 줄이면 글자가 MIN_PT 아래로 내려가므로, 간격을 좁혀 도식
 // 자신의 너비를 줄인다 — 글자 크기는 그대로이므로 표시 글자 크기가 그만큼 커진다(2026-10-24).
+// 시퀀스의 메시지 라벨은 줄바꿈한다(wrap). 라벨 하나가 길면 mermaid는 그 라벨이 한 줄에 들어갈
+// 만큼 참여자 사이를 벌리므로, 도식이 가로로 늘어나 슬라이드 폭에 맞추면 글자가 7pt 아래로
+// 내려간다(설계 시퀀스의 `approve(orderNumber, order.totalAmount(), …)`가 3.4pt였다, 2026-10-24).
 const MERMAID_CONFIG = {
-  sequence: { mirrorActors: false },
+  sequence: { mirrorActors: false, wrap: true, width: 170 },
   flowchart: { nodeSpacing: 22, rankSpacing: 30, padding: 6, subGraphTitleMargin: { top: 2, bottom: 2 } },
 };
 
@@ -94,7 +97,7 @@ function svgMetrics(svg) {
 async function renderMermaid({ source }) {
   if (!source || !String(source).trim()) throw new Error("Mermaid source가 비어 있다");
   fs.mkdirSync(CACHE_DIR, { recursive: true });
-  const version = /^\s*classDiagram\b/m.test(String(source)) ? "v13-class-cardinalities" : "v16-compact-flowchart";
+  const version = /^\s*classDiagram\b/m.test(String(source)) ? "v13-class-cardinalities" : "v17-wrapped-sequence-170";
   const hash = crypto.createHash("sha1").update(version + "\n" + source).digest("hex").slice(0, 16);
   const pngPath = path.join(CACHE_DIR, hash + ".png");
   const metricsPath = path.join(CACHE_DIR, hash + ".json");
@@ -143,4 +146,4 @@ async function renderMermaid({ source }) {
   return { path: pngPath, data, width: size.width, height: size.height, svgWidth: metrics.svgWidth || 0, fontPx: metrics.fontPx || 0 };
 }
 
-module.exports = { renderMermaid, pngSize, CACHE_DIR, styleLabel, styleSource, maxNodeLabelBox, svgMetrics };
+module.exports = { renderMermaid, pngSize, CACHE_DIR, styleLabel, styleSource, maxNodeLabelBox, svgMetrics, MERMAID_CONFIG };
