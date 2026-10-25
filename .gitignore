@@ -1,5 +1,7 @@
 node_modules/
 courses/*/out/
+# 시각 검토용 PNG(tools/review-pdf.sh). 저장소 안에 두어야 LLM이 읽는다
+out/
 .DS_Store
 courses/swqm/output/
 engine/.cache/

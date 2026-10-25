@@ -5,7 +5,9 @@
 # 사용: tools/review-pdf.sh <sNN.md 또는 sNN.pptx> [장 번호 또는 범위 ...]
 #   예: tools/review-pdf.sh courses/ooad/sessions/s12.md 8 10-12
 #   장을 주지 않으면 장 수만 알려 주고 이미지는 만들지 않는다(전체 검토는 의도적으로 범위를 준다).
-# 환경 변수: OUT(출력 폴더, 기본 $TMPDIR/tm-review/<sNN>), DPI(기본 50), DELAY(열기 대기 초, 기본 12)
+# 환경 변수: OUT(출력 폴더), DPI(기본 50), DELAY(열기 대기 초, 기본 12)
+# 기본 출력 폴더는 저장소 안의 out/review/<sNN>이다(git 제외). 저장소 밖에 두면 LLM이 이미지를
+# 읽지 못해(작업 폴더 밖 읽기 차단) 시각 검토를 할 수 없다.
 set -euo pipefail
 setopt null_glob
 
@@ -16,7 +18,8 @@ name=${pptx:t:r}
 box=~/Library/Containers/com.microsoft.Powerpoint/Data/Documents
 tmp_pptx=$box/tm-review-$name.pptx
 tmp_pdf=$box/tm-review-$name.pdf
-out=${OUT:-${TMPDIR:-/tmp}/tm-review/$name}
+repo=${0:A:h:h}
+out=${OUT:-$repo/out/review/$name}
 mkdir -p $out
 rm -f $out/*.png $tmp_pdf
 cp $pptx $tmp_pptx
