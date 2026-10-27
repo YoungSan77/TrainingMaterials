@@ -1,0 +1,20 @@
+[
+  {
+    "unit": "금액 확정",
+    "acceptance": "확정 단가 1,000원 × 2개로 총액 2,000원",
+    "evidence": "OrderApplicationServiceTest.savesPendingPaymentOrderWithFixedSalePriceAndTotalAmount",
+    "passes": true
+  },
+  {
+    "unit": "판매가 변경",
+    "acceptance": "판매가가 1,200원이 된 뒤에도 단가 1,000원·총액 2,000원",
+    "evidence": "OrderApplicationServiceTest.keepsFixedValuesWhenCurrentSalePriceChanges",
+    "passes": true
+  },
+  {
+    "unit": "사전조건",
+    "acceptance": "항목 0개·수량 0·배송지 누락을 거절",
+    "evidence": "OrderApplicationServiceTest.rejectsInvalidOrderCreationPreconditions",
+    "passes": true
+  }
+]

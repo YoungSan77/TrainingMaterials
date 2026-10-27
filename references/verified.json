@@ -85,7 +85,7 @@
   },
   "a module should be open for extension but closed for modification": {
     "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
-    "date": "2026-10-14"
+    "date": "2026-10-24"
   },
   "a module should be responsible to one, and only one, actor": {
     "source": "https://raw.githubusercontent.com/sdcuike/Clean-Code-Collection-Books/master/Clean%20Architecture%20A%20Craftsman%27s%20Guide%20to%20Software%20Structure%20and%20Design.pdf",
@@ -109,7 +109,11 @@
   },
   "a responsibility = an obligation to perform a task or know information": {
     "source": "https://www.wirfs-brock.com/PDFs/A_Brief-Tour-of-RDD.pdf",
-    "date": "2026-10-08"
+    "date": "2026-10-24"
+  },
+  "a responsibility is not the same thing as a method … but methods fulfill responsibilities": {
+    "source": "larman-2004",
+    "date": "2026-10-24"
   },
   "a robust framework generates detailed traces and logs, exposing the entire reasoning trajectory: the model's internal monologue, the tool it chose, the parameters it generated, and the result it observed": {
     "source": "/Users/YoungSan/dev/TrainingMaterials/references/inputs/Google_IntroductionToAgents.pdf",
@@ -121,7 +125,7 @@
   },
   "a spec is a structured, behavior-oriented artifact - or a set of related artifacts - written in natural language that expresses software functionality and serves as guidance to ai coding agents": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
-    "date": "2026-10-07"
+    "date": "2026-10-24"
   },
   "a sphere of knowledge, influence, or activity. the subject area to which the user applies a program is the domain of the software": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
@@ -263,6 +267,10 @@
     "source": "https://www.thoughtworks.com/radar/techniques/mcp-by-default",
     "date": "2026-10-13"
   },
+  "although llms can generate syntactically correct uml code, they are struggling with semantic quality and tend to align poorly with natural languages, especially when the diagram scale is large": {
+    "source": "gao-2025-llm4se-challenges",
+    "date": "2026-10-27"
+  },
   "always follow the tdd cycle: red → green → refactor": {
     "source": "https://newsletter.kentbeck.com/p/augmented-coding-beyond-the-vibes",
     "date": "2026-10-08"
@@ -383,6 +391,10 @@
     "source": "larman-2004",
     "date": "2026-10-08"
   },
+  "assign a responsibility to the class that has the information needed to fulfill it": {
+    "source": "larman-2004",
+    "date": "2026-10-24"
+  },
   "assign the responsibility to an intermediate object to mediate between other components or services so that they are not directly coupled": {
     "source": "larman-2004",
     "date": "2026-10-08"
@@ -466,6 +478,10 @@
   "claude's tendency to mark a feature as complete without proper testing": {
     "source": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
     "date": "2026-10-08"
+  },
+  "code is just a means to an end": {
+    "source": "hassan-2026-se30",
+    "date": "2026-10-27"
   },
   "code solutions are verifiable through automated tests; agents can iterate on solutions using test results as feedback; the problem space is well-defined and structured; and output quality can be measured objectively": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
@@ -571,9 +587,17 @@
     "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
     "date": "2026-10-14"
   },
+  "deriving tests from code is a well-known ai4se pitfall, since there is no guarantee that the code does what it is supposed to do": {
+    "source": "hassan-2026-se30",
+    "date": "2026-10-27"
+  },
   "descriptions of communicating objects and classes that are customized to solve a general design problem in a particular context": {
     "source": "https://cs.lmu.edu/~ray/notes/designpatterns/",
     "date": "2026-10-14"
+  },
+  "design emphasizes a conceptual solution (in software and hardware) that fulfills the requirements, rather than its implementation": {
+    "source": "larman-2004",
+    "date": "2026-10-24"
   },
   "developers expected ai to speed them up by 24%, and even after experiencing the slowdown, they still believed ai had sped them up by 20%": {
     "source": "https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/",
@@ -739,6 +763,10 @@
     "source": "references/inputs/wake-2003-invest.txt",
     "date": "2026-10-07"
   },
+  "grasp stands for general responsibility assignment software patterns": {
+    "source": "larman-2004",
+    "date": "2026-10-24"
+  },
   "grasp stands for general responsibility assignment software patterns. … the name was chosen to suggest the importance of grasping these principles to successfully design object-oriented software": {
     "source": "larman-2004",
     "date": "2026-10-08"
@@ -774,6 +802,10 @@
   "humans always remain in the loop, but work at a different layer of abstraction than we used to. we prioritize work, translate user feedback into acceptance criteria, and validate outcomes": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
     "date": "2026-10-06"
+  },
+  "humans are the bottleneck, not the ai": {
+    "source": "hassan-2026-se30",
+    "date": "2026-10-27"
   },
   "humans may review pull requests, but aren't required to": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
@@ -813,7 +845,7 @@
   },
   "if your project has a robust, comprehensive and stable test suite agentic coding tools can fly with it": {
     "source": "https://simonwillison.net/2025/Oct/7/vibe-engineering/",
-    "date": "2026-10-18"
+    "date": "2026-10-24"
   },
   "if your project has a robust, comprehensive and stable test suite agentic coding tools can fly with it. without tests? your agent might claim something works without having actually tested it at all": {
     "source": "https://simonwillison.net/2025/Oct/7/vibe-engineering/",
@@ -834,6 +866,10 @@
   "in augmented coding you care about the code, its complexity, the tests, & their coverage": {
     "source": "https://newsletter.kentbeck.com/p/augmented-coding-beyond-the-vibes",
     "date": "2026-10-06"
+  },
+  "in rdd, we think of software objects as having responsibilities … an abstraction of what they do": {
+    "source": "larman-2004",
+    "date": "2026-10-24"
   },
   "in spite of their non-determinism, inferential sensors can particularly increase our trust when used with a strong model, or rather a model that is suitable to the task at hand": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
@@ -862,6 +898,10 @@
   "inferential - semantic analysis, ai code review, \"llm as judge\". typically run by a gpu or npu. slower and more expensive; results are more non-deterministic": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
     "date": "2026-10-14"
+  },
+  "initial speed gains risk being fully canceled out by downstream maintainability problems": {
+    "source": "hassan-2026-se30",
+    "date": "2026-10-27"
   },
   "instead of treating agents.md as the encyclopedia, we treat it as the table of contents": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
@@ -931,6 +971,10 @@
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
   },
+  "llms may have limited training on specific domain knowledge": {
+    "source": "gao-2025-llm4se-challenges",
+    "date": "2026-10-27"
+  },
   "llms, like humans, lose focus or experience confusion at a certain point": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
@@ -953,7 +997,7 @@
   },
   "many client specific interfaces are better than one general purpose interface": {
     "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
-    "date": "2026-10-14"
+    "date": "2026-10-24"
   },
   "map": {
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
@@ -1099,6 +1143,10 @@
     "source": "larman-2004",
     "date": "2026-10-22"
   },
+  "responsibilities are implemented by means of methods that either act alone or collaborate with other methods and objects": {
+    "source": "larman-2004",
+    "date": "2026-10-24"
+  },
   "restarts are expensive and frustrating for users. instead, we built systems that can resume from where the agent was when the errors occurred": {
     "source": "https://www.anthropic.com/engineering/multi-agent-research-system",
     "date": "2026-10-17"
@@ -1122,6 +1170,10 @@
   "routing classifies an input and directs it to a specialized followup task": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-13"
+  },
+  "se 3.0 marks a paradigm shift towards an intent-centric approach, where development is no longer driven by code but by intents": {
+    "source": "hassan-2026-se30",
+    "date": "2026-10-27"
   },
   "seasoned professionals accelerate their work with llms while staying proudly and confidently accountable for the software they produce": {
     "source": "https://simonwillison.net/2025/Oct/7/vibe-engineering/",
@@ -1205,7 +1257,7 @@
   },
   "subclasses should be substitutable for their base classes": {
     "source": "https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf",
-    "date": "2026-10-14"
+    "date": "2026-10-24"
   },
   "superficial changes to the ui can actually change business logic": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
@@ -1330,6 +1382,10 @@
   "the past has shown that the best way for us to stay in control of what we're building are small, iterative steps": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
     "date": "2026-10-07"
+  },
+  "the postconditions describe changes in the state of objects in the domain model": {
+    "source": "larman-2004",
+    "date": "2026-10-24"
   },
   "the postconditions describe changes in the state of objects in the domain model. domain model state changes include instances created, associations formed or broken, and attributes changed": {
     "source": "larman-2004",
@@ -1579,6 +1635,10 @@
     "source": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
     "date": "2026-10-14"
   },
+  "we thus say that se 3.0 is ai-native": {
+    "source": "hassan-2026-se30",
+    "date": "2026-10-27"
+  },
   "we want to give the customer the essence of the whole cake, and the best way is to slice vertically through the layers": {
     "source": "references/inputs/wake-2003-invest.txt",
     "date": "2026-10-07"
@@ -1586,6 +1646,10 @@
   "we're increasingly seeing organizations measure success using superficial indicators such as lines of code generated or the number of pull requests (prs)": {
     "source": "https://www.thoughtworks.com/radar/techniques/coding-throughput-as-a-measure-of-productivity",
     "date": "2026-10-17"
+  },
+  "what first object beyond the ui layer receives and coordinates (\"controls\") a system operation": {
+    "source": "larman-2004",
+    "date": "2026-10-24"
   },
   "when building applications with llms, we recommend finding the simplest solution possible, and only increasing complexity when needed. this might mean not building agentic systems at all": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
@@ -1629,7 +1693,7 @@
   },
   "work on only one feature at a time": {
     "source": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
-    "date": "2026-10-18"
+    "date": "2026-10-24"
   },
   "workflows are systems where llms and tools are orchestrated through predefined code paths": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",

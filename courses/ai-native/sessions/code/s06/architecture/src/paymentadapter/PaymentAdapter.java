@@ -1,5 +1,6 @@
 package paymentadapter;
 import payment.Money;
+import payment.PaymentDecision;
 import payment.PaymentGateway;
 import payment.PaymentMethod;
 
@@ -7,7 +8,7 @@ import payment.PaymentMethod;
 public final class PaymentAdapter implements PaymentGateway {
     private final PaymentGateway connection;
     public PaymentAdapter(PaymentGateway connection) { this.connection = connection; }
-    public boolean requestApproval(Money amount, PaymentMethod method) {
+    public PaymentDecision requestApproval(Money amount, PaymentMethod method) {
         return connection.requestApproval(amount, method);
     }
 }

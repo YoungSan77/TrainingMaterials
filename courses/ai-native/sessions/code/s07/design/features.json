@@ -1,0 +1,26 @@
+[
+  {
+    "unit": "금액 확정",
+    "acceptance": "확정 단가 1,000원 × 2개로 총액 2,000원",
+    "evidence": "ContractTest.confirmedAmount",
+    "passes": true
+  },
+  {
+    "unit": "승인",
+    "acceptance": "승인 뒤 결제완료, 서울 배송 1회",
+    "evidence": "ContractTest.approved",
+    "passes": true
+  },
+  {
+    "unit": "거절",
+    "acceptance": "거절 뒤 결제대기, 배송 0회",
+    "evidence": "ContractTest.rejected",
+    "passes": true
+  },
+  {
+    "unit": "재결제",
+    "acceptance": "거절 뒤 다른 카드로 승인, 배송 총 1회",
+    "evidence": "ContractTest.paidAgainWithAnotherCard",
+    "passes": true
+  }
+]

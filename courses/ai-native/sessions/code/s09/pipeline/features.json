@@ -1,0 +1,37 @@
+[
+  {
+    "check": "컴파일",
+    "category": "—",
+    "runs_in": "gradle check",
+    "evidence": "compileJava · compileTestJava",
+    "passes": true
+  },
+  {
+    "check": "수용 테스트",
+    "category": "행위",
+    "runs_in": "gradle check",
+    "evidence": "OrderApplicationServiceTest 3개 PASSED",
+    "passes": true
+  },
+  {
+    "check": "의존 규칙",
+    "category": "아키텍처 적합성",
+    "runs_in": "gradle check",
+    "evidence": "dependencyRules — 통과, 위반 재현 시 order -> paymentadapter 1건 FAILED",
+    "passes": true
+  },
+  {
+    "check": "결합도",
+    "category": "유지보수성",
+    "runs_in": "gradle check",
+    "evidence": "coupling — OrderApplicationService 13, Order 6, OrderItem 4",
+    "passes": true
+  },
+  {
+    "check": "금액 계산의 LLM 심사",
+    "category": "유지보수성",
+    "runs_in": "CI",
+    "evidence": "examples/amount-review-output.md — 세 항목 통과, PricedOrderItem 주석의 이름 한 건 지적",
+    "passes": true
+  }
+]

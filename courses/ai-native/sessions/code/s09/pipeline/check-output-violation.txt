@@ -1,0 +1,32 @@
+> Task :clean
+> Task :compileJava
+> Task :processResources NO-SOURCE
+> Task :classes
+
+> Task :coupling
+결합도 — 가장 많이 아는 클래스 다섯
+  order.OrderApplicationService          13
+  order.Order                            6
+  order.OrderItem                        4
+  order.CreateOrderCommand               3
+  order.PricedOrderItem                  3
+
+> Task :dependencyRules FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':dependencyRules' (registered in build file 'build.gradle.kts').
+> 의존 규칙 위반 1건
+  order -> paymentadapter
+      업무 패키지는 연동·영속을 알지 못한다. 포트 인터페이스를 선언해 그것만 쓰고,
+      구현을 끼우는 일은 업무 밖에서 한다. 규칙은 docs/아키텍처.md에 있다.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 889ms
+4 actionable tasks: 4 executed

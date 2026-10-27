@@ -1,55 +1,68 @@
-# 세션 07 제작 검토 기록
+# s07 제작 검증 — 세션 07. 설계 — 책임과 협력
 
-- 기록 시각: 2026-10-21T16:31:05.055570+09:00
-- 최종 결과: 21장. 목차·실습 1장·별첨 답안 2장 포함.
+## 대상과 실행
 
-## 입력과 출력
+| 항목 | 값 |
+|---|---|
+| 입력 | `courses/ai-native/sessions/s07.md` (2026-10-24 15:26) |
+| 출력 | `courses/ai-native/sessions/s07.pptx` (2026-10-24), 39장 |
+| 자동 검사 | `s07.qa.json` — status PASS, 오류 0, 경고 0 |
+| renderer | `engine/production/src/cli.js` (저장소 현재 커밋 기준) |
+| 예시 코드 | `node courses/ai-native/sessions/code/s07/design/run.mjs` — 검사 8개 PASS, `features.json` 기록 |
+| 실습 실행 | `tools/run-exercise-turn.py` + Codex CLI, ①~⑤ 6회(⑤ 최종화 2회). 근거는 `code/s07/exercise-conversation/order/codex-metadata-NN.json` |
+| 교차 검사 | `--check courses/ai-native/sessions/s0[1-7].md references.md` — 전부 PASS |
+| 전체 테스트 | `node --test engine/production/src/test/*.test.js` — 190개 PASS |
 
-- `/Users/YoungSan/dev/TrainingMaterials/courses/ai-native/sessions/s07.md`
-  - 수정 시각: 2026-10-21T16:27:35.748734+09:00
-  - SHA-256: `94c3f97ecab45759cbddc76df301afe5d492f9e10f832b9a1a2fa866f6ea2c54`
-- `/Users/YoungSan/dev/TrainingMaterials/courses/ai-native/sessions/s07.pptx`
-  - 수정 시각: 2026-10-21T16:27:38.474225+09:00
-  - SHA-256: `a7a07efb2e76805909e9b93b8b4fb3ef3e0cb14f694a6f762f57ee4d3a6e8dcc`
-- `/Users/YoungSan/dev/TrainingMaterials/courses/ai-native/sessions/s07.qa.json`
-  - 수정 시각: 2026-10-21T16:27:38.550990+09:00
-  - SHA-256: `7e1fb0928538ae55f844bbd9a3348f469a9f5c64eefffa3b76085ce9ea57c95f`
+## 함께 고친 것
 
-## 내용과 실습 투입물 재검토
+- **s06** — 결제 포트의 반환을 `PaymentDecision`(승인·거절·확정 불가)으로 바꾸고, 「03. 설계 원칙」에 SOLID 다섯 중 둘이라는 줄과 주석을 더했으며, `OrderStatus`의 `CANCELLED`를 지웠다. 재렌더링 28장, 오류 0·경고 0(`s06.qa.json`).
+- **renderer** — Mermaid 시퀀스의 메시지 라벨을 줄바꿈하게 했다(`sequence.wrap` true, `width` 170). 회귀 테스트 `mermaid.integration.test.js`의 "a long sequence message label wraps instead of stretching the diagram sideways"를 더했다. s01~s07과 별첨을 다시 렌더링해 장수 변화가 없음을 확인했다(25·20·30·36·32·28·46·2장).
+- **옛 s05 잔여 자산 삭제** — `code/s05/AcceptanceExamples.java`·`run.mjs`·`features.json`·`README.md`. 내용은 07의 작업 단위·기능 목록으로 옮겨졌고, 남아 있던 `CANCELLED`가 enum 연속성 경고를 냈다.
 
-- 세션 목표와 승인된 구성에 맞춰 도구·권한·상태·종료 조건 → 연결과 접근 통제 → 최소 권한·되돌림 → 위험과 강제 위치 → 실습 순으로 작성했다.
-- 실습 6은 새 파일이나 구현 코드를 만들지 않는다. 별도 첨부 파일로 요구하던 해석을 버리고 실습 5의 단위 4·수용 예 6과 실습 4의 신청 저장·첫 결제 계약을 직접 읽도록 했다. 상태·규칙이 부족하면 실습 3·2를 필요한 범위만 추가로 읽는다.
-- 업무 산출물에는 실행 경로·명령·권한 설정이 없으므로 강사 제공 환경을 명시했다. 앞 실습에 완성된 정기배송 코드가 있다고 가정하지 않는다.
-- 실습의 출력은 다음 실행에 필요한 간결한 권한 결정·강제 수단·실제 관찰·미확인 범위다. 새 문서 체계·고정 파일명·보안 점수표를 만들지 않았다.
-- 별첨은 저자 작성 예다. 실제 LLM 대화나 정기배송 구현의 수용 테스트를 실행한 것처럼 표시하지 않는다.
+## 시각 검토 (PowerPoint → PDF → PNG, DPI 50)
 
-## 검증
+`tools/review-pdf.sh`로 내보냈다. 도식·표·코드가 있는 장과 두 단 배치 장을 본다.
 
-| 항목 | 판정 | 근거 |
-|---|---|---|
-| 세션 자동 검사 | PASS | s07.qa.json: 21장·39블록·오류 0·경고 0 |
-| 논지·원천 대조 | PASS | read-leads.js로 제목·첫 문장 검토. 반복 전달 응답을 실습 5 단위 4·예 6, 실습 4 연계 계약, 실습 6 근거 선별과 대조 |
-| 인용 기록 | PASS | 영문 인용 4개 모두 verify-quote.js 확인. NIST 정의는 원문 확인 뒤 한국어 요약으로 표시 |
-| 인용 typography | PASS | 최종 OOXML의 인용 5그룹 모두 한글 18pt·영문 및 출처 10pt 확인. NIST는 한글·출처만 있음 |
-| 파일·노트 구조 | PASS | ZIP CRC 오류 없음·빈 a:txBody 없음·내용 20장에 발표자 노트 20개. 목차는 별도 자동 생성 |
-| 시각 검토 | PASS | PowerPoint PDF의 1~21장. 표·도식·실습·별첨의 겹침·잘림·바닥글 침범 없음. 20장은 원본 이미지로 추가 확인 |
-| 실제 접근 통제 | PASS | macOS Seatbelt 안에서 소스 쓰기·테스트 쓰기·빌드/기존 주문 테스트 허용. 보호 설정 쓰기·가짜 키 읽기·직접 통신 모두 PermissionError errno=1. 보호 파일 내용 유지 |
-| 기존 업무 예 실행 | PASS | code/s05/AcceptanceExamples.java 사본을 javac·java로 실행: 승인·가격 변경·거절·재결제 4개 통과 |
-| 정기배송 구현·영속 보장 | NOT VERIFIED | 해당 코드를 앞 실습에서 만들지 않았음. 제공 환경 검사를 실제 결제·저장 멱등성·동시성·원자성의 증거로 쓰지 않음 |
-| 다른 플랫폼·도구 경로 | NOT VERIFIED | macOS의 선택적 파일·직접 통신 제한만 실행. 전체 호스트 읽기·MCP·내장 웹 검색·원격 도구·Git 제어는 입증하지 않음 |
-| 전체 참조 | FAIL | s01~s07 오류·경고 0. 개편 전 s08~s12의 참조 문제 총 147건. 세션별 재작성 때 고치는 기존 개편 절차로 이월 |
-| renderer 회귀 | NOT VERIFIED | renderer·템플릿을 바꾸지 않아 전체 테스트를 반복하지 않음 |
-| 도식 글자 정밀 계측 | NOT VERIFIED | 자동 최소 크기 검사와 시각 확인을 수행. 모든 라벨의 최종 pt 정밀 계측은 별도 수행하지 않음 |
+| 덱 | 장 | 본 것 | 판정 |
+|---|---|---|---|
+| s07 | 7 | 설계 클래스 도식 + 코드 두 단 | PASS — 겹침·잘림 없음 |
+| s07 | 11 | 설계 시퀀스, 본문 4줄 위 | PASS |
+| s07 | 13 | 협력 상대 클래스 도식 + 코드 두 단 | PASS |
+| s07 | 18 | 실패 흐름 시퀀스 + 코드 | PASS |
+| s07 | 20 | SOLID 다섯 원칙 표 + 주석 | PASS |
+| s07 | 21 | 묶은 인터페이스 도식 + 코드 | PASS |
+| s07 | 24 | 두 대안 표 | PASS — 아래 여백이 크다(코드가 25장) |
+| s07 | 28·29 | 계약 대역 코드, 사전조건 코드와 실행 출력 | PASS |
+| s07 | 34 | 데이터만 든 모델 코드 | PASS — 아래 여백이 크다 |
+| s07 | 38 | 실습 한 장(두 단 12pt) | PASS — 한 장에 들어간다 |
+| s07 | 39 | 요약 한 장 | PASS |
+| s07 | 40 | 별첨 책임 배치(두 단 10pt) | PASS — 왼쪽을 채우고 오른쪽으로 넘어간다 |
+| s07 | 42 | 별첨 카드 승인 시퀀스(Mermaid) | PASS — 줄바꿈 뒤 노트와 라벨이 겹치지 않는다 |
+| s07 | 31·32 | 작업 단위 넷 표와 이어지는 bullet | PASS |
+| s07 | 45·46 | 별첨 오퍼레이션 계약·작업 단위(두 단 10pt) | PASS |
+| s06 | 6 | 설계 원칙 + SOLID 줄 + 주석 | PASS |
+| s06 | 10 | 의존성 역전 도식 + 바뀐 포트 선언 | PASS |
+| s06 | 16 | 대역 시퀀스의 `거절` 라벨 | PASS |
 
-각 PASS는 위 범위에 한정한다. QA의 visual_status는 자동 생성값 NOT_VERIFIED를 유지하며, 실제 시각 검토 결과는 이 기록으로 구분한다. 전체 Production 정밀 검증을 완료했다고 표시하지 않는다.
+내보낸 이미지는 저장소의 `out/review/<sNN>/`에 있다(git 제외). 2026-10-24에 `tools/review-pdf.sh`의 기본 출력 폴더를 `$TMPDIR`에서 이 자리로 옮겼다 — 저장소 밖에 두면 작업 폴더 밖 읽기가 막혀 이미지를 볼 수 없다.
 
-## 실행 근거와 범위
+## 두 장으로 나뉜 topic을 한 장으로 (2026-10-24)
 
-- 실제 검사 코드: `/Users/YoungSan/dev/TrainingMaterials/courses/ai-native/sessions/code/s07/run-permission-check.py`, `probe.py`, `permissions.sb`.
-- 실제 실행 기록: `/Users/YoungSan/dev/TrainingMaterials/courses/ai-native/sessions/code/s07/demo-results/permission-check.json`.
-- 초기 도구 설정 검증에서 파일 접근 거절을 입증하지 못했다. 최종 시연은 사용자 설정에 의존하지 않는 macOS OS 샌드박스 정책으로 실행했다. 실패한 접근 통제를 성공으로 인용하지 않았다.
-- 제공 정책은 지정한 파일 쓰기·비밀 읽기·직접 통신의 제약 예다. 최소 권한의 완성된 운영 정책으로 제시하지 않는다.
-- 시각 근거: `/private/tmp/ai-native-s07-review/p-01.png`~`p-21.png`. 4장씩 합친 이미지로 전체 확인 후 20장 원본 추가 확인.
-- 전체 참조 로그: `/private/tmp/ai-native-s07-cross-check.log`.
-- 본편 렌더링 1회. 별도로 세션 단독 --check 1회, 전체 참조 --check 1회. 첫 sandbox 내부 검사 시도는 브라우저 실행 제약으로 중단되어 출력 생성 전 재실행했다.
-- 시각 검토 21장(고유 장 수). renderer·템플릿·기존 세션의 원고나 덱은 이번 작업에서 수정하지 않았다.
+사용자 지시로 `(1/2)(2/2)`로 나뉜 topic을 「09. 계약이 검사가 된다」만 남기고 모두 한 장에 넣었다. 47장 → **39장**. 줄인 방법은 셋이다.
+
+- **bullet 합치기·강사 노트로 옮기기** — 「02. 분석과 설계의 거리」, 「인터페이스와 설계 클래스」, 「06. 상태 변경과 실패 처리의 자리」, 「인터페이스를 가르기」, 「두 대안 가르기」, 「주문한다의 작업 단위 넷」, 「데이터만 든 모델」. 지운 내용은 없고 강의 포인트로 노트에 남겼다.
+- **코드 발췌 줄이기** — 「06」은 확정 불가로 멈추는 네 줄만, 「두 대안 가르기」는 주문이 포트를 직접 부르는 여섯 줄만 남겼다. 생략은 `// ... 생략` 줄로 표시했다.
+- **블록 순서 바꾸기** — 「두 대안 가르기」는 코드를 표 앞으로 옮겼다. 표 아래에는 코드가 들어가지 않았지만 코드 아래에는 표가 쌓인다(`production-guide.md`의 「소스 코드」).
+- **별첨** — 「카드 승인 설계 시퀀스」는 `**문서 형식 — 10pt**`로 글을 줄이고, 도식 뒤의 두 항목을 「주문 생성과 결과 확인」 topic으로 나눠 각각 한 장이 되게 했다. 「인터페이스」는 주문 생성·조회의 입력 포트 선언을 빼고 한 블록으로 이어 붙였다(발췌 범위는 강사 노트에 적었다).
+
+「09. 계약이 검사가 된다」는 `**페이지 분할**`로 둔 의미상 구분이라 그대로 두 장이다 — 앞 장이 대역의 계약, 뒤 장이 사전조건의 거절 테스트와 실행 출력이다.
+
+재검토한 장(한 장이 된 뒤): 3·12·16·18·20·26·29·35·37. 모두 겹침·잘림 없음.
+
+## 남은 것과 판단
+
+- **`NOT VERIFIED`** — 실제 강의 환경의 투사 가독성, 46장의 시간 적합성. 시간은 파일럿에서 확정한다(`course-design.md`의 「5. Session 구조」).
+- 24장과 34장의 아래 여백은 Production이 코드 블록을 다음 장에서 시작한 결과다. 의미가 갈리는 두 장이므로 원고를 바꾸지 않았다.
+- 별첨 42장의 시퀀스는 받은 도식의 `alt` 세 갈래 중 **승인 갈래만 발췌**했다. 세 갈래를 함께 그리면 글자가 7pt 아래로 내려간다. 거절·확정 불가의 결과는 별첨 「오퍼레이션 계약」에 있고 원본 전문은 `code/s07/exercise-conversation/order/주문한다-설계.md`에 있다.
+- 위 표의 장 번호는 **47장이던 때**의 것이다. 두 장을 한 장으로 합친 뒤 번호가 밀렸고, 합친 장은 새 번호로 다시 보았다.
+- 실습 답의 작업 단위가 **다섯**으로 강의의 넷과 다르다. 수강생의 결정이므로 고치지 않고 강사 노트에 차이를 적었다.

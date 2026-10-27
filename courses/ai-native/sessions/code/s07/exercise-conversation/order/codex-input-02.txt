@@ -1,0 +1,767 @@
+[실행 환경] 이 실행기는 응답을 그대로 파일로 저장한다. 도구 호출·파일 탐색·파일 쓰기를 하지 마라. 대화창에서 읽을 답을 그대로 출력하고, 도식은 Mermaid 원본으로 보여라.
+
+다음 실제 대화를 이어서 마지막 사용자 메시지에 답하라.
+
+[사용자]
+실습 3의 요구사항 정의서, 실습 4의 정적 모델, 실습 5의 동적 모델, 실습 6의 아키텍처 결정을 읽고, "주문한다"를 구현할 객체의 책임과 협력을 설계해라. 업무 규칙을 누가 지키고 시스템 오퍼레이션을 누가 받는지 근거와 함께 정해라. 설계 시퀀스 다이어그램, 인터페이스 선언, 각 오퍼레이션의 사전조건과 사후조건을 함께 제안해라. 아키텍처가 정한 패키지 경계와 의존 규칙을 어기지 마라. 근거 없는 정책은 확정하지 말고 질문해라. 앞 실습이 미정으로 남긴 것은 해결하려 하지 말고 설계에서 어디가 비는지만 밝혀라.
+
+
+[실습 3 실제 최종 MD]
+# “주문한다” 요구사항 정의서
+
+고객이 장바구니의 상품과 수량을 바탕으로 배송지를 지정하고, 카드 승인을 받아 주문을 성립시킨 뒤 그 결과를 확인할 때까지의 요구사항과 수용 기준을 정의한다.
+
+## 목적과 범위
+
+- 상품 조회와 장바구니 구성은 전제다.
+- 상세 범위는 공통 흐름 3~5단계인 배송지 지정, 결제, 주문 결과 확인이다.
+- 상품·결제·배송 시스템은 외부 시스템으로 연계하며 내부 기능은 재구현하지 않는다.
+
+## 사용자 이야기
+
+고객으로서 장바구니의 상품과 수량을 기준으로 배송지를 지정하고 카드 승인을 받아 주문을 성립시킨 뒤 그 결과를 확인하고 싶다.
+
+## 핵심 기능과 업무 규칙
+
+- 배송지를 지정하면 주문 생성 시점의 판매가로 주문 금액을 확정하고 `결제대기` 주문을 생성한다.
+- 주문자와 수령인은 같은 사람으로 본다.
+- 주문 금액은 각 주문 항목의 주문 생성 시점 판매가에 수량을 곱하여 합한 금액이다.
+- 주문 생성 뒤 판매가가 변경되어도 주문 금액과 카드 승인 요청 금액은 바뀌지 않는다.
+- `결제대기` 주문의 상품·수량·배송지는 변경할 수 없다. 변경하려면 새 주문을 생성한다.
+- 결제 수단은 카드만 허용한다.
+- 카드 승인이 거절되면 같은 주문을 `결제대기`로 유지하며 다른 카드로 재결제할 수 있다.
+- 카드 승인이 완료되면 같은 주문이 성립하고 상태가 `결제완료`가 된다.
+- 배송 요청은 카드 승인 완료 뒤 해당 주문의 확정된 배송지로 보낸다.
+- 주문 쪽에서 재고를 별도로 확보하지 않고 상품 시스템의 판단을 따른다.
+- 결제 응답을 확정할 수 없으면 승인 또는 거절로 간주하지 않는다.
+- 본인 주문에 대해서만 조회 또는 변경 요청의 권한을 인정한다. 권한이 있더라도 실제 변경 가능 여부에는 주문 상태와 업무 규칙을 적용한다.
+- 다른 고객의 주문에 대한 조회·변경 요청은 거절한다.
+
+## 기본 용어집
+
+- **주문(Order):** 배송지가 지정되어 생성된 거래 기록
+- **주문 항목(OrderItem):** 주문에 포함된 상품, 수량 및 주문 생성 시점의 판매가
+- **판매가(salePrice):** 상품 시스템이 제공하는 상품 가격
+- **주문 금액(totalAmount):** 각 주문 항목의 주문 생성 시점 판매가에 수량을 곱하여 합한 금액
+- **주문 생성:** 배송지 지정에 따라 주문이 기록되고 `결제대기`가 되는 것
+- **결제대기(PENDING_PAYMENT):** 주문은 생성됐지만 카드 승인이 완료되지 않은 상태
+- **주문 성립:** 카드 승인이 완료되어 같은 주문이 `결제완료`가 되는 것
+- **결제완료(PAID):** 카드 승인이 완료되어 주문이 성립한 상태
+- **주문 결과 확인:** 카드 승인 응답에 따른 주문 상태와 결과를 확인하는 것
+
+## 공통 흐름
+
+1. **상품 조회 — 전제:** 고객이 상품을 조회한다.
+2. **장바구니 — 전제:** 고객이 상품과 수량을 장바구니에 담는다.
+3. **배송지 지정:** 배송지를 지정하면 주문 생성 시점의 판매가로 주문 금액을 확정하고 `결제대기` 주문을 생성한다.
+4. **결제:** 고객이 주문 금액으로 카드 승인을 요청한다.
+   - 승인되면 같은 주문이 `결제완료`가 되고 배송을 요청한다.
+   - 거절되면 같은 주문을 `결제대기`로 유지하고 배송을 요청하지 않는다. 고객은 다른 카드로 재결제할 수 있다.
+5. **주문 결과 확인:** 고객이 카드 승인 응답에 따른 주문 결과를 확인한다. 이는 별도 통지 여부나 담당 시스템을 확정하지 않는다.
+
+## 대표 수용 예
+
+공통 전제는 펜 2개, 주문 생성 시 판매가 개당 1,000원, 주문 금액 2,000원, 배송지 서울인 같은 주문이다.
+
+### 1. 카드 승인
+
+- **전제:** 주문 상태가 `결제대기`다.
+- **사건:** 카드 Y에 2,000원으로 승인을 요청하고 승인 응답을 받는다.
+- **기대 결과:** 같은 주문이 `결제완료`가 되고 승인 결과와 승인 요청 금액 2,000원을 확인할 수 있다. 서울로의 배송 요청은 1회다.
+
+### 2. 주문 생성 뒤 가격 변경
+
+- **전제:** 주문 상태가 `결제대기`다.
+- **사건:** 펜 판매가가 개당 1,200원으로 오른 뒤 카드 Y에 승인을 요청하고 승인 응답을 받는다.
+- **기대 결과:** 같은 주문의 주문 금액과 승인 요청 금액은 2,000원이고 상태는 `결제완료`다. 승인 결과를 확인할 수 있으며 서울로의 배송 요청은 1회다.
+
+### 3. 카드 승인 거절
+
+- **전제:** 주문 상태가 `결제대기`다.
+- **사건:** 카드 X에 2,000원으로 승인을 요청하고 거절 응답을 받는다.
+- **기대 결과:** 같은 주문이 `결제대기`로 유지되고 배송 요청은 0회다. 다른 카드로 같은 주문의 결제를 다시 요청할 수 있다.
+
+### 4. 거절 뒤 같은 주문의 재결제
+
+- **전제:** 카드 X의 승인이 거절된 주문이 `결제대기`이고 배송 요청은 0회다.
+- **사건:** 카드 Y에 같은 주문의 결제를 2,000원으로 다시 요청하고 승인 응답을 받는다.
+- **기대 결과:** 새 주문이 생성되지 않고 같은 주문이 `결제완료`가 된다. 카드 Y의 승인 요청 금액은 2,000원이며, 카드 X의 거절부터 카드 Y의 승인까지 서울로의 배송 요청은 총 1회다.
+
+## 품질·접근 기준
+
+### 정상 품질 시험
+
+- **전제:** 상품·결제·배송 외부 시스템은 정상 응답을 주는 테스트 대역이며, 각 외부 응답은 1초 이내다.
+- **사건:** 공통 흐름 4의 카드 결제 요청을 동시에 100건 실행한다.
+- **기대 결과:** 공통 흐름 4의 카드 결제 요청부터 5의 결과 수신까지 측정했을 때 100건 중 95건 이상이 각각 3초 이내에 완료된다.
+- 이 기준은 실습 시험용이며 실제 운영 환경의 보장 값이 아니다.
+
+### 주문 접근
+
+- 본인 주문에 대해서만 조회 또는 변경 요청의 권한을 인정한다.
+- 다른 고객의 주문에 대한 조회·변경 요청은 거절한다.
+- 본인 주문이더라도 변경 가능 여부는 업무 규칙에 따른다. 따라서 `결제대기` 주문의 상품·수량·배송지는 변경할 수 없으며, 바꾸려면 새 주문을 생성한다.
+- 인증 방식, 거절 응답 코드 및 화면 표현은 정하지 않는다.
+
+## 기능 제외 범위
+
+- 화면과 사용자 인터페이스
+- 상품·결제·배송 시스템 내부 기능의 재구현
+- 주문 성립 이후의 취소·환불·반품·교환 및 배송 진행
+- 카드 외 결제 수단
+- 배송비
+- 쿠폰과 할인
+
+## 이번 문서에서 다루지 않는 산출물
+
+- 도메인 모델
+- 아키텍처
+- 기술 설계
+- 구현 코드
+
+이는 이번 요구사항 문서에서 작성하지 않는 산출물의 구분이며, 해당 시스템 기능을 제외한다는 뜻이 아니다.
+
+## 미정 사항
+
+다음 항목은 담당자 확인이 필요하며 완료된 정책으로 간주하지 않는다.
+
+- **`[H]` 비회원 주문과 본인 확인:** 비회원 주문을 허용하는가? 허용한다면 결제대기 주문의 본인을 어떻게 확인하는가? 비회원의 접근 조건이 제시되지 않았다.
+- **`[B]` 결제대기 기한:** 기한은 얼마이며 경과 후 어떻게 처리하는가? 기한과 만료 정책이 제시되지 않았다.
+- **`[F]` 결제 응답 미확정:** 이후 어떻게 처리하며 재결제를 허용하는가? 성공이나 실패로 확정하지 않는다는 조건만 제시됐다.
+- **`[E]` 승인 뒤 재고 부족:** 카드 승인 뒤 재고가 없으면 어떻게 처리하는가? 승인과 주문의 처리 기준이 제시되지 않았다.
+- **`[G]` 배송 요청 실패:** 승인 뒤 배송 요청이 실패하면 어떻게 처리하는가? 주문·승인에 미치는 영향과 재요청 기준이 제시되지 않았다.
+- **`[I]` 주문 확인 통지:** 별도 통지가 필요한가? 필요하다면 어느 시스템이 담당하는가? 통지 주체가 정해지지 않았다.
+- **재고 판단 시점:** 상품 시스템에 언제 재고 판단을 요청하는가? 상품 시스템의 판단을 따른다는 조건만 있고 시점은 제시되지 않았다.
+- **승인 전 재고 부족:** 승인 전에 재고 부족으로 판단되면 어떻게 처리하는가? 해당 분기의 정책이 제시되지 않았다.
+[실습 4 실제 최종 MD]
+# “주문한다” 정적 업무 모델
+
+이 정적 모델은 주문·주문 항목·상품의 관계와, 주문 생성 시점의 판매가를 단가로 확정하여 각 항목의 확정 단가에 수량을 곱한 금액의 합계로 주문 금액을 유지하는 조건을 명시한다.
+
+## 1. 용어와 속성
+
+- 주문 `Order`
+  - `orderNumber: OrderNumber`: 주문 식별 값
+  - `totalAmount: Money`: 주문 항목별 확정 단가와 수량으로 계산한 주문 금액
+  - `shippingAddress: Address`: 주문 생성 시 확정된 배송지
+  - `status: OrderStatus`: 주문의 현재 상태
+
+- 주문 항목 `OrderItem`
+  - `quantity: Quantity`: 주문한 상품의 수량
+  - `unitPrice: Money`: 주문 생성 시점의 `salePrice`로 확정된 단가
+
+- 상품 `Product`
+  - `productNumber: ProductNumber`: 상품 식별 값
+  - `salePrice: Money`: 상품의 현재 판매가
+
+- `Money`: 원 단위의 0 이상 정수
+- `Quantity`: 1 이상의 정수
+- `Address`: 주문에 확정된 배송지 값
+- `OrderNumber`: 주문 식별 값
+- `ProductNumber`: 상품 식별 값
+- `OrderStatus`: 주문의 현재 상태 값. 현재 확인된 값은 `PENDING_PAYMENT`와 `PAID`이며 가능한 상태 전체가 확정된 것은 아니다.
+
+## 2. 클래스 도식과 관계
+
+관계선은 업무상 관계와 개수만 나타내며 연관 방향이나 저장 방식을 정하지 않는다.
+
+```mermaid
+classDiagram
+    class Order {
+        orderNumber: OrderNumber
+        totalAmount: Money
+        shippingAddress: Address
+        status: OrderStatus
+    }
+
+    class OrderItem {
+        quantity: Quantity
+        unitPrice: Money
+    }
+
+    class Product {
+        productNumber: ProductNumber
+        salePrice: Money
+    }
+
+    Order "1" -- "1..*" OrderItem : 주문 항목
+    OrderItem "0..*" -- "1" Product : 해당 상품
+```
+
+1. 하나의 `Order`에는 `OrderItem`이 1개 이상 있다.
+2. 하나의 `OrderItem`은 정확히 하나의 `Order`에 속한다.
+3. 하나의 `OrderItem`은 정확히 하나의 `Product`에 해당한다.
+4. 하나의 `Product`는 0개 이상의 `OrderItem`과 관계를 맺을 수 있다.
+
+## 3. 조건과 대표 예
+
+- `salePrice`, `unitPrice`, `totalAmount`는 원 단위의 0 이상 정수다.
+- `quantity`는 1 이상의 정수다.
+- 하나의 `Order`에는 `OrderItem`이 1개 이상 있고 `shippingAddress`가 존재한다.
+- 유효한 주문에서는 다음 합계 등식이 항상 성립한다.
+
+  ```text
+  Order.totalAmount
+  = Σ(OrderItem.unitPrice × OrderItem.quantity)
+  ```
+
+- `unitPrice`는 장바구니에 담은 시점이 아니라 `Order` 생성 시점의 해당 `Product.salePrice`로 확정된다.
+- 생성 이후 현재 `salePrice`가 변경되어도 기존 `unitPrice`와 `totalAmount`는 변하지 않는다.
+- `PENDING_PAYMENT`인 기존 주문에서는 주문 항목의 구성, 각 항목의 `quantity`와 `unitPrice`, `shippingAddress`가 변경되지 않는다.
+
+대표 주문과 판매가 변경 전후는 다음과 같다.
+
+| 값 | 주문 생성 직후 | 판매가 변경 후 |
+|---|---:|---:|
+| 상품 | 펜 | 펜 |
+| `OrderItem` 수 | 1 | 1 |
+| `Product.salePrice` | 1,000원 | 1,200원 |
+| `OrderItem.unitPrice` | 1,000원 | 1,000원 |
+| `OrderItem.quantity` | 2 | 2 |
+| `Order.totalAmount` | 2,000원 | 2,000원 |
+| `Order.shippingAddress` | 서울 | 서울 |
+
+생성 시점에는 `unitPrice = salePrice = 1,000원`이고, `totalAmount = 1,000원 × 2 = 2,000원`이다. 이후 현재 판매가가 1,200원으로 바뀌어도 기존 주문은 확정 단가 1,000원과 총액 2,000원을 유지한다.
+
+## 4. 정하지 않은 항목과 기존 업무 미정
+
+본인 주문에 대해서만 조회 또는 변경 요청의 권한을 인정하며 다른 고객의 주문 요청은 거절한다. 주문자와 수령인은 같은 사람으로 본다. 다만 회원·비회원 여부와 주문 주체, 본인 확인, 주문자 및 수령인을 나타낼 구체 타입이나 식별 정보는 정하지 않는다.
+
+정적 모델에서 다음 사항은 정하지 않는다.
+
+- `OrderNumber`와 `ProductNumber`의 형식 및 생성 규칙
+- `Address`의 세부 항목
+- `Quantity`의 구체적인 상한
+- 동일 상품 주문 항목의 병합 여부와 중복 허용 여부
+- 결제 이력과 승인 결과의 보존 구조
+- 현재 확인된 값 이외의 `OrderStatus`
+
+기존 업무 미정은 다음과 같다.
+
+- 결제대기 기한과 만료 정책
+- 결제 응답을 확정할 수 없을 때의 처리와 재결제 허용 여부
+- 재고 판단 시점과 승인 전 재고 부족 처리
+- 카드 승인 뒤 재고 부족 처리
+- 배송 요청 실패 처리와 재요청 기준
+- 주문 결과의 별도 통지 여부와 담당 시스템
+
+이 미정 사항으로부터 허용 또는 금지 정책, 새로운 개념이나 상태를 도출하지 않는다.
+[실습 5 실제 최종 MD]
+# “주문한다” 동적 업무 모델
+
+## 도입
+
+이 모델은 실습 3의 요구 범위에서 같은 주문이 사건에 따라 어떻게 바뀌는지 보여 준다. 범위는 주문 생성, 카드 승인·거절, 같은 주문의 재결제, 승인 뒤의 배송 요청이다.
+
+- `배송중`과 `배송완료`는 같은 주문의 생애주기를 이해하기 위한 **참고 상태**다. 이 두 상태를 넣었다고 실습 3의 요구 범위가 넓어지지는 않는다.
+- 취소는 범위 밖이다.
+- 대표 예는 모두 같은 주문 A를 쓴다. 주문 A는 펜 2개, 확정 단가 1,000원, 총액 2,000원, 배송지 서울이다. "주문 A"는 예를 들기 위해 붙인 이름이며, 주문 번호 형식은 정하지 않는다.
+
+## 상태 기계
+
+### 주문 생애주기 상태 기계
+
+```mermaid
+stateDiagram-v2
+    state "결제대기" as Pending
+    state "결제완료" as Paid
+    state "배송중" as InDelivery
+    state "배송완료" as Delivered
+
+    [*] --> Pending: 배송지 지정 / 주문 생성
+    Pending --> Pending: 카드 승인 거절
+    Pending --> Paid: 카드 승인 완료 / 배송 요청
+    Paid --> InDelivery: 배송 시작 통보
+    InDelivery --> Delivered: 배송 완료 통보
+```
+
+- `결제대기`와 `결제완료`는 실습 3의 요구 범위이고, `배송중`과 `배송완료`는 생애주기 참고 범위다.
+- 배송 요청은 카드 승인 완료 사건에 대한 반응이다. 배송 요청 자체는 상태 전이가 아니다.
+- 결제 응답을 확정할 수 없는 경우는 전이로 그리지 않는다. 승인이나 거절로 간주하지 않는다는 규칙만 정해졌고, 그 뒤의 처리는 정하지 않았다.
+
+## 전이 목록
+
+| 현재 상태 | 사건 | 다음 상태 | 범위 |
+|---|---|---|---|
+| 초기 진입(이전 상태 없음) | 배송지 지정 | 결제대기 | 실습 3 |
+| 결제대기 | 카드 승인 완료 | 결제완료 | 실습 3 |
+| 결제대기 | 카드 승인 거절 | 결제대기 | 실습 3 |
+| 결제완료 | 배송 시작 통보 | 배송중 | 생애주기 참고 |
+| 배송중 | 배송 완료 통보 | 배송완료 | 생애주기 참고 |
+
+상태 코드: 결제대기 `PENDING_PAYMENT`, 결제완료 `PAID`, 배송중 `IN_DELIVERY`, 배송완료 `DELIVERED`
+
+사건별 반응은 다음과 같다.
+
+- **배송지 지정:** 주문 A 생성. 펜 2개·단가 1,000원·총액 2,000원·서울 확정
+- **카드 승인 완료:** 서울로 배송 요청 1회 발생
+- **카드 승인 거절:** 배송 요청 없음. 같은 주문 A 유지
+- **배송 시작 통보, 배송 완료 통보:** 정한 반응 없음
+
+- 거절 뒤의 재결제가 승인되는 경우에 새로운 전이가 생기지는 않는다. 같은 주문 A에 둘째 행(카드 승인 완료)이 적용된다.
+- "배송 요청 1회"는 배송 요청이라는 업무 사건이 한 번 일어난다는 뜻이다. 그 사건을 어디에 어떻게 남기는지, 운영상 중복을 막거나 다시 시도하는 기준은 정하지 않는다.
+
+## 정상 승인 시퀀스
+
+### 카드 승인 완료와 배송 요청
+
+```mermaid
+sequenceDiagram
+    actor 고객
+    participant 주문시스템 as 주문 시스템
+    participant 결제시스템 as 결제 시스템
+    participant 배송시스템 as 배송 시스템
+
+    고객->>주문시스템: 주문 A의 카드 결제 요청
+    주문시스템->>결제시스템: 카드 승인 요청(2,000원)
+    결제시스템->>주문시스템: 카드 승인 완료
+    주문시스템->>배송시스템: 서울로 배송 요청
+```
+
+1. 고객이 `결제대기`인 주문 A의 카드 결제를 요청한다.
+2. 주문 시스템이 확정 총액 2,000원으로 카드 승인을 요청한다.
+3. 카드 승인 완료가 주문 시스템에 전달된다.
+4. 이 사건에 대한 반응으로 주문 A가 `결제완료`가 되고, 서울로 배송 요청이 한 번 일어난다.
+
+도식에는 참여자 사이에 오가는 업무 사건만 그렸다.
+
+- 화살표는 사건이 일어나는 순서만 나타낸다. 실선이라고 동기 호출을 뜻하지는 않으며, 동기·비동기 전달 방식은 정하지 않는다.
+- 상태 변화는 상태 기계와 전이 목록에서 다룬다.
+- 고객은 이후 주문 A의 결제완료 결과를 확인한다. 확인 경로, 별도 통지 여부, 통지 주체는 정하지 않았으므로 도식에 넣지 않았다.
+- 배송 시작·완료 통보는 생애주기 참고 범위이므로 이 장면에 넣지 않았다.
+
+## 규칙의 대표 예
+
+네 예 모두 주문 A의 식별, 펜 2개, 확정 단가 1,000원, 총액 2,000원, 배송지 서울이 바뀌지 않는다. 예마다 「유지되는 값」 줄에서 확인할 수 있다.
+
+### 1. 승인
+
+- **전제:** 주문 A, `결제대기`
+- **사건:** 카드 Y에 2,000원 승인 요청 → 승인 완료
+- **결과:** `결제완료`, 서울로 배송 요청 1회
+- **유지되는 값:** 주문 A · 펜 2개 · 확정 단가 1,000원 · 총액 2,000원 · 서울
+
+### 2. 판매가 변경 뒤 승인
+
+- **전제:** 주문 A, `결제대기`, 현재 판매가 개당 1,200원
+- **사건:** 카드 Y에 2,000원 승인 요청 → 승인 완료
+- **결과:** 승인 요청 금액 2,000원, `결제완료`, 배송 요청 1회
+- **유지되는 값:** 주문 A · 펜 2개 · 확정 단가 1,000원(현재 판매가와 무관) · 총액 2,000원 · 서울
+
+### 3. 거절
+
+- **전제:** 주문 A, `결제대기`
+- **사건:** 카드 X에 2,000원 승인 요청 → 거절
+- **결과:** `결제대기` 자기 전이, 배송 요청 0회, 다른 카드로 재결제 가능
+- **유지되는 값:** 주문 A · 펜 2개 · 확정 단가 1,000원 · 총액 2,000원 · 서울
+
+### 4. 거절 뒤 재결제
+
+- **전제:** 카드 X가 거절된 주문 A, `결제대기`, 배송 요청 0회
+- **사건:** 같은 주문 A를 카드 Y에 2,000원으로 다시 승인 요청 → 승인 완료
+- **결과:** 새 주문 없음, 주문 A가 `결제완료`, 카드 X 거절부터 카드 Y 승인까지 배송 요청 총 1회
+- **유지되는 값:** 주문 A · 펜 2개 · 확정 단가 1,000원 · 총액 2,000원 · 서울
+
+## 금지·참고 조건·미정·범위 밖
+
+### 확정된 요구에 근거한 금지
+
+- 카드 승인 완료 없이 `결제대기`에서 `결제완료`로 전이할 수 없다.
+- 카드 승인이 거절되면 `결제완료`로 전이할 수 없다.
+- 결제 응답을 확정할 수 없으면 승인 완료로도, 거절로도 간주할 수 없다.
+- 카드 승인이 완료되기 전에는 배송을 요청할 수 없다. 거절되면 배송을 요청하지 않는다.
+- `결제대기` 주문의 상품, 수량, 배송지는 바꿀 수 없다. 주문 생성 뒤 판매가가 바뀌어도 확정 단가, 총액, 승인 요청 금액은 바뀌지 않는다.
+- 거절 뒤의 재결제를 새 주문으로 대신할 수 없다.
+
+### 생애주기 참고 범위의 전이 조건
+
+아래는 이번 모델에서 합의한 참고 조건이며, 실습 3의 요구나 수용 기준이 아니다.
+
+- 배송 요청만으로는 `배송중`이 되지 않는다. `결제완료`에서 `배송중`으로 가려면 배송 시작 통보가 있어야 한다.
+- `배송중`에서 `배송완료`로 가려면 배송 완료 통보가 있어야 한다.
+- 통보가 오지 않거나 늦는 경우처럼 배송 진행 중의 다른 경우는 다루지 않는다.
+
+### 결정하지 않고 남겨 두는 정책
+
+- 결제대기 기한과 만료 처리
+- 결제 응답을 확정할 수 없을 때의 후속 처리와 재결제 허용 여부
+- 재고 판단 시점과 승인 전·후 재고 부족 시 처리
+- 회원·비회원 여부와 본인 확인 방법
+- 본인 주문 조건이 카드 결제 요청에도 적용되는지 여부
+- 배송 요청이 실패할 때의 처리, 운영상 중복 방지와 재시도 기준
+- 주문 결과를 별도로 통지할지 여부와 담당 주체
+
+금지는 이미 정해진 규칙에 어긋나는 변화다. 미정은 허용할지 금지할지 판단할 정책이 아직 없는 사안이다. 따라서 미정 사안을 새로운 상태나 전이로 메우지 않는다.
+
+### 범위 밖
+
+- 취소, 그리고 주문 성립 이후의 환불·반품·교환
+[실습 6 실제 최종 MD]
+# “주문한다” 아키텍처 결정
+
+## 1. 아키텍처 스타일과 근거
+
+**포트와 어댑터 구조를 적용한 모듈러 모놀리스**를 선택한다.
+
+- **배포:** 독립 배포 요구가 없으므로 하나의 배포 단위로 둔다.
+- **조직:** 업무별 독립 팀이나 별도 출시 주기가 제시되지 않았으므로 마이크로서비스로 분리하지 않는다.
+- **변경:** 주문 규칙과 외부 시스템의 변경 이유가 다르므로 업무 패키지가 출력 포트를 소유하고 연동·영속 패키지가 구현한다.
+
+## 2. 패키지 다이어그램과 포트 배치
+
+### 2.1 업무 경계
+
+이 그림은 도메인 모델을 입력으로 삼아 업무 개념과 출력 포트가 어느 패키지 경계에 속하는지 보여 준다.
+
+```svg:uml
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="375" viewBox="0 0 960 375">
+<defs><marker id="dependency" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#222" stroke-width="1.3"/></marker></defs>
+<rect width="960" height="375" fill="white"/>
+<path d="M10,27 V5 H125 V27 H410 V182 H10 Z" fill="#fafafa" stroke="#555" stroke-width="1.5"/>
+<text x="20" y="21" font-family="Arial" font-size="14" font-weight="bold">order</text>
+<path d="M550,27 V5 H665 V27 H950 V182 H550 Z" fill="#fafafa" stroke="#555" stroke-width="1.5"/>
+<text x="560" y="21" font-family="Arial" font-size="14" font-weight="bold">payment</text>
+<path d="M10,269 V247 H125 V269 H410 V364 H10 Z" fill="#fafafa" stroke="#555" stroke-width="1.5"/>
+<text x="20" y="263" font-family="Arial" font-size="14" font-weight="bold">product</text>
+<path d="M550,269 V247 H665 V269 H950 V364 H550 Z" fill="#fafafa" stroke="#555" stroke-width="1.5"/>
+<text x="560" y="263" font-family="Arial" font-size="14" font-weight="bold">delivery</text>
+<rect x="25" y="42" width="175" height="44" fill="#eee" stroke="#777"/>
+<text x="112.5" y="69" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">Order</text>
+<rect x="220" y="42" width="175" height="44" fill="#eee" stroke="#777"/>
+<text x="307.5" y="69" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">OrderItem</text>
+<rect x="25" y="114" width="175" height="44" fill="#eee" stroke="#777"/>
+<text x="112.5" y="141" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">OrderStatus</text>
+<rect x="220" y="114" width="175" height="44" fill="#eee" stroke="#777"/>
+<text x="307.5" y="131" text-anchor="middle" font-family="Arial" font-size="14">«port»</text>
+<text x="307.5" y="149" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">OrderRepository</text>
+<rect x="565" y="42" width="175" height="44" fill="#eee" stroke="#777"/>
+<text x="652.5" y="69" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">CardApprovalRequest</text>
+<rect x="760" y="42" width="175" height="44" fill="#eee" stroke="#777"/>
+<text x="847.5" y="69" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">CardApprovalResult</text>
+<rect x="565" y="114" width="175" height="44" fill="#eee" stroke="#777"/>
+<text x="652.5" y="131" text-anchor="middle" font-family="Arial" font-size="14">«port»</text>
+<text x="652.5" y="149" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">PaymentGateway</text>
+<rect x="25" y="293" width="175" height="44" fill="#eee" stroke="#777"/>
+<text x="112.5" y="320" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">Product</text>
+<rect x="220" y="293" width="175" height="44" fill="#eee" stroke="#777"/>
+<text x="307.5" y="310" text-anchor="middle" font-family="Arial" font-size="14">«port»</text>
+<text x="307.5" y="328" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">ProductGateway</text>
+<rect x="565" y="293" width="175" height="44" fill="#eee" stroke="#777"/>
+<text x="652.5" y="320" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">DeliveryRequest</text>
+<rect x="760" y="293" width="175" height="44" fill="#eee" stroke="#777"/>
+<text x="847.5" y="310" text-anchor="middle" font-family="Arial" font-size="14">«port»</text>
+<text x="847.5" y="328" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">DeliveryGateway</text>
+<path d="M200,64 H220 M307.5,86 V101 H210 V315 H200" fill="none" stroke="#222" stroke-width="1.6"/>
+<path d="M410,100 H550" fill="none" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#dependency)"/>
+<path d="M70,182 V247" fill="none" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#dependency)"/>
+<path d="M410,165 H475 V270 H550" fill="none" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#dependency)"/>
+</svg>
+```
+
+- 범례:
+
+  - 화살촉 없는 실선은 실습 4에서 확인한 `Order`—`OrderItem`, `OrderItem`—`Product`의 **업무 연관**이다. Java 객체 참조, 탐색 방향 및 저장 방식은 정하지 않는다.
+  - 패키지 사이의 점선 화살표는 `order`에서 `payment`, `delivery`, `product`로 향하는 **설계상 코드 의존**이다.
+  - 특정 `Order` 객체에서 외부 포트로 향하는 호출 관계는 나타내지 않는다. 포트를 호출할 구체 객체와 그 책임은 다음 설계 활동에서 정한다.
+  - 그림에 배치한 클래스와 포트는 패키지 경계를 보여 주기 위한 대표 요소이며 도메인 모델 전체를 대체하지 않는다.
+
+### 2.2 포트의 구현
+
+이 그림은 업무 패키지가 소유한 포트를 어느 연동·영속 클래스가 구현하는지 보여 준다.
+
+```svg:uml
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="430" viewBox="0 0 960 430">
+<defs><marker id="dependency" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#222" stroke-width="1.3"/></marker></defs>
+<rect width="960" height="430" fill="white"/>
+<path d="M10,27 V5 H125 V27 H300 V130 H10 Z" fill="#fafafa" stroke="#555" stroke-width="1.5"/>
+<text x="20" y="21" font-family="Arial" font-size="14" font-weight="bold">payment</text>
+<rect x="25" y="47" width="260" height="44" fill="#eee" stroke="#777"/>
+<text x="155" y="64" text-anchor="middle" font-family="Arial" font-size="14">«port»</text>
+<text x="155" y="82" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">PaymentGateway</text>
+<path d="M360,27 V5 H475 V27 H650 V130 H360 Z" fill="#fafafa" stroke="#555" stroke-width="1.5"/>
+<text x="370" y="21" font-family="Arial" font-size="14" font-weight="bold">paymentadapter</text>
+<rect x="375" y="47" width="260" height="44" fill="#eee" stroke="#777"/>
+<text x="505" y="74" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">PaymentAdapter</text>
+<rect x="710" y="47" width="240" height="44" fill="#eee" stroke="#777"/>
+<text x="830" y="64" text-anchor="middle" font-family="Arial" font-size="14">«system»</text>
+<text x="830" y="82" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">외부 결제 제공자</text>
+<path d="M360,69 H300" fill="none" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#dependency)"/>
+<text x="330" y="63" text-anchor="middle" font-family="Arial" font-size="12">구현</text>
+<path d="M650,69 H710" fill="none" stroke="#222" stroke-width="1.6" marker-end="url(#dependency)"/>
+<text x="680" y="63" text-anchor="middle" font-family="Arial" font-size="12">통신</text>
+<path d="M10,172 V150 H125 V172 H300 V275 H10 Z" fill="#fafafa" stroke="#555" stroke-width="1.5"/>
+<text x="20" y="166" font-family="Arial" font-size="14" font-weight="bold">delivery</text>
+<rect x="25" y="192" width="260" height="44" fill="#eee" stroke="#777"/>
+<text x="155" y="209" text-anchor="middle" font-family="Arial" font-size="14">«port»</text>
+<text x="155" y="227" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">DeliveryGateway</text>
+<path d="M360,172 V150 H475 V172 H650 V275 H360 Z" fill="#fafafa" stroke="#555" stroke-width="1.5"/>
+<text x="370" y="166" font-family="Arial" font-size="14" font-weight="bold">deliveryadapter</text>
+<rect x="375" y="192" width="260" height="44" fill="#eee" stroke="#777"/>
+<text x="505" y="219" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">DeliveryAdapter</text>
+<rect x="710" y="192" width="240" height="44" fill="#eee" stroke="#777"/>
+<text x="830" y="209" text-anchor="middle" font-family="Arial" font-size="14">«system»</text>
+<text x="830" y="227" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">외부 배송 제공자</text>
+<path d="M360,214 H300" fill="none" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#dependency)"/>
+<text x="330" y="208" text-anchor="middle" font-family="Arial" font-size="12">구현</text>
+<path d="M650,214 H710" fill="none" stroke="#222" stroke-width="1.6" marker-end="url(#dependency)"/>
+<text x="680" y="208" text-anchor="middle" font-family="Arial" font-size="12">통신</text>
+<path d="M10,317 V295 H125 V317 H300 V420 H10 Z" fill="#fafafa" stroke="#555" stroke-width="1.5"/>
+<text x="20" y="311" font-family="Arial" font-size="14" font-weight="bold">order</text>
+<rect x="25" y="337" width="260" height="44" fill="#eee" stroke="#777"/>
+<text x="155" y="354" text-anchor="middle" font-family="Arial" font-size="14">«port»</text>
+<text x="155" y="372" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">OrderRepository</text>
+<path d="M360,317 V295 H475 V317 H650 V420 H360 Z" fill="#fafafa" stroke="#555" stroke-width="1.5"/>
+<text x="370" y="311" font-family="Arial" font-size="14" font-weight="bold">persistence</text>
+<rect x="375" y="337" width="260" height="44" fill="#eee" stroke="#777"/>
+<text x="505" y="364" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">OrderPersistenceAdapter</text>
+<rect x="710" y="337" width="240" height="44" fill="#eee" stroke="#777"/>
+<text x="830" y="354" text-anchor="middle" font-family="Arial" font-size="14">«store»</text>
+<text x="830" y="372" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">주문 저장소</text>
+<path d="M360,359 H300" fill="none" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#dependency)"/>
+<text x="330" y="353" text-anchor="middle" font-family="Arial" font-size="12">구현</text>
+<path d="M650,359 H710" fill="none" stroke="#222" stroke-width="1.6" marker-end="url(#dependency)"/>
+<text x="680" y="353" text-anchor="middle" font-family="Arial" font-size="12">통신</text>
+</svg>
+```
+
+- 범례:
+
+  - 연동·영속 패키지에서 업무 포트로 향하는 점선 화살표는 포트 구현을 뜻한다. 외부 결제·배송 제공자는 시스템으로, 주문 저장소는 저장소로 구분한다.
+  - `product.ProductGateway`의 소유 경계는 첫 그림에 나타냈다. 외부 상품 시스템 연동 구현은 이번 범위 밖이므로 둘째 그림에는 넣지 않는다.
+
+### 2.3 패키지별 배치
+
+- `order`: `Order`, `OrderItem`, `OrderStatus`를 소유하고 `OrderRepository`를 선언하며 `payment`, `delivery`, `product`에 의존한다.
+- `payment`: `CardApprovalRequest`, `CardApprovalResult`와 `PaymentGateway`를 소유한다.
+- `delivery`: `DeliveryRequest`와 `DeliveryGateway`를 소유한다. 배송 실패가 `PAID`에 미치는 영향, 재시도 기준과 담당 주체, 중복 처리 방식 및 응답 시간 초과 처리는 정하지 않는다.
+- `product`: `Product`와 `ProductGateway`를 소유한다. 동일 상품 항목의 병합 여부와 재고 관련 규격은 정하지 않으며 외부 상품 시스템 연동 구현은 이번 범위에서 만들지 않는다.
+- `paymentadapter`: `PaymentAdapter`가 `PaymentGateway`를 구현하고 외부 결제 제공자의 전문을 업무 의미로 변환한다.
+- `deliveryadapter`: `DeliveryAdapter`가 `DeliveryGateway`를 구현하고 업무의 배송 요청을 외부 배송 제공자의 전문으로 변환한다.
+- `persistence`: `OrderPersistenceAdapter`가 `OrderRepository`를 구현하고 주문 저장소와 통신한다.
+
+호출자가 들어오는 쪽과 입력 포트 및 유스케이스 인터페이스의 배치는 이번 범위 밖이다.
+
+## 3. 의존 규칙
+
+### 허용
+
+- `order` → `payment`, `delivery`, `product`
+- `paymentadapter` → `payment`, 외부 결제 라이브러리
+- `deliveryadapter` → `delivery`, 외부 배송 라이브러리
+- `persistence` → `order`, 데이터베이스 및 영속 기술 라이브러리
+
+### 검사 가능한 금지
+
+- 업무 패키지 `order`, `payment`, `delivery`, `product`에서 연동·영속 패키지 `paymentadapter`, `deliveryadapter`, `persistence`로 향하는 의존을 금지한다.
+- 업무 패키지 사이에서는 허용 목록에 없는 의존을 금지한다. 따라서 순환 여부와 관계없이 `payment → delivery` 같은 의존은 금지한다.
+- 위 일곱 패키지 사이의 직·간접 의존 순환을 금지한다.
+
+### 검사로 판정하지 못하는 책임의 약속
+
+- `paymentadapter`는 제공자 전문을 승인·거절·확정 불가로 변환하며, 제공자의 필드·참조 값·코드를 업무 패키지에 노출하지 않고 주문 상태를 변경하지 않는다.
+- `deliveryadapter`는 업무의 배송 요청만 전달하며, 제공자의 필드·참조 값·코드를 노출하거나 독자적으로 배송 요청을 만들지 않는다.
+- `persistence`는 주문을 저장·조회할 뿐 주문 상태 전이나 주문 금액을 결정하지 않는다.
+- `product`와 이후 구현은 미정인 재고 판단 시점과 부족 처리 정책을 추가하지 않는다.
+- 어느 패키지도 미정인 만료, 결제 응답 미확정 후속 처리, 배송 실패·재시도 정책을 임의로 구현하지 않는다.
+
+## 4. 결제 포트 연동 규격
+
+`PaymentGateway`에는 업무의 말만 둔다. 전송 방식과 결제 제공자의 전문·필드·참조 값·코드는 확정하지 않으며 `paymentadapter`가 변환한다.
+
+- **업무가 보냄:** `CardApprovalRequest(orderNumber, amount, cardApprovalData)`
+- **업무가 받음:** `CardApprovalResult(APPROVED | DECLINED | UNCONFIRMED)`
+
+### 필수 규칙
+
+- `amount`는 원 단위의 0 이상 정수이며 저장된 주문 총액과 같아야 한다.
+- 승인 시 현재 상품 판매가를 다시 조회하지 않는다.
+- `APPROVED`만 주문을 `PAID`로 전이시킨다.
+- `DECLINED`는 주문을 `PENDING_PAYMENT`로 유지한다.
+- `UNCONFIRMED`는 승인 또는 거절로 해석하지 않는다.
+- `APPROVED`, `DECLINED`, `UNCONFIRMED`는 `payment`가 사용하는 결제 업무 결과이며 주문 상태가 아니다.
+- `UNCONFIRMED`는 결제 응답을 확정할 수 없다는 업무 결과다.
+
+### 정하지 않는 것
+
+- 카드 원문 정보를 주문 도메인에 저장할지 정하지 않는다.
+- 외부 참조 값의 보존 여부를 정하지 않는다.
+- 중복 요청의 식별과 처리 계약을 정하지 않는다.
+- `UNCONFIRMED` 이후의 처리와 재결제 허용 여부를 정하지 않는다.
+- 결제 시스템이 확정 불가 결과의 조회 기능을 제공하는지 정하지 않는다.
+- 결제 연동의 독립 배포·팀 소유·별도 출시 필요 여부를 정하지 않는다.
+[실제 응답]
+## 책임과 협력
+
+`Order`가 업무 규칙과 상태 전이를 지키고, 유스케이스 조정자(논리적으로 `OrderApplicationService`)가 시스템 오퍼레이션을 받으며 외부 포트를 조율한다.
+
+- `Order`
+  - 주문 항목의 확정 단가·수량·총액 합계 불변식을 보장한다.
+  - 생성 시 `PENDING_PAYMENT` 상태와 확정 배송지를 갖는다.
+  - `PENDING_PAYMENT`에서만 승인 완료를 받아 `PAID`로 전이한다.
+  - 거절에는 상태를 바꾸지 않는다.
+  - 주문 항목·수량·확정 단가·배송지를 변경하는 오퍼레이션을 제공하지 않는다.
+
+- `OrderApplicationService` (논리적 유스케이스 조정자)
+  - `주문 생성`, `카드 결제 요청`, `주문 결과 확인` 시스템 오퍼레이션을 받는다.
+  - `OrderRepository`, `ProductGateway`, `PaymentGateway`, `DeliveryGateway`를 호출 순서에 맞게 협력시킨다.
+  - 외부 결제 결과를 해석하는 업무 의미는 `payment.CardApprovalResult`만 사용한다.
+  - `Order`의 상태를 직접 대입하지 않고 도메인 오퍼레이션을 호출한다.
+
+- `ProductGateway`
+  - 주문 생성 시 상품의 현재 판매가를 제공한다.
+  - 재고 판단은 수행하지 않는다. 판단 시점과 부족 처리 정책이 미정이기 때문이다.
+
+- `PaymentGateway`
+  - 확정 총액으로 카드 승인을 요청하고 `APPROVED`, `DECLINED`, `UNCONFIRMED` 중 하나를 돌려준다.
+
+- `DeliveryGateway`
+  - 승인 완료 후 확정 배송지를 담은 배송 요청을 전달한다.
+  - 배송 실패, 재시도, 중복 방지는 책임으로 확정하지 않는다.
+
+시스템 오퍼레이션 수신자는 `OrderApplicationService`가 적절하다. `Order`는 하나의 주문 상태와 불변식을 보호해야 하고, 가격 조회·저장·결제·배송처럼 여러 객체와 외부 포트를 횡단하는 절차까지 맡으면 응집도가 무너진다. 반면 아키텍처 결정은 입력 포트와 유스케이스의 물리적 배치를 미정으로 남겼다. 따라서 아래 `OrderApplicationService`는 논리적 책임 배치이며, 이를 실제로 어느 패키지에 둘지는 확정할 수 없다.
+
+## 설계 시퀀스
+
+```mermaid
+sequenceDiagram
+    actor Customer as 고객
+    participant UseCase as OrderApplicationService
+    participant Product as product.ProductGateway
+    participant Repo as order.OrderRepository
+    participant Order as order.Order
+    participant Payment as payment.PaymentGateway
+    participant Delivery as delivery.DeliveryGateway
+
+    Customer->>UseCase: createOrder(cartItems, shippingAddress)
+    UseCase->>Product: findProducts(productNumbers)
+    Product-->>UseCase: 현재 salePrice 목록
+    UseCase->>Order: create(items, shippingAddress, prices)
+    Note over Order: unitPrice와 totalAmount 확정<br/>status = PENDING_PAYMENT
+    Order-->>UseCase: order
+    UseCase->>Repo: save(order)
+    Repo-->>UseCase: saved order
+    UseCase-->>Customer: orderNumber, PENDING_PAYMENT, totalAmount
+
+    Customer->>UseCase: requestCardApproval(orderNumber, cardApprovalData)
+    UseCase->>Repo: findBy(orderNumber)
+    Repo-->>UseCase: order(PENDING_PAYMENT)
+    UseCase->>Payment: approve(orderNumber, order.totalAmount, cardApprovalData)
+    Payment-->>UseCase: CardApprovalResult
+
+    alt APPROVED
+        UseCase->>Order: approvePayment()
+        Note over Order: PENDING_PAYMENT → PAID
+        UseCase->>Repo: save(order)
+        UseCase->>Delivery: request(orderNumber, shippingAddress)
+        UseCase-->>Customer: PAID, APPROVED
+    else DECLINED
+        Note over Order: 상태는 PENDING_PAYMENT 유지
+        UseCase-->>Customer: PENDING_PAYMENT, DECLINED
+    else UNCONFIRMED
+        Note over Order: 승인·거절·상태 전이 없음
+        UseCase-->>Customer: UNCONFIRMED
+    end
+```
+
+`APPROVED`에서 저장과 배송 요청 사이의 원자성, 그리고 배송 요청 실패 시 반환값과 후속 처리는 확정할 수 없다. 위 도식은 승인 완료 뒤 배송 요청을 시도한다는 확정된 흐름만 표현한다.
+
+## 제안 인터페이스 선언
+
+```java
+package order;
+
+public interface OrderRepository {
+    Order save(Order order);
+    Order findBy(OrderNumber orderNumber);
+}
+```
+
+```java
+package product;
+
+public interface ProductGateway {
+    Product findBy(ProductNumber productNumber);
+}
+```
+
+```java
+package payment;
+
+public interface PaymentGateway {
+    CardApprovalResult approve(CardApprovalRequest request);
+}
+```
+
+```java
+package delivery;
+
+public interface DeliveryGateway {
+    void request(DeliveryRequest request);
+}
+```
+
+```java
+// 물리 패키지는 미정. 논리적 입력 포트다.
+public interface OrderUseCase {
+    CreateOrderResult createOrder(CreateOrderCommand command);
+
+    CardApprovalResponse requestCardApproval(
+        RequestCardApprovalCommand command
+    );
+
+    OrderResult getOrder(OrderNumber orderNumber);
+}
+```
+
+```java
+package order;
+
+public final class Order {
+    public static Order create(
+        OrderNumber orderNumber,
+        List<NewOrderItem> items,
+        Address shippingAddress
+    );
+
+    public void approvePayment();
+
+    public boolean isPendingPayment();
+    public Money totalAmount();
+    public Address shippingAddress();
+    public OrderStatus status();
+}
+```
+
+`approvePayment()`은 `PENDING_PAYMENT`가 아닐 때 거절해야 한다. 거절과 미확정 결과는 `Order`에 상태 변경을 요청하지 않는다.
+
+## 오퍼레이션 계약
+
+| 오퍼레이션 | 사전조건 | 사후조건 |
+|---|---|---|
+| `createOrder` | 장바구니 항목이 1개 이상이며 각 수량이 1 이상이다. 배송지가 제공된다. 상품 게이트웨이에서 각 상품의 현재 판매가를 얻을 수 있다. | 새 주문이 생성·저장된다. 각 항목의 `unitPrice`는 생성 시 판매가이며, `totalAmount = Σ(unitPrice × quantity)`이고 상태는 `PENDING_PAYMENT`다. |
+| `requestCardApproval` | 주문이 존재하고 `PENDING_PAYMENT`다. 승인 요청 금액은 저장된 `totalAmount`다. | `APPROVED`면 같은 주문이 `PAID`가 되고 확정 배송지로 배송 요청을 시도한다. `DECLINED`면 상태는 `PENDING_PAYMENT`로 유지되고 배송 요청하지 않는다. `UNCONFIRMED`면 승인·거절·상태 전이를 하지 않는다. |
+| `getOrder` | 주문이 존재한다. | 주문 번호, 상태, 확정 총액, 확정 배송지 및 주문 항목을 반환한다. 조회는 상태나 확정 값을 변경하지 않는다. |
+| `Order.create` | 항목이 1개 이상, 수량이 1 이상, 단가와 계산 총액이 0 이상, 배송지가 존재한다. | 불변식이 성립하는 `PENDING_PAYMENT` 주문을 만든다. |
+| `Order.approvePayment` | 현재 상태가 `PENDING_PAYMENT`다. | 상태가 `PAID`가 된다. 항목, 확정 단가, 총액, 배송지는 변하지 않는다. |
+
+## 설계에 남는 빈자리와 확인 질문
+
+다음은 정책을 임의로 확정하지 않기 위해 질문으로 남긴다.
+
+1. 카드 결제 요청은 “변경 요청”으로 보아 본인 주문 권한을 반드시 검사해야 하는가? 실습 5에서 이 적용 여부가 미정이다.
+2. 주문 생성과 조회에서 회원/비회원의 주문 주체 및 본인 확인 정보를 어떤 타입과 경계에서 받을 것인가?
+3. `UNCONFIRMED` 결과를 받은 뒤 같은 주문의 재결제를 허용하는가?
+4. 결제 승인 후 주문 저장 또는 배송 요청이 실패하면, 고객에게 어떤 결과를 반환하고 이후 무엇을 보장해야 하는가?
+5. “승인 결과를 확인”할 때 현재 상태만으로 충분한가, 아니면 카드별 승인·거절 이력을 영속해야 하는가? 결제 이력 보존 구조는 아직 정해지지 않았다.
+6. `OrderApplicationService`와 `OrderUseCase`를 실제로 어느 패키지에 배치할 것인가? 실습 6은 입력 포트·유스케이스의 배치를 범위 밖으로 남겼다.
+[사용자 — 이번 피드백]
+[앞선 질문에 대한 답]
+1. 본인 주문 권한 검사의 적용 여부는 미정이다. 설계에서 정하지 말고 검사할 자리가 비어 있다고만 적어라.
+2. 회원·비회원과 본인 확인 정보의 타입도 미정이다.
+3. 확정 불가 결과 뒤의 재결제 허용 여부는 미정이다.
+4. 승인 뒤 저장이나 배송 요청이 실패할 때의 처리도 미정이다.
+5. 승인·거절 이력의 영속은 이번 범위가 아니다. 주문 결과 확인은 현재 상태와 확정 값으로 한다.
+6. 유스케이스 조정자는 업무 패키지 order에 둔다. 포트를 업무 패키지가 소유한다는 아키텍처 결정과 같은 근거다. 이름은 네가 정하고 근거를 적어라.
+
+[추가 질문·수정 요청]
+책임 배치의 근거를 정보 전문가와 컨트롤러로 다시 적어라. 주문 금액 계산, 단가 확정, 상태 전이와 금지, 사건 수신과 호출 순서, 조회와 저장, 외부 승인·배송 요청을 각각 어느 객체가 맡고 왜 그런지 한 줄씩 밝혀라. 그 값을 아는 객체가 계산하는지, 값을 넘겨 받아 계산하는 객체가 없는지 확인해라.

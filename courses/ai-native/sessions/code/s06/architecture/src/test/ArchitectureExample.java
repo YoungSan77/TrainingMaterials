@@ -3,6 +3,7 @@ import order.Order;
 import order.OrderService;
 import order.OrderStatus;
 import payment.Money;
+import payment.PaymentDecision;
 import payment.PaymentMethod;
 import delivery.Address;
 import persistence.MemoryOrderRepository;
@@ -19,7 +20,7 @@ public final class ArchitectureExample {
         OrderService rejected = new OrderService(repository,
             new PaymentAdapter((amount, method) -> {
                 check(amount.won() == 2000, "거절 요청 금액");
-                return false;
+                return PaymentDecision.REJECTED;
             }), new DeliveryAdapter((number, address) -> deliveries.incrementAndGet()));
         rejected.pay("demo", new PaymentMethod("카드1"));
         check(order.status() == OrderStatus.PENDING_PAYMENT, "거절 상태");
@@ -28,7 +29,7 @@ public final class ArchitectureExample {
         OrderService approved = new OrderService(repository,
             new PaymentAdapter((amount, method) -> {
                 check(amount.won() == 2000, "승인 요청 금액");
-                return true;
+                return PaymentDecision.APPROVED;
             }), new DeliveryAdapter((number, address) -> {
                 check(order.status() == OrderStatus.PAID, "상태 변경 뒤 배송");
                 check(address.value().equals("서울"), "배송지");

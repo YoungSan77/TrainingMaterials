@@ -1,4 +1,5 @@
 package order;
+import payment.PaymentDecision;
 import payment.PaymentGateway;
 import payment.PaymentMethod;
 import delivery.DeliveryGateway;
@@ -16,7 +17,7 @@ public final class OrderService {
     }
     public void pay(String orderNumber, PaymentMethod method) {
         Order order = repository.findBy(orderNumber);
-        if (payment.requestApproval(order.totalAmount(), method)) {
+        if (payment.requestApproval(order.totalAmount(), method) == PaymentDecision.APPROVED) {
             order.onPaid();
             delivery.requestDelivery(orderNumber, order.shippingAddress());
         }

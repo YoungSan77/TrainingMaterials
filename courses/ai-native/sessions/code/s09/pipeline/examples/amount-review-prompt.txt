@@ -1,0 +1,77 @@
+다음 자바 코드를 업무 규칙에 비추어 심사해라. 코드를 고치지 말고 판정과 근거만 적어라.
+
+업무 규칙과 용어
+- 판매가 — 상품의 현재 가격. 언제든 바뀐다.
+- 단가 — 주문이 생길 때의 판매가를 그 주문에 확정해 남긴 값. 이후 판매가가 바뀌어도 변하지 않는다.
+- 주문 금액 — 항목의 단가 × 수량의 합.
+
+심사할 것
+1. 주문 금액을 정하는 곳이 **한 군데**인가? 둘 이상이면 어디와 어디인가?
+2. 단가가 주문 시점에 확정되어 이후 판매가 변경에 영향받지 않는가?
+3. 코드가 판매가와 단가를 **다른 이름**으로 구별해 쓰는가? 한 이름이 둘을 가리키는 곳이 있는가?
+
+각 항목에 통과·위반·판정 불가 중 하나와 근거가 되는 줄을 적고, 위반이면 고칠 방향을 한 줄로 적어라. 마지막에 전체 판정 한 줄을 적어라.
+
+```java
+// order/OrderApplicationService.java
+public final class OrderApplicationService implements OrderPlacementUseCase {
+    private final OrderRepository orderRepository;
+    private final ProductGateway productGateway;
+
+    @Override
+    public CreateOrderResult createOrder(CreateOrderCommand command) {
+        Objects.requireNonNull(command, "command must not be null");
+
+        List<PricedOrderItem> pricedItems = command.items().stream()
+            .map(item -> {
+                Money salePrice = productGateway.findCurrentSalePrice(item.productNumber());
+                if (salePrice == null) {
+                    throw new IllegalStateException("Current sale price must be available");
+                }
+                return new PricedOrderItem(item.productNumber(), item.quantity(), salePrice);
+            })
+            .toList();
+
+        Order order = Order.create(command.orderNumber(), pricedItems, command.shippingAddress());
+        orderRepository.save(order);
+        return new CreateOrderResult(order);
+    }
+}
+
+// order/Order.java
+public final class Order {
+    private final Money totalAmount;
+
+    public static Order create(OrderNumber orderNumber, List<PricedOrderItem> pricedItems, Address shippingAddress) {
+        if (pricedItems.isEmpty()) {
+            throw new IllegalArgumentException("An order must have at least one item");
+        }
+        List<OrderItem> items = pricedItems.stream().map(OrderItem::from).toList();
+        Money totalAmount = items.stream()
+            .map(OrderItem::subtotal)
+            .reduce(Money.won(0), Money::add);
+        return new Order(orderNumber, items, totalAmount, shippingAddress, OrderStatus.PENDING_PAYMENT);
+    }
+}
+
+// order/OrderItem.java
+public record OrderItem(ProductNumber productNumber, Quantity quantity, Money unitPrice) {
+    public static OrderItem from(PricedOrderItem item) {
+        return new OrderItem(item.productNumber(), item.quantity(), item.unitPrice());
+    }
+
+    public Money subtotal() {
+        return unitPrice.multiply(quantity.value());
+    }
+}
+
+// order/PricedOrderItem.java
+/** An order item with the sale price fixed at order creation. */
+public record PricedOrderItem(ProductNumber productNumber, Quantity quantity, Money unitPrice) {
+}
+
+// product/ProductGateway.java
+public interface ProductGateway {
+    Money findCurrentSalePrice(ProductNumber productNumber);
+}
+```
