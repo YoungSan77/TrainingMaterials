@@ -90,3 +90,44 @@ test("표의 제목은 글이 아니라 표를 따라간다", async () => {
     "표 제목이 글의 장에 남지 않는다"
   );
 });
+
+// 표 칸의 글은 세로 가운데에 둔다 — 위 여백만 있으면 가운데 맞춤이어도 아래로 치우쳐 보인다(2026-10-28).
+test("표 칸은 세로 가운데 맞춤이고 위아래 여백이 같다", async () => {
+  const md = [
+    "--------------------",
+    "Session 명: 01. 표",
+    "--------------------",
+    "",
+    "## 목차",
+    "",
+    "01. 표",
+    "",
+    "## 01. 표",
+    "",
+    "**표 — 칸 맞춤**",
+    "",
+    "| 활동 | 사람이 한다 | AI가 한다 |",
+    "|---|---|---|",
+    "| 요구 | 범위와 기대값을 정한다 | 초안을 쓰고 묻는다 |",
+    "| 설계 | 책임과 협력을 정한다 | 대안을 낸다 |",
+    "",
+    "**강사 노트**",
+    "",
+    "- 노트.",
+    "",
+  ].join("\n");
+  const { sections, toc } = parse(md);
+  const out = path.join(os.tmpdir(), `tm-tcell-${process.pid}-${Date.now()}.pptx`);
+  try {
+    const m = await render(sections, TEMPLATE_DIR, out, "01. 표", toc);
+    const page = m.pages.find((p) => (p.items || []).some((it) => it.kind === "table"));
+    const cells = [...page.doc.getElementsByTagName("a:tcPr")];
+    assert.ok(cells.length >= 9, "모든 칸을 본다");
+    for (const tc of cells) {
+      assert.equal(tc.getAttribute("anchor"), "ctr");
+      assert.equal(tc.getAttribute("marT"), tc.getAttribute("marB"), "위아래 여백이 같다");
+    }
+  } finally {
+    if (fs.existsSync(out)) fs.unlinkSync(out);
+  }
+});

@@ -262,6 +262,9 @@ const TABLE_MAX_WIDTH = 654;
 // Template's own graphicFrame band (table prototype, shape id 11): x=33.48pt,
 // cx=651.97pt -- close enough to TABLE_MAX_WIDTH that centering a narrower table inside this
 // band still reads as "the same table area, just not stretched full-width."
+// 표 칸의 위아래 여백(EMU). 원형 슬라이드는 위 6750·아래 0이어서 가운데 맞춤이어도 글이 아래로
+// 치우쳐 보였다. 같은 값을 위아래에 주어 가운데가 실제 가운데가 되게 한다(2026-10-28).
+const CELL_MAR_V = 6750;
 const TABLE_BAND_X = 33.48;
 const TABLE_BAND_CX = 651.97;
 const TABLE_ROW_PT = 0.8 / 2.54 * 72; // 0.8cm
@@ -1145,6 +1148,15 @@ class Builder {
         const cell = copy(page.doc, cells[Math.min(ci, cells.length - 1)]);
         setText(cell, group[ri][ci]);
         for (const rp of all(cell, A, "rPr")) rp.setAttribute("sz", "1000");
+        // 칸의 글은 **세로 가운데**에 둔다. 원형 슬라이드의 값에 기대지 않고 여기서 정하며, 위아래
+        // 여백을 같게 맞춘다 — 위 여백만 있으면 가운데 맞춤이어도 글이 아래로 내려가 보인다
+        // (production-guide.md 「표의 행 높이와 열 너비」).
+        const tcPr = child(cell, A, "tcPr");
+        if (tcPr) {
+          tcPr.setAttribute("anchor", "ctr");
+          tcPr.setAttribute("marT", String(CELL_MAR_V));
+          tcPr.setAttribute("marB", String(CELL_MAR_V));
+        }
         row.appendChild(cell);
       }
       tbl.appendChild(row);

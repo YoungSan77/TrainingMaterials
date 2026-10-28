@@ -164,6 +164,22 @@ test("a focused prompt practice may provide 진행 방법 instead of a hidden ch
   assert.deepEqual(practiceShape(sections), []);
 });
 
+// 수는 숫자로 적는다 — "세 가지"가 아니라 "3가지". '하나'의 관형어와 횟수의 '번'은 한글로 둔다.
+test("a spelled-out count is reported; 한 번·두 번 and 한 줄 are not", () => {
+  const { spelledNumbers } = require("../structure");
+  const { parse } = require("../parse");
+  const bad = parse("## 01. 예\n\n검사 세 가지를 붙이고 다섯 단계로 나눈다.\n");
+  const w = spelledNumbers(bad.sections);
+  assert.equal(w.length, 2);
+  assert.match(w[0], /세 가지/);
+  assert.match(w[1], /다섯 단계/);
+  const good = parse("## 01. 예\n\n검사 3가지를 붙인다. 한 줄로 적고 두 번 돌린다.\n");
+  assert.deepEqual(spelledNumbers(good.sections), []);
+  // 코드와 도식 원본은 보지 않는다.
+  const code = parse("## 01. 예\n\n```java\n// 세 가지를 확인한다\n```\n");
+  assert.deepEqual(spelledNumbers(code.sections), []);
+});
+
 // 세션마다 요약의 강사 노트가 그 세션이 모델에 더한 것을 한 줄로 밝힌다(없으면 "없다"로 밝힌다).
 test("a summary note without the model-update line is reported", () => {
   const { missingModelUpdate } = require("../structure");

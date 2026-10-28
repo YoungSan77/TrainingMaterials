@@ -9,7 +9,7 @@ const builder = require("./builder");
 const { inspect, reportJson } = require("./inspect");
 const { checkReferences } = require("./references");
 const { courseInfo } = require("./course");
-const { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, slideTalk, countsMatchTable, numberedBullets, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape, missingModelUpdate } = require("./structure");
+const { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, slideTalk, countsMatchTable, numberedBullets, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape, missingModelUpdate, spelledNumbers } = require("./structure");
 const { checkCodeSources, checkEnumConsistency, checkOrphanCode } = require("./codeSource");
 
 // A continuation slide that carries only a line or two of text (no table, visual or code) is a
@@ -92,6 +92,7 @@ async function generateFile(inputPath, outputPath, templatePath) {
     refs.warnings.push(...answersOutsideAppendix(sections));
     refs.warnings.push(...practiceShape(sections));
     refs.warnings.push(...missingModelUpdate(sections));
+    refs.warnings.push(...spelledNumbers(sections));
     refs.warnings.push(...checkOrphanCode(inputPath));
     refs.warnings.push(...(m.layoutWarnings || []));
     // Diagram text below MIN_PT (production-guide.md "Visual layout 및 가독성"): the diagram had to

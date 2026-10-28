@@ -219,6 +219,28 @@ function practiceShape(sections) {
   return warnings;
 }
 
+// 수는 숫자로 적는다(session-authoring-guide.md 「문체와 용어」) — "세 가지"가 아니라 "3가지".
+// '하나'를 뜻하는 관형어(한 번·한 줄)와 횟수의 '번'은 한글이므로 보지 않는다. 변환은
+// tools/normalize-numbers.js가 하고, 여기서는 남은 것을 경고한다.
+const SPELLED = /(?<![가-힣])(두|세|네|다섯|여섯|일곱|여덟|아홉|열한|열두)\s*(가지|개|곳|단계|세션|장|줄|명|행|열|원칙)(?:(?![가-힣])|(?=(?:은|는|이|가|을|를|의|에|와|과|도|만|로|으로|나|며|씩|뿐|까지|부터|라도|라)(?![가-힣])))/g;
+function spelledNumbers(sections) {
+  const warnings = [];
+  for (const s of sections) {
+    for (const b of s.blocks || []) {
+      if (["code", "tree", "mermaid", "plantuml", "svg", "chart"].includes(b.kind)) continue;
+      const texts = b.kind === "table" ? (b.rows || []).flat() : [b.text || ""];
+      for (const t of texts) {
+        // 영문 인용의 한글 번역은 원문을 옮긴 것이므로 검사 대상이다. 따옴표 안의 영문만 뺀다.
+        const masked = String(t).replace(/"[^"]*"/g, "");
+        SPELLED.lastIndex = 0;
+        let m;
+        while ((m = SPELLED.exec(masked))) warnings.push(`"${s.title}"의 "${m[0]}"은 숫자로 쓴다(예: ${m[0].replace(/\s+/, "")} → 숫자+${m[2]}).`);
+      }
+    }
+  }
+  return warnings;
+}
+
 // 세션마다 요약의 강사 노트가 **그 세션이 모델에 더한 것**을 한 줄로 밝힌다(course-design.md의
 // 「세 칸이 과정의 형식이다」 — 세션 순서가 개발 절차가 아니라 반복임을 보이는 줄이다). 경고만.
 function missingModelUpdate(sections) {
@@ -235,4 +257,4 @@ function missingNotes(sections) {
   return sections.filter((s) => (!s.blocks || s.blocks.length) && !(s.notes && s.notes.length)).map((s) => `강사 노트가 없다: "${s.title}"`);
 }
 
-module.exports = { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, slideTalk, countsMatchTable, numberedBullets, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape, missingModelUpdate, MAX_GOALS };
+module.exports = { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, slideTalk, countsMatchTable, numberedBullets, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape, missingModelUpdate, spelledNumbers, MAX_GOALS };
