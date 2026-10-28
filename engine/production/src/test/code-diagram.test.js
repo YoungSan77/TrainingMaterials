@@ -362,3 +362,19 @@ test("a mixed document that fits at equal 8pt gaps stays on one slide without dr
   for (let i = 1; i < bounds.length; i++) assert.ok(Math.abs(bounds[i].y - bounds[i-1].y - bounds[i-1].h - 8) < .001);
   assert.ok(bounds.at(-1).y + bounds.at(-1).h <= require('../builder').PAGE_NUM_Y * 72 - .15 * 72);
 });
+
+// 원고가 가리키지 않는 예시 코드는 잔여물이다(production-guide.md 「자동 검사 — 참조와 경고」).
+test("example code no manuscript points at is reported", () => {
+  const { checkOrphanCode } = require("../codeSource");
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "tm-orphan-"));
+  const dir = path.join(root, "sessions");
+  fs.mkdirSync(path.join(dir, "code", "s03"), { recursive: true });
+  fs.mkdirSync(path.join(dir, "code", "s03", "order"));
+  fs.mkdirSync(path.join(dir, "code", "s03", "옛시연"));
+  fs.mkdirSync(path.join(dir, "code", "s03", "lib"));
+  fs.writeFileSync(path.join(dir, "s03.md"), "## 01. 예\\n\\n**강사 노트**\\n\\n- 원본은 code/s03/order/다.\\n");
+  const w = checkOrphanCode(path.join(dir, "s03.md"));
+  assert.deepEqual(w, ["원고가 가리키지 않는 예시 코드: code/s03/옛시연"], "lib는 실행용 의존성이라 보지 않는다");
+  fs.writeFileSync(path.join(dir, "s11.md"), "code/s03/옛시연 은 이 세션이 가리킨다.\\n");
+  assert.deepEqual(checkOrphanCode(path.join(dir, "s03.md")), [], "같은 과정의 다른 원고가 가리켜도 된다");
+});

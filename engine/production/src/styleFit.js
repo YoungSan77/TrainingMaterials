@@ -21,7 +21,7 @@ const ANSWER_STYLE = { fit: 1.1, leftFit: 1.04, text: 14, levels: [14, 12, 11], 
 // "**참고 자료 목록**" (production-guide.md "별첨 — 참고 자료"): numbered entries at 8pt in two columns.
 // `numberHang` starts a numbered entry at the left edge and its wrapped lines after "N. "; `space` is
 // the space before and after each paragraph (pt, default STYLE_SPACE).
-const REFERENCE_STYLE = { fit: 1.1, text: 8, levels: [8, 8, 8], expl: (L) => L, paren: (L) => L, hang: true, numberHang: true, space: 1 };
+const REFERENCE_STYLE = { fit: 1.1, leftFit: 1.1, leftFirst: true, text: 7, levels: [7, 7, 7], expl: (L) => L, paren: (L) => L, hang: true, numberHang: true, space: 1 };
 const REFERENCE_MARKER = /^\*\*참고 자료 목록\*\*$/;
 const isReferenceMarker = (b) => b.kind === "text" && REFERENCE_MARKER.test(b.text.trim());
 const shiftStyle = (size) => ({ fit: 1.04, text: size, levels: [size, size - 2, size - 4], expl: (L) => L - 2, paren: (L) => Math.max(8, L - 4), aligned: true });

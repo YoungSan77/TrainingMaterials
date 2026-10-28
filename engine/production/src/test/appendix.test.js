@@ -1,7 +1,7 @@
 "use strict";
 // production-guide.md "별첨 — 참고 자료": the course appendix references.md (its own document) lists
 // numbered entries "N. **[레이블]** …" in one alphabetical list at 8pt in two columns; sessions cite
-// by label and every label must be listed.
+// by label and every label must be listed. 글자 크기는 7pt다.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("fs");
@@ -28,16 +28,25 @@ async function pagesOf(md) {
   }
 }
 
-test("the appendix needs no table of contents and sets its entries at 8pt in two columns", async () => {
+test("the appendix needs no table of contents and sets its entries at 7pt", async () => {
   const pages = await pagesOf(appendix(12));
   assert.equal(pages.filter((p) => p.isToc).length, 0);
   assert.equal(pages.length, 1);
-  assert.equal(pages[0].columns, 2);
+  assert.equal(pages[0].columns, 1, "왼쪽 단을 채우지 못하는 짧은 목록은 한 단이다");
   const body = [...pages[0].doc.getElementsByTagName("a:p")].filter((p) => /Author/.test(p.textContent));
   const sizes = new Set(body.flatMap((p) => [...p.getElementsByTagName("a:rPr")].map((r) => r.getAttribute("sz"))).filter(Boolean));
-  assert.deepEqual([...sizes], ["800"]);
+  assert.deepEqual([...sizes], ["700"]);
   const text = pages[0].items.map((it) => it.text).join("\n");
   assert.equal(text.includes("참고 자료 목록"), false, "the marker never shows");
+});
+
+test("entries fill the left column to its bottom before the right one starts", async () => {
+  const pages = await pagesOf(appendix(40));
+  assert.equal(pages.length, 1);
+  assert.equal(pages[0].columns, 2);
+  const [left, right] = pages[0].fillParts;
+  assert.ok(left > 0.9, `왼쪽 단이 아래까지 찬다 (${left.toFixed(2)})`);
+  assert.ok(left > right, "오른쪽 단은 왼쪽이 찬 뒤에 받는다");
 });
 
 test("a long list continues on numbered slides", async () => {
@@ -94,6 +103,16 @@ test("literal code needs no bibliography, but an unmatched backtick does not hid
   const dir = course(body, null);
   assert.deepEqual(checkLabels(path.join(dir, "s01.md"), body), { errors: [], warnings: [] });
   assert.match(checkLabels(path.join(dir, "s01.md"), "닫히지 않은 `[Missing 2025]").errors[0], /references\.md/);
+});
+
+// 반대 방향 — 목록에만 있고 아무도 쓰지 않는 레이블. 인용하지 않기로 한 자료는 (읽을거리)로 밝힌다.
+test("an entry no session uses is a warning unless it is marked 읽을거리", () => {
+  const ap = "1. **[Used 2000]**  A\n2. **[Idle 2001]**  B\n3. **[Reading 2002]**  C (읽을거리)\n";
+  const dir = course("본문에서 [Used 2000]을 쓴다.\n", ap);
+  const r = checkLabels(path.join(dir, "references.md"), ap);
+  assert.deepEqual(r.errors, []);
+  assert.equal(r.warnings.length, 1);
+  assert.match(r.warnings[0], /\[Idle 2001\]/);
 });
 
 test("a duplicated appendix label is an error", () => {

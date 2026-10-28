@@ -136,4 +136,25 @@ function checkEnumConsistency(inputPath) {
   return warnings;
 }
 
-module.exports = { checkCodeSources, checkEnumConsistency, runs };
+// 원고가 가리키지 않는 예시 코드 — 해체된 세션이나 버린 사례의 잔여물이다. 같은 과정의 어느 원고도
+// `code/sNN/<이름>`을 말하지 않으면 경고한다(폴더 바로 아래 항목만 본다. 그 안의 파일은 폴더로
+// 가리키는 것이 보통이다). 경고만 — 지울지 원고가 가리키게 할지는 사람이 정한다.
+function checkOrphanCode(inputPath) {
+  const base = path.basename(inputPath).replace(/\.md$/i, "");
+  if (!/^s\d\d$/i.test(base)) return [];
+  const dir = path.dirname(path.resolve(inputPath));
+  const codeDir = path.join(dir, "code", base);
+  if (!fs.existsSync(codeDir)) return [];
+  let sources = "";
+  for (const f of fs.readdirSync(dir)) {
+    if (!/^(s\d\d|references)\.md$/i.test(f)) continue;
+    sources += fs.readFileSync(path.join(dir, f), "utf-8") + "\n";
+  }
+  // `lib`는 테스트 실행용 의존성(.gitignore가 제외한다)이고 원고가 가리킬 대상이 아니다.
+  return fs.readdirSync(codeDir)
+    .filter((name) => name !== "lib")
+    .filter((name) => !sources.includes("code/" + base + "/" + name))
+    .map((name) => "원고가 가리키지 않는 예시 코드: code/" + base + "/" + name);
+}
+
+module.exports = { checkCodeSources, checkEnumConsistency, checkOrphanCode, runs };

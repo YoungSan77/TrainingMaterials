@@ -196,21 +196,37 @@ function answersOutsideAppendix(sections) {
 // A practice topic has a fixed shape (session-authoring-guide.md "사례·가정·실습"): 투입물 (or 서비스
 // 개요 for the first one), 프롬프트, 점검 항목, 결과물. Without this check a practice written in some
 // other shape -- 과제/평가 기준/구성 요소 -- renders cleanly and the gap only shows in review.
+// 실습은 사슬이다 — 앞 실습의 산출물이 다음 실습의 투입물이다. 그래서 투입물은 프롬프트 문장
+// 안이 아니라 제 항목으로 있어야 하고, 결과물은 다음 실습이 가리킬 **파일 이름**을 밝혀야 한다
+// (session-authoring-guide.md 「사례·가정·실습」). 앞 실습이 없는 첫 실습만 투입물이 없다.
+const FIRST_PRACTICE = /^\d\d\. 실습 1 — /;
 const PRACTICE_PARTS = [
-  { label: "투입물", re: /\*\*(?:투입물|서비스 개요|프롬프트 — 요청사항 포함)\*\*/ },
+  { label: "투입물", re: /\*\*(?:투입물|서비스 개요)\*\*/, skipFirst: true },
   { label: "프롬프트", re: /\*\*프롬프트(?: — 요청사항 포함)?\*\*/ },
   { label: "점검 항목 또는 진행 방법", re: /\*\*(?:점검 항목|진행 방법)\*\*/ },
   { label: "결과물", re: /\*\*결과물\*\*/ },
+  { label: "결과물의 파일 이름", re: /\*\*결과물\*\*[\s\S]*?`[^`\s]+\.md`/ },
 ];
 function practiceShape(sections) {
   const warnings = [];
   for (const s of sections) {
     if (!isPractice(s.title)) continue;
     const text = (s.blocks || []).map((b) => b.text || "").join("\n");
-    const missing = PRACTICE_PARTS.filter((p) => !p.re.test(text)).map((p) => p.label);
+    const first = FIRST_PRACTICE.test(s.title.trim());
+    const missing = PRACTICE_PARTS.filter((p) => !(p.skipFirst && first) && !p.re.test(text)).map((p) => p.label);
     if (missing.length) warnings.push(`실습 "${s.title}"에 ${missing.join("·")}이(가) 없다.`);
   }
   return warnings;
+}
+
+// 세션마다 요약의 강사 노트가 **그 세션이 모델에 더한 것**을 한 줄로 밝힌다(course-design.md의
+// 「세 칸이 과정의 형식이다」 — 세션 순서가 개발 절차가 아니라 반복임을 보이는 줄이다). 경고만.
+function missingModelUpdate(sections) {
+  const summary = sections.find((s) => /^(?:\d\d\.\s*)?요약$/.test(String(s.title).trim()));
+  if (!summary) return [];
+  const notes = (summary.notes || []).map((b) => b.text || "").join("\n");
+  if (/모델에서 보완된/.test(notes)) return [];
+  return [`요약의 강사 노트에 "모델에서 보완된 것 — …" 줄이 없다.`];
 }
 
 // Every topic carries an instructor note (session-authoring-guide.md "강사 노트"). Warning only.
@@ -219,4 +235,4 @@ function missingNotes(sections) {
   return sections.filter((s) => (!s.blocks || s.blocks.length) && !(s.notes && s.notes.length)).map((s) => `강사 노트가 없다: "${s.title}"`);
 }
 
-module.exports = { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, slideTalk, countsMatchTable, numberedBullets, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape, MAX_GOALS };
+module.exports = { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, slideTalk, countsMatchTable, numberedBullets, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape, missingModelUpdate, MAX_GOALS };

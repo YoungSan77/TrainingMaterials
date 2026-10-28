@@ -1,0 +1,32 @@
+> Task :compileJava
+> Task :processResources NO-SOURCE
+> Task :classes
+
+> Task :coupling
+결합도 — 가장 많이 아는 클래스 다섯
+  order.OrderApplicationService          13
+  order.Order                            6
+  order.OrderItem                        4
+  order.CreateOrderCommand               3
+  order.PricedOrderItem                  3
+
+> Task :dependencyRules
+의존 규칙 통과: 업무의 연동·영속 의존 없음, 업무 간 허용 목록 준수
+
+> Task :compileTestJava
+> Task :processTestResources NO-SOURCE
+> Task :testClasses
+
+> Task :test
+
+OrderApplicationServiceTest > 주문 뒤 판매가가 올라도 확정 단가와 주문 금액은 그대로다 PASSED
+
+OrderApplicationServiceTest > 주문이 생길 때의 판매가를 단가로 확정하고 총액을 계산한다 PASSED
+
+OrderApplicationServiceTest > 주문 생성의 사전조건을 어긴 입력을 거절한다 PASSED
+
+> Task :check
+
+BUILD SUCCESSFUL in 1s
+5 actionable tasks: 5 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.8.2/userguide/configuration_cache_enabling.html

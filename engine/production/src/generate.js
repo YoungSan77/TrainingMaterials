@@ -9,8 +9,8 @@ const builder = require("./builder");
 const { inspect, reportJson } = require("./inspect");
 const { checkReferences } = require("./references");
 const { courseInfo } = require("./course");
-const { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, slideTalk, countsMatchTable, numberedBullets, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape } = require("./structure");
-const { checkCodeSources, checkEnumConsistency } = require("./codeSource");
+const { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, slideTalk, countsMatchTable, numberedBullets, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape, missingModelUpdate } = require("./structure");
+const { checkCodeSources, checkEnumConsistency, checkOrphanCode } = require("./codeSource");
 
 // A continuation slide that carries only a line or two of text (no table, visual or code) is a
 // layout smell the author should look at (production-guide.md, "continuation"). Warning only.
@@ -50,6 +50,9 @@ function overfullPages(m) {
   m.pages.forEach((p, i) => {
     const cost = p.textCost || 0;
     const CAP = Math.min(CAPACITY, p.capacity || CAPACITY);
+    // 두 단으로 짠 장(styledPage)은 단마다 제 상자에 맞춰 만든 것이다. 기본 본문 용량 450은 한 단
+    // 짜리 본문의 값이라 여기에 적용하지 않고, 상자를 넘겼는지는 아래 overfullColumns가 본다.
+    if (p.fillRaw) return;
     if (p.isToc || p.isCover || cost <= CAP) return;
     const m2 = /\((\d+)\/(\d+)\)$/.exec(String(p.heading || "").split("\n")[0]);
     if (m2 && Number(m2[1]) === Number(m2[2]) && cost <= CAP * LAST_PAGE_TOLERANCE) return;
@@ -88,6 +91,8 @@ async function generateFile(inputPath, outputPath, templatePath) {
     refs.warnings.push(...checkEnumConsistency(inputPath));
     refs.warnings.push(...answersOutsideAppendix(sections));
     refs.warnings.push(...practiceShape(sections));
+    refs.warnings.push(...missingModelUpdate(sections));
+    refs.warnings.push(...checkOrphanCode(inputPath));
     refs.warnings.push(...(m.layoutWarnings || []));
     // Diagram text below MIN_PT (production-guide.md "Visual layout 및 가독성"): the diagram had to
     // shrink past 7pt to fit, so the source should split or simplify it.
@@ -95,7 +100,7 @@ async function generateFile(inputPath, outputPath, templatePath) {
       const pt = builder.pictureTextPt(pic, pic.bounds);
       if (pt < builder.MIN_PT - 0.05) refs.warnings.push(`슬라이드 ${i + 1}: 도식 글자가 ${pt.toFixed(1)}pt로 ${builder.MIN_PT}pt보다 작다.`);
     }));
-    const warnings = refs.warnings.concat(sparseContinuations(m), overfullPages(m));
+    const warnings = refs.warnings.concat(sparseContinuations(m), overfullPages(m), overfullColumns(m));
     const errors = inspected.errors.concat(refs.errors);
     const report = { errors, slides: inspected.slides, blocks: inspected.blocks, json: () => reportJson(errors, inspected.slides, inspected.blocks, warnings) };
     const filename = path.basename(outputPath);
@@ -111,4 +116,58 @@ async function generateFile(inputPath, outputPath, templatePath) {
   }
 }
 
-module.exports = { generateFile, sparseContinuations, overfullPages };
+// 두 단·실습·답처럼 styledPage가 짠 장에서 **글이 상자 밖으로 나간** 것. 맞춤 시도는 여유
+// (style.fit)까지 통과시키므로, 여유를 빼고 상자 자체에 견준 비율(page.fillRaw)이 1을 넘으면
+// 렌더 결과에서 글이 쪽 번호를 덮는다. 원고에서 줄을 줄여 없앤다.
+function overfullColumns(m) {
+  const warnings = [];
+  m.pages.forEach((p, i) => {
+    if (p.referenceList) return;
+    (p.fillRaw || []).forEach((fill, k) => {
+      if (fill <= 1) return;
+      const where = (p.fillRaw.length > 1 ? (k === 0 ? "왼쪽 단" : "오른쪽 단") : "본문");
+      const heading = String(p.heading || "").split("\n")[0];
+      warnings.push("슬라이드 " + (i + 1) + ": \"" + heading + "\"의 " + where + "이 상자를 "
+        + Math.round((fill - 1) * 100) + "% 넘겼다. 글을 줄인다.");
+    });
+  });
+  return warnings;
+}
+
+// 묶음 덱(production-guide.md 「묶음 덱」): 여러 원고를 받은 순서대로 한 .pptx에 담는다. 원고마다의
+// 구조·참조·코드 검사는 그 원고를 단독으로 렌더링할 때 이미 하므로 여기서 되풀이하지 않고, 묶음
+// 고유의 확인만 한다 — 다시 읽어 manifest와 맞는지(inspect)와 배치 경고다.
+async function generateBundle(inputPaths, outputPath, templatePath) {
+  need(inputPaths.length > 0, "묶을 원고가 없다.");
+  for (const p of inputPaths) need(fs.existsSync(p) && fs.statSync(p).isFile(), "입력 파일이 없다: " + p);
+  need(!inputPaths.some((p) => path.resolve(p) === path.resolve(outputPath)), "입력과 출력 경로는 달라야 한다.");
+  const items = inputPaths.map((p) => {
+    const { session, toc, sections } = parse(fs.readFileSync(p, "utf-8"));
+    need(session, "Markdown 상단에 'Session 명: <값>' 헤더가 필요하다: " + p);
+    return { session, toc, sections, course: courseInfo(p) };
+  });
+  const course = items.map((it) => it.course).find((c) => c && c.name);
+  const parent = path.dirname(path.resolve(outputPath));
+  fs.mkdirSync(parent, { recursive: true });
+  const tmp = path.join(parent, "bundle-candidate-" + process.pid + "-" + Date.now() + ".pptx");
+  try {
+    const m = await builder.bundle(items, templatePath, tmp, course ? course.name : items[0].session);
+    const inspected = await inspect(tmp, m);
+    const warnings = (m.layoutWarnings || []).concat(sparseContinuations(m), overfullPages(m), overfullColumns(m));
+    m.pages.forEach((p, i) => (p.pictures || []).forEach((pic) => {
+      const pt = builder.pictureTextPt(pic, pic.bounds);
+      if (pt < builder.MIN_PT - 0.05) warnings.push(`슬라이드 ${i + 1}: 도식 글자가 ${pt.toFixed(1)}pt로 ${builder.MIN_PT}pt보다 작다.`);
+    }));
+    const qaPath = path.join(path.dirname(outputPath), path.basename(outputPath).replace(/\.pptx$/i, "") + ".qa.json");
+    fs.writeFileSync(qaPath, reportJson(inspected.errors, inspected.slides, inspected.blocks, warnings), "utf-8");
+    need(inspected.errors.length === 0, inspected.errors.join("\n"));
+    fs.renameSync(tmp, outputPath);
+    console.log("생성: " + outputPath + " (" + inspected.slides + "장, 원고 " + inputPaths.length + "개), 자동 검사 PASS. PowerPoint 시각 검토 필요.");
+    for (const w of warnings) console.log("경고: " + w);
+    return { manifest: m, errors: inspected.errors, warnings, slides: inspected.slides };
+  } finally {
+    if (fs.existsSync(tmp)) fs.unlinkSync(tmp);
+  }
+}
+
+module.exports = { generateFile, generateBundle, sparseContinuations, overfullPages, overfullColumns };

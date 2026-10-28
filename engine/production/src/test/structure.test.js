@@ -76,11 +76,11 @@ test("a bullet that starts with a circled number is reported; a numbered list it
 test("a practice topic missing 프롬프트·점검 항목 is reported; the full shape is not", () => {
   const { practiceShape } = require("../structure");
   const { parse } = require("../parse");
-  const bad = parse('## 09. 실습 — 수용 기준\n\n만드십시오.\n\n- **투입물**\n  + 작업 명세서\n- **평가 기준**\n  + 좋은가?\n');
+  const bad = parse('## 09. 실습 3 — 수용 기준\n\n만드십시오.\n\n- **투입물**\n  + 작업 명세서\n- **평가 기준**\n  + 좋은가?\n');
   const w = practiceShape(bad.sections);
   assert.equal(w.length, 1);
-  assert.match(w[0], /프롬프트·점검 항목 또는 진행 방법·결과물이\(가\) 없다/);
-  const good = parse('## 09. 실습 — 수용 기준\n\n만드십시오.\n\n- **투입물**\n  + 작업 명세서\n- **프롬프트**\n  + "써줘"\n- **점검 항목**\n  1. **대표 예** — 있는가?\n- **결과물** — 수용 기준\n');
+  assert.match(w[0], /프롬프트·점검 항목 또는 진행 방법·결과물·결과물의 파일 이름이\(가\) 없다/);
+  const good = parse('## 09. 실습 3 — 수용 기준\n\n만드십시오.\n\n- **투입물**\n  + 작업 명세서\n- **프롬프트**\n  + "써줘"\n- **점검 항목**\n  1. **대표 예** — 있는가?\n- **결과물**\n  + `수용기준.md` — 실습 4의 투입물이다\n');
   assert.deepEqual(practiceShape(good.sections), []);
 });
 
@@ -133,19 +133,49 @@ test("a lead that counts is checked against the one table under it", () => {
 });
 
 
-test("practice inputs may be included directly in the prompt", () => {
+// 실습은 사슬이므로 투입물은 프롬프트 문장 안이 아니라 제 항목으로 있어야 한다. 앞 실습이 없는
+// 첫 실습(`실습 1`)만 예외다(session-authoring-guide.md 「사례·가정·실습」).
+test("the first practice needs no 투입물; a later one does", () => {
   const { practiceShape } = require("../structure");
   const { parse } = require("../parse");
-  const { sections } = parse("## 01. 실습 — 질문\n\n**프롬프트 — 요청사항 포함**\n+ 정기배송 신청의 업무 질문을 제시해라.\n\n**점검 항목**\n1. **미결** — 임의로 정했는가?\n\n**결과물**\n+ 질문 문서\n");
-  assert.deepEqual(practiceShape(sections), []);
+  const first = parse("## 01. 실습 1 — 질문\n\n**프롬프트 — 요청사항 포함**\n+ 첫 요청에서 정할 업무 조건을 제시해라.\n\n**점검 항목**\n1. **미결** — 임의로 정했는가?\n\n**결과물**\n+ `질문.md` — 실습 2의 투입물이다\n");
+  assert.deepEqual(practiceShape(first.sections), []);
+  const later = parse("## 01. 실습 2 — 질문\n\n**프롬프트 — 요청사항 포함**\n+ 앞 실습의 조건으로 질문을 제시해라.\n\n**점검 항목**\n1. **미결** — 임의로 정했는가?\n\n**결과물**\n+ `질문.md` — 실습 3의 투입물이다\n");
+  const w = practiceShape(later.sections);
+  assert.equal(w.length, 1);
+  assert.match(w[0], /투입물이\(가\) 없다/);
+});
+
+// 다음 실습이 이름으로 가리키므로 결과물은 파일 이름을 밝힌다.
+test("결과물 without a file name is reported", () => {
+  const { practiceShape } = require("../structure");
+  const { parse } = require("../parse");
+  const { sections } = parse("## 01. 실습 1 — 질문\n\n**프롬프트 — 요청사항 포함**\n+ 조건을 제시해라.\n\n**점검 항목**\n1. **미결** — 임의로 정했는가?\n\n**결과물**\n+ 질문 문서\n");
+  const w = practiceShape(sections);
+  assert.equal(w.length, 1);
+  assert.match(w[0], /결과물의 파일 이름이\(가\) 없다/);
 });
 
 
 test("a focused prompt practice may provide 진행 방법 instead of a hidden checklist", () => {
   const { practiceShape } = require("../structure");
   const { parse } = require("../parse");
-  const { sections } = parse("## 01. 실습 — 질문\n\n**프롬프트 — 요청사항 포함**\n+ 첫 신청에 필요한 질문만 제시해라.\n\n**진행 방법**\n+ 답을 읽고 두 번째 프롬프트로 파일을 받아라.\n\n**결과물**\n+ 질문 문서\n");
+  const { sections } = parse("## 01. 실습 1 — 질문\n\n**프롬프트 — 요청사항 포함**\n+ 첫 신청에 필요한 질문만 제시해라.\n\n**진행 방법**\n+ 답을 읽고 두 번째 프롬프트로 파일을 받아라.\n\n**결과물**\n+ `질문.md` — 실습 2의 투입물이다\n");
   assert.deepEqual(practiceShape(sections), []);
+});
+
+// 세션마다 요약의 강사 노트가 그 세션이 모델에 더한 것을 한 줄로 밝힌다(없으면 "없다"로 밝힌다).
+test("a summary note without the model-update line is reported", () => {
+  const { missingModelUpdate } = require("../structure");
+  const { parse } = require("../parse");
+  const without = parse("## 12. 요약\n\n### 세션 핵심\n\n- 한 줄\n\n**강사 노트**\n\n- 다음 세션으로 넘긴다.\n");
+  const w = missingModelUpdate(without.sections);
+  assert.equal(w.length, 1);
+  assert.match(w[0], /모델에서 보완된 것/);
+  const with_ = parse("## 12. 요약\n\n### 세션 핵심\n\n- 한 줄\n\n**강사 노트**\n\n- 모델에서 보완된 것 — 없다.\n");
+  assert.deepEqual(missingModelUpdate(with_.sections), []);
+  // 요약이 없는 원고(별첨)는 보지 않는다.
+  assert.deepEqual(missingModelUpdate(parse("## 참고 자료\n\n본문.\n").sections), []);
 });
 
 test("verbatim LLM appendix preserves plain response text without requiring editorial emphasis", () => {

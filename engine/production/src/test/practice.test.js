@@ -37,6 +37,30 @@ test("an overfull practice is set on one slide at a smaller size or in two colum
   assert.ok(pages[0].practiceSize <= 16);
 });
 
+// 실습 아래는 쪽 번호다 — 넘칠 곳이 없으므로 맞춤에 여유를 쓰지 않는다. 여유를 쓰면 왼쪽 단이
+// 상자를 조금 넘겨 글이 쪽 번호를 덮는다(2026-10-28).
+test("a practice column never fills past its own box", async () => {
+  let checked = 0;
+  for (const n of [14, 18, 22, 26]) {
+    const { pages } = await pagesOf("## 01. 실습 — 과제\n\n실습의 **목표**를 한 문장으로 적는다.\n\n" + bullets(n) + "\n");
+    if (pages.length !== 1) continue; // 한 슬라이드에 들어가지 않는 과제는 따로 보고된다
+    checked++;
+    for (const fill of pages[0].fillRaw) assert.ok(fill <= 1, `${n}개: 단이 상자를 넘겼다 (${fill.toFixed(3)})`);
+  }
+  assert.ok(checked >= 2, "한 슬라이드에 담긴 경우를 적어도 둘은 확인한다");
+});
+
+test("overfullColumns reports a column past its box and leaves the reference list alone", () => {
+  const { overfullColumns } = require("../generate");
+  const w = overfullColumns({ pages: [
+    { heading: "12. 실습 4 — 정적 모델", fillRaw: [1.03, 0.5] },
+    { heading: "참고 자료 (1/2)", fillRaw: [1.07, 1.09], referenceList: true },
+    { heading: "02. 본문", fillRaw: [0.99] },
+  ] });
+  assert.equal(w.length, 1);
+  assert.match(w[0], /왼쪽 단이 상자를 3% 넘겼다/);
+});
+
 test("a practice that fits nowhere on one slide stays split and is reported", async () => {
   const md = "## 01. 실습 — 과제\n\n실습의 **목표**를 한 문장으로 적는다.\n\n" + bullets(60) + "\n";
   const { sections, pages } = await pagesOf(md);

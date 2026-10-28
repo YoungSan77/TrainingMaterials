@@ -3,10 +3,11 @@
 // (production-guide.md 「Session 명」, session-authoring-guide.md 「사례·가정·실습」).
 const { wide, codePoints } = require("./text");
 
-// A practice assignment topic ("NN. 실습 — …"), one slide; an older review example ("… 검토 예시")
+// A practice assignment topic ("NN. 실습 M — …", M being the practice's own number in the course;
+// "NN. 실습 — …" without it is still accepted), one slide; an older review example ("… 검토 예시")
 // may run longer.
 function isPractice(title) {
-  return /^\d\d\. 실습 — /.test(title) && !/검토 예시/.test(title);
+  return /^\d\d\. 실습(?: \d+)? — /.test(title) && !/검토 예시/.test(title);
 }
 // Its answer, a topic titled "<산출물> (안)".
 function isAnswer(title) {

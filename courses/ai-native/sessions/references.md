@@ -26,16 +26,16 @@ Session 명: 별첨. 참고 자료
 18. **[Cockburn 2005]**  Hexagonal architecture, Alistair Cockburn, 2005, https://alistair.cockburn.us/hexagonal-architecture/
 19. **[Cucumber]**  Behaviour-Driven Development, Cucumber, https://cucumber.io/docs/bdd/
 20. **[Cucumber: Example Mapping]**  Example Mapping, Cucumber, https://cucumber.io/docs/bdd/example-mapping/
-21. **[DORA 2025]**  State of AI-assisted Software Development 2025, DORA, 2025, https://dora.dev/research/2025/dora-report/
+21. **[DORA 2025]**  State of AI-assisted Software Development 2025, DORA, 2025, https://dora.dev/research/2025/dora-report/ (읽을거리)
 22. **[Evans 2015]**  Domain-Driven Design Reference, Eric Evans, Domain Language, 2015, https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf
 23. **[Fowler 2015c]**  MonolithFirst, Martin Fowler, martinfowler.com, 2015, https://martinfowler.com/bliki/MonolithFirst.html
-24. **[Fowler 2025]**  LLMs bring new nature of abstraction, Martin Fowler, martinfowler.com, 2025, https://martinfowler.com/articles/2025-nature-abstraction.html
+24. **[Fowler 2025]**  LLMs bring new nature of abstraction, Martin Fowler, martinfowler.com, 2025, https://martinfowler.com/articles/2025-nature-abstraction.html (읽을거리)
 25. **[Gao 외 2025]**  The Current Challenges of Software Engineering in the Era of Large Language Models, Cuiyun Gao·Xing Hu·Shan Gao·Xin Xia·Zhi Jin, ACM Transactions on Software Engineering and Methodology 34(5), 2025, https://doi.org/10.1145/3712005
-26. **[GitHub Spec Kit]**  Spec Kit, GitHub, https://github.com/github/spec-kit
+26. **[GitHub Spec Kit]**  Spec Kit, GitHub, https://github.com/github/spec-kit (읽을거리)
 27. **[Gruber 1993]**  A Translation Approach to Portable Ontology Specifications, Thomas R. Gruber, Knowledge Acquisition 5(2), 1993
 28. **[Hassan 외 2026]**  Towards AI-Native Software Engineering (SE 3.0) — A Vision and a Challenge Roadmap, Ahmed E. Hassan·Gustavo A. Oliva·Dayi Lin·Boyuan Chen·Zhen Ming (Jack) Jiang, ACM Transactions on Software Engineering and Methodology 35(9), 2026, https://doi.org/10.1145/3807901
 29. **[Jeffries 2001]**  Essential XP: Card, Conversation, Confirmation, Ron Jeffries, 2001, https://ronjeffries.com/xprog/articles/expcardconversationconfirmation/
-30. **[Karpathy 2025]**  Software Is Changing (Again), Andrej Karpathy, Y Combinator, 2025, https://www.ycombinator.com/library/MW-andrej-karpathy-software-is-changing-again
+30. **[Karpathy 2025]**  Software Is Changing (Again), Andrej Karpathy, Y Combinator, 2025, https://www.ycombinator.com/library/MW-andrej-karpathy-software-is-changing-again (읽을거리)
 31. **[Larman 2004]**  Applying UML and Patterns, 3rd ed., Craig Larman, Prentice Hall, 2004
 32. **[Lewis·Fowler 2014]**  Microservices, James Lewis·Martin Fowler, martinfowler.com, 2014, https://martinfowler.com/articles/microservices.html
 33. **[Lopopolo 2026]**  Harness engineering: leveraging Codex in an agent-first world, Ryan Lopopolo, OpenAI, 2026, https://openai.com/index/harness-engineering/
@@ -48,8 +48,8 @@ Session 명: 별첨. 참고 자료
 40. **[NIST 2024]**  Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile, NIST AI 600-1, National Institute of Standards and Technology, 2024, https://doi.org/10.6028/NIST.AI.600-1
 41. **[North 2006]**  Introducing BDD, Dan North, 2006, https://dannorth.net/blog/introducing-bdd/
 42. **[OpenAI 2025]**  A practical guide to building agents, OpenAI, 2025
-43. **[OpenAI: Permissions]**  Permissions, OpenAI, https://learn.chatgpt.com/docs/permissions (2026-10 확인)
-44. **[Osmani 2025]**  The AI-Native Software Engineer, Addy Osmani, 2025, https://addyo.substack.com/p/the-ai-native-software-engineer
+43. **[OpenAI: Permissions]**  Permissions, OpenAI, https://learn.chatgpt.com/docs/permissions (2026-10 확인) (읽을거리)
+44. **[Osmani 2025]**  The AI-Native Software Engineer, Addy Osmani, 2025, https://addyo.substack.com/p/the-ai-native-software-engineer (읽을거리)
 45. **[OWASP 2025]**  OWASP Top 10 for Agentic Applications for 2026, OWASP Gen AI Security Project, 2025, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/
 46. **[Thoughtworks 2026]**  Technology Radar, Vol. 34, Thoughtworks, 2026, https://www.thoughtworks.com/radar
 47. **[Wake 2003]**  INVEST in Good Stories, and SMART Tasks, Bill Wake, 2003, https://xp123.com/invest-in-good-stories-and-smart-tasks/
@@ -60,6 +60,7 @@ Session 명: 별첨. 참고 자료
 **강사 노트**
 
 - 과정의 기준 원전(주제별 1차 원문)과 보완 자료, 세션이 레이블로 인용·참조한 자료를 하나의 목록으로 레이블의 알파벳 순서로 둔다(`course-design.md`의 「기준 원전과 참고 자료」).
+- 끝에 **(읽을거리)**가 붙은 항목은 **세션 원고가 인용하지 않는 자료**다. 수강생이 더 읽을 것으로 두며, 본문이 쓰지 않는 것이 의도된 상태임을 밝힌다(Production이 그 표식으로 구분해 검사한다).
 - 2026-10 기준으로 각 문서의 제목·저자·게시 연도를 원문 페이지(또는 받은 PDF)에서 확인했다. 과정을 열 때마다 원문을 다시 확인한다. Technology Radar는 판이 바뀌면 최신판으로 고친다.
 - [OpenAI 2025]는 받은 PDF(`references/inputs/`)로 확인했다. 공개 URL은 사이트가 자동 요청을 막아 확인하지 못해 적지 않았다.
 - [Lopopolo 2026]은 openai.com이 한국어판으로 자동 전환하므로, 영문판(en-US) 본문을 추출해 `references/inputs/lopopolo-2026-harness-engineering.txt`에 두고 인용을 그 파일로 확인한다.

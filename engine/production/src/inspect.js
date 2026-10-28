@@ -47,7 +47,9 @@ async function inspect(outputPath, m) {
     // The cover and TOC slides intentionally carry no top-right session name (builder.js
     // `p.isCover`, `p.isToc`): neither is a "일반 슬라이드" in production-guide.md's sense.
     // An appendix slide reads "별첨: <세션명>" (builder.js appendixSessionName).
-    if (text(shape(doc, 5)) !== (p.isToc || p.isCover ? "" : p.appendix ? "별첨: " + m.title : m.title)) errors.push(prefix + "title mismatch");
+    // 묶음 덱은 세션마다 우측 상단 세션명이 다르다 — 그 장이 구성된 세션(p.session)과 견준다.
+    const label = p.session || m.title;
+    if (text(shape(doc, 5)) !== (p.isToc || p.isCover ? "" : p.appendix ? "별첨: " + label : label)) errors.push(prefix + "title mismatch");
     if (text(shape(doc, 7)) !== m.source) errors.push(prefix + "source mismatch");
     for (const item of p.items) {
       const sh = shape(doc, item.id);

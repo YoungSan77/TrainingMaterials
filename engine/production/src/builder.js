@@ -339,7 +339,9 @@ class Builder {
   }
 
   page(index, heading) {
-    const p = { doc: this.roots[index].cloneNode(true), origin: this.origins[index], heading, items: [] };
+    // The slide carries the session it was composed for, so a bundle of several sessions labels
+    // each slide with its own session name (production-guide.md 「묶음 덱」).
+    const p = { doc: this.roots[index].cloneNode(true), origin: this.origins[index], heading, items: [], session: this.session };
     this.pages.push(p);
     return p;
   }
@@ -383,7 +385,12 @@ class Builder {
     const full = fitBox(FULL_TEXT), practice = fitBox(PRACTICE_BOX);
     const half = (full.w - 0.3) / 2;
     const two = [{ ...full, w: half }, { ...full, x: full.x + half + 0.3, w: half }];
-    const tries = [[PRACTICE_STYLE, [practice]], [shiftStyle(16), [full]], [shiftStyle(14), [full]], [shiftStyle(14), two], [shiftStyle(12), [full]], [shiftStyle(12), two]];
+    // 실습은 한 슬라이드이고 그 아래가 쪽 번호다 — 넘칠 곳이 없으므로 **여유를 쓰지 않는다**.
+    // 여유(fit 1.04)를 두면 왼쪽 단이 상자를 조금씩 넘겨 글이 쪽 번호를 덮는다. 들어가지 않으면
+    // 다음 시도(두 단, 더 작은 글자)로 내려가는 것이 맞다.
+    const tight = (style) => ({ ...style, fit: Math.min(style.fit, 1), leftFit: Math.min(style.leftFit != null ? style.leftFit : style.fit, 1) });
+    const tries = [[PRACTICE_STYLE, [practice]], [shiftStyle(16), [full]], [shiftStyle(14), [full]], [shiftStyle(14), two], [shiftStyle(12), [full]], [shiftStyle(12), two]]
+      .map(([style, boxes]) => [tight(style), boxes]);
     for (const [style, boxes] of tries) {
       const page = this.styledPage(blocks, heading, style, boxes);
       if (!page) continue;
@@ -561,9 +568,10 @@ class Builder {
     return out;
   }
 
-  // The reference list of the appendix: entries in two 8pt columns per slide, a heading never left
-  // as the last line of a slide. The list takes as few slides as it can and spreads the entries
-  // evenly over them, so a continuation never carries a line or two (generate.js reports that).
+  // The reference list of the appendix: entries in two 7pt columns per slide, a heading never left
+  // as the last line of a slide. Each slide is filled -- the left column down to its own bottom,
+  // then the right, then the next slide (production-guide.md 「별첨 — 참고 자료」). The list is not
+  // spread evenly: an even spread left both columns of every slide short.
   // Returns the pages (not left in this.pages).
   referencePages(blocks, heading) {
     // The largest n (at most `limit`) whose entries fit one slide; 0 when even one does not.
@@ -577,16 +585,18 @@ class Builder {
       }
       return 0;
     };
-    const whole = fitCount(blocks, blocks.length);
-    need(whole, "참고 자료 항목이 한 슬라이드에 들어가지 않는다: " + heading);
-    const even = Math.ceil(blocks.length / Math.ceil(blocks.length / whole));
+    need(fitCount(blocks, blocks.length), "참고 자료 항목이 한 슬라이드에 들어가지 않는다: " + heading);
     const out = [];
     let rest = blocks.slice();
     while (rest.length) {
-      const n = fitCount(rest, even) || fitCount(rest, rest.length);
+      const n = fitCount(rest, rest.length);
       need(n, "참고 자료 항목이 한 슬라이드에 들어가지 않는다: " + heading);
       this.styledPage(rest.slice(0, n), heading, REFERENCE_STYLE, ANSWER_COLUMNS);
-      out.push(this.pages.pop());
+      const page = this.pages.pop();
+      // 참고 자료는 7pt 한 줄짜리 항목이라 추정이 넉넉하다 — 단을 끝까지 채우는 것이 이 목록의
+      // 규칙이므로 넘침 경고에서 뺀다(production-guide.md 「별첨 — 참고 자료」).
+      page.referenceList = true;
+      out.push(page);
       rest = rest.slice(n);
     }
     return out;
@@ -660,6 +670,9 @@ class Builder {
     // reads this -- a page is only finished when its last column is full.
     page.fillParts = parts.map((part, k) => styledCost(part, style, boxes[k])
       / (boxes[k].h * 72 * (k === 0 ? leftFit : style.fit)));
+    // 여유(style.fit)를 빼고 **상자 자체**에 견준 비율. 1을 넘으면 글이 상자 밖으로 나가 쪽 번호를
+    // 덮는다 — 맞춤 시도가 여유 안에서 통과시킨 것이므로 렌더 결과로만 드러난다(generate.js가 경고).
+    page.fillRaw = parts.map((part, k) => styledCost(part, style, boxes[k]) / (boxes[k].h * 72));
     page.textParts = parts;
     return page;
   }
@@ -1399,6 +1412,15 @@ class Builder {
   }
 
   async render(sections, outputPath, toc, course) {
+    await this.compose(sections, toc, course);
+    return this.write(outputPath);
+  }
+
+  // Composes one session's slides into this.pages. A bundle calls it once per session and writes
+  // once at the end (production-guide.md 「묶음 덱」).
+  async compose(sections, toc, course) {
+    // Each session composes with its own identifier set, exactly as its own deck does.
+    this.names = new Set();
     for (const nm of ["ProductMapper", "ProductRepository", "ProductPort", "OrderRepository", "PlaceOrderUseCase", "Product", "ProductEntity", "placeOrder", "decreaseStock", "load", "save", "findById", "updateStock"]) this.names.add(nm);
     for (const s of sections) {
       for (const b of s.blocks) {
@@ -2065,7 +2087,11 @@ class Builder {
       if (footnote) for (const page of this.pages.slice(firstIdx)) this.footnote(page, footnote);
       this.hasFootnote = false;
     }
+  }
 
+  // Writes every composed page as one .pptx. `title` is the document title — a bundle passes the
+  // course name; each slide's top-right label comes from the page's own session.
+  async write(outputPath, title) {
     const { parseXml, relPath } = require("./xml");
     const result = new Map(this.data);
     for (const k of Array.from(result.keys())) if (/^ppt\/slides\/(slide\d+\.xml|_rels\/slide\d+\.xml\.rels)$/.test(k)) result.delete(k);
@@ -2112,7 +2138,8 @@ class Builder {
       // requires the same value on every slide, never the slide's own topic title. Shapes 6/7
       // stay blank (no source/copyright string).
       // An appendix slide (after the summary, "## 별첨. …") reads "별첨: <세션명>".
-      const label = p.appendix ? appendixSessionName(this.session) : this.session;
+      const pageSession = p.session || this.session;
+      const label = p.appendix ? appendixSessionName(pageSession) : pageSession;
       const plain = p.isToc || p.isCover;
       setText(shape(p.doc, 5), plain ? "" : label);
       if (!plain) {
@@ -2162,11 +2189,11 @@ class Builder {
     result.set("ppt/presentation.xml", xmlOut(pres));
     result.set("ppt/_rels/presentation.xml.rels", xmlOut(rels));
     result.set("[Content_Types].xml", xmlOut(ct));
-    updateDocProps(result, this.pages, this.session);
+    updateDocProps(result, this.pages, title || this.session);
     await writeZip(outputPath, result);
     // inspect.js checks shape 5/7 text against manifest.title/.source verbatim -- source is kept
     // as "" (not omitted) so that check still holds for the now-always-blank footer.
-    return { pages: this.pages, codes: this.codes, unsupportedVisuals: this.unsupportedVisuals, layoutWarnings: this.layoutWarnings, images: imageNumber, imageCounts, title: this.session, source: "" };
+    return { pages: this.pages, codes: this.codes, unsupportedVisuals: this.unsupportedVisuals, layoutWarnings: this.layoutWarnings, images: imageNumber, imageCounts, title: title || this.session, source: "" };
   }
 }
 
@@ -2176,4 +2203,18 @@ async function render(sections, templatePath, outputPath, session, toc, course) 
   return b.render(sections, outputPath, toc, course);
 }
 
-module.exports = { styledCost, PRACTICE_STYLE, ANSWER_STYLE, REFERENCE_STYLE, PRACTICE_BOX, ANSWER_COLUMNS, Builder, render, isPractice, isAnswer, geometry, naturalSize, pictureTextPt, fitTarget, visualPanel, columnWidths, tocSessionName, appendixSessionName, sessionNamePt, TARGET_PT, MIN_PT, UML_MAX_PT, PAGE_NUM_Y };
+// 묶음 덱: 여러 세션을 받은 순서대로 한 .pptx에 담는다. 각 세션은 자기 덱과 같게 구성되고(목차,
+// 첫 세션의 표지와 과정 목차), 슬라이드의 우측 상단 세션명도 그 세션의 것이다.
+// items: [{ session, toc, sections, course }], title: 문서 제목(과정명).
+async function bundle(items, templatePath, outputPath, title) {
+  need(items.length > 0, "묶을 원고가 없다.");
+  const b = new Builder(templatePath);
+  // init()은 세션명과 템플릿 원형만 다시 잡고 이미 구성한 pages는 그대로 둔다.
+  for (const it of items) {
+    await b.init(it.session);
+    await b.compose(it.sections, it.toc, it.course);
+  }
+  return b.write(outputPath, title);
+}
+
+module.exports = { styledCost, PRACTICE_STYLE, ANSWER_STYLE, REFERENCE_STYLE, PRACTICE_BOX, ANSWER_COLUMNS, Builder, render, bundle, isPractice, isAnswer, geometry, naturalSize, pictureTextPt, fitTarget, visualPanel, columnWidths, tocSessionName, appendixSessionName, sessionNamePt, TARGET_PT, MIN_PT, UML_MAX_PT, PAGE_NUM_Y };

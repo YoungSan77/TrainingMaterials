@@ -36,6 +36,20 @@ node src/cli.js ../../courses/ooad/sessions/s01.md
 node src/cli.js ../../courses/ai-native/sessions/s0*.md
 ```
 
+## 묶음 덱
+
+과정 전체를 **한 .pptx로 검토**할 때는 `--bundle <출력.pptx>`에 원고를 **보일 순서대로** 준다. 세션 덱을 따로 만드는 일을 대신하지 않는다 — 검토용 묶음이며, 각 세션의 `.pptx`가 여전히 산출물이다.
+
+```bash
+node engine/production/src/cli.js --bundle courses/ai-native/out/ai-native-전체.pptx courses/ai-native/sessions/s01.md … courses/ai-native/sessions/s11.md courses/ai-native/sessions/references.md
+```
+
+- 각 세션은 **자기 덱과 같게** 구성된다 — 세션마다 자기 목차가 앞에 오고, 표지와 과정 목차는 첫 세션(`01.`)에서 한 번만 나온다. 장수는 따로 만든 덱의 합과 같다.
+- 슬라이드의 우측 상단 세션명과 별첨 표시(`별첨: <세션명>`)는 **그 장이 구성된 세션**의 것이다(`builder.js`의 `page()`가 장마다 세션을 기록하고 `inspect.js`가 그 값과 견준다).
+- 문서 제목(docProps)은 과정명이다. 참고 자료 별첨(`references.md`)은 목차가 없으므로 마지막에 그대로 붙는다.
+- **검사 범위** — 원고마다의 구조·참조·코드 검사는 그 원고를 단독으로 렌더링할 때 하므로 묶음에서 되풀이하지 않는다. 묶음은 다시 읽어 manifest와 맞는지(`inspect`)와 배치 경고만 확인하고 `.qa.json`을 함께 쓴다.
+- 출력은 `courses/<course>/out/`에 둔다(git 제외). 저장소에 커밋하는 덱은 세션별 `.pptx`다.
+
 ## 템플릿
 
 `engine/production/template/`은 모든 PPT의 뼈대다 — 슬라이드 마스터·레이아웃·테마와 페이지 종류마다 하나의 원형 슬라이드(목차·본문·트리·코드·표, `src/template.js`의 `ORIGIN`). 압축을 푼 OOXML 파일로 두어 변경이 diff로 보인다.
@@ -176,7 +190,7 @@ Session Source에서 인용문 그룹으로 명시된 직접 인용·번역·출
 
 ### 별첨 — 참고 자료
 
-`**참고 자료 목록**` 표식이 있는 topic(과정의 별첨 `references.md`, `session-authoring-guide.md`의 「별첨 — 참고 자료」)은 항목을 **좌우 두 단, 8pt**, 문단 앞뒤 간격 **1pt**로 그린다. 항목의 첫 줄은 단의 왼쪽 끝에서 시작하고, 한 줄을 넘으면 둘째 줄부터 번호 `N. ` 뒤에 맞춰 들여쓴다. 한 장을 넘으면 `(n/m)` 이어지는 장으로 나눈다(`builder.js`의 `referencePages`). 목차가 없는 원고가 모두 참고 자료 topic이면 목차 슬라이드를 만들지 않는다.
+`**참고 자료 목록**` 표식이 있는 topic(과정의 별첨 `references.md`, `session-authoring-guide.md`의 「별첨 — 참고 자료」)은 항목을 **좌우 두 단, 7pt**, 문단 앞뒤 간격 **1pt**로 그린다. 항목의 첫 줄은 단의 왼쪽 끝에서 시작하고, 한 줄을 넘으면 둘째 줄부터 번호 `N. ` 뒤에 맞춰 들여쓴다. **왼쪽 단을 제 아래까지 채운 뒤 오른쪽 단으로 넘기고**, 장도 채울 수 있는 만큼 채운 뒤 `(n/m)` 이어지는 장으로 나눈다 — 항목을 장마다 고르게 나누지 않는다(그렇게 하면 모든 장의 두 단이 아래를 비운 채 끝난다). 왼쪽 단을 채우지 못하는 짧은 목록은 한 단이다(`builder.js`의 `referencePages`). 목차가 없는 원고가 모두 참고 자료 topic이면 목차 슬라이드를 만들지 않는다.
 
 ### 주석
 
@@ -216,7 +230,7 @@ Anchor Message는 Production 전용 시각 타입이 아니다. Course Design의
 - 코드 위에 도식을 둔 슬라이드에서 8pt 두 단으로도 들어가지 않으면, 도식을 10%씩 **70%까지 줄여** 다시 시도한다. 도식이 반복되는 여러 장보다 조금 작은 도식 한 장이 읽기 쉽다.
 - 그래도 들어가지 않으면 10pt로 빈 줄이나 `}` 뒤에서 여러 슬라이드로 나눈다. 이때는 원고의 설명을 압축할 수 있는지 먼저 검토한다.
 - 코드 뒤의 짧은 설명·표는 남은 영역에 들어가면 같은 슬라이드에 이어 쌓는다.
-- 실습 과제 topic(`NN. 실습 — …`, 검토 예시 제외)은 **한 슬라이드**이며, 기준 서식으로 배치한다(`builder.js` `practicePage`, `PRACTICE_STYLE`).
+- 실습 과제 topic(`NN. 실습 M — …`, 검토 예시 제외)은 **한 슬라이드**이며, 기준 서식으로 배치한다(`builder.js` `practicePage`, `PRACTICE_STYLE`).
   - 한 단(폭 9.43in·높이 6.04in)에 안내 문장 16pt, level 0 18pt, level 1 16pt, level 2 14pt를 쓴다. 문단 간격은 앞뒤 3pt다.
   - `—` 뒤 설명은 본문과 같이 2pt 작게, `(…)`는 4pt 작게(최소 8pt) 쓴다. 점검 항목의 질문이 핵심어보다 크게 작아지지 않게 한다.
   - `+ ` 줄(서비스 개요·프롬프트 본문처럼 글머리표 없는 줄)은 부모 항목의 글자 시작에 맞춘다.
@@ -259,6 +273,7 @@ Anchor Message는 Production 전용 시각 타입이 아니다. Course Design의
 - 다음은 **경고**로 보고한다. 경고는 `.qa.json`의 `warnings`와 콘솔에 출력하며 생성을 중단하지 않는다. 원고를 고쳐 0개로 만드는 것이 기준이다.
   - 본문이 한두 줄뿐인 continuation 슬라이드(표·visual·코드 없음) — **뒤에 같은 topic의 글이 더 있을 때만** 경고한다. topic의 마지막 장은 남은 내용을 그대로 받으므로 짧아도 정상이다.
   - **한 장의 본문 용량을 넘긴 슬라이드**(`generate.js`의 `overfullPages`). 짧은 꼬리가 continuation 슬라이드가 되지 않게 두는 여유(`builder.js`의 `ORPHAN_TOLERANCE`) 때문에, 넘친 글도 한 장에 담긴 채 렌더된다. 경고는 몇 % 넘겼는지를 함께 적으며, 원고에서 줄 수를 줄여 없앤다(`session-authoring-guide.md`의 「세션 목표와 요약」). topic의 **마지막 장**은 다음 장이 없어 넘칠 글을 옮길 곳이 없으므로 10%까지는 경고하지 않는다(`LAST_PAGE_TOLERANCE`) — 그만큼은 본문 상자 안에 남는다. 도식이 글 아래 붙는 장은 용량이 그만큼 줄어 있으므로(`builder.js`의 `visualCapacity`) 기본값 450이 아니라 **그 장이 실제로 쓴 용량**과 견준다(`flush()`가 `page.capacity`에 기록한다, 2026-10-24).
+  - **글이 제 상자를 넘긴 단**(`generate.js`의 `overfullColumns`). 두 단으로 짠 장(실습·답·문서)은 맞춤 시도가 여유(`style.fit`)까지 통과시키므로, 여유를 뺀 비율(`page.fillRaw`)이 1을 넘으면 렌더 결과에서 글이 쪽 번호를 덮는다. 실습 슬라이드는 아래로 넘길 곳이 없어 **여유를 쓰지 않고** 맞춘다(`builder.js`의 `practicePage`). 참고 자료 목록은 단을 끝까지 채우는 것이 규칙이라 보지 않는다.
   - 한 줄을 넘는 표 셀(「표의 행 높이와 열 너비」, `structure.js`).
   - 7pt 미만으로 줄어든 도식(「Visual layout 및 가독성」, `generate.js`).
   - 도식 라벨의 topic 번호(`structure.js`).
@@ -268,7 +283,10 @@ Anchor Message는 Production 전용 시각 타입이 아니다. Course Design의
   - 강사 노트가 없는 topic(`structure.js`).
   - "?"가 없는 의문문 topic 제목·표 칸 — "~란·~인가·~는가" 등으로 끝나는 것(`structure.js`의 `unmarkedQuestionTitles`).
   - 별첨 밖에 있는 `(안)`으로 끝나는 topic(`structure.js`의 `answersOutsideAppendix`). 아직 그 형식인 과정을 위한 검사다.
-  - 실습 topic에 빠진 구성 — 투입물(첫 실습은 서비스 개요)·프롬프트·점검 항목·결과물(`structure.js`의 `practiceShape`). 다른 모양으로 쓴 실습은 렌더 결과만으로는 드러나지 않는다.
+  - 실습 topic에 빠진 구성 — 투입물·프롬프트·점검 항목·결과물과 **결과물의 파일 이름**(`structure.js`의 `practiceShape`). 다른 모양으로 쓴 실습은 렌더 결과만으로는 드러나지 않는다. 실습은 사슬이라 투입물은 프롬프트 문장 안이 아니라 제 항목으로 있어야 하고, 결과물은 다음 실습이 가리킬 파일 이름을 밝혀야 한다. 앞 실습이 없는 **첫 실습**(`NN. 실습 1 — …`)만 투입물이 없어도 된다.
+  - **요약의 강사 노트에 「모델에서 보완된 것 — …」 줄이 없는 세션**(`structure.js`의 `missingModelUpdate`). 세션 순서가 개발 절차가 아니라 반복임을 보이는 줄이며, 보완할 것이 없는 세션은 "없다"로 밝힌다. 요약이 없는 원고(별첨)는 검사하지 않는다.
+  - **원고가 가리키지 않는 예시 코드**(`codeSource.js`의 `checkOrphanCode`). `code/sNN/` 바로 아래 항목 가운데 같은 과정의 어느 원고도 `code/sNN/<이름>`으로 말하지 않는 것이다 — 해체된 세션이나 버린 사례의 잔여물이 여기서 드러난다. 실행용 의존성 폴더 `lib`는 보지 않는다.
+  - **별첨에만 있고 어느 세션도 쓰지 않는 참고 자료 레이블**(`references.js`의 `checkLabels`). 인용하지 않기로 한 자료는 항목 끝에 `(읽을거리)`를 붙여 그 사실을 밝힌다.
   - 슬라이드 자신을 설명하는 본문 문장 — "표는 … 둔 것이다", "표의 오른쪽 열이 …", "셋째 줄이 …", "지금까지 … 나왔다"(`structure.js`의 `slideTalk`). 고치는 방법은 `session-authoring-guide.md`의 「6. 표와 목록」에 있다. 강사 노트는 검사하지 않는다.
   - 무시한 `**배치 — 좌우**` — 본문이 왼쪽 반을 넘거나 도식이 오른쪽 반에서 7pt보다 작아질 때(`builder.js`의 `layoutWarnings`).
   - 앞 세션의 코드와 값이 다른 `enum` — 관통 사례의 공통 식별자가 세션 사이에서 바뀐 것(`codeSource.js`). 뒤 세션이 값을 더하는 것(진화)은 허용한다. 분석 코드의 한글 enum(`주문상태`)과 설계 코드의 영문 enum(`OrderStatus`)은 같은 과정 `course-design.md`의 **영한 용어집** 표로 대응시켜 비교한다. 용어집에 없는 한글 값은 대응을 확인할 수 없다고 보고한다.

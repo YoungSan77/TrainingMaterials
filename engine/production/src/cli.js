@@ -11,7 +11,7 @@
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
-const { generateFile } = require("./generate");
+const { generateFile, generateBundle } = require("./generate");
 const { TEMPLATE_DIR } = require("./template");
 
 async function check(inputs) {
@@ -48,7 +48,17 @@ async function main() {
     if (a.startsWith("--")) opts[a] = args[++i];
     else inputs.push(a);
   }
-  if (!inputs.length) { console.error("사용법: node src/cli.js <session.md...> | --check <session.md...>"); process.exit(1); }
+  if (!inputs.length) { console.error("사용법: node src/cli.js <session.md...> | --check <session.md...> | --bundle <out.pptx> <session.md...>"); process.exit(1); }
+  // --bundle <출력.pptx>: 받은 순서대로 한 덱에 묶는다(production-guide.md 「묶음 덱」).
+  if (opts["--bundle"]) {
+    try {
+      await generateBundle(inputs.map((p) => path.resolve(p)), path.resolve(opts["--bundle"]), TEMPLATE_DIR);
+    } catch (ex) {
+      console.error("묶음 중단: " + ex.message);
+      process.exit(1);
+    }
+    return;
+  }
   // 원고를 여러 개 주면 모두 만든다. 예전에는 마지막 하나만 만들고 나머지는 조용히 건너뛰어,
   // 일괄 재렌더링이 돌지 않았는데도 돈 것처럼 보였다.
   if (inputs.length > 1 && opts["--output"]) {

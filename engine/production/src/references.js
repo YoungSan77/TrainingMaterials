@@ -103,7 +103,7 @@ function labelsIn(text) {
 }
 
 function appendixEntries(text) {
-  return stripCode(text).map((line, i) => ({ m: ENTRY.exec(line), line: i + 1 })).filter((e) => e.m).map((e) => ({ label: e.m[1], line: e.line }));
+  return stripCode(text).map((line, i) => ({ m: ENTRY.exec(line), line: i + 1, text: line })).filter((e) => e.m).map((e) => ({ label: e.m[1], line: e.line, text: e.text }));
 }
 
 function checkLabels(inputPath, text) {
@@ -123,6 +123,12 @@ function checkLabels(inputPath, text) {
       for (const u of labelsIn(fs.readFileSync(path.join(dir, f), "utf-8"))) used.add(u.label);
     }
     for (const u of used) if (!seen.has(u)) errors.push("세션이 쓰는 레이블 [" + u + "]이 별첨에 없다.");
+    // 반대 방향 — 목록에만 있고 어느 세션도 쓰지 않는 레이블. 인용하지 않기로 한 자료는 항목 끝의
+    // "(읽을거리)"가 그 사실을 밝히므로 넘긴다(session-authoring-guide.md 「별첨 — 참고 자료」).
+    for (const e of entries) {
+      if (used.has(e.label) || /\(읽을거리\)/.test(e.text)) continue;
+      warnings.push("원고 " + e.line + "행: 레이블 [" + e.label + "]을 어느 세션도 쓰지 않는다. 인용하지 않을 자료면 항목 끝에 (읽을거리)를 붙인다.");
+    }
     return { errors, warnings };
   }
   const appendix = path.join(dir, APPENDIX);

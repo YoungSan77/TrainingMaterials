@@ -48,7 +48,10 @@ function changedManuscripts() {
     const file = line.slice(3).trim().split(" -> ").pop();
     // "-add.md"는 원고의 추가분, "-…-check.md"는 렌더링 검토 기록이다. 둘 다 Session Source가
     // 아니므로 "Session 명:" 헤더가 없고, 검사 대상이 아니다.
-    if (file && TARGET.test(file) && !/-add\.md$/.test(file) && !/-[^/]*check\.md$/.test(file) && !rewritePending(file))
+    // 지운 원고(전면 보완에서 없어진 세션)는 작업 트리에 없다. 검사에 넘기면 "입력 파일이 없다"로
+    // 턴이 막히므로, 디스크에 없는 경로는 건너뛴다.
+    if (file && TARGET.test(file) && !/-add\.md$/.test(file) && !/-[^/]*check\.md$/.test(file)
+        && fs.existsSync(path.join(ROOT, file)) && !rewritePending(file))
       files.push(file);
   }
   return files;

@@ -1211,6 +1211,10 @@
     "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
     "date": "2026-10-12"
   },
+  "solving 75.2% of all benchmark tasks": {
+    "source": "hassan-2026-se30",
+    "date": "2026-10-27"
+  },
   "some assertions, called preconditions and postconditions, apply to individual routines. others, the class invariants, constrain all the routines of a given class": {
     "source": "확인 경위: 스캔 PDF의 OCR이 쉼표를 마침표로 읽고 3단을 섞어 자동 대조가 되지 않는다. https://se.inf.ethz.ch/~meyer/publications/computer/contract.pdf 의 42쪽(Computer 25(10), 1992) 지면을 직접 읽어 문장과 문장부호를 확인했다(2026-10-14).",
     "date": "2026-10-14"
@@ -1398,6 +1402,10 @@
   "the quality attributes have a strong influence on the architecture of a system": {
     "source": "larman-2004",
     "date": "2026-10-08"
+  },
+  "the real-world performance of autonomous software engineers remains unclear": {
+    "source": "hassan-2026-se30",
+    "date": "2026-10-27"
   },
   "the requirements document turned this small bug into 4 \"user stories\" with a total of 16 acceptance criteria": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
