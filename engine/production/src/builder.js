@@ -258,6 +258,10 @@ function buildNotesSlide(notes, parseXml) {
 // narrow-char units estimate() uses elsewhere) converted to points, plus cell padding; the table
 // only shrinks below the max footprint, never stretches past it -- short content narrows the
 // table, and only content that's genuinely too wide gets scaled back down to fit.
+// 고객의 말·요청처럼 **문장 전체가 따옴표 안에 있는 한 줄**은 글머리표 없이 본문 크기로 그린다.
+// topic의 둘째 text 줄부터는 bullet으로 바뀌는데, 받은 말에 글머리표가 붙으면 저자의 주장처럼
+// 읽힌다(session-authoring-guide.md 「고객의 말」, 2026-10-31).
+const SPOKEN_LINE = /^"[^"]+"$/;
 const TABLE_MAX_WIDTH = 654;
 // Template's own graphicFrame band (table prototype, shape id 11): x=33.48pt,
 // cx=651.97pt -- close enough to TABLE_MAX_WIDTH that centering a narrower table inside this
@@ -1151,12 +1155,15 @@ class Builder {
         // 칸의 글은 **세로 가운데**에 둔다. 원형 슬라이드의 값에 기대지 않고 여기서 정하며, 위아래
         // 여백을 같게 맞춘다 — 위 여백만 있으면 가운데 맞춤이어도 글이 아래로 내려가 보인다
         // (production-guide.md 「표의 행 높이와 열 너비」).
-        const tcPr = child(cell, A, "tcPr");
-        if (tcPr) {
-          tcPr.setAttribute("anchor", "ctr");
-          tcPr.setAttribute("marT", String(CELL_MAR_V));
-          tcPr.setAttribute("marB", String(CELL_MAR_V));
+        // 원형에 tcPr이 없는 칸이 하나라도 있으면 그 칸만 맞춤 없이 빠지므로 없으면 만들어 붙인다.
+        let tcPr = child(cell, A, "tcPr");
+        if (!tcPr) {
+          tcPr = el(page.doc, A, "tcPr");
+          cell.appendChild(tcPr);
         }
+        tcPr.setAttribute("anchor", "ctr");
+        tcPr.setAttribute("marT", String(CELL_MAR_V));
+        tcPr.setAttribute("marB", String(CELL_MAR_V));
         row.appendChild(cell);
       }
       tbl.appendChild(row);
@@ -1164,6 +1171,9 @@ class Builder {
     const idAttr = first(gf, P, "cNvPr").getAttribute("id");
     page.items.push({ id: parseInt(idAttr, 10), kind: "table", text: "", rows: group });
     const contentHeightPt = group.reduce((sum, row) => sum + this.rowHeight(row, widths), 0);
+    // 틀의 높이도 실제 표 높이로 맞춘다. 원형의 305pt를 그대로 두면 cy를 믿는 뷰어가 남는 높이를
+    // 행에 나눠 주어 표가 늘어나고 글이 제 행의 가운데에서 벗어난다(2026-10-31).
+    child(gfXf, A, "ext").setAttribute("cy", String(Math.round(contentHeightPt * EMU / 72)));
     page.tableBottom = Number(child(gfXf, A, "off").getAttribute("y")) / EMU + contentHeightPt / 72;
     return contentHeightPt;
   }
@@ -1626,10 +1636,25 @@ class Builder {
       // written before it; the text after it gets the full body area back (see the visual branch).
       let pendingCapacity = capacity;
       const flushPending = () => {
-        if (open && pending.length && this.stackedTextHeightPt(pending) <= this.roomBelowPt(open)) {
-          this.appendTextBelow(open, pending);
-          pending.length = 0;
-          return;
+        if (open && pending.length) {
+          const room = this.roomBelowPt(open);
+          if (this.stackedTextHeightPt(pending) <= room) {
+            this.appendTextBelow(open, pending);
+            pending.length = 0;
+            return;
+          }
+          // 전부가 들어가지 않으면 들어가는 앞부분만 표 아래에 쌓는다. 통째로 넘기면 표 아래가
+          // 200pt 가까이 비는 장이 생겼다. 하위 bullet은 제 상위 bullet과 같은 장에 둔다.
+          let cut = 0;
+          for (let n = 1; n < pending.length; n++) {
+            const next = pending[n];
+            // 소제목은 뒤 내용을 여는 줄이므로 그 바로 뒤에서 자르지 않는다(「한 장의 메시지」).
+            if (pending[n - 1].kind === "heading") continue;
+            if (next.depth > pending[n - 1].depth) continue;
+            if (this.stackedTextHeightPt(pending.slice(0, n)) > room) break;
+            cut = n;
+          }
+          if (cut > 0) this.appendTextBelow(open, pending.splice(0, cut));
         }
         const before = this.pages.length;
         this.flush(pending, section.title, layout.width, pendingCapacity);
@@ -1745,7 +1770,7 @@ class Builder {
             if (!governingMessageSeen && (!isQuote || !contentSeen)) {
               governingMessageSeen = true;
               leadBlock = block;
-            } else {
+            } else if (!SPOKEN_LINE.test(block.text.trim())) {
               block = { ...block, kind: "bullet", depth: block.depth + headingDepthBoost };
             }
             contentSeen = true;

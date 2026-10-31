@@ -225,7 +225,9 @@ function practiceShape(sections) {
 const SPELLED = /(?<![가-힣])(두|세|네|다섯|여섯|일곱|여덟|아홉|열한|열두)\s*(가지|개|곳|단계|세션|장|줄|명|행|열|원칙)(?:(?![가-힣])|(?=(?:은|는|이|가|을|를|의|에|와|과|도|만|로|으로|나|며|씩|뿐|까지|부터|라도|라)(?![가-힣])))/g;
 function spelledNumbers(sections) {
   const warnings = [];
-  for (const s of sections) {
+  // 기록(`**기록 그대로**`·`**실제 LLM 응답**`)은 저자가 쓴 글이 아니다. 표기를 고치는 것이 곧
+  // 기록을 고치는 일이므로 수 표기 검사에서 뺀다(session-authoring-guide.md, 2026-10-31).
+  for (const s of sections.filter((x) => !x.verbatimResponse)) {
     for (const b of s.blocks || []) {
       if (["code", "tree", "mermaid", "plantuml", "svg", "chart"].includes(b.kind)) continue;
       const texts = b.kind === "table" ? (b.rows || []).flat() : [b.text || ""];

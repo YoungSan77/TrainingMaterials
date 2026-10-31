@@ -205,3 +205,20 @@ test("verbatim LLM appendix preserves plain response text without requiring edit
   assert.match(warnings[0], /일반 설명/);
   assert.throws(() => parse("## 01. 일반 본문\n\n**실제 LLM 응답**\n"), /별첨/);
 });
+
+// 시연 topic의 "**기록 그대로**"도 같은 뜻이다 — 별첨이 아니어도 핵심어 강조 검사에서 뺀다.
+test("기록 그대로 표식은 본문 topic에서도 강조 검사를 면제한다", () => {
+  const { unboldedText } = require("../structure");
+  const text = "다음 요청과 회의 메모로 주문 시스템의 요구사항 정의서 초안을 써줘. 모르는 것은 질문으로 남겨줘.";
+  const { sections } = parse(`## 01. 시연\n\n**기록 그대로**\n\n- ${text}\n`);
+  const topic = sections[0];
+  assert.equal(topic.verbatimResponse, true);
+  assert.equal(topic.blocks[0].text, text, "표식 줄은 본문에 남지 않는다");
+  assert.equal(unboldedText([topic]).length, 0, "기록은 강조 검사에서 빠진다");
+  assert.ok(unboldedText([{ ...topic, verbatimResponse: false }]).length > 0, "표식이 없으면 경고한다");
+  // 수 표기도 같다 — 기록의 "두 곳"을 "2곳"으로 고치는 것이 곧 기록을 고치는 일이다.
+  const { spelledNumbers } = require("../structure");
+  const spelled = parse("## 01. 시연\n\n**기록 그대로**\n\n- 이 두 곳에 없는 내용은 정하지 않았습니다.\n").sections[0];
+  assert.deepEqual(spelledNumbers([spelled]), []);
+  assert.ok(spelledNumbers([{ ...spelled, verbatimResponse: false }]).length > 0);
+});

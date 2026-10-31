@@ -1,5 +1,6 @@
 #!/bin/zsh
 # PowerPoint로 PPT를 PDF로 내보내고, 지정한 장만 PNG로 만든다(시각 검토용).
+# 내보낸 PDF는 출력 폴더에 <sNN>.pdf로 함께 남는다 — 글의 좌표를 재려면 PNG가 아니라 이 파일을 쓴다.
 # 자동 검사(오류·경고 0개)를 통과한 뒤, 도식·표·코드가 있는 장과 바뀐 장만 본다.
 #
 # 사용: tools/review-pdf.sh <sNN.md 또는 sNN.pptx> [장 번호 또는 범위 ...]
@@ -35,6 +36,9 @@ osascript -e "tell application \"Microsoft PowerPoint\"
 end tell" >/dev/null
 
 [[ -s $tmp_pdf ]] || { echo "PDF 내보내기 실패 — DELAY를 늘려 다시 실행한다"; exit 1; }
+# PDF도 함께 남긴다. 글이 놓인 자리는 이미지를 보는 것보다 `pdftotext -bbox`의 좌표로 재는 쪽이
+# 정확하고 싸다(AGENTS.md 「수치가 답이면 먼저 잰다」).
+cp $tmp_pdf $out/$name.pdf
 pages=$(pdfinfo $tmp_pdf | awk '/^Pages:/ {print $2}')
 if (( $# == 0 )); then
   echo "$name: ${pages}장. 볼 장을 지정한다(예: 3 8-10)."

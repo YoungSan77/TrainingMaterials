@@ -112,6 +112,13 @@ function parse(input) {
       current.verbatimResponse = true;
       continue;
     }
+    // 시연 topic은 실제로 준 입력과 받은 결과를 본문에 그대로 싣는다. 저자가 쓴 글이 아니므로
+    // 핵심어 강조 검사에서 뺀다 — 강조를 더하는 것 자체가 기록을 고치는 일이다(2026-10-31).
+    if (!inNotes && line.trim() === "**기록 그대로**") {
+      need(current, "기록 표식 앞에 주제가 없다.");
+      current.verbatimResponse = true;
+      continue;
+    }
     // TM parser extension (NOT present in lecture-ppt-java): "**페이지 분할**" is an explicit,
     // author-placed page break -- unlike every other split point in this pipeline (which the
     // builder infers from an estimated content-height budget), this one is guaranteed. It forces
