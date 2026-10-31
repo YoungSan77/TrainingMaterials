@@ -29,7 +29,7 @@ Session 명: 별첨. 참고 자료
 21. **[DORA 2025]**  State of AI-assisted Software Development 2025, DORA, 2025, https://dora.dev/research/2025/dora-report/ (읽을거리)
 22. **[Evans 2015]**  Domain-Driven Design Reference, Eric Evans, Domain Language, 2015, https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf
 23. **[Fowler 2015c]**  MonolithFirst, Martin Fowler, martinfowler.com, 2015, https://martinfowler.com/bliki/MonolithFirst.html
-24. **[Fowler 2025]**  LLMs bring new nature of abstraction, Martin Fowler, martinfowler.com, 2025, https://martinfowler.com/articles/2025-nature-abstraction.html (읽을거리)
+24. **[Fowler 2025]**  LLMs bring new nature of abstraction, Martin Fowler, martinfowler.com, 2025, https://martinfowler.com/articles/2025-nature-abstraction.html
 25. **[Gao 외 2025]**  The Current Challenges of Software Engineering in the Era of Large Language Models, Cuiyun Gao·Xing Hu·Shan Gao·Xin Xia·Zhi Jin, ACM Transactions on Software Engineering and Methodology 34(5), 2025, https://doi.org/10.1145/3712005
 26. **[GitHub Spec Kit]**  Spec Kit, GitHub, https://github.com/github/spec-kit (읽을거리)
 27. **[Gruber 1993]**  A Translation Approach to Portable Ontology Specifications, Thomas R. Gruber, Knowledge Acquisition 5(2), 1993

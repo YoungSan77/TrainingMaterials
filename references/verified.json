@@ -727,6 +727,10 @@
     "source": "references/inputs/Google_IntroductionToAgents.pdf",
     "date": "2026-10-13"
   },
+  "forcing us to consider what it means to program with non-deterministic tools": {
+    "source": "https://martinfowler.com/articles/2025-nature-abstraction.html",
+    "date": "2026-10-31"
+  },
   "fortunately, uml activity diagrams can satisfy the same goals-they can be used for data flow modeling, replacing traditional dfd notation": {
     "source": "larman-2004",
     "date": "2026-10-23"
