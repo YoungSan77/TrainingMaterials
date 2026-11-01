@@ -15,14 +15,14 @@ public final class ArchitectureExample {
     public static void main(String[] args) {
         MemoryOrderRepository repository = new MemoryOrderRepository();
         Order order = new Order(new Money(2000), new Address("서울"));
-        repository.save("demo", order);
+        repository.save("ORDER", order);
         AtomicInteger deliveries = new AtomicInteger();
         OrderService rejected = new OrderService(repository,
             new PaymentAdapter((amount, method) -> {
                 check(amount.won() == 2000, "거절 요청 금액");
                 return PaymentDecision.REJECTED;
             }), new DeliveryAdapter((number, address) -> deliveries.incrementAndGet()));
-        rejected.pay("demo", new PaymentMethod("카드1"));
+        rejected.pay("ORDER", new PaymentMethod("X"));
         check(order.status() == OrderStatus.PENDING_PAYMENT, "거절 상태");
         check(deliveries.get() == 0, "승인 전 배송 금지");
         System.out.println("PASS 거절: 결제대기, 배송 0회");
@@ -35,7 +35,7 @@ public final class ArchitectureExample {
                 check(address.value().equals("서울"), "배송지");
                 deliveries.incrementAndGet();
             }));
-        approved.pay("demo", new PaymentMethod("카드2"));
+        approved.pay("ORDER", new PaymentMethod("Y"));
         check(order.status() == OrderStatus.PAID, "승인 상태");
         check(deliveries.get() == 1, "배송 1회");
         System.out.println("PASS 재결제 승인: 2000원, 결제완료 후 서울 배송 1회");
