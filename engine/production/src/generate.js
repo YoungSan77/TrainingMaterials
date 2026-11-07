@@ -9,7 +9,7 @@ const builder = require("./builder");
 const { inspect, reportJson } = require("./inspect");
 const { checkReferences } = require("./references");
 const { courseInfo } = require("./course");
-const { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, slideTalk, countsMatchTable, numberedBullets, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape, missingModelUpdate, spelledNumbers } = require("./structure");
+const { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, slideTalk, countsMatchTable, numberedBullets, flatGroupItems, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape, missingPracticeAnswer, missingModelUpdate, spelledNumbers } = require("./structure");
 const { checkCodeSources, checkEnumConsistency, checkOrphanCode } = require("./codeSource");
 
 // A continuation slide that carries only a line or two of text (no table, visual or code) is a
@@ -86,11 +86,13 @@ async function generateFile(inputPath, outputPath, templatePath) {
     refs.warnings.push(...slideTalk(sections));
     refs.warnings.push(...countsMatchTable(sections));
     refs.warnings.push(...numberedBullets(sections));
+    refs.warnings.push(...flatGroupItems(sections));
     refs.warnings.push(...unmarkedQuestionTitles(sections));
     if (!/-add\.md$/i.test(inputPath)) refs.warnings.push(...missingNotes(sections));
     refs.warnings.push(...checkEnumConsistency(inputPath));
     refs.warnings.push(...answersOutsideAppendix(sections));
     refs.warnings.push(...practiceShape(sections));
+    refs.warnings.push(...missingPracticeAnswer(sections));
     refs.warnings.push(...missingModelUpdate(sections));
     refs.warnings.push(...spelledNumbers(sections));
     refs.warnings.push(...checkOrphanCode(inputPath));

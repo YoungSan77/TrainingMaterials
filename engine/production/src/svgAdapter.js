@@ -52,6 +52,31 @@ function minFontSize(source) {
   return sizes.length ? Math.min(...sizes) : DEFAULT_FONT_SIZE;
 }
 
+// viewBox 밖으로 나간 내용(viewBox 단위). rsvg-convert는 viewBox 크기로만 그리므로 상자의
+// 테두리나 글이 밖에 있으면 그대로 잘린다 — 슬라이드 배치가 아니라 원본이 잘린 것이라
+// 눈으로만 보인다(2026-11-04, 「11. 조건은 다이어그램에 없다」의 4번째 띠).
+function outsideViewBox(source) {
+  const vb = /viewBox\s*=\s*"\s*([\d.+-]+)[\s,]+([\d.+-]+)[\s,]+([\d.+-]+)[\s,]+([\d.+-]+)\s*"/.exec(source);
+  if (!vb) return null;
+  const [minX, minY, w, h] = vb.slice(1).map(Number);
+  if (!(w > 0 && h > 0)) return null;
+  let right = 0, bottom = 0;
+  const num = (v) => (v === undefined ? NaN : parseFloat(v));
+  const attr = (tag, name) => { const m = new RegExp(name + '\\s*=\\s*"([^"]*)"').exec(tag); return m ? num(m[1]) : NaN; };
+  for (const m of source.matchAll(/<rect\b[^>]*>/g)) {
+    const x = attr(m[0], "x"), y = attr(m[0], "y");
+    const rw = attr(m[0], "width"), rh = attr(m[0], "height");
+    if (Number.isFinite(x) && Number.isFinite(rw)) right = Math.max(right, x + rw);
+    if (Number.isFinite(y) && Number.isFinite(rh)) bottom = Math.max(bottom, y + rh);
+  }
+  for (const m of source.matchAll(/<(?:line|text)\b[^>]*>/g)) {
+    for (const name of ["x", "x1", "x2"]) { const v = attr(m[0], name); if (Number.isFinite(v)) right = Math.max(right, v); }
+    for (const name of ["y", "y1", "y2"]) { const v = attr(m[0], name); if (Number.isFinite(v)) bottom = Math.max(bottom, v); }
+  }
+  const over = { right: right - (minX + w), bottom: bottom - (minY + h) };
+  return over.right > 0.5 || over.bottom > 0.5 ? over : null;
+}
+
 // guides/production-guide.md "접근성 텍스트": the authored aria-label/<title>/<desc> is the alt
 // text Production must preserve on the PPT picture object, not something to invent or drop.
 function altText(source) {
@@ -90,4 +115,4 @@ async function renderSvg(source) {
   };
 }
 
-module.exports = { renderSvg, pngSize, stripPngMetadata, minFontSize, altText, CACHE_DIR, SCALE };
+module.exports = { renderSvg, pngSize, stripPngMetadata, minFontSize, altText, outsideViewBox, CACHE_DIR, SCALE };

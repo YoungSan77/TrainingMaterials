@@ -55,6 +55,12 @@ function source(session) {
   ].join("\n");
 }
 
+const GOAL_LEAD = "이 과정은 **AI 도입으로 SW 공학이 어떻게 바뀌는가**를 다룬다.";
+const GOALS = [
+  "작업마다 가장 단순한 충분한 **형태**를 선택할 수 있다.",
+  "결정마다의 검사를 **명령 하나**로 모아 루프 안에서 돌릴 수 있다.",
+];
+
 const DESIGN = [
   "# 과정",
   "",
@@ -62,6 +68,14 @@ const DESIGN = [
   "",
   "- **과정명:** " + COURSE + " (`ai-native`)",
   "- **총 교육시간:** 14시간",
+  "",
+  "## 2. 과정 목표",
+  "",
+  "### 과정 목표 슬라이드",
+  "",
+  GOAL_LEAD,
+  "",
+  ...GOALS.map((g) => "- " + g),
   "",
   "## 5. Session 구조",
   "",
@@ -88,7 +102,7 @@ async function pagesOf(session, info) {
   }
 }
 
-const info = () => ({ name: COURSE, sessions: SESSIONS });
+const info = () => ({ name: COURSE, sessions: SESSIONS, goal: { lead: GOAL_LEAD, goals: GOALS } });
 
 test("과정명과 세션 목록은 course-design.md에서 읽고 폴더 이름은 뺀다", () => {
   const read = courseInfo(course(DESIGN));
@@ -103,14 +117,32 @@ test("과정 설계가 없으면 과정도 표지도 없다", async () => {
   assert.ok(pages[0].isToc, "표지가 없으면 세션 목차가 첫 장이다");
 });
 
-test("첫 세션은 표지 · 과정 목차 · 세션 목차 순으로 시작한다", async () => {
+// 과정과 세션이 같은 "목차 → 목표" 순서다(production-guide.md 「표지·과정 목차·과정 목표」).
+test("첫 세션은 표지 · 과정 목차 · 과정 목표 · 세션 목차 순으로 시작한다", async () => {
   const pages = await pagesOf(SESSION, info());
   assert.ok(pages[0].isCover);
   assert.equal(pages[0].heading, "", "표지의 제목 자리는 비운다");
   assert.equal(pages[1].heading, COURSE + " 목차");
   assert.ok(pages[1].isToc);
-  assert.equal(pages[2].heading, "01. 사람의 일과 AI의 일 목차");
-  assert.ok(pages[2].isToc);
+  assert.equal(pages[2].heading, COURSE + " 목표");
+  assert.ok(pages[2].isCourseGoal);
+  assert.equal(pages[3].heading, "01. 사람의 일과 AI의 일 목차");
+  assert.ok(pages[3].isToc);
+  assert.equal(pages[4].heading, "01. 세션 목표", "세션도 목차 다음이 목표다");
+});
+
+test("과정 목표는 설계의 「과정 목표 슬라이드」를 그대로 담는다", () => {
+  const read = courseInfo(course(DESIGN));
+  assert.equal(read.goal.lead, GOAL_LEAD);
+  assert.deepEqual(read.goal.goals, GOALS);
+});
+
+test("설계에 과정 목표 슬라이드가 없으면 그 장만 만들지 않는다", async () => {
+  const read = courseInfo(course(DESIGN.replace("### 과정 목표 슬라이드", "### 다른 절")));
+  assert.equal(read.goal, null);
+  const pages = await pagesOf(SESSION, { name: COURSE, sessions: SESSIONS, goal: null });
+  assert.ok(pages[0].isCover);
+  assert.equal(pages[1].heading, COURSE + " 목차");
 });
 
 test("뒤 세션의 덱은 자기 목차가 첫 장이다", async () => {
@@ -138,10 +170,11 @@ test("과정 목차는 과정의 세션을 모두 16pt로 담는다", async () =
   assert.deepEqual([...sizes], ["1600"]);
 });
 
-test("표지와 두 목차에는 우측 상단 세션명을 쓰지 않는다", async () => {
+test("표지·과정 목차·과정 목표에는 우측 상단 세션명을 쓰지 않는다", async () => {
   const pages = await pagesOf(SESSION, info());
   assert.equal(text(shape(pages[0].doc, 5)), "");
   assert.equal(text(shape(pages[1].doc, 5)), "");
   assert.equal(text(shape(pages[2].doc, 5)), "");
-  assert.equal(text(shape(pages[3].doc, 5)), SESSION);
+  assert.equal(text(shape(pages[3].doc, 5)), "");
+  assert.equal(text(shape(pages[4].doc, 5)), SESSION);
 });

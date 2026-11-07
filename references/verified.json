@@ -55,6 +55,14 @@
     "source": "larman-2004",
     "date": "2026-10-22"
   },
+  "a domain model is not a data model": {
+    "source": "larman-2004",
+    "date": "2026-11-05"
+  },
+  "a domain model is not a data model (which by definition shows persistent data to be stored": {
+    "source": "larman-2004",
+    "date": "2026-11-05"
+  },
   "a fixed prompt is fed to an agent in an infinite loop": {
     "source": "https://www.thoughtworks.com/radar/techniques/ralph-loop",
     "date": "2026-10-13"
@@ -289,7 +297,7 @@
   },
   "an attribute is a logical data value of an object": {
     "source": "larman-2004",
-    "date": "2026-10-02"
+    "date": "2026-11-05"
   },
   "an event is a significant or noteworthy occurrence": {
     "source": "larman-2004",
@@ -1049,7 +1057,7 @@
   },
   "multiplicity defines how many instances of a class a can be associated with one instance of a class b": {
     "source": "larman-2004",
-    "date": "2026-10-02"
+    "date": "2026-11-05"
   },
   "name an association based on a classname-verbphrase-classname format where the verb phrase creates a sequence that is readable and meaningful": {
     "source": "larman-2004",
@@ -1318,6 +1326,10 @@
   "the component structure cannot be designed from the top down. it is not one of the first things about the system that is designed, but rather evolves as the system grows and changes": {
     "source": "https://raw.githubusercontent.com/sdcuike/Clean-Code-Collection-Books/master/Clean%20Architecture%20A%20Craftsman%27s%20Guide%20to%20Software%20Structure%20and%20Design.pdf",
     "date": "2026-10-05"
+  },
+  "the composite is responsible for the creation and deletion of its parts": {
+    "source": "larman-2004",
+    "date": "2026-11-05"
   },
   "the core challenge of long-running agents is that they must work in discrete sessions, and each new session begins with no memory of what came before": {
     "source": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",

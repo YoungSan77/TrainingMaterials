@@ -207,6 +207,15 @@ const PRACTICE_PARTS = [
   { label: "결과물", re: /\*\*결과물\*\*/ },
   { label: "결과물의 파일 이름", re: /\*\*결과물\*\*[\s\S]*?`[^`\s]+\.md`/ },
 ];
+// 실습이 있는 세션에는 그 답이 별첨에 있어야 한다(session-authoring-guide.md 「사례·가정·실습」).
+// 여러 세션을 모으다 별첨만 빠지면 렌더는 깨끗한데 답이 없는 교재가 된다(2026-11-03).
+function missingPracticeAnswer(sections) {
+  const practices = sections.filter((s) => isPractice(s.title));
+  if (!practices.length) return [];
+  if (sections.some((s) => s.appendix && !/참고 자료/.test(s.title))) return [];
+  return [`실습(${practices.map((s) => `"${s.title}"`).join("·")})의 답이 없다. 요약 뒤에 \`## 별첨. 실습 답\`을 둔다.`];
+}
+
 function practiceShape(sections) {
   const warnings = [];
   for (const s of sections) {
@@ -253,10 +262,34 @@ function missingModelUpdate(sections) {
   return [`요약의 강사 노트에 "모델에서 보완된 것 — …" 줄이 없다.`];
 }
 
+// A line that announces a list ("… 다음과 같다.", "다음 사항은 …", "…:") is the head of a group, so
+// the lines it announces belong under it -- the head is a top-level bullet and the items are indented
+// one step, which also gives them the master's next-level glyph (session-authoring-guide.md "묶음은
+// 상위 bullet, 소속은 들여쓴 bullet이다"). Left flat, the head sits glyph-less beside its own items and
+// a second group below it runs into the first. LLM 산출물은 머리말을 문단으로, 항목을 평평한 목록으로
+// 내놓으므로 기록을 옮길 때마다 이 모양이 들어온다(2026-11-05). Warning only.
+const LIST_INTRO = /(?:다음과 같다|아래와 같다|다음과 같이 [^.]*|다음 사항은 [^.]*|다음 항목은 [^.]*)\.$|[:：]$/;
+function flatGroupItems(sections) {
+  const warnings = [];
+  for (const section of sections) {
+    const blocks = section.blocks || [];
+    for (let i = 0; i < blocks.length - 1; i++) {
+      const head = blocks[i];
+      const next = blocks[i + 1];
+      if (head.kind !== "text" || (head.depth || 0) !== 0) continue;
+      if (next.kind !== "bullet" || (next.depth || 0) !== 0) continue;
+      const text = String(head.text).replace(/\*\*/g, "").trim();
+      if (!LIST_INTRO.test(text)) continue;
+      warnings.push(`묶음의 머리말과 항목이 같은 단에 있다 — 머리말을 "- "로, 항목을 두 칸 들여쓴다: "${section.title}"의 "${text.slice(0, 30)}"`);
+    }
+  }
+  return warnings;
+}
+
 // Every topic carries an instructor note (session-authoring-guide.md "강사 노트"). Warning only.
 function missingNotes(sections) {
   // A group with no body of its own (its sub-topics follow) has no slide, so no note.
   return sections.filter((s) => (!s.blocks || s.blocks.length) && !(s.notes && s.notes.length)).map((s) => `강사 노트가 없다: "${s.title}"`);
 }
 
-module.exports = { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, slideTalk, countsMatchTable, numberedBullets, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape, missingModelUpdate, spelledNumbers, MAX_GOALS };
+module.exports = { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, slideTalk, countsMatchTable, numberedBullets, flatGroupItems, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape, missingPracticeAnswer, missingModelUpdate, spelledNumbers, MAX_GOALS };

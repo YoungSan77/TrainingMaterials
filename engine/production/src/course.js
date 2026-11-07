@@ -12,6 +12,22 @@ const path = require("path");
 const NAME = /^-\s*\*\*과정명:\*\*\s*(.+?)\s*$/m;
 // 세션 목록은 references.js가 세션명을 확인할 때 쓰는 heading과 같은 것이다.
 const SESSION = /^### S(\d\d) — (.+?) \([^)]*\)\s*$/gm;
+// 과정 목표 슬라이드 — 표지 다음 장에 그대로 그릴 문단과 목록이다. 없으면 그 장을 만들지 않는다.
+const GOAL = /^### 과정 목표 슬라이드\s*$/m;
+
+function goalSlide(text) {
+  const m = GOAL.exec(text);
+  if (!m) return null;
+  const rest = text.slice(m.index + m[0].length);
+  const end = rest.search(/^#{1,3} /m);
+  const lines = (end < 0 ? rest : rest.slice(0, end)).split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const first = lines.findIndex((l) => /^-\s+/.test(l));
+  if (first < 0) return null;
+  const goals = lines.slice(first).filter((l) => /^-\s+/.test(l)).map((l) => l.replace(/^-\s+/, ""));
+  // 목록 바로 앞 문단이 슬라이드의 lead다 — 그 위에 저자용 설명이 더 있어도 끌어오지 않는다.
+  const lead = first > 0 ? lines[first - 1] : "";
+  return { lead, goals };
+}
 
 function courseInfo(inputPath) {
   const design = path.join(path.dirname(path.resolve(inputPath)), "..", "course-design.md");
@@ -25,7 +41,7 @@ function courseInfo(inputPath) {
   SESSION.lastIndex = 0;
   let s;
   while ((s = SESSION.exec(text))) sessions.push({ number: s[1], name: s[1] + ". " + s[2].trim() });
-  return { name, sessions };
+  return { name, sessions, goal: goalSlide(text) };
 }
 
 module.exports = { courseInfo };

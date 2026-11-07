@@ -70,10 +70,39 @@ function maxNodeLabelBox(svg) {
 // 시퀀스의 메시지 라벨은 줄바꿈한다(wrap). 라벨 하나가 길면 mermaid는 그 라벨이 한 줄에 들어갈
 // 만큼 참여자 사이를 벌리므로, 도식이 가로로 늘어나 슬라이드 폭에 맞추면 글자가 7pt 아래로
 // 내려간다(설계 시퀀스의 `approve(orderNumber, order.totalAmount(), …)`가 3.4pt였다, 2026-10-24).
+// 상자와 라벨은 색 없이 그린다. neutral 테마도 클래스 상자에 옅은 바탕을, 연관 라벨에 노란
+// 하이라이트를 넣어, 같은 세션의 PlantUML 클래스 다이어그램(흰 상자)과 다르게 보였다. 뜻을
+// 나르는 색은 원고가 `style` 줄로 직접 지정하며(02의 2,400원·2,000원), 그 지정은 그대로 남는다.
 const MERMAID_CONFIG = {
   sequence: { mirrorActors: false, wrap: true, width: 170 },
   flowchart: { nodeSpacing: 22, rankSpacing: 30, padding: 6, subGraphTitleMargin: { top: 2, bottom: 2 } },
+  themeVariables: {
+    // 클래스 상자와 노드의 바탕(mainBkg)·연관 라벨의 바탕(labelBackground)이 neutral 테마에서는
+    // 회색이다. themeCSS는 mermaid가 설정 파일로 덮지 못하게 막아 둔 값이라 여기서만 바꿀 수 있다.
+    mainBkg: "#ffffff",
+    nodeBkg: "#ffffff",
+    primaryColor: "#ffffff",
+    secondaryColor: "#ffffff",
+    tertiaryColor: "#ffffff",
+    labelBackground: "#ffffff",
+    edgeLabelBackground: "#ffffff",
+    noteBkgColor: "#ffffff",
+    primaryBorderColor: "#475569",
+    nodeBorder: "#475569",
+    noteBorderColor: "#475569",
+    primaryTextColor: "#1e293b",
+    classText: "#1e293b",
+    lineColor: "#475569",
+  },
 };
+
+const isClassDiagram = (source) => /^\s*classDiagram\b/m.test(String(source));
+
+// 원고가 `style` 줄로 지정한 색(02의 2,400원·2,000원)은 그대로 남는다 — 테마 변수는 기본값만
+// 정하고, 원고의 지정이 그 위에 덮인다.
+function mermaidConfig() {
+  return MERMAID_CONFIG;
+}
 
 function runMmdc(sourcePath, outPath, puppeteerPath, extra, configPath) {
   execFileSync(MMDC, ["-i", sourcePath, "-o", outPath, "-t", "neutral", "-p", puppeteerPath,
@@ -97,7 +126,7 @@ function svgMetrics(svg) {
 async function renderMermaid({ source }) {
   if (!source || !String(source).trim()) throw new Error("Mermaid source가 비어 있다");
   fs.mkdirSync(CACHE_DIR, { recursive: true });
-  const version = /^\s*classDiagram\b/m.test(String(source)) ? "v13-class-cardinalities" : "v17-wrapped-sequence-170";
+  const version = isClassDiagram(source) ? "v16-class-white" : "v19-white-bkg";
   const hash = crypto.createHash("sha1").update(version + "\n" + source).digest("hex").slice(0, 16);
   const pngPath = path.join(CACHE_DIR, hash + ".png");
   const metricsPath = path.join(CACHE_DIR, hash + ".json");
@@ -114,7 +143,7 @@ async function renderMermaid({ source }) {
       if (!fs.existsSync(MMDC)) throw new Error("Mermaid CLI가 설치되지 않았다: " + MMDC);
       if (!fs.existsSync(CHROME)) throw new Error("Mermaid 렌더용 Chrome이 없다: " + CHROME);
       fs.writeFileSync(puppeteerPath, JSON.stringify({ executablePath: CHROME, args: ["--no-sandbox"] }), "utf8");
-      fs.writeFileSync(configPath, JSON.stringify(MERMAID_CONFIG), "utf8");
+      fs.writeFileSync(configPath, JSON.stringify(mermaidConfig(source)), "utf8");
       // Pass 1 measures every node's label box; pass 2 renders with all nodes at the largest one.
       fs.writeFileSync(sourcePath, styleSource(source), "utf8");
       runMmdc(sourcePath, svgPath, puppeteerPath, [], configPath);
@@ -146,4 +175,4 @@ async function renderMermaid({ source }) {
   return { path: pngPath, data, width: size.width, height: size.height, svgWidth: metrics.svgWidth || 0, fontPx: metrics.fontPx || 0 };
 }
 
-module.exports = { renderMermaid, pngSize, CACHE_DIR, styleLabel, styleSource, maxNodeLabelBox, svgMetrics, MERMAID_CONFIG };
+module.exports = { renderMermaid, pngSize, CACHE_DIR, styleLabel, styleSource, maxNodeLabelBox, svgMetrics, MERMAID_CONFIG, mermaidConfig };

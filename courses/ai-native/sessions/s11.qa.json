@@ -1,8 +1,8 @@
 {
-  "status": "PASS",
+  "status": "FAIL",
   "slides": 18,
   "checked_blocks": 51,
   "visual_status": "NOT_VERIFIED",
-  "errors": [],
+  "errors": ["요약에 \"### 다음 세션\"이 없다."],
   "warnings": []
 }

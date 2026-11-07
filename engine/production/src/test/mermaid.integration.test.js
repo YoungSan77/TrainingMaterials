@@ -22,6 +22,19 @@ test("Mermaid source renders to a valid PNG", async () => {
   assert.ok(png.width > 100 && png.height > 40);
 });
 
+// 클래스 상자와 연관 라벨에 색을 넣지 않는다. 같은 세션의 PlantUML 클래스 다이어그램은 흰
+// 상자인데 mermaid만 옅은 바탕과 노란 라벨로 그려져, 한 세션 안에서 두 가지로 보였다.
+test("Mermaid 상자와 라벨에는 바탕색이 없다", () => {
+  // neutral 테마의 기본 바탕은 회색(#eee)이라, 같은 세션의 PlantUML 클래스 다이어그램(흰 상자)과
+  // 다르게 보였다. themeCSS는 mermaid가 설정 파일로 덮지 못하게 막아 둔 값이므로 테마 변수로 정한다.
+  const v = MERMAID_CONFIG.themeVariables;
+  assert.ok(v, "themeVariables가 있다");
+  for (const key of ["mainBkg", "nodeBkg", "labelBackground", "edgeLabelBackground"]) {
+    assert.equal(v[key], "#ffffff", key + "가 흰색이 아니다");
+  }
+  assert.equal(MERMAID_CONFIG.themeCSS, undefined, "막혀 있는 themeCSS에 기대지 않는다");
+});
+
 test("a long sequence message label wraps instead of stretching the diagram sideways", async () => {
   // 라벨이 길면 mermaid는 그 라벨을 한 줄에 담으려고 참여자 사이를 벌린다. 줄바꿈이 꺼지면 도식이
   // 가로로 늘어나 슬라이드 폭에 맞출 때 글자가 7pt 아래로 내려간다(production-guide.md).

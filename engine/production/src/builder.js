@@ -13,7 +13,7 @@ const { TEMPLATE_DIR, ORIGIN, readTemplate, slideParts } = require("./template")
 const { renderMermaid } = require("./mermaidAdapter");
 const { renderPlantUml } = require("./plantumlAdapter");
 const { renderChart } = require("./chartAdapter");
-const { renderSvg } = require("./svgAdapter");
+const { renderSvg, outsideViewBox } = require("./svgAdapter");
 // 쪼개 둔 네 묶음: 이름(실습·세션명), 글·코드의 크기, 문서형 슬라이드의 style, 도식의 크기와 자리.
 const { isPractice, isAnswer, appendixSessionName, tocSessionName, sessionNamePt, SESSION_PT } = require("./slideNames");
 const { proseLines, codeHeightPt, splitColumns, planCode, CODE_COL_GAP } = require("./codeFit");
@@ -845,6 +845,27 @@ class Builder {
 
   // Move whatever sits below `top` (a table or code under the diagram) down by `dy`, if it still
   // clears the footer. Returns whether it moved.
+  // 장에서 `top`보다 위에 있는 내용이 끝나는 자리(인치). 도식을 위로 올릴 때의 한계다.
+  contentAbove(page, top) {
+    const fixed = new Set(["2", "5", "6", "7"]);
+    let bottom = 1.05;
+    for (const e of children(first(page.doc, P, "spTree"))) {
+      const nv = first(e, P, "cNvPr");
+      if (!nv || fixed.has(nv.getAttribute("id"))) continue;
+      if (all(e, P, "ph").some((ph) => ph.getAttribute("type") === "sldNum")) continue;
+      const off = first(e, A, "off"), ext = first(e, A, "ext");
+      if (!off || !ext) continue;
+      const y0 = parseInt(off.getAttribute("y"), 10) / EMU;
+      const isTable = e.localName === "graphicFrame";
+      const y1 = isTable && page.tableBottom != null ? page.tableBottom : y0 + parseInt(ext.getAttribute("cy"), 10) / EMU;
+      // 템플릿에서 물려받아 좌표가 없는 상자는 건너뛴다 — 하나라도 NaN이면 자리 계산이 전부 깨진다.
+      if (!Number.isFinite(y1) || y1 > top + 0.01) continue;
+      if (!String(text(e) || "").trim() && !isTable) continue;
+      bottom = Math.max(bottom, y1);
+    }
+    return bottom;
+  }
+
   shiftBelow(page, top, dy) {
     const fixed = new Set(["2", "5", "6", "7"]);
     const moving = [];
@@ -929,7 +950,16 @@ class Builder {
       run(p, picture.caption, 14, true);
       return;
     }
-    const room = below ? h - H : Math.min(h, PAGE_NUM_Y - 0.08 - y - H);
+    // 제목이 붙으면 도식은 제목 높이만큼 아래로 내려간다. 그만큼 아래가 모자라면 그림을 줄이기
+    // 전에 **위로 올린다** — 글이 끝난 자리와 도식 사이의 여백을 둔 채 아래만 쪽 번호에 닿는
+    // 장이 있었다(2026-11-04). 올릴 수 있는 한계는 바로 위 글 상자의 아래 끝이다.
+    if (!below) {
+      const bottom = this.contentBottomY();
+      const ceiling = this.contentAbove(page, y) + BLOCK_GAP;
+      const lift = Math.min(Math.max(0, y + H + h - bottom), Math.max(0, y - ceiling));
+      y -= lift;
+    }
+    const room = below ? h - H : Math.min(h, this.contentBottomY() - y - H);
     const scale = Math.max(0.5, Math.min(1, room / h));
     x += (w - w * scale) / 2;
     w *= scale; h *= scale;
@@ -992,7 +1022,10 @@ class Builder {
     const colW = cols.length === 2 ? (w - CODE_COL_GAP) / 2 : w;
     let codeBottom = y;
     cols.forEach((piece, ci) => {
-      const id = ci === 0 && !page.items.some((it) => it.id === 31) ? 31 : this.cloneShape(page, 31);
+      // 표 장처럼 원형에 코드 상자(31)가 없는 장에서는 빈 상자를 쓰지 않고 코드 원형에서 빌려 온다.
+      let own = false;
+      try { shape(page.doc, 31); own = true; } catch (e) { own = false; }
+      const id = ci === 0 && own && !page.items.some((it) => it.id === 31) ? 31 : this.cloneShape(page, 31);
       const sh = shape(page.doc, id);
       const used = codeHeightPt(piece.split("\n"), colW * 72, size, lineH) / 72;
       setShapeBounds(sh, { x: x + ci * (colW + CODE_COL_GAP), y, w: colW, h: Math.min(used, bottom - y) });
@@ -1030,6 +1063,9 @@ class Builder {
     const avail = (BOTTOM - y) * 72 - (trailPt ? trailPt + 8 : 0);
     const plan = planCode(block.text, page.codeArea.w * 72, avail);
     if (!plan) return false;
+    // 표 아래에 쌓는 코드는 10pt 한 단으로 읽히는 것만 둔다. 글자를 줄이거나 두 단으로 접어
+    // 끼워 넣으면 표와 코드가 둘 다 작아진다 — 그럴 때는 코드가 제 장으로 간다.
+    if (page.items.some((it) => it.kind === "table") && (plan.size !== 10 || plan.cols.length > 1)) return false;
     const parts = [];
     page.tableBottom = this.fillCode(page, plan.cols, page.codeArea.x, y, page.codeArea.w, plan.size, plan.lineH, BOTTOM, parts);
     this.codes.push({ source: block.text, parts });
@@ -1119,6 +1155,29 @@ class Builder {
   // Free band (pt) left below whatever is already stacked on a table page.
   roomBelowPt(page) {
     return (PAGE_NUM_Y - 0.15) * 72 - (page.tableBottom * 72 + BLOCK_GAP_PT);
+  }
+
+  // 앞 장의 표 아래에 들어가는 앞부분만 쌓고 그만큼을 `blocks`에서 덜어낸다. 통째로 넘기면 표
+  // 아래가 200pt 가까이 비는 장이 생긴다(production-guide.md 「표 뒤의 글은 들어가는 만큼 그 장을
+  // 채운다」). 하위 bullet은 제 상위 bullet과, 소제목은 뒤 내용과 같은 장에 둔다.
+  // 옮긴 블록 수를 돌려주며 `blocks`를 그만큼 앞에서 자른다.
+  stackPrefixBelow(page, blocks) {
+    if (!page || page.tableBottom == null || !blocks.length) return 0;
+    const room = this.roomBelowPt(page);
+    if (this.stackedTextHeightPt(blocks) <= room) {
+      const n = blocks.length;
+      this.appendTextBelow(page, blocks.splice(0, n));
+      return n;
+    }
+    let cut = 0;
+    for (let n = 1; n < blocks.length; n++) {
+      if (blocks[n - 1].kind === "heading") continue;
+      if (blocks[n].depth > blocks[n - 1].depth) continue;
+      if (this.stackedTextHeightPt(blocks.slice(0, n)) > room) break;
+      cut = n;
+    }
+    if (cut > 0) this.appendTextBelow(page, blocks.splice(0, cut));
+    return cut;
   }
 
   // Stack text below the content already on a table page (a second lead-style text box).
@@ -1285,6 +1344,9 @@ class Builder {
       // content stacked below the table (text, a second table, a small visual) needs this instead.
       if (gi === 0 && caption) yPt = this.tableCaption(page, caption, yPt);
       this.fillTable(page, gf, groups[gi], widths, yPt);
+      // 표 아래의 빈 띠에 코드가 쌓일 수 있게 코드 단을 본문 폭으로 열어 둔다. 이것이 없으면
+      // 표 다음의 코드는 늘 새 장을 열어, 표만 있는 장과 코드만 있는 장이 둘 다 헐거워졌다.
+      page.codeArea = { x: 0.4, w: 9.2 };
     }
   }
 
@@ -1422,6 +1484,20 @@ class Builder {
     return p;
   }
 
+  // 과정 목표 — 과정 목차 다음, 세션 목차 바로 앞 장이다. 덱은 넓은 것에서 좁은 것으로 같은
+  // 리듬을 두 번 탄다 — 과정의 목차와 목표, 그다음 세션의 목차와 목표(production-guide.md
+  // 「표지·과정 목차·과정 목표」). 내용은 `course-design.md`의 「과정 목표 슬라이드」이며
+  // renderer가 줄이거나 바꾸지 않는다. 과정의 첫 세션 덱에만 있다.
+  renderCourseGoal(course) {
+    const blocks = [];
+    if (course.goal.lead) blocks.push({ kind: "text", text: course.goal.lead, depth: 0 });
+    for (const g of course.goal.goals) blocks.push({ kind: "bullet", text: g, depth: 0 });
+    const from = this.pages.length;
+    this.flush(blocks, course.name + " 목표");
+    for (const p of this.pages.slice(from)) p.isCourseGoal = true;
+    return this.pages[from];
+  }
+
   // 과정 목차 — 과정의 세션 전체를 세션 목차와 같은 모양으로 보이는 둘째 장. 표지와 함께 과정의
   // 첫 세션 덱에만 있고, 항목은 `course-design.md`의 세션 목록이다.
   renderCourseToc(course) {
@@ -1467,6 +1543,7 @@ class Builder {
       if (course && /^01\./.test(String(this.session))) {
         this.renderCover(course.name);
         if (course.sessions.length) this.renderCourseToc(course);
+        if (course.goal) this.renderCourseGoal(course);
       }
       this.renderToc(toc, this.session);
     }
@@ -1522,6 +1599,15 @@ class Builder {
           : b.kind === "plantuml" ? renderPlantUml({ kind: b.meta && b.meta.uml, source: b.text })
           : b.kind === "svg" ? renderSvg(b.text)
           : renderChart(b.text)).catch((e) => { throw new Error(where + ": " + e.message); });
+        // viewBox 밖의 내용은 그려지지 않는다. 배치가 아니라 원본이 잘린 것이라 슬라이드를 봐야
+        // 드러나므로 여기서 경고한다(production-guide.md 「Visual layout 및 가독성」).
+        const over = b.kind === "svg" ? outsideViewBox(b.text) : null;
+        if (over) {
+          const parts = [];
+          if (over.bottom > 0.5) parts.push(`아래로 ${Math.ceil(over.bottom)}`);
+          if (over.right > 0.5) parts.push(`오른쪽으로 ${Math.ceil(over.right)}`);
+          this.layoutWarnings.push(`${where}: 내용이 viewBox를 ${parts.join("·")} 넘어 잘린다. viewBox를 늘리거나 내용을 줄인다.`);
+        }
         return { ...png, source: b.text, kind: b.kind, uml: Boolean(b.meta && b.meta.uml), caption: visualCaption(b) };
       }));
       const layout = visualPolicy(renderedVisuals);
@@ -1636,26 +1722,7 @@ class Builder {
       // written before it; the text after it gets the full body area back (see the visual branch).
       let pendingCapacity = capacity;
       const flushPending = () => {
-        if (open && pending.length) {
-          const room = this.roomBelowPt(open);
-          if (this.stackedTextHeightPt(pending) <= room) {
-            this.appendTextBelow(open, pending);
-            pending.length = 0;
-            return;
-          }
-          // 전부가 들어가지 않으면 들어가는 앞부분만 표 아래에 쌓는다. 통째로 넘기면 표 아래가
-          // 200pt 가까이 비는 장이 생겼다. 하위 bullet은 제 상위 bullet과 같은 장에 둔다.
-          let cut = 0;
-          for (let n = 1; n < pending.length; n++) {
-            const next = pending[n];
-            // 소제목은 뒤 내용을 여는 줄이므로 그 바로 뒤에서 자르지 않는다(「한 장의 메시지」).
-            if (pending[n - 1].kind === "heading") continue;
-            if (next.depth > pending[n - 1].depth) continue;
-            if (this.stackedTextHeightPt(pending.slice(0, n)) > room) break;
-            cut = n;
-          }
-          if (cut > 0) this.appendTextBelow(open, pending.splice(0, cut));
-        }
+        if (open && pending.length) this.stackPrefixBelow(open, pending);
         const before = this.pages.length;
         this.flush(pending, section.title, layout.width, pendingCapacity);
         if (this.pages.length > before) open = null;
@@ -1814,11 +1881,29 @@ class Builder {
             if (multiVisual) claimVisualPage(d.vi); else this.flush(pending, section.title, layout.width, pendingCapacity);
             pending = mid;
           }
-          if (open && this.appendTableBelow(open, b, pending, widths, docLayout && documentStyle.uniform ? section.title : null)) {
+          const below = () => this.appendTableBelow(open, b, pending, widths, docLayout && documentStyle.uniform ? section.title : null);
+          if (open && below()) {
             pending = [];
             open = this.pages[this.pages.length - 1];
             governingSeen = true;
             continue;
+          }
+          // 표가 앞 장에 들어가지 않으면 그 앞의 글이 통째로 이 표의 lead가 되어, 앞 장은 표 아래를
+          // 비운 채 끝난다. 표 제목만 표와 함께 보내고 나머지 가운데 들어가는 앞부분은 앞 장의 표
+          // 아래에 쌓는다. 그러고 나면 줄어든 lead와 함께 표까지 앞 장에 들어가기도 한다
+          // (production-guide.md 「표 페이지 쌓기」, 2026-11-05).
+          if (open && pending.length) {
+            const head = splitCaption(pending);
+            const captionBlock = head.caption ? pending[pending.length - 1] : null;
+            if (head.lead.length && this.stackPrefixBelow(open, head.lead)) {
+              pending = head.lead.concat(captionBlock ? [captionBlock] : []);
+              if (below()) {
+                pending = [];
+                open = this.pages[this.pages.length - 1];
+                governingSeen = true;
+                continue;
+              }
+            }
           }
           // The lead budget isn't a fixed constant -- it's whatever the page's vertical band has
           // left over once THIS table's own rows are accounted for (rows are usually well under
@@ -1852,7 +1937,14 @@ class Builder {
           const trail = [];
           // A heading opens a new sub-topic, so the trail stops there -- it is not the code's
           // explanation (production-guide.md "소스 코드").
-          while (k < section.blocks.length && ["text", "bullet"].includes(section.blocks[k].kind)) trail.push(section.blocks[k++]);
+          // A table's own title ("**표 — 제목**") belongs to the table that follows, not to the
+          // code above it: taking it as the code's trailing explanation printed the marker as body
+          // text and left the table untitled (production-guide.md "표·도식 제목").
+          while (k < section.blocks.length && ["text", "bullet"].includes(section.blocks[k].kind)) {
+            const next = section.blocks[k];
+            if (next.kind === "text" && TABLE_CAPTION.test(next.text.trim())) break;
+            trail.push(section.blocks[k++]);
+          }
           const trailPt = this.stackedTextHeightPt(trail);
           // The text before the code joins the code's slide when it is short (three lines), or when
           // the whole code still fits below it at 10pt -- e.g. a governing message and a quotation
@@ -2177,7 +2269,7 @@ class Builder {
       // An appendix slide (after the summary, "## 별첨. …") reads "별첨: <세션명>".
       const pageSession = p.session || this.session;
       const label = p.appendix ? appendixSessionName(pageSession) : pageSession;
-      const plain = p.isToc || p.isCover;
+      const plain = p.isToc || p.isCover || p.isCourseGoal;
       setText(shape(p.doc, 5), plain ? "" : label);
       if (!plain) {
         const pt = sessionNamePt(label);
