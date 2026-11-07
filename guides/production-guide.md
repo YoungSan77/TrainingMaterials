@@ -43,7 +43,7 @@ node src/cli.js ../../courses/ai-native/sessions/s0*.md
 과정 전체를 **한 .pptx로 검토**할 때는 `--bundle <출력.pptx>`에 원고를 **보일 순서대로** 준다. 세션 덱을 따로 만드는 일을 대신하지 않는다 — 검토용 묶음이며, 각 세션의 `.pptx`가 여전히 산출물이다.
 
 ```bash
-node engine/production/src/cli.js --bundle courses/ai-native/out/ai-native-전체.pptx courses/ai-native/sessions/s01.md … courses/ai-native/sessions/s11.md courses/ai-native/sessions/references.md
+node engine/production/src/cli.js --bundle courses/ai-native/out/ai-native-전체.pptx courses/ai-native/sessions/s01.md … courses/ai-native/sessions/s12.md courses/ai-native/sessions/references.md
 ```
 
 - 각 세션은 **자기 덱과 같게** 구성된다 — 세션마다 자기 목차가 앞에 오고, 표지와 과정 목차는 첫 세션(`01.`)에서 한 번만 나온다. 장수는 따로 만든 덱의 합과 같다.
