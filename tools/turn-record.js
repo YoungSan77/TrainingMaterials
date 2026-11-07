@@ -56,6 +56,21 @@ function activeCourse() {
   }
 }
 
+// 마지막 줄이 같은 내용이고 3분 안에 적힌 것인지 본다. 기록 파일이 없거나 읽히지 않으면 아니다.
+function recentlySame(file, text, now) {
+  try {
+    const lines = fs.readFileSync(file, "utf-8").trimEnd().split("\n");
+    const last = lines[lines.length - 1];
+    const m = /^- (\d{4}-\d{2}-\d{2} \d{2}:\d{2}) — (.*)$/.exec(last || "");
+    if (!m || m[2] !== text) return false;
+    // 적힌 시각은 이 PC의 시각이고 Date도 그렇게 읽으므로, 여기서 시간대를 다시 더하지 않는다.
+    const then = new Date(m[1].replace(" ", "T") + ":00");
+    return now.getTime() - then.getTime() < 3 * 60 * 1000;
+  } catch {
+    return false;
+  }
+}
+
 // 지금 작업하는 과정의 checks/에 턴 한 줄을 남긴다. 사람이 고쳐 쓰는 기록이 아니다.
 function logTurn(text) {
   try {
@@ -74,6 +89,9 @@ function logTurn(text) {
     // 사람이 읽는 기록이므로 UTC가 아니라 이 PC의 시각으로 적는다.
     const stamp = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
       .toISOString().slice(0, 16).replace("T", " ");
+    // 2026-11-07: Stop이 한 턴에 두 번 들어와 같은 줄이 둘씩 남았고, 그러면 턴 수를 겹쳐 센다.
+    // 바로 앞 줄과 **내용이 같고 3분 안**이면 덧붙이지 않는다. 내용이 다르면 그것은 다른 턴이다.
+    if (recentlySame(file, text, now)) return;
     fs.appendFileSync(file, `- ${stamp} — ${text}\n`);
   } catch {
     /* 기록은 턴을 막지 않는다 */
@@ -81,12 +99,17 @@ function logTurn(text) {
 }
 
 // 쌓인 일을 "렌더링 2번 · 검사 1번 · 거절 1번"처럼 묶는다. 없는 종류는 적지 않는다.
+// 지침은 횟수가 아니라 **어느 것을 열었는지**가 맥락의 사용이므로 이름을 적는다.
 function summary(events) {
   const label = { render: "렌더링", check: "검사", test: "테스트", deny: "환경이 거절" };
   const order = ["render", "check", "test", "deny"];
   const count = {};
   for (const e of events) count[e.kind] = (count[e.kind] || 0) + 1;
-  return order.filter((k) => count[k]).map((k) => `${label[k]} ${count[k]}번`).join(" · ");
+  const parts = order.filter((k) => count[k]).map((k) => `${label[k]} ${count[k]}번`);
+
+  const guides = [...new Set(events.filter((e) => e.kind === "guide").map((e) => e.detail))].sort();
+  if (guides.length) parts.push(`지침 ${guides.length}개 읽음(${guides.join(", ")})`);
+  return parts.join(" · ");
 }
 
 module.exports = { note, drain, logTurn, summary, activeCourse, EVENTS };
