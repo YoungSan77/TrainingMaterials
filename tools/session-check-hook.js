@@ -10,6 +10,8 @@ const { execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
+const { drain, logTurn, summary } = require("./turn-record");
+
 const ROOT = path.join(__dirname, "..");
 const TARGET = /^courses\/[^/]+\/sessions\/s\d\d[^/]*\.md$/;
 // Warnings that only the user can clear (an original we do not have) would otherwise block every
@@ -37,6 +39,24 @@ function rewritePending(file) {
     return (JSON.parse(fs.readFileSync(list, "utf-8")).pending || []).some((p) => file.endsWith(p));
   } catch {
     return false;
+  }
+}
+
+// 턴마다 한 줄을 남긴다. 무엇을 보고 무엇을 했는지가 git 이력과 사람의 기억에만 있으면, "다시
+// 만들기가 작업 비용의 대부분이었다" 같은 판단을 재는 근거가 없다. 턴 중에 쌓인 일(렌더링·검사·
+// 거절)을 비우고 바뀐 파일·검사 판정과 함께 한 줄로 묶는다
+// (`guides/agentic-repository-guide.md` 6절, AGENTS.md 「작업 운영」).
+function log(verdict) {
+  const done = summary(drain());
+  logTurn([`바뀐 파일 ${changedCount()}개`, done, verdict].filter(Boolean).join(" · "));
+}
+
+function changedCount() {
+  try {
+    const out = execFileSync("git", ["status", "--porcelain"], { cwd: ROOT, encoding: "utf-8" });
+    return out.split("\n").filter((l) => l.trim()).length;
+  } catch {
+    return 0;
   }
 }
 
@@ -75,7 +95,10 @@ process.stdin.on("end", () => {
   } catch {
     process.exit(0);
   }
-  if (!files.length) process.exit(0);
+  if (!files.length) {
+    log("원고 0개 — 자동 검사 안 함");
+    process.exit(0);
+  }
 
   let out = "";
   try {
@@ -92,7 +115,11 @@ process.stdin.on("end", () => {
     .split("\n")
     .filter((l) => /^(생성 중단|경고):/.test(l.trim()))
     .filter((l) => !waived.some((q) => l.includes(q.slice(0, 40))));
-  if (!bad.length) process.exit(0);
+  if (!bad.length) {
+    log(`원고 ${files.length}개 — 오류·경고 0`);
+    process.exit(0);
+  }
+  log(`원고 ${files.length}개 — 오류·경고 ${bad.length}건으로 막음`);
   process.stdout.write(
     JSON.stringify({
       decision: "block",

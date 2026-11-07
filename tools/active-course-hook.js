@@ -15,6 +15,8 @@
 const fs = require("fs");
 const path = require("path");
 
+const { note } = require("./turn-record");
+
 const root = process.env.CLAUDE_PROJECT_DIR || ".";
 
 function activeCourse() {
@@ -25,9 +27,8 @@ function activeCourse() {
   }
 }
 
-// 파일을 바꾸는 낌새. 읽기 전용 명령(cat·sed -n·grep·ls·find·head·wc·--check)은 통과시킨다.
-const WRITE_HINT =
-  /(^|[^<>])>{1,2}[^>]|\brm\b|\bmv\b|\bcp\b|\bmkdir\b|\btee\b|\btouch\b|\bsed\b[^|]*-i|\bgit\s+(checkout|restore|apply|rm|mv)\b|open\([^)]*['"]w|writeFileSync|\.write\(/;
+// 파일을 바꾸는 낌새는 `tools/hook-util.js`가 정한다(두 hook이 같은 기준을 쓴다).
+const { WRITE_HINT } = require("./hook-util");
 
 function offendingCourse(text, active) {
   const re = /courses\/([A-Za-z0-9._-]+)\//g;
@@ -39,6 +40,9 @@ function offendingCourse(text, active) {
 }
 
 function deny(reason) {
+  // 환경이 막은 일은 턴 기록에 남긴다 — 막지 못한 것을 찾는 근거가 된다
+  // (`guides/agentic-repository-guide.md` 6절).
+  note("deny", "다른 과정의 파일 수정: " + reason.split("\n")[0]);
   process.stdout.write(
     JSON.stringify({
       hookSpecificOutput: {

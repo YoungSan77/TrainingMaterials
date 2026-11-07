@@ -80,6 +80,28 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "Read|Edit|Write|NotebookEdit|Bash|Grep|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/tools/protected-path-hook.js\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/tools/turn-record-hook.js\"",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "Stop": [

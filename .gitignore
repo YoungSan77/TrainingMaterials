@@ -20,6 +20,9 @@ courses/*/sessions/code/**/lib/*.jar
 
 # 로컬 정리 백업: 실제 작업물은 별도로 추적하고 복구용 압축본만 제외한다
 .codex/archives/
+# 턴 안에서만 쓰는 기록(tools/turn-record.js). 턴이 끝나면 checks/turn-log.md 한 줄로 묶고 비운다
+.turn-events
+
 # 로컬 Python 실행 환경·자동 생성물
 .venv/
 __pycache__/

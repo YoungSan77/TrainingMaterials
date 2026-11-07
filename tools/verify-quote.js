@@ -22,6 +22,18 @@ const { execFileSync } = require("child_process");
 const { quoteKey } = require("../engine/production/src/quoteKey");
 
 const CACHE = path.join(__dirname, "..", "references", "sources");
+
+// HTML 엔티티를 글자로 돌린다. 내려받을 때와 **비교할 때** 모두 쓴다 — 캐시에는 추출 버전이 없고
+// 한 번 만든 캐시는 다시 만들지 않으므로, 예전 규칙으로 추출한 캐시에는 `&#x27;` 같은 엔티티가
+// 그대로 남아 있다. 비교 단계에서도 흡수해야 축약형(can't)이 든 원문이 "없음"으로 나오지 않는다.
+function decodeEntities(text) {
+  return text
+    .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&quot;/g, '"')
+    .replace(/&#39;|&rsquo;|&lsquo;/g, "'").replace(/&ldquo;|&rdquo;/g, '"')
+    .replace(/&mdash;|&ndash;/g, "-")
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(Number(dec)));
+}
 // "있음"으로 확인한 인용의 기록. Production은 세션의 영문 인용이 여기에 없으면 경고한다.
 const LEDGER = path.join(__dirname, "..", "references", "verified.json");
 
@@ -47,11 +59,9 @@ function cached(source) {
         execFileSync("pdftotext", ["-layout", tmp, out]);
         fs.unlinkSync(tmp);
       } else {
-        const text = raw.toString("utf-8").replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, " ")
-          .replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&quot;/g, '"')
-          .replace(/&#39;|&rsquo;|&lsquo;/g, "'").replace(/&ldquo;|&rdquo;/g, '"').replace(/&mdash;|&ndash;/g, "-")
-          .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
-          .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(Number(dec)));
+        const text = decodeEntities(raw.toString("utf-8")
+          .replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, " ")
+          .replace(/<[^>]+>/g, " "));
         fs.writeFileSync(out, source + "\n" + text);
       }
     }
@@ -68,7 +78,7 @@ function cached(source) {
 
 // 대소문자·따옴표·대시·줄끝 하이픈·공백(괄호 안쪽 포함) 차이를 없앤다. 원문 위치를 되찾도록 인덱스 표도 만든다.
 function normalize(text) {
-  const src = text.replace(/-\s*\n\s*/g, "").replace(/­/g, "").replace(/ﬁ/g, "fi").replace(/ﬂ/g, "fl").replace(/ﬀ/g, "ff").replace(/ \s*([,.;:])/g, "$1");
+  const src = decodeEntities(text).replace(/-\s*\n\s*/g, "").replace(/­/g, "").replace(/ﬁ/g, "fi").replace(/ﬂ/g, "fl").replace(/ﬀ/g, "ff").replace(/ \s*([,.;:])/g, "$1");
   let out = "", map = [], dash = false;
   for (let i = 0; i < src.length; i++) {
     let ch = src[i].toLowerCase();
