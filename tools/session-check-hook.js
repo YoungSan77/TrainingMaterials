@@ -51,10 +51,16 @@ function log(verdict) {
   logTurn([`바뀐 파일 ${changedCount()}개`, done, verdict].filter(Boolean).join(" · "));
 }
 
+// 2026-11-07: 기록 자신을 세면 안 된다. 한 턴에 Stop이 두 번 들어올 때, 첫 번째가 남긴 줄이
+// turn-log.md를 바꿔 두 번째의 "바뀐 파일 수"가 1 늘고, 그러면 줄의 내용이 달라져 겹침 막기가
+// 통하지 않는다(19:41·19:42가 그렇게 둘이 됐다). 기록 파일은 세지 않는다.
 function changedCount() {
   try {
     const out = execFileSync("git", ["status", "--porcelain"], { cwd: ROOT, encoding: "utf-8" });
-    return out.split("\n").filter((l) => l.trim()).length;
+    return out
+      .split("\n")
+      .filter((l) => l.trim() && !/checks\/turn-log\.md$/.test(l))
+      .length;
   } catch {
     return 0;
   }
