@@ -23,10 +23,6 @@ courses/*/sessions/code/**/lib/*.jar
 # 턴 안에서만 쓰는 기록(tools/turn-record.js). 턴이 끝나면 checks/turn-log.md 한 줄로 묶고 비운다
 .turn-events
 
-# 사용자가 수기로 검토 의견을 적어 준 덱. 의견은 checks/sNN-review.md로 옮겨 추적하고
-# 이진 파일은 커밋하지 않는다
-courses/*/checks/review/
-
 # 로컬 Python 실행 환경·자동 생성물
 .venv/
 __pycache__/
