@@ -955,6 +955,10 @@
     "source": "https://continuousdelivery.com/principles/",
     "date": "2026-10-08"
   },
+  "iterating with coding agents to produce production-quality code that i'm confident i can maintain in the future feels like a different process entirely": {
+    "source": "https://simonwillison.net/2025/Oct/7/vibe-engineering/",
+    "date": "2026-11-08"
+  },
   "iterative and the curation phase happens each time we decide what to pass to the model": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
