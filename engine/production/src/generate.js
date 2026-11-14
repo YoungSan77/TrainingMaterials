@@ -1,6 +1,5 @@
 "use strict";
-// Port of LecturePpt.generateFile(): parse -> render -> inspect/validate -> write .qa.json ->
-// atomic temp-file-then-rename (never overwrites a good output with a bad one).
+// parse -> render -> inspect/validate -> stage QA -> publish the output pair.
 const fs = require("fs");
 const path = require("path");
 const { need } = require("./xml");
@@ -11,6 +10,46 @@ const { checkReferences } = require("./references");
 const { courseInfo } = require("./course");
 const { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, slideTalk, countsMatchTable, numberedBullets, flatGroupItems, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape, missingPracticeAnswer, missingModelUpdate, spelledNumbers } = require("./structure");
 const { checkCodeSources, checkEnumConsistency, checkOrphanCode } = require("./codeSource");
+
+function logAutomaticCheck(errors, warnings) {
+  console.log(`자동 검사 ${errors.length ? "FAIL" : "PASS"}: 오류 ${errors.length}개, 경고 ${warnings.length}개 (PASS는 오류 0개).`);
+  console.log("시각 검증: NOT_VERIFIED (미완료). 자동 검사 결과는 교육자료 제작 완료 판정이 아니다.");
+}
+
+// Local publication only: retain old bytes until both renames succeed. This handles
+// synchronous I/O failures, not process termination or concurrent writers.
+function publishPair(tmp, outputPath, qaPath, json) {
+  const dir = fs.mkdtempSync(path.join(path.dirname(outputPath), ".tm-publish-"));
+  const stagedQa = path.join(dir, "candidate.qa.json");
+  const targets = [outputPath, qaPath];
+  const backups = targets.map((_, i) => path.join(dir, "previous-" + i));
+  const existed = targets.map((p) => fs.existsSync(p));
+  let published = 0;
+  let recoveryFailed = false;
+  try {
+    fs.writeFileSync(stagedQa, json, "utf-8");
+    targets.forEach((p, i) => { if (existed[i]) fs.copyFileSync(p, backups[i]); });
+    fs.renameSync(tmp, outputPath);
+    published = 1;
+    fs.renameSync(stagedQa, qaPath);
+    published = 2;
+  } catch (error) {
+    const failures = [];
+    for (let i = published - 1; i >= 0; i--) {
+      try {
+        if (existed[i]) fs.renameSync(backups[i], targets[i]);
+        else fs.unlinkSync(targets[i]);
+      } catch (recovery) { failures.push(targets[i] + ": " + recovery.message); }
+    }
+    if (failures.length) {
+      recoveryFailed = true;
+      throw new Error(error.message + "\n출력 쌍 복구 실패: " + failures.join("; ") + "\n복구 자료 보존: " + dir, { cause: error });
+    }
+    throw error;
+  } finally {
+    if (!recoveryFailed) fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
 
 // A continuation slide that carries only a line or two of text (no table, visual or code) is a
 // layout smell the author should look at (production-guide.md, "continuation"). Warning only.
@@ -108,10 +147,11 @@ async function generateFile(inputPath, outputPath, templatePath) {
     const report = { errors, slides: inspected.slides, blocks: inspected.blocks, json: () => reportJson(errors, inspected.slides, inspected.blocks, warnings) };
     const filename = path.basename(outputPath);
     const qaPath = path.join(path.dirname(outputPath), filename.replace(/\.pptx$/i, "") + ".qa.json");
-    fs.writeFileSync(qaPath, report.json(), "utf-8");
+    if (errors.length) logAutomaticCheck(errors, warnings);
     need(report.errors.length === 0, report.errors.join("\n"));
-    fs.renameSync(tmp, outputPath);
-    console.log("생성: " + outputPath + " (" + report.slides + "장), 자동 검사 PASS. PowerPoint 시각 검토 필요.");
+    publishPair(tmp, outputPath, qaPath, report.json());
+    console.log("생성: " + outputPath + " (" + report.slides + "장)");
+    logAutomaticCheck(errors, warnings);
     for (const w of warnings) console.log("경고: " + w);
     return { manifest: m, report };
   } finally {
@@ -162,10 +202,11 @@ async function generateBundle(inputPaths, outputPath, templatePath) {
       if (pt < builder.MIN_PT - 0.05) warnings.push(`슬라이드 ${i + 1}: 도식 글자가 ${pt.toFixed(1)}pt로 ${builder.MIN_PT}pt보다 작다.`);
     }));
     const qaPath = path.join(path.dirname(outputPath), path.basename(outputPath).replace(/\.pptx$/i, "") + ".qa.json");
-    fs.writeFileSync(qaPath, reportJson(inspected.errors, inspected.slides, inspected.blocks, warnings), "utf-8");
+    if (inspected.errors.length) logAutomaticCheck(inspected.errors, warnings);
     need(inspected.errors.length === 0, inspected.errors.join("\n"));
-    fs.renameSync(tmp, outputPath);
-    console.log("생성: " + outputPath + " (" + inspected.slides + "장, 원고 " + inputPaths.length + "개), 자동 검사 PASS. PowerPoint 시각 검토 필요.");
+    publishPair(tmp, outputPath, qaPath, reportJson(inspected.errors, inspected.slides, inspected.blocks, warnings));
+    console.log("생성: " + outputPath + " (" + inspected.slides + "장, 원고 " + inputPaths.length + "개)");
+    logAutomaticCheck(inspected.errors, warnings);
     for (const w of warnings) console.log("경고: " + w);
     return { manifest: m, errors: inspected.errors, warnings, slides: inspected.slides };
   } finally {

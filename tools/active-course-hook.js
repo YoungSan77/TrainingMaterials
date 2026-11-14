@@ -28,7 +28,7 @@ function activeCourse() {
 }
 
 // 파일을 바꾸는 낌새는 `tools/hook-util.js`가 정한다(두 hook이 같은 기준을 쓴다).
-const { WRITE_HINT } = require("./hook-util");
+const { writeScope } = require("./hook-util");
 
 function offendingCourse(text, active) {
   const re = /courses\/([A-Za-z0-9._-]+)\//g;
@@ -76,7 +76,9 @@ process.stdin.on("end", () => {
     target = offendingCourse(ti.file_path || "", active);
   } else if (tool === "Bash") {
     const cmd = ti.command || "";
-    if (WRITE_HINT.test(cmd)) target = offendingCourse(cmd, active);
+    const scope = writeScope(cmd);
+    target = scope.allCourses ? "대상 미확정: 다른 과정을 포함할 수 있음" : offendingCourse(
+      scope.paths === null ? cmd : scope.paths.map((p) => path.normalize(p) + "/").join(" "), active);
   }
   if (!target) process.exit(0);
 

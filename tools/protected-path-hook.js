@@ -16,7 +16,8 @@
 "use strict";
 
 const { note } = require("./turn-record");
-const { WRITE_HINT } = require("./hook-util");
+const { writeScope } = require("./hook-util");
+const path = require("path");
 
 const PROTECTED = [
   { path: "references/production", write: false, why: "사용자가 보관하는 원본이며 비교·복사·복원의 근거가 아니다. 읽기도 막는다" },
@@ -60,15 +61,18 @@ process.stdin.on("end", () => {
   // 경로 같은 칸만 본다. pattern·old_string·new_string은 글이므로 보지 않는다.
   const paths = [ti.file_path, ti.notebook_path, ti.path].filter((v) => typeof v === "string");
   const cmd = tool === "Bash" && typeof ti.command === "string" ? ti.command : "";
+  const scope = writeScope(cmd);
 
   for (const rule of PROTECTED) {
     const inPath = paths.some((p) => p.includes(rule.path));
     const inCmd = cmd.includes(rule.path);
-    if (!inPath && !inCmd) continue;
+    const destination = (scope.paths || []).some((p) => path.normalize(p).includes(rule.path));
+    if (!inPath && !inCmd && !(rule.write && (scope.allCourses || destination))) continue;
     // write: true인 규칙은 쓰는 것만 막는다.
     if (rule.write) {
       if (writing) deny(rule, "고치려 한다");
-      if (inCmd && WRITE_HINT.test(cmd)) deny(rule, "명령으로 고치려 한다");
+      if (scope.allCourses || (inCmd && scope.paths === null) ||
+          destination) deny(rule, "명령으로 고치려 한다");
       continue;
     }
     deny(rule, writing ? "고치려 한다" : "읽거나 고치려 한다");
