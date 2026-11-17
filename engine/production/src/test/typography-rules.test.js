@@ -15,7 +15,7 @@ const assert = require("node:assert/strict");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
-const { parseXml, A, all, shape, body, kids, child, paragraph } = require("../xml");
+const { parseXml, A, P, all, shape, body, kids, child, paragraph } = require("../xml");
 const { rich, run, runParen } = require("../richText");
 const { paragraphs } = require("../paragraphs");
 const { render, naturalSize, fitTarget, visualPanel, tocSessionName, sessionNamePt, TARGET_PT, UML_MAX_PT } = require("../builder");
@@ -125,8 +125,49 @@ test("citation Korean zone shrinks parens; English-original+source zone stays fl
   const runs = kids(p, A, "r").map((r) => ({ text: textOf(r), sz: child(r, A, "rPr").getAttribute("sz") }));
   const koreanParen = runs.find((r) => r.text === "(English aside)");
   assert.equal(koreanParen.sz, "1400", "18pt Korean zone - 4pt");
-  const englishRun = runs.find((r) => r.text === '"영문 (paren) here"');
+  // 영문 원문을 감싼 바깥따옴표는 원고의 영역 표식이므로 그리지 않는다(2026-11-16).
+  const englishRun = runs.find((r) => r.text === "영문 (paren) here");
   assert.equal(englishRun.sz, "1000", "10pt exception zone stays flat, parens included");
+});
+
+// 요약형 인용은 쉼표형(`한국어 요약, "English", [출처]`)과 마침표형(`한국어 문장. "English",
+// [출처]`) 두 가지다. 영역은 따옴표로 감싼 영문과 끝의 레이블로 가른다(production-guide.md 「인용문」).
+for (const [form, text, korean] of [
+  ["쉼표형", '핵심을 요약한 문장이다, "The original sentence here.", [Larman 2004]', "핵심을 요약한 문장이다"],
+  ["마침표형", '핵심을 요약한 문장이다. "The original sentence here.", [Larman 2004]', "핵심을 요약한 문장이다."],
+]) {
+  test(`citation(${form}): Korean 18pt, English original and source 10pt`, () => {
+    const page = fixturePage(13);
+    paragraphs(page, 13, [{ kind: "text", text, meta: { quote: true }, depth: 0, rows: [] }], false);
+    const p = child(body(shape(page.doc, 13)), A, "p");
+    const runs = kids(p, A, "r").map((r) => ({ text: textOf(r), sz: child(r, A, "rPr").getAttribute("sz") }));
+    const at18 = runs.filter((r) => r.sz === "1800").map((r) => r.text).join("");
+    assert.equal(at18, korean, "한글은 18pt이고 제 문장부호를 지킨다");
+    assert.equal(runs.find((r) => r.text.includes("The original sentence here.")).sz, "1000");
+    assert.equal(runs.find((r) => r.text.includes("[Larman 2004]")).sz, "1000");
+    // 출력된 한 문단에 원문의 문장부호·따옴표·출처가 그대로 남는다.
+    const whole = runs.map((r) => r.text).join("");
+    assert.equal(whole, `${korean}${form === "마침표형" ? " " : ", "}The original sentence here., [Larman 2004]`);
+  });
+}
+
+test("citation: a marked quote keeps its indent but carries no bullet glyph", async () => {
+  const md = '## 01. 주제\n\n**리드** 문장이다.\n\n**인용문**\n\n핵심을 요약한 문장이다. "The original sentence here.", [Larman 2004]\n';
+  const { parse } = require("../parse");
+  const { sections } = parse(md);
+  const out = path.join(os.tmpdir(), `tm-quote-${process.pid}-${Date.now()}.pptx`);
+  let pages;
+  try {
+    pages = (await render(sections, TEMPLATE, out, "테스트", [{ kind: "bullet", text: "01. 주제", rows: [], depth: 0, meta: null }])).pages;
+  } finally {
+    if (fs.existsSync(out)) fs.unlinkSync(out);
+  }
+  const page = pages.find((p) => !p.isToc);
+  const quote = kids(body(shape(page.doc, 8)), A, "p").find((p) => all(p, A, "t").map((t) => t.textContent).join("").startsWith("핵심을 요약한"));
+  const pr = child(quote, A, "pPr");
+  assert.ok(child(pr, A, "buNone"), "인용문에 글머리표를 붙이지 않는다");
+  assert.notEqual(pr.getAttribute("marL"), "0", "들여쓰기는 유지한다");
+  assert.equal(all(quote, A, "rPr").filter((r) => r.getAttribute("sz") === "1000").length >= 2, true, "영문과 출처는 10pt");
 });
 
 test("citation Korean zone honors authored **bold** emphasis (regression: was silently stripped)", () => {
@@ -196,9 +237,9 @@ test("slide title is bold and shrinks a mid-title paren -4pt", async () => {
   }));
   assert.equal(runs.every((r) => r.b === "1"), true, "titles are always bold");
   const paren = runs.find((r) => r.text === "(Note)");
-  assert.equal(paren.sz, "2000", "24pt title - 4pt paren");
-  const rest = runs.filter((r) => r.text !== "(Note)").every((r) => r.sz === "2400");
-  assert.equal(rest, true);
+  assert.equal(paren.sz, "2000", "the explicit 20pt title contract includes parenthetical text");
+  const rest = runs.filter((r) => r.text !== "(Note)").every((r) => r.sz === "2000");
+  assert.equal(rest, true, "제목은 20pt Bold다(2026-11-15)");
 });
 
 test("TOC paragraph spacing is 3pt, body paragraph spacing is 6pt", async () => {
@@ -218,7 +259,7 @@ test("TOC paragraph spacing is 3pt, body paragraph spacing is 6pt", async () => 
   assert.equal(bodySpcBef.getAttribute("val"), "600");
 });
 
-test("a TOC over 34 items splits into (1/2)/(2/2) pages, and the unused right column isn't left showing the template's placeholder text", async () => {
+test("the TOC is one full-width column that continues onto numbered pages, keeping every item in order", async () => {
   const sections = Array.from({ length: 40 }, (_, i) => {
     const n = String(i + 1).padStart(2, "0");
     return { heading: `${n}. 토픽`, title: `${n}. 토픽`, blocks: [textBlock("본문 내용입니다.")], notes: [] };
@@ -226,19 +267,38 @@ test("a TOC over 34 items splits into (1/2)/(2/2) pages, and the unused right co
   const toc = sections.map((s) => bulletBlock(s.title));
   const m = await renderOnce(sections, toc, "toc-pagination");
   const tocPages = m.pages.filter((pg) => pg.isToc);
-  assert.equal(tocPages.length, 2, "40 items over the 34-per-page cap must produce 2 TOC pages");
-  assert.match(tocPages[0].heading, /\(1\/2\)$/);
-  assert.match(tocPages[1].heading, /\(2\/2\)$/);
-  // CT_TextBody requires at least one <a:p>, so a fully-empty column keeps exactly one blank
-  // paragraph (no run/text) rather than zero -- the assertion that matters is that none of it is
-  // the template's baked-in placeholder text, not the literal paragraph count.
-  const page2Right = kids(body(shape(tocPages[1].doc, 4)), A, "p");
-  assert.ok(page2Right.length <= 1, "page 2 has only 6 remaining items (all in the left column) -- the right column must be cleared, not left showing the template's baked-in placeholder text");
-  for (const p of page2Right) assert.equal(paragraph(p), "");
-  const page2Left = kids(body(shape(tocPages[1].doc, 10)), A, "p").map((p) => textOf(kids(p, A, "r")[0]));
-  // Per-column capacity is TOC_LEFT_MAX (17 at 16pt) on each side -- 34/page.
-  assert.equal(page2Left[0], "35. 토픽");
-  assert.equal(page2Left[page2Left.length - 1], "40. 토픽");
+  // 한 장의 용량은 실제 줄 높이로 17항목(435.5pt ÷ 25.2pt)이므로 40항목은 17+17+6이다.
+  assert.equal(tocPages.length, 3);
+  assert.match(tocPages[0].heading, /\(1\/3\)$/);
+  assert.match(tocPages[2].heading, /\(3\/3\)$/);
+  // 제목은 괄호·"—"에서 run이 나뉘므로 문단의 run을 모두 이어 읽는다.
+  const column = (pg) => kids(body(shape(pg.doc, 10)), A, "p").map((p) => all(p, A, "t").map((t) => t.textContent).join(""));
+  const drawn = tocPages.flatMap(column);
+  assert.deepEqual(drawn, toc.map((b) => b.text), "항목이 번호·순서 그대로 하나도 빠지지 않는다");
+  // 둘째 단은 만들지 않는다 — 한 열 배치이므로 shape 4는 어느 장에도 없다.
+  for (const pg of tocPages) assert.throws(() => shape(pg.doc, 4));
+  const box = child(child(child(shape(tocPages[0].doc, 10), P, "spPr"), A, "xfrm"), A, "ext");
+  assert.equal(box.getAttribute("cx"), "8423910", "본문 폭 전체(663.3pt)를 쓴다");
+});
+
+test("16 long TOC titles fit one full-width page (the two-column split used to clip them)", async () => {
+  const titles = [
+    "01. 세션 목표", "02. 업무 요청에서 누락된 결정을 찾아낸다",
+    "03. 이해관계자의 요구와 시스템 요구사항을 구분한다", "04. 모호한 요구사항을 명확하고 검증 가능하게 정제한다",
+    "05. 사용자 스토리를 작성하고 업무 규칙을 확인한다", "06. 구체적인 업무 사례로 수용 기준을 작성한다",
+    "07. 대안·예외 흐름을 분석하여 누락된 요구사항을 확인한다", "08. 품질 요구사항의 측정 조건과 목표 수준을 정의한다",
+    "09. 요구사항을 문서화하고 작업 명세와 연결한다", "10. 복잡성에 따라 도메인 모델과 설계 산출물의 필요성을 판단한다",
+    "11. LLM이 작성한 요구사항 초안을 검토하고 미결정 사항을 확인한다", "12. AI에 요구사항 작성을 맡길 때 위험과 통제 조건을 확인한다",
+    "13. 명세 주도 개발(SDD)은 기존 공학적 결정을 AI의 작업과 검증에 연결한다",
+    "14. 요구사항 분석에서 잘못된 관행과 개선 방법을 확인한다",
+    "15. 실습 3 — 요구사항 정의서와 수용 기준을 작성한다", "16. 요약",
+  ];
+  const sections = titles.map((t) => ({ heading: t, title: t, blocks: [textBlock("본문 내용입니다.")], notes: [] }));
+  const m = await renderOnce(sections, titles.map(bulletBlock), "toc-one-page");
+  const tocPages = m.pages.filter((pg) => pg.isToc);
+  assert.equal(tocPages.length, 1, "한 열에서는 16항목이 줄바꿈 없이 한 장에 들어간다");
+  const drawn = kids(body(shape(tocPages[0].doc, 10)), A, "p").map((p) => all(p, A, "t").map((t) => t.textContent).join(""));
+  assert.deepEqual(drawn, titles, "제목을 줄이거나 빠뜨리지 않는다");
 });
 
 // -- 5. diagram image sizing: target exactly 10pt, shrink-only on overflow -
@@ -510,8 +570,11 @@ test("code that does not fit one slide at 10pt tries two columns, then 9pt/8pt, 
 });
 
 test("session name: a name that fits keeps 14pt, a long one shrinks to one line (not below 9pt)", () => {
+  // 세션명 상자는 제목 구분선 아래의 제목 띠 폭(648pt)이다 — 실제 과정의 세션명은 모두 14pt를
+  // 지키고, 상자를 넘는 이름만 0.5pt 단위로 줄어 9pt에서 멈춘다.
   assert.equal(sessionNamePt("04. 동적 모델 — 상호작용과 상태"), 14);
-  const long = sessionNamePt("13. OOAD에서 전문영역으로 — Architecture · DDD · MSA");
+  assert.equal(sessionNamePt("13. OOAD에서 전문영역으로 — Architecture · DDD · MSA"), 9.5);
+  const long = sessionNamePt("13. " + "아주 긴 세션 이름 ".repeat(5));
   assert.ok(long < 14 && long >= 9, String(long));
   assert.equal(sessionNamePt("99. " + "아주 긴 세션 이름".repeat(10)), 9);
 });
@@ -551,8 +614,8 @@ test("bullet citation: Korean at the bullet level's size, English original+sourc
   paragraphs(page, 13, [block], false);
   const p = child(body(shape(page.doc, 13)), A, "p");
   const runs = kids(p, A, "r").map((r) => ({ text: textOf(r), sz: child(r, A, "rPr").getAttribute("sz") }));
-  assert.equal(runs[0].sz, "1600", "depth-1 bullet keeps its 16pt body size for the Korean part");
-  const english = runs.find((r) => r.text.startsWith('"A module'));
+  assert.equal(runs[0].sz, "1400", "depth-1 bullet keeps its 14pt body size for the Korean part");
+  const english = runs.find((r) => r.text.startsWith("A module"));
   assert.equal(english.sz, "1000");
   assert.equal(runs.find((r) => r.text === "[Martin 2018]").sz, "1000");
 });
@@ -602,7 +665,8 @@ test("marked summary citation keeps Korean after commas at 18pt and only origina
   assert.equal(runs.slice(0, boundary).map((r) => r.text).join(""), korean.replace(/\*\*/g, ""));
   assert.ok(runs.slice(0, boundary).every((r) => r.sz === "1800"), "all Korean, including punctuation and bold spans, stays 18pt");
   assert.ok(runs.slice(boundary).every((r) => r.sz === "1000"));
-  assert.equal(runs.map((r) => r.text).join(""), korean.replace(/\*\*/g, "") + ', "Iterative, with information selected each time.", [Example 2026]');
+  // 영문 원문의 바깥따옴표는 그리지 않는다 -- 원문 안의 쉼표·마침표는 그대로 남는다(2026-11-16).
+  assert.equal(runs.map((r) => r.text).join(""), korean.replace(/\*\*/g, "") + ", Iterative, with information selected each time., [Example 2026]");
 });
 
 test("marked source-only citation splits at reference labels, preserving Korean commas", () => {

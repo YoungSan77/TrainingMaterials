@@ -24,8 +24,8 @@ function tocSessionName(session) {
   return String(session).split(/\s+—\s+/)[0].trim();
 }
 
-// The top-right session name stays on one line. The placeholder is 3699901 EMU (~291pt) wide at
-// 14pt bold; a longer name shrinks (0.5pt steps, not below 9pt) instead of wrapping into the title.
+// Shape 5 above the divider is right-aligned. A longer name shrinks in 0.5pt steps to 9pt
+// within its original 291pt band. Builder separates the header rows when the title needs it.
 const SESSION_BOX_PT = 3699901 / 12700;
 const SESSION_PT = 14;
 const SESSION_MIN_PT = 9;

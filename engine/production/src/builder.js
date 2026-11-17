@@ -8,7 +8,9 @@ const {
 const { writeZip } = require("./zip");
 const { plain, wide, estimate, widthOf, splitCode, codePoints } = require("./text");
 const { rich, run, runParen, richDeclarations } = require("./richText");
-const { paragraphs, BULLET_LEVELS, bulletCitation, citationParts, summaryParts, numberWidthEmu } = require("./paragraphs");
+const { paragraphs, BULLET_LEVELS, bulletCitation, citationParts, summaryParts, numberWidthEmu, displayQuote } = require("./paragraphs");
+const { normalizeTypography } = require("./typography");
+const { OMISSION, COLUMN_BODY_INDENT, prepareColumnBlocks, columnTextHeight, columnIndent } = require("./columnLayout");
 const { TEMPLATE_DIR, ORIGIN, readTemplate, slideParts } = require("./template");
 const { renderMermaid } = require("./mermaidAdapter");
 const { renderPlantUml } = require("./plantumlAdapter");
@@ -32,17 +34,21 @@ const ARCH_TERMS = new Set(["domain", "application", "presentation", "adapter", 
 
 // TOC per guides/production-guide.md ("목차 생성 및 검증"): Production uses `## 목차`'s own
 // items verbatim (validated 1:1 against body headings), never derives a TOC from body headings.
-// Layout is two fixed columns on one slide -- left = items 1-17 (the template's own placeholder,
-// shape id 10), right = item 18 on (a shape the renderer adds at TOC_RIGHT_XFRM), 16pt.
+// 배치는 **본문 폭 전체를 쓰는 한 열**이다(2026-11-15). 좌우 두 단은 항목 **개수**(한 단 17개)로만
+// 나눠 제목의 줄바꿈 높이를 보지 않았고, 긴 제목 16개가 모두 왼쪽 단으로 들어가 아래가 잘리고
+// 오른쪽은 비었다(S03: 한 단 672pt vs 예산 435.5pt). 한 열로 두면 같은 16개가 줄바꿈 없이
+// 403.2pt로 한 장에 들어간다.
 const TOC_FONT_SIZE = 16;
 // production-guide.md "Session 명": the TOC slide title uses only the session name before its
 // " — " subtitle ("03. 정적 모델 — 도메인 개념과 관계" -> "03. 정적 모델"); every other slide's
 // top-right session name keeps the full name.
-// Items per column at 16pt: the column height (435pt) over one line (16pt x 1.2 + 3pt + 3pt spacing).
-const TOC_LEFT_MAX = 17;
-const TOC_LEFT_XFRM = { x: -8822, y: 949064, cx: 4580822, cy: 5530862 };
-const TOC_RIGHT_XFRM = { x: 4426820, y: 949064, cx: 4195811, cy: 5530862 };
-const TOC_RIGHT_ID = 4;
+// 본문 개체와 같은 띠(29.6pt에서 폭 663.3pt, 높이 435.5pt). 원형 목차 슬라이드의 shape 10은 좁은
+// 왼쪽 단 좌표를 들고 있으므로 tocColumn()이 이 값으로 덮어쓴다.
+const TOC_COLUMN_XFRM = { x: 375920, y: 949064, cx: 8423910, cy: 5530862 };
+// 항목 한 줄의 높이: 16pt x 1.2 + 문단 앞뒤 3pt씩(tocParagraph).
+const TOC_LINE_PT = TOC_FONT_SIZE * 1.2;
+const TOC_SPACING_PT = 6;
+const EMU_PT = 12700;
 // 표지(production-guide.md 「표지」): 과정명 한 줄을 본문 영역 가운데에 둔다. 세션명은 바로 다음
 // 목차 슬라이드의 제목이 보인다.
 const COVER_TEXT = { x: 0.4, y: 2.9, w: 9.2, h: 1.4 };
@@ -51,6 +57,32 @@ const COVER_PT = 40;
 const VISUAL_MARKER = /^\*\*(?:도식\s*[—:-]\s*(?:Mermaid|PlantUML|SVG)|Chart\s*[—:-]\s*matplotlib)(?:\s*—\s*(.+?))?\*\*$/i;
 // A table's title line right before it: "**표 — 제목**".
 const TABLE_CAPTION = /^\*\*표\s*—\s*(.+?)\*\*$/;
+// 인용문 그룹의 표식. 표식 줄 자체는 본문에 그리지 않고 다음 블록의 meta에 옮긴다(render()).
+const QUOTE_MARKER = /^\*\*(?:인용문|Anchor Message|앵커 메시지)\*\*$/i;
+
+// User-requested header: 20pt bold title and the original upper-right Shape 5 session name.
+// Write-time fitting reserves horizontal or vertical space for both; Shape 6 stays empty.
+const TITLE_BOX = { x: 29.6 / 72, y: -3.0 / 72, w: 662.9 / 72, h: 56.7 / 72 };
+// 일반 슬라이드의 제목은 **20pt Bold 고정**이다. 넓어진 상자(글 폭 648.5pt)에서 두 과정의 제목
+// 350개가 모두 한 줄에 들어가므로 자동 축소를 두지 않는다 -- 장마다 제목 크기가 달라지면 같은
+// topic의 이어지는 장끼리도 제목이 들쭉날쭉해진다(2026-11-16).
+const TITLE_PT = 20;
+const SESSION_NAME_ID = 5;
+const SESSION_NAME_BOX = { x: 5076056 / EMU, y: 367445 / EMU, w: 3699901 / EMU, h: 264734 / EMU };
+
+// 그룹 대표명 — 줄 전체가 하나의 굵은 구간인 text 블록. 굵다는 사실만으로는 정하지 않는다:
+// 바로 뒤에 그 그룹에 속한 내용이 와야 대표명이고, 뒤가 없거나 `###`가 열리면 보조 문단이다
+// (session-authoring-guide.md 「의미 표식과 블록 경계」).
+const GROUP_HEAD = /^\*\*[^*]+\*\*$/;
+// 독립 안내 문장 — 뒤따르는 목록을 예고하는 한 문장("… 다음을 수행할 수 있다.", ":"로 끝나는 줄).
+// 한 문장일 때만(문장 중간에 종결 부호가 없다) 보며, 뒤에 같은 단의 목록이 올 때만 안내 문장이다
+// (structure.js의 LIST_INTRO가 경고로 보는 자리와 같은 모양).
+const LIST_LEAD = /^[^.!?]*(?:다음|아래)[^.!?]*[.:：]$|^[^.!?]*[:：]$/;
+// 인용된 요청 — 원고의 `>` 블록. 받은 말이므로 글머리표를 붙이지 않는다(들여쓰기는 유지).
+const BLOCKQUOTE_LINE = /^>\s*/;
+// 실습 과제 한 장을 좌우로 가르는 자리: 프롬프트 표식 앞이다. 표식 이름은
+// session-authoring-guide.md 「사례·가정·실습」이 정한 것이며 과정·세션의 문구가 아니다.
+const PRACTICE_SPLIT = /^\*\*프롬프트(?:\s*—[^*]*)?\*\*$/;
 
 const EP = "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties";
 const VT = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";
@@ -125,6 +157,17 @@ function setShapeBounds(sh, bounds) {
   xf.appendChild(el(doc, A, "ext", "cx", String(Math.round(bounds.w * EMU)), "cy", String(Math.round(bounds.h * EMU))));
 }
 
+// 한 상자의 모든 run을 같은 크기로 둔다. setText()는 원형 문단에 rPr이 없으면 run도 rPr 없이
+// 만들어 placeholder의 크기를 물려받는다 -- 그 경우에도 크기를 줄일 수 있어야 하므로 rPr을 만든다.
+function setRunSize(sh, pt) {
+  const doc = sh.ownerDocument;
+  for (const r of all(sh, A, "r")) {
+    let rpr = child(r, A, "rPr");
+    if (!rpr) { rpr = el(doc, A, "rPr"); r.insertBefore(rpr, r.firstChild); }
+    rpr.setAttribute("sz", String(Math.round(pt * 100)));
+  }
+}
+
 // Inverse of visualPolicy()'s legibility estimate: the display width at which the image's
 // Orphan control for flush(): a remainder costing at most ORPHAN_SHARE of a page stays on the
 // current page as long as the page total stays within ORPHAN_TOLERANCE of its budget.
@@ -136,6 +179,7 @@ const ORPHAN_TOLERANCE = 1.2;
 // diagram never drifts a third of the slide away from the line that introduces it.
 const BLOCK_GAP_PT = 18;
 const BLOCK_GAP = BLOCK_GAP_PT / 72;
+const TABLE_TEXT_GAP_PT = 8;
 // A diagram title is set as the diagram's heading: a little air above it so it does not crowd the
 // last line of body text, a tight line box, and a smaller gap below so it reads as belonging to the
 // diagram rather than floating between the text and the picture.
@@ -167,7 +211,7 @@ function textEndIn(top, cost, blocks) {
 // band at the widest body width, so a large UML diagram keeps its 10pt as far as the band allows.
 // Lines a body paragraph takes: like estimate(), but a "(...)" span is rendered 4pt smaller
 // (production-guide.md, 괄호 -4pt) and is measured at that size.
-function addPicture(doc, shapeId, relId, bounds, name, descr) {
+function addPicture(doc, shapeId, relId, bounds, name, descr, crop) {
   const pic = el(doc, P, "pic");
   const nv = el(doc, P, "nvPicPr");
   const cNvPr = el(doc, P, "cNvPr", "id", String(shapeId), "name", name);
@@ -182,6 +226,7 @@ function addPicture(doc, shapeId, relId, bounds, name, descr) {
   const blip = el(doc, A, "blip");
   blip.setAttributeNS(R, "r:embed", relId);
   fill.appendChild(blip);
+  if(crop)fill.appendChild(el(doc,A,'srcRect',...Object.entries(crop).flatMap(([k,v])=>[k,String(Math.round(v*100000))])));
   const stretch = el(doc, A, "stretch");
   stretch.appendChild(el(doc, A, "fillRect"));
   fill.appendChild(stretch);
@@ -334,9 +379,12 @@ class Builder {
     return PAGE_NUM_Y - (this.hasFootnote ? 0.47 : 0.15);
   }
 
-  async init(session) {
+  async init(session, course) {
     need(session && session.trim() !== "", "세션명이 필요하다 (Markdown 상단 'Session 명:' 헤더).");
     this.session = session;
+    this.s03Profile = course?.productionProfile === 'ai-native-s03' && session.trim() === '03. 요구사항';
+    // The S03 production contract integrates explanatory text and tables.
+    this.paragraphSpace = this.s03Profile ? 3 : 6;
     this.data = readTemplate(this.templatePath);
     this.origins = slideParts(this.data);
     need(this.origins.length === Object.keys(ORIGIN).length, "템플릿의 원형 슬라이드는 TOC/prose/tree/code/table 5장이어야 한다: " + this.templatePath);
@@ -348,7 +396,7 @@ class Builder {
   page(index, heading) {
     // The slide carries the session it was composed for, so a bundle of several sessions labels
     // each slide with its own session name (production-guide.md 「묶음 덱」).
-    const p = { doc: this.roots[index].cloneNode(true), origin: this.origins[index], heading, items: [], session: this.session };
+    const p = { doc: this.roots[index].cloneNode(true), origin: this.origins[index], heading, items: [], session: this.session, s03Profile:this.s03Profile, paragraphSpace:this.paragraphSpace };
     this.pages.push(p);
     return p;
   }
@@ -374,20 +422,36 @@ class Builder {
       // One paragraph in two sizes: the 10pt original runs on from the 18pt Korean instead of
       // starting its own line, so the flow is measured once and rounded once -- rounding each run
       // up separately added as much as two phantom lines to every citation.
-      const korean = plain(parts[4] ? parts[1] : `"${parts[1]}"`);
-      const rest = plain(`, "${parts[2]}", ${parts[3]}`);
+      const korean = plain(this.s03Profile?displayQuote(parts[1]):parts[4] ? parts[1] : `"${parts[1]}"`);
+      // 영문 원문은 바깥따옴표 없이 그려진다(paragraphs.js) -- 폭도 그 모양으로 센다.
+      const rest = plain(`, ${this.s03Profile?displayQuote(parts[2]):parts[2]}, ${parts[3]}`);
       const w = 620 - 12;
       const total = Math.max(1, Math.ceil((widthOf(korean, 18) + widthOf(rest, 10)) / w));
       const at18 = Math.min(total, Math.max(1, Math.ceil(widthOf(korean, 18) / w)));
       return at18 * 22 + (total - at18) * 13 + 12;
     }
-    return proseLines(plain(text), 620, 18) * 22 + 12;
+    const size = b.kind === "bullet" ? [16,14,12][Math.min(b.depth || 0,2)] : 18;
+    return proseLines(plain(text), 620, size) * (22 * size / 18) + 12;
   }
 
   // The practice slide (production-guide.md "실습 슬라이드"): the reference style in one column,
   // then 16 and 14pt in one column, then 14pt in two. Returns the page (appended to this.pages) or
   // null when even two columns overflow.
   practicePage(blocks, heading) {
+    const resultAt=blocks.findIndex(b=>/^\*\*결과물\*\*$/.test(b.text.trim()));
+    const promptAt=blocks.findIndex(b=>PRACTICE_SPLIT.test(b.text.trim()));
+    if(resultAt>0 && promptAt>=0) {
+      const purpose=blocks[0].kind==="text"?blocks[0]:null;
+      const body=prepareColumnBlocks(blocks.slice(purpose?1:0,resultAt));
+      const prompts=body.map((b,i)=>({b,i})).filter(x=>/^[①-⑤]\s/.test(x.b.text));
+      if(prompts.length>1)body.splice(prompts[1].i,0,{kind:"bullet",text:OMISSION,rows:[],depth:0,meta:{noGlyph:true,noHang:true}});
+      for(const b of body)if(/^(?:\d+\.|[①-⑤])\s/.test(b.text))b.meta={...(b.meta||{}),autoNumber:true};
+      const top=FULL_TEXT.y+(purpose?(14*1.2+6+8)/72:0);
+      const half=(FULL_TEXT.w-0.3)/2;
+      const boxes=[{x:FULL_TEXT.x,y:top,w:half,h:this.contentBottomY()-top},{x:FULL_TEXT.x+half+0.3,y:top,w:half,h:this.contentBottomY()-top}];
+      const p=this.fixedColumnPage([body,prepareColumnBlocks(blocks.slice(resultAt))],heading,boxes,purpose?{block:purpose,box:{...FULL_TEXT,h:(14*1.2+6)/72}}:null);
+      p.practiceSize=14;p.practiceColumns=2;return p;
+    }
     const fitBox = (box) => ({ ...box, h: Math.min(box.h, this.contentBottomY() - box.y) });
     const full = fitBox(FULL_TEXT), practice = fitBox(PRACTICE_BOX);
     const half = (full.w - 0.3) / 2;
@@ -396,8 +460,16 @@ class Builder {
     // 여유(fit 1.04)를 두면 왼쪽 단이 상자를 조금씩 넘겨 글이 쪽 번호를 덮는다. 들어가지 않으면
     // 다음 시도(두 단, 더 작은 글자)로 내려가는 것이 맞다.
     const tight = (style) => ({ ...style, fit: Math.min(style.fit, 1), leftFit: Math.min(style.leftFit != null ? style.leftFit : style.fit, 1) });
-    const tries = [[PRACTICE_STYLE, [practice]], [shiftStyle(16), [full]], [shiftStyle(14), [full]], [shiftStyle(14), two], [shiftStyle(12), [full]], [shiftStyle(12), two]]
-      .map(([style, boxes]) => [tight(style), boxes]);
+    // 실습 과제는 **좌우 두 단 한 장**이다 — 왼쪽은 투입물·진행 방법, 오른쪽은 프롬프트부터
+    // 점검 항목·결과물이다(session-authoring-guide.md 「사례·가정·실습」의 실습 구성). 들어가는
+    // 가장 큰 글자의 두 단을 먼저 쓰고, 두 단으로도 안 들어갈 때만 한 단으로 내려간다.
+    const split = { splitBefore: PRACTICE_SPLIT, splitRequired: true };
+    const tries = [
+      [{ ...shiftStyle(16), ...split }, two], [{ ...shiftStyle(14), ...split }, two], [{ ...shiftStyle(12), ...split }, two],
+      [PRACTICE_STYLE, [practice]],
+      [shiftStyle(14), two], [shiftStyle(12), two],
+      [shiftStyle(16), [full]], [shiftStyle(14), [full]], [shiftStyle(12), [full]],
+    ].map(([style, boxes]) => [tight(style), boxes]);
     for (const [style, boxes] of tries) {
       const page = this.styledPage(blocks, heading, style, boxes);
       if (!page) continue;
@@ -536,6 +608,209 @@ class Builder {
     return page;
   }
 
+  // The same document columns, including native tables. Keep the source's explicit segments
+  // and heading/content relationships; S03 appendix cells alone use the 8pt exception.
+  async columnVisualDocumentPages(blocks,heading,style,balanced) {
+    const pages=[];let pending=[];
+    const flush=()=>{if(pending.length){pages.push(...this.columnDocumentPages(pending,heading,style,balanced));pending=[];}};
+    for(const b of blocks) {
+      if(['mermaid','plantuml','svg','chart'].includes(b.kind)) {
+        const lead=[];while(pending.at(-1)?.kind==='heading')lead.unshift(pending.pop());
+        flush();
+        const rendered=await (b.kind==='mermaid'?renderMermaid({source:b.text}):b.kind==='plantuml'?renderPlantUml({kind:b.meta?.uml,source:b.text}):b.kind==='svg'?renderSvg(b.text):renderChart(b.text));
+        const pic={...rendered,source:b.text,kind:b.kind,uml:Boolean(b.meta?.uml)};
+        const leadPt=columnTextHeight(lead,FULL_TEXT.w*72,3,{document:style.text===10});
+        const panel={...VISUAL_ONLY,y:VISUAL_ONLY.y+(leadPt?leadPt+8:0)/72,h:VISUAL_ONLY.h-(leadPt?leadPt+8:0)/72};
+        const bounds=fitTarget(panel,pic);
+        const tiles=pictureTextPt(pic,bounds)>=MIN_PT-0.05?[{bounds}]:require('./diagramTiles').diagramTiles(pic,panel);
+        for(let ti=0;ti<tiles.length;ti++){const tile=tiles[ti],page=this.page(ORIGIN.prose,heading);paragraphs(page,8,ti===0?lead:[],false);if(ti===0&&lead.length){setShapeBounds(shape(page.doc,8),{...FULL_TEXT,h:leadPt/72});restyle(shape(page.doc,8),style);}page.pictures=[{...pic,...tile}];page.visualLayout=tile.crop?'visual-tiles':'visual-only';pages.push(page);}
+      } else if(b.kind==='table' && b.rows[0].length>4) {
+        flush();const start=this.pages.length;this.table(b,heading);
+        const added=this.pages.slice(start);
+        if(style.text===10)for(const page of added){
+          page.documentTablePt=style.tablePt??10;
+          for(const sp of all(page.doc,P,'sp'))for(const rp of all(sp,A,'rPr'))if(rp.getAttribute('sz')==='800')rp.setAttribute('sz','1000');
+          for(const gf of all(page.doc,P,'graphicFrame')){
+            const fitted=this.documentTableFont(gf,style.tablePt??10);
+            if(fitted)page.tableBottom=Number(child(child(gf,P,'xfrm'),A,'off').getAttribute('y'))/EMU+fitted.heightPt/72;
+          }
+        }
+        pages.push(...added);
+      } else pending.push(b);
+    }
+    flush();return pages;
+  }
+
+  columnDocumentPages(blocks, heading, style, balanced = false) {
+    const boxes = [{ x: 0.4, y: 1.05, w: 4.45, h: this.contentBottomY() - 1.05 },
+      { x: 5.15, y: 1.05, w: 4.45, h: this.contentBottomY() - 1.05 }];
+    if(balanced)for(const box of boxes)box.space=2;
+    else if(style.text===10)for(const box of boxes){box.document=true;box.answer=style.responseRole==='answer';box.space=2;box.tablePt=style.tablePt??10;}
+    const segments = [[]];
+    const prepared=prepareColumnBlocks(blocks,{omitExcerpt:balanced});
+    if(!balanced && style.responseRole!=='answer') {
+      const intro=prepared.find(b=>b.kind!=='heading');
+      if(intro?.kind==='bullet' && intro.meta?.noGlyph)intro.meta={...intro.meta,columnIntro:true};
+    }
+    for (const b of prepared) {
+      if (b.kind === "pagebreak") segments.push([]);
+      else segments[segments.length - 1].push(b);
+    }
+    const groups=segments.filter(s=>s.length), plans=[];
+    // Explicit answer segments describe left/right pairs. The renderer preserves all selected
+    // words and omissions, while the two requested answer pages replace four single columns.
+    if(balanced && groups.length===4) plans.push([groups[0],groups[1]],[groups[2],groups[3]]);
+    else if(balanced && groups.length===2) {
+      // A pagebreak separates answer pages, not columns. Split each page at a
+      // group heading, preserving the editable table with its preceding case.
+      for(const bs of groups) {
+        const candidates=[];
+        for(let at=1;at<bs.length;at++)if(bs[at].kind==='heading') {
+          const left=bs.slice(0,at),right=bs.slice(at);
+          const lh=this.columnHeightPt(left,boxes[0]),rh=this.columnHeightPt(right,boxes[1]);
+          if(lh<=boxes[0].h*72 && rh<=boxes[1].h*72)candidates.push({left,right,score:Math.max(lh,rh)});
+        }
+        candidates.sort((a,b)=>a.score-b.score);
+        need(candidates.length,`실습 답 페이지를 제목 경계에서 두 열로 배치할 수 없다: ${heading}`);
+        plans.push([candidates[0].left,candidates[0].right]);
+      }
+    }
+    else if(balanced && groups.length===1 && groups[0].some(b=>b.kind==='table')) {
+      const bs=groups[0],tableAt=bs.findIndex(b=>b.kind==='table');let at=tableAt;
+      while(at>0 && bs[at-1].kind==='heading')at--;
+      const candidate=at>0?[bs.slice(0,at),bs.slice(at)]:[bs,[]];
+      if(candidate.every((col,i)=>this.columnHeightPt(col,boxes[i])<=boxes[i].h*72))plans.push(candidate);
+    }
+    if(!plans.length) {
+      let columns=[[],[]],col=0,used=0;
+      const finish=()=>{if(columns.some(c=>c.length))plans.push(columns);columns=[[],[]];col=0;used=0;};
+      for(const segment of groups) {
+        for(let i=0;i<segment.length;i++) {
+          const unit=[segment[i]];
+          while(unit[unit.length-1].kind==="heading" && i+1<segment.length)unit.push(segment[++i]);
+          if(this.s03Profile && ((style.responseRole==='demo' && unit.some(b=>/^US-01\./.test(b.text||'')))
+            || (style.responseRole==='answer' && /^9\. 미정 사항$/.test(unit[0].text||'')))){
+            // Preserve this recorded story's title, description and acceptance conditions.
+            // Move the complete group to the next column before splitting any of its parts.
+            let end=i+1;while(end<segment.length && segment[end].kind!=='heading')end++;
+            const whole=[...unit,...segment.slice(i+1,end)];
+            if(this.columnHeightPt(whole,boxes[col])<=boxes[col].h*72){unit.splice(0,unit.length,...whole);i=end-1;}
+          }
+          const h=this.columnHeightPt(unit,boxes[col]);
+          need(h<=boxes[col].h*72,`문서 묶음이 한 열에 들어가지 않는다: ${heading} (${h.toFixed(1)}pt / ${(boxes[col].h*72).toFixed(1)}pt)`);
+          if(used+h>boxes[col].h*72) {if(col===1)finish();else {col=1;used=0;}}
+          columns[col].push(...unit);used+=h;
+        }
+      }
+      finish();
+    }
+    return plans.map(cols=>this.fixedColumnPage(cols,heading,boxes));
+  }
+
+  columnWidthsFor(block,box) {
+    const widths=columnWidths(block.rows,block.rows[0].length), sum=widths.reduce((a,b)=>a+b,0);
+    const scaled=widths.map(w=>w*Math.min(1,box.w*72/sum));
+    // A half-width table must still fit a complete identifier such as
+    // PENDING_PAYMENT. Take its minimum width from the token, not the cell's
+    // proportional share, and reclaim the difference from wider prose columns.
+    const minimum=scaled.map((w,i)=>Math.max(24,...block.rows.flatMap(row=>String(row[i]).match(/[A-Za-z][A-Za-z0-9_]+/g)||[]).map(t=>widthOf(t,10)*1.12+14.4)));
+    if(minimum.reduce((a,b)=>a+b,0)>box.w*72)return scaled;
+    const result=scaled.map((w,i)=>Math.max(w,minimum[i]));
+    let extra=result.reduce((a,b)=>a+b,0)-Math.min(sum,box.w*72);
+    while(extra>1e-6){const i=result.reduce((best,w,j)=>w-minimum[j]>result[best]-minimum[best]?j:best,0);const take=Math.min(extra,result[i]-minimum[i]);if(take<=0)break;result[i]-=take;extra-=take;}
+    return result;
+  }
+
+  columnHeightPt(blocks,box) {
+    return blocks.reduce((h,b)=>h+(b.kind==="table" ? this.columnTableHeightPt(b,box)+8 : columnTextHeight([b],box.w*72,box.space??3,box)),0);
+  }
+
+  columnTableHeightPt(block,box) {
+    const widths=this.columnWidthsFor(block,box);
+    // These recorded glossaries precede the two requested page connections.
+    // Generic 10pt/0.8cm estimates stranded the story/definition below the 8pt tables.
+    const glossaryHeader=box.answer?['용어','표기','정의']:['용어','정의'];
+    if(this.s03Profile && box.document && box.tablePt===8
+      && JSON.stringify(block.rows[0])===JSON.stringify(glossaryHeader)){
+      this.columnTableHeights??=new WeakMap();
+      const key=widths.join(','),cached=this.columnTableHeights.get(block);
+      if(cached?.key===key)return cached.height;
+      const doc=this.roots[ORIGIN.table].cloneNode(true),page={doc,items:[]},gf=shape(doc,11);
+      this.fillTable(page,gf,block.rows,widths,0);
+      const height=this.documentTableFont(gf,8).heightPt;
+      this.columnTableHeights.set(block,{key,height});return height;
+    }
+    return block.rows.reduce((s,r)=>s+this.rowHeight(r,widths),0);
+  }
+
+  fixedColumnPage(columns,heading,boxes,purpose=null) {
+    const heights=columns.map((bs,i)=>this.columnHeightPt(bs,boxes[i]));
+    for(let i=0;i<columns.length;i++)need(heights[i]<=boxes[i].h*72,`좌우 고정 배치 초과: ${heading}, ${i===0?'왼쪽':'오른쪽'} ${heights[i].toFixed(1)}pt / ${(boxes[i].h*72).toFixed(1)}pt`);
+    const page=this.page(ORIGIN.prose,heading);paragraphs(page,8,[],false);page.items.pop();page.freeBody=true;page.answerColumns=2;
+    if(boxes[0].document)page.documentTablePt=boxes[0].tablePt??10;
+    if(purpose) {
+      const id=8;page.freeBody=false;
+      setShapeBounds(shape(page.doc,id),purpose.box);paragraphs(page,id,[purpose.block],false);
+      for(const rp of all(shape(page.doc,id),A,'rPr'))rp.setAttribute('sz','1400');
+      spacing(child(body(shape(page.doc,id)),A,'p'),3,3,null);
+    }
+    const textBox=(bs,box,y)=>{
+      const id=page.freeBody?8:this.cloneShape(page,8);page.freeBody=false;
+      const sh=shape(page.doc,id),h=columnTextHeight(bs,box.w*72,box.space??3,box);
+      setShapeBounds(sh,{...box,y:y/72,h:h/72});paragraphs(page,id,bs,false);
+      const bp=child(body(sh),A,"bodyPr");for(const k of ['tIns','bIns'])bp.setAttribute(k,'0');for(const k of ['lIns','rIns'])bp.setAttribute(k,'91440');
+      const ps=kids(body(sh),A,"p");
+      ps.forEach((p,i)=>{
+        const b=bs[i],head=b.kind==="heading",pr=spacing(p,box.space??3,box.space??3,null);
+        pr.setAttribute('algn','l');pr.setAttribute('marL',String(columnIndent(b,box)));
+        pr.setAttribute('indent',head||(b.meta&&b.meta.noGlyph)?'0':'-176213');
+        for(const old of children(pr).filter(e=>/^bu/.test(e.localName)))pr.removeChild(old);
+        const bare=head||(b.meta&&b.meta.noGlyph);
+        if(bare)pr.appendChild(el(page.doc,A,'buNone'));
+        else {pr.appendChild(el(page.doc,A,'buFont','typeface','Wingdings'));pr.appendChild(el(page.doc,A,'buChar','char',''));}
+        for(const rp of all(p,A,'rPr')){rp.setAttribute('sz',box.document?'1000':head?'1400':'1200');if(head)rp.setAttribute('b','1');}
+        if(b.meta&&b.meta.autoNumber) {
+          const prefix=/^(?:(\d+)\.|([①-⑤]))\s/.exec(b.text);let remove=prefix[0].length;
+          for(const t of all(p,A,'t')){const n=Math.min(remove,t.textContent.length);t.textContent=t.textContent.slice(n);remove-=n;if(!remove)break;}
+          for(const old of children(pr).filter(e=>/^bu/.test(e.localName)))pr.removeChild(old);
+          const n=prefix[1]||String(prefix[2].codePointAt(0)-0x2460+1);
+          pr.setAttribute('indent',String(-numberWidthEmu(prefix[0],12)));
+          pr.appendChild(el(page.doc,A,'buAutoNum','type',prefix[1]?'arabicPeriod':'circleNumDbPlain','startAt',n));
+        }
+      });
+    };
+    columns.forEach((bs,ci)=>{
+      const box=boxes[ci];let y=box.y*72,pending=[];
+      const flush=()=>{if(pending.length){textBox(pending,box,y);y+=columnTextHeight(pending,box.w*72,box.space??3,box);pending=[];}};
+      for(const b of bs) {
+        if(b.kind!=="table"){pending.push(b);continue;}
+        flush();const id=this.cloneShape(page,11,ORIGIN.table),gf=shape(page.doc,id),widths=this.columnWidthsFor(b,box);
+        this.fillTable(page,gf,b.rows,widths,y);
+        const fitted=box.document?this.documentTableFont(gf,box.tablePt??10):null;
+        child(child(gf,P,'xfrm'),A,'off').setAttribute('x',String(Math.round(box.x*EMU)));
+        y+=(fitted?fitted.heightPt:b.rows.reduce((h,r)=>h+this.rowHeight(r,widths),0))+8;
+      }
+      flush();
+    });
+    page.textCost=Math.max(...heights)/Math.max(...boxes.map(b=>b.h*72))*450;
+    page.columnHeights=heights;return page;
+  }
+
+  documentTableFont(gf,pt) {
+    if(pt===8)for(const tcPr of all(gf,A,'tcPr')){
+      for(const k of ['marL','marR','marT','marB'])tcPr.setAttribute(k,'54000');
+    }
+    for(const tag of ['rPr','defRPr','endParaRPr'])for(const rp of all(gf,A,tag)){
+      rp.setAttribute('sz',String(pt*100));
+      for(const name of ['latin','ea','cs']){
+        let face=child(rp,A,name);
+        if(!face){face=el(gf.ownerDocument,A,name);rp.appendChild(face);}
+        face.setAttribute('typeface','맑은 고딕');
+      }
+    }
+    if(pt===8)return require('./tableRowMetrics').fitTableRows(gf);
+  }
+
   // Preserve all document blocks at the requested size, continuing left then right on each page.
   documentPages(blocks, heading, style) {
     const build = (bs) => (this.answerPage(bs, heading, style) ? this.pages.pop() : null);
@@ -622,7 +897,10 @@ class Builder {
     // above them.
     let lead = [], leadBox = null;
     if (boxes.length === 2) {
-      while (lead.length < blocks.length && blocks[lead.length].kind === "text") lead.push(blocks[lead.length]);
+      // 그룹 대표명은 lead가 아니다 — 아래 소속 내용과 떨어져 두 단 위에 혼자 놓이면 묶음이 보이지
+      // 않는다. 대표명 앞까지의 안내 문장만 두 단에 걸친 lead로 올린다(2026-11-16).
+      while (lead.length < blocks.length && blocks[lead.length].kind === "text"
+        && !GROUP_HEAD.test(String(blocks[lead.length].text).trim())) lead.push(blocks[lead.length]);
       if (lead.length === blocks.length) lead = [];
       if (lead.length) {
         const [l, r] = boxes;
@@ -638,6 +916,19 @@ class Builder {
       parts = [blocks];
     } else if (style.leftFirst && fitsLeft(blocks, boxes[0])) {
       parts = [blocks];
+    } else if (style.splitBefore && (() => {
+      // 의미로 정한 자리에서 나눈다(실습의 좌우 배치). 양쪽이 들어갈 때만 쓰고, 아니면 아래의
+      // 균형 분할로 내려간다.
+      const at = blocks.findIndex((b) => style.splitBefore.test(String(b.text).trim()));
+      if (at <= 0 || !fitsLeft(blocks.slice(0, at), boxes[0]) || !fits(blocks.slice(at), boxes[1])) return false;
+      parts = [blocks.slice(0, at), blocks.slice(at)];
+      return true;
+    })()) {
+      // parts는 위 검사에서 정해졌다.
+    } else if (style.splitRequired) {
+      // 그 자리에서 나눠지지 않으면 이 크기로는 그리지 않는다 — 더 작은 글자로 다시 시도한다
+      // (practicePage). 균형 분할로 바꿔 그리면 의미가 섞인 두 단이 나온다.
+      return null;
     } else {
       const top = (b) => b.kind !== "bullet" || !b.depth;
       const split = (allowed, left) => {
@@ -797,8 +1088,32 @@ class Builder {
   // sized to what the lead text actually needs (capped so the table still has room to breathe).
   tableLeadHeight(lead, cap = 160) {
     if (!lead.length) return 0;
-    const cost = lead.reduce((sum, b) => sum + this.blockCost(b), 0);
-    return Math.min(cost / 1.087 + 10, cap);
+    return Math.min(this.textHeightPt(lead), cap);
+  }
+
+  printedTextHeightPt(blocks) {
+    const p = {doc:this.roots[ORIGIN.prose].cloneNode(true),items:[],paragraphSpace:this.paragraphSpace};
+    paragraphs(p,8,blocks,false);
+    if(this.sectionStyle) restyle(shape(p.doc,8),this.sectionStyle);
+    let height=0;
+    for(const par of all(shape(p.doc,8),A,"p")) {
+      const pr=child(par,A,"pPr");
+      const left=Number(pr && pr.getAttribute("marL") || 0)/12700;
+      let width=0,size=0,lines=0;
+      const available=FULL_TEXT.w*72-14.4-left;
+      for(const r of kids(par,A,"r")) {
+        const rp=child(r,A,"rPr"), f=Number(rp && rp.getAttribute("sz") || 1800)/100;
+        for(const ch of Array.from(r.textContent || "")) {
+          // Use the same measured Korean glyph width as styleFit's PowerPoint calibration.
+          const w=widthOf(ch,f)*(wide(ch.codePointAt(0))?0.9:1);
+          if(width && width+w>available) {lines+=size*1.2;width=0;size=0;}
+          width+=w;size=Math.max(size,f);
+        }
+      }
+      const gap=side=>Number(child(child(pr,A,side),A,'spcPts')?.getAttribute('val')||0)/100;
+      height+=lines+size*1.2+gap('spcBef')+gap('spcAft');
+    }
+    return height;
   }
 
   // How far down the next block starts (pt) after a run of text: the box is sized generously so
@@ -807,21 +1122,20 @@ class Builder {
   textAdvancePt(blocks) {
     if (!blocks.length) return 0;
     if (this.sectionStyle && this.sectionStyle.uniform) return this.textHeightPt(blocks);
-    const cost = blocks.reduce((sum, b) => sum + this.blockCost(b), 0);
-    return Math.max(BLOCK_GAP_PT, textRunPt(cost, blocks.length));
+    return Math.max(BLOCK_GAP_PT, this.printedTextHeightPt(blocks));
   }
 
   // Height (pt) a run of text blocks needs in a full-width text box on a table page.
   textHeightPt(blocks) {
     if (this.sectionStyle && this.sectionStyle.uniform) return styledCost(blocks, this.sectionStyle, FULL_TEXT) / this.sectionStyle.fit;
-    return blocks.length ? blocks.reduce((sum, b) => sum + this.blockCost(b), 0) / 1.087 + 10 : 0;
+    return blocks.length ? this.printedTextHeightPt(blocks) : 0;
   }
 
   // Adjacent paragraphs share their spacing in PowerPoint. Use the line-based advance plus
   // the outer spacing for a trailing stack; pagination slack is not another printed line.
   stackedTextHeightPt(blocks) {
     if (this.sectionStyle && this.sectionStyle.uniform) return this.textHeightPt(blocks);
-    return Math.min(this.textHeightPt(blocks), this.textAdvancePt(blocks) + BLOCK_SPACING_PT);
+    return this.textHeightPt(blocks);
   }
 
   tableGroups(rows, widths) {
@@ -992,9 +1306,9 @@ class Builder {
   }
 
   // A copy of a template shape on the same slide, under a fresh unique id.
-  cloneShape(page, id) {
+  cloneShape(page, id, origin) {
     let src;
-    try { src = shape(page.doc, id); } catch (e) { src = null; }
+    try { src = shape(origin == null ? page.doc : this.roots[origin], id); } catch (e) { src = null; }
     // A page from another template slot (e.g. a code page) lacks the table page's text box (13)
     // or table frame (11): borrow the shape from the template slide that has it.
     if (!src) {
@@ -1042,7 +1356,7 @@ class Builder {
         richDeclarations(par, line, size);
         for (const rp of all(par, A, "rPr")) {
           for (const old of kids(rp, A, "latin")) rp.removeChild(old);
-          const latin = el(page.doc, A, "latin", "typeface", "Consolas");
+          const latin = el(page.doc, A, "latin", "typeface", "맑은 고딕");
           const ea = child(rp, A, "ea");
           if (ea) rp.insertBefore(latin, ea); else rp.appendChild(latin);
         }
@@ -1152,9 +1466,32 @@ class Builder {
     return page;
   }
 
+  gherkin(block,heading,lead) {
+    const p=this.page(ORIGIN.prose,heading),top=FULL_TEXT.y;
+    const leadH=lead.length?this.textHeightPt(lead):0;
+    paragraphs(p,8,lead,false);
+    if(lead.length)setShapeBounds(shape(p.doc,8),{...FULL_TEXT,h:leadH/72});
+    const id=this.cloneShape(p,8),sh=shape(p.doc,id),y=top+(leadH?leadH+8:0)/72;
+    const lines=block.text.split('\n'),available=FULL_TEXT.w*72-14.4-BULLET_LEVELS[1].marL/12700;
+    const h=lines.reduce((sum,line)=>sum+Math.max(1,Math.ceil(widthOf(line,12)/available))*12*1.2+6,0);
+    need(y+h/72<=this.contentBottomY(),`Gherkin이 한 장에 들어가지 않는다: ${heading}`);
+    setShapeBounds(sh,{...FULL_TEXT,y,h:h/72});setText(sh,block.text);
+    const bp=child(body(sh),A,'bodyPr');for(const k of ['lIns','rIns'])bp.setAttribute(k,'91440');for(const k of ['tIns','bIns'])bp.setAttribute(k,'0');
+    for(const par of kids(body(sh),A,'p')) {
+      const value=paragraph(par),pr=spacing(par,3,3,null);
+      pr.setAttribute('marL',String(BULLET_LEVELS[1].marL));pr.setAttribute('indent','0');pr.setAttribute('algn','l');
+      for(const old of children(pr).filter(e=>/^bu/.test(e.localName)))pr.removeChild(old);
+      pr.appendChild(el(p.doc,A,'buNone'));rich(par,value,12,false,true,new Set());
+    }
+    p.items.push({id,kind:block.meta?.language==='gherkin'?'gherkin':'input',text:block.text,rows:[]});this.codes.push({source:block.text,parts:[block.text]});
+    p.tableBottom=y+h/72;return p;
+  }
+
   // Free band (pt) left below whatever is already stacked on a table page.
   roomBelowPt(page) {
-    return (PAGE_NUM_Y - 0.15) * 72 - (page.tableBottom * 72 + BLOCK_GAP_PT);
+    // The short-tail allowance uses at most 8pt of the 10.8pt footer safety band. It never
+    // crosses the page-number box and avoids a one-line continuation caused by rounding.
+    return (PAGE_NUM_Y - 0.15) * 72 + 8 - (page.tableBottom * 72 + TABLE_TEXT_GAP_PT);
   }
 
   // 앞 장의 표 아래에 들어가는 앞부분만 쌓고 그만큼을 `blocks`에서 덜어낸다. 통째로 넘기면 표
@@ -1171,7 +1508,10 @@ class Builder {
     }
     let cut = 0;
     for (let n = 1; n < blocks.length; n++) {
-      if (blocks[n - 1].kind === "heading") continue;
+      // Unbulleted examples and quotations continue the list/group immediately above.
+      // Keep the complete chain together, including its introductory sentence.
+      if (blocks[n].meta && blocks[n].meta.noGlyph) continue;
+      if (blocks[n - 1].kind === "heading" || (blocks[n-1].meta && blocks[n-1].meta.groupHead)) continue;
       if (blocks[n].depth > blocks[n - 1].depth) continue;
       if (this.stackedTextHeightPt(blocks.slice(0, n)) > room) break;
       cut = n;
@@ -1184,10 +1524,10 @@ class Builder {
   appendTextBelow(page, blocks) {
     const h = this.stackedTextHeightPt(blocks);
     const id = this.cloneShape(page, 13);
-    setShapeBounds(shape(page.doc, id), { x: 0.4, y: page.tableBottom + BLOCK_GAP, w: 9.2, h: h / 72 });
+    setShapeBounds(shape(page.doc, id), { x: 0.4, y: page.tableBottom + TABLE_TEXT_GAP_PT / 72, w: 9.2, h: h / 72 });
     paragraphs(page, id, blocks, false);
     if (this.sectionStyle && this.sectionStyle.uniform) restyle(shape(page.doc, id), this.sectionStyle);
-    page.tableBottom += BLOCK_GAP + this.textAdvancePt(blocks) / 72;
+    page.tableBottom += TABLE_TEXT_GAP_PT / 72 + this.textAdvancePt(blocks) / 72;
   }
 
   // Fill a table graphicFrame with one row group, top at yPt; returns the content height (pt).
@@ -1221,8 +1561,8 @@ class Builder {
           cell.appendChild(tcPr);
         }
         tcPr.setAttribute("anchor", "ctr");
-        tcPr.setAttribute("marT", String(CELL_MAR_V));
-        tcPr.setAttribute("marB", String(CELL_MAR_V));
+        if(this.s03Profile)for(const k of ['marL','marR','marT','marB'])tcPr.setAttribute(k,'54000');
+        else {tcPr.setAttribute("marT", String(CELL_MAR_V));tcPr.setAttribute("marB", String(CELL_MAR_V));}
         row.appendChild(cell);
       }
       tbl.appendChild(row);
@@ -1304,7 +1644,7 @@ class Builder {
     }
     const rows = block.rows;
     const cols = rows[0].length;
-    need(cols >= 2 && cols <= 6, "표는 2~6열을 지원한다.");
+    need(cols >= 2, "표는 2열 이상이어야 한다.");
     const widths = opts.widths || columnWidths(rows, cols);
     const groups = this.tableGroups(rows, widths);
     const leadHeightPt = opts.visual ? this.textHeightPt(lead) : this.tableLeadHeight(lead, leadCap);
@@ -1318,7 +1658,7 @@ class Builder {
           setShapeBounds(shape(page.doc, 13), { x: 0.4, y: 1.05, w: 9.2, h: leadHeightPt / 72 });
           paragraphs(page, 13, lead, false);
           if (this.sectionStyle && this.sectionStyle.uniform) restyle(shape(page.doc, 13), this.sectionStyle);
-          yPt += this.textAdvancePt(lead) + BLOCK_GAP_PT;
+          yPt += this.textAdvancePt(lead) + TABLE_TEXT_GAP_PT;
         }
         if (opts.visual) {
           // A legend-style visual between the lead text and the table (same slide).
@@ -1403,9 +1743,8 @@ class Builder {
     }
   }
 
-  // Fills one TOC column. targetId === 10 reuses the template's own left placeholder; the right
-  // column (id 4, only needed past 15 items) is cloned from it since the raw template has no
-  // second TOC shape.
+  // Fills the TOC column, reusing the template's own placeholder (id 10) at the given box. 한 열
+  // 배치이므로 호출은 id 10 하나뿐이고, 다른 id를 주면 그 상자를 shape 10에서 복제한다.
   tocColumn(page, targetId, xfrm, items) {
     const doc = page.doc;
     let sh;
@@ -1438,31 +1777,33 @@ class Builder {
     if (items.length === 0) b.appendChild(el(doc, A, "p"));
   }
 
-  // A two-column TOC page holds TOC_LEFT_MAX (left) + TOC_LEFT_MAX (right) = 34 items before
-  // either column overflows its fixed placeholder height -- both columns share the same tuned
-  // per-column capacity, so the right column isn't stretched past it just to round the page total
-  // up to a bigger number. Past that, items move to a continuation TOC page, numbered "(N/M)" the
-  // same way an overlong topic already continues.
+  // 목차 한 장에 담기는 항목은 **실제 줄바꿈 높이**로 정한다 -- 제목이 두 줄이 되는 항목은 두 줄
+  // 높이를 쓰므로, 개수로 세면 아래가 잘린다. 넘치는 항목은 같은 한 열 모양의 이어지는 목차 장으로
+  // 내려가며, 장 번호는 긴 topic과 같은 "(N/M)"이다.
+  tocChunks(items) {
+    const width = TOC_COLUMN_XFRM.cx / EMU_PT - BULLET_LEVELS[0].marL / EMU_PT;
+    const height = (item) => estimate(item.text, width, TOC_FONT_SIZE) * TOC_LINE_PT + TOC_SPACING_PT;
+    const budget = TOC_COLUMN_XFRM.cy / EMU_PT;
+    const chunks = [[]];
+    let used = 0;
+    for (const item of items) {
+      const h = height(item);
+      if (used + h > budget && chunks[chunks.length - 1].length) { chunks.push([]); used = 0; }
+      chunks[chunks.length - 1].push(item);
+      used += h;
+    }
+    return chunks;
+  }
+
   renderToc(toc, session) {
-    const perPage = TOC_LEFT_MAX * 2;
-    const chunks = [];
-    for (let i = 0; i < toc.length; i += perPage) chunks.push(toc.slice(i, i + perPage));
+    const chunks = this.tocChunks(toc);
     for (let ci = 0; ci < chunks.length; ci++) {
       const suffix = chunks.length > 1 ? ` (${ci + 1}/${chunks.length})` : "";
       const p = this.page(ORIGIN.toc, tocSessionName(session) + " 목차" + suffix);
       // Per direct instruction: the TOC slide does not carry the top-right session name (it is
       // not a "일반 슬라이드" in the production-guide.md sense -- session name is topic-slide-only).
       p.isToc = true;
-      const left = chunks[ci].slice(0, TOC_LEFT_MAX);
-      const right = chunks[ci].slice(TOC_LEFT_MAX);
-      this.tocColumn(p, 10, TOC_LEFT_XFRM, left);
-      // Always called, even with an empty `right`: the template's own id=4 shape ships with
-      // literal placeholder text ("*** 16번 부터는 여기에서 계속함") baked in, and skipping this
-      // call whenever the right column has nothing left it showing through uncleared -- a
-      // pre-existing bug this session's TOC pagination exposed (a continuation TOC page can
-      // legitimately have zero right-column items). tocColumn() clears existing paragraphs before
-      // adding new ones, so an empty `right` correctly leaves the shape blank.
-      this.tocColumn(p, TOC_RIGHT_ID, TOC_RIGHT_XFRM, right);
+      this.tocColumn(p, 10, TOC_COLUMN_XFRM, chunks[ci]);
     }
   }
 
@@ -1501,12 +1842,15 @@ class Builder {
   // 과정 목차 — 과정의 세션 전체를 세션 목차와 같은 모양으로 보이는 둘째 장. 표지와 함께 과정의
   // 첫 세션 덱에만 있고, 항목은 `course-design.md`의 세션 목록이다.
   renderCourseToc(course) {
-    const items = course.sessions.map((s) => ({ text: s.name }));
-    const p = this.page(ORIGIN.toc, course.name + " 목차");
-    p.isToc = true;
-    this.tocColumn(p, 10, TOC_LEFT_XFRM, items.slice(0, TOC_LEFT_MAX));
-    this.tocColumn(p, TOC_RIGHT_ID, TOC_RIGHT_XFRM, items.slice(TOC_LEFT_MAX));
-    return p;
+    const chunks = this.tocChunks(course.sessions.map((s) => ({ text: s.name })));
+    const first = this.pages.length;
+    for (let ci = 0; ci < chunks.length; ci++) {
+      const suffix = chunks.length > 1 ? ` (${ci + 1}/${chunks.length})` : "";
+      const p = this.page(ORIGIN.toc, course.name + " 목차" + suffix);
+      p.isToc = true;
+      this.tocColumn(p, 10, TOC_COLUMN_XFRM, chunks[ci]);
+    }
+    return this.pages[first];
   }
 
   async render(sections, outputPath, toc, course) {
@@ -1548,6 +1892,18 @@ class Builder {
       this.renderToc(toc, this.session);
     }
 
+    // A document marker inside one explicit page segment does not restyle the author's
+    // explanation or review table in neighbouring segments of the same numbered topic.
+    const scopedGroups = new Map();
+    sections = sections.flatMap(s => {
+      const segments=[[]];
+      for(const b of s.blocks) { if(b.kind==="pagebreak") segments.push([]); else segments[segments.length-1].push(b); }
+      const document = bs => bs.some(b=>b.kind==="text" && /^\*\*문서 형식(?: — 10pt)?\*\*$/.test(b.text.trim()));
+      if(!segments.slice(1).some(document) || segments.every(document)) return [s];
+      const key={};scopedGroups.set(key,[]);
+      return segments.map((blocks,i)=>({...s,blocks,notes:i===0?s.notes:[],scopeKey:key,scopedDocument:document(blocks)}));
+    });
+
     for (let section of sections) {
       // A table-of-contents group with no body of its own ("## 05. 연관" followed directly by its
       // sub-topics) makes no slide: its sub-topics carry it as their second title line.
@@ -1555,6 +1911,17 @@ class Builder {
       if (!section.group && section.blocks.length === 0 && next && next.group === section.title) continue;
       const firstIdx = this.pages.length;
       this.sectionFirst = firstIdx;
+      if ((section.scopedDocument || (section.appendix && section.verbatimResponse))
+        && (section.scopedDocument || this.s03Profile || !section.blocks.some(b=>['mermaid','plantuml','svg','chart'].includes(b.kind)))
+        && section.blocks.every(b=>["text","heading","bullet","table","pagebreak","mermaid","plantuml","svg","chart"].includes(b.kind))) {
+        const ten=section.scopedDocument||section.blocks.some(b=>b.kind==='text'&&b.text.trim()==='**문서 형식 — 10pt**');
+        const style={...ANSWER_STYLE,text:ten?10:12,heading:ten?10:14,levels:ten?[10,10,10]:[12,11,10],uniform:true,fit:1,leftFit:1,space:3,expl:L=>L,paren:L=>L,hang:true,responseRole:section.appendix?'answer':'demo',tablePt:this.s03Profile&&(section.appendix||/^11\. LLM 초안 검토$/.test(section.title))?8:10};
+        const mixed=section.blocks.some(b=>['mermaid','plantuml','svg','chart'].includes(b.kind)||(b.kind==='table'&&b.rows[0].length>4));
+        const pages=mixed?await this.columnVisualDocumentPages(section.blocks,section.title,style,!ten):this.columnDocumentPages(section.blocks,section.title,style,!ten);
+        pages.forEach((p,i)=>{p.appendix=Boolean(section.appendix);if(section.scopeKey)scopedGroups.get(section.scopeKey).push(p);if(pages.length>1)p.heading+=` (${i+1}/${pages.length})`+(section.group?'\n'+section.group:'');else if(section.group)p.heading+='\n'+section.group;});
+        if(pages.length && section.notes.length)pages[0].notes=section.notes;
+        continue;
+      }
       // "**주석**" and the paragraph after it: an 8pt footnote at the bottom of every slide of the
       // topic, kept out of the body flow (session-authoring-guide.md "주석", production-guide.md
       // "주석").
@@ -1567,6 +1934,10 @@ class Builder {
       const documentStyle = docLayout && section.blocks[docAt].text.includes("10pt")
         ? { ...ANSWER_STYLE, fit: 0.9, leftFit: 0.9, uniform: true, text: 10, levels: [10, 10, 10], expl: () => 10, paren: () => 10, space: 3, documentIndent: true, leftFirst: true } : ANSWER_STYLE;
       if (docLayout) section = { ...section, blocks: section.blocks.filter((b, i) => i !== docAt && b.kind !== "pagebreak") };
+      if(docLayout && documentStyle.uniform) {
+        const intro=section.blocks.find(b=>b.kind!=='heading');
+        if(intro?.kind==='text')documentStyle.introText=plain(intro.text);
+      }
       const refLayout = section.blocks.some(isReferenceMarker);
       if (refLayout) section = { ...section, blocks: section.blocks.filter((b) => !isReferenceMarker(b) && b.kind !== "pagebreak") };
       if (noteAt >= 0) {
@@ -1760,10 +2131,35 @@ class Builder {
         open = null;
         visualTargets[vi] = target;
       };
+      // 원고에서 이 블록 다음에 오는 **내용** 블록. 본문에 그려지지 않는 표식 줄(인용문 표식,
+      // 도식 표식)은 건너뛴다 -- 아래 루프가 같은 줄들을 건너뛰기 때문이다.
+      const nextContentBlock = (i) => {
+        for (let k = i + 1; k < section.blocks.length; k++) {
+          const nb = section.blocks[k];
+          const t = String(nb.text || "").trim();
+          if (nb.kind === "text" && (QUOTE_MARKER.test(t) || (visuals.length && VISUAL_MARKER.test(t)))) continue;
+          return nb;
+        }
+        return null;
+      };
+      // 그룹 대표명: 줄 전체가 굵고, 뒤에 그 그룹에 속한 내용이 있다. `###`가 열리거나 topic이
+      // 끝나면 소속이 없으므로 대표명이 아니다.
+      const isGroupHead = (block, i) => {
+        if (block.kind !== "text" || !GROUP_HEAD.test(block.text.trim())) return false;
+        const next = nextContentBlock(i);
+        return Boolean(next) && next.kind !== "heading" && next.kind !== "pagebreak";
+      };
+      // 독립 안내 문장: 목록을 예고하는 한 문장 바로 뒤에 같은 단의 목록이 온다.
+      const isListLead = (block, i) => {
+        if (block.kind !== "text" || (block.depth || 0) !== 0) return false;
+        if (!LIST_LEAD.test(String(block.text).replace(/\*\*/g, "").trim())) return false;
+        const next = nextContentBlock(i);
+        return Boolean(next) && next.kind === "bullet" && (next.depth || 0) === 0;
+      };
       for (let blockIndex = 0; blockIndex < section.blocks.length; blockIndex++) {
         const b = section.blocks[blockIndex];
         if (visuals.length && b.kind === "text" && VISUAL_MARKER.test(b.text.trim())) continue;
-        if (b.kind === "text" && /^\*\*(?:인용문|Anchor Message|앵커 메시지)\*\*$/i.test(b.text.trim())) {
+        if (b.kind === "text" && QUOTE_MARKER.test(b.text.trim())) {
           quoteKind = /인용문/.test(b.text) ? "quote" : "anchor";
           continue;
         }
@@ -1822,6 +2218,8 @@ class Builder {
         }
         if (["text", "heading", "bullet"].includes(b.kind)) {
           let block = quoteKind ? { ...b, meta: { ...(b.meta || {}), [quoteKind]: true } } : b;
+          if(/^05\. 사용자 스토리/.test(section.title) && /^>\s/.test(block.text))
+            block={...block,meta:{...(block.meta||{}),alignBody:true,storyPattern:true}};
           const caption = block.kind === "text" && TABLE_CAPTION.exec(block.text.trim());
           if (caption) {
             // "**표 — 제목**": an 11pt bold title right above the table (it joins the table's lead).
@@ -1830,13 +2228,25 @@ class Builder {
             // A "###" sub-heading: bold, no glyph, indented; what follows keeps its own level
             // (session-authoring-guide.md "한 장의 메시지").
             contentSeen = true;
+            headingDepthBoost = 0;
           } else if (block.kind === "text") {
-            // A citation is support material -- except when it opens the topic: then it IS the
-            // topic's lead message (e.g. an author's positioning statement).
+            // 거버닝 메시지는 topic을 **여는** 문단(또는 topic을 여는 인용)뿐이다. `###` 소제목이
+            // 먼저 오면 그 아래 문단은 소제목이 여는 그룹에 속하므로 보조 bullet이다(2026-11-15).
             const isQuote = block.meta && (block.meta.quote || block.meta.anchor);
-            if (!governingMessageSeen && (!isQuote || !contentSeen)) {
+            if (!governingMessageSeen && !contentSeen) {
               governingMessageSeen = true;
               leadBlock = block;
+            } else if (isGroupHead(block, blockIndex) || isListLead(block, blockIndex)) {
+              // 그룹 대표명과 독립 안내 문장은 승격하지 않는다 -- text 경로가 들여쓰기 0·글머리표
+              // 없음·18pt·원고의 **bold**를 그대로 그린다(paragraphs.js).
+              if(isGroupHead(block,blockIndex)) {
+                block={...block,kind:"bullet",depth:0,meta:{...(block.meta||{}),groupHead:true,noGlyph:true,noHang:true}};
+                headingDepthBoost=0;
+              }
+            } else if (isQuote || BLOCKQUOTE_LINE.test(block.text.trim())) {
+              // 인용문과 인용된 요청: 한 단계 들여쓰고 글머리표와 내어쓰기를 없앤다 -- 줄바꿈된
+              // 둘째 줄도 첫 줄과 같은 자리에서 시작한다(production-guide.md 「인용문」).
+              block = { ...block, kind: "bullet", depth: Math.min(2, block.depth + headingDepthBoost), meta: { ...(block.meta || {}), noGlyph: true, noHang: true } };
             } else if (!SPOKEN_LINE.test(block.text.trim())) {
               block = { ...block, kind: "bullet", depth: block.depth + headingDepthBoost };
             }
@@ -1912,7 +2322,15 @@ class Builder {
           // preceding paragraph on its own near-empty page even though the band plainly had space.
           const tableWidths = columnWidths(b.rows, b.rows[0].length);
           const tableContentH = b.rows.reduce((sum, row) => sum + this.rowHeight(row, tableWidths), 0);
-          const leadCap = Math.max(0, (PAGE_NUM_Y - 1.05) * 72 - 8 - Math.min(tableContentH, 365));
+          const trailing=[];
+          for(let j=blockIndex+1;j<section.blocks.length;j++) {
+            const t=section.blocks[j];
+            if(!['text','bullet'].includes(t.kind) || GROUP_HEAD.test(String(t.text).trim()))break;
+            trailing.push(t);
+          }
+          const tailPt=trailing.length?this.stackedTextHeightPt(trailing)+TABLE_TEXT_GAP_PT:0;
+          const reserve=tailPt<=100?tailPt:0;
+          const leadCap = Math.max(0, (PAGE_NUM_Y - 1.05) * 72 - 8 - Math.min(tableContentH, 365)-reserve);
           const split = splitCaption(pending);
           const leadPt = this.tableLeadHeight(split.lead, leadCap) + (split.caption ? CAPTION_H : 0);
           let lead = pending.length && leadPt < leadCap ? pending.slice() : [];
@@ -1920,8 +2338,17 @@ class Builder {
             // The lead is too tall to share the table's slide, so it goes to its own prose page --
             // but the table's own title ("**표 — 제목**") must travel WITH the table, not stay
             // behind at the bottom of that page (production-guide.md "표·도식 제목").
-            this.flush(split.lead, section.title, layout.width, capacity);
-            if (split.caption) lead = [pending[pending.length - 1]];
+            const prose = split.lead.slice();
+            // A trailing subheading introduces this table, even when the preceding prose
+            // needs its own page. Keep it with the table rather than orphaning it above.
+            const last = prose[prose.length - 1];
+            let keep=-1;
+            for(let j=prose.length-1;j>=0;j--) if(prose[j].kind==="heading" || (prose[j].meta && prose[j].meta.groupHead)) {keep=j;break;}
+            if(keep>=0 && this.textHeightPt(prose.slice(keep))<leadCap) lead.push(...prose.splice(keep));
+            else if (last && (last.kind === "heading" || (last.meta && last.meta.groupHead)
+              || (last.kind === "text" && GROUP_HEAD.test(last.text.trim())))) lead.push(prose.pop());
+            this.flush(prose, section.title, layout.width, capacity);
+            if (split.caption) lead.push(pending[pending.length - 1]);
           }
           this.table(b, section.title, lead, leadCap, { widths });
           open = this.pages[this.pages.length - 1];
@@ -1931,6 +2358,9 @@ class Builder {
         }
         need(b.kind === "code" || b.kind === "tree", "Unknown block");
         if (b.kind === "code") {
+          if(b.meta?.language==='gherkin' || (this.s03Profile && b.meta?.language==='recordedInput')) {
+            open=this.gherkin(b,section.title,pending.slice());pending=[];governingSeen=true;continue;
+          }
           const pair = deferredCode;
           deferredCode = null;
           let k = blockIndex + 1;
@@ -2161,9 +2591,22 @@ class Builder {
         if (!p.pictures || !p.pictures.length) continue;
         const shared = () => p.pictures.length > 1 || p.items.some((it) => it.kind === "table" || (it.text && it.text.trim() !== ""));
         for (const pic of p.pictures.slice()) {
-          if (pictureTextPt(pic, pic.bounds) >= MIN_PT - 0.05 || !shared()) continue;
+          if (pictureTextPt(pic, pic.bounds) >= MIN_PT - 0.05) continue;
           const bounds = fitTarget(VISUAL_ONLY, pic);
-          if (pictureTextPt(pic, bounds) < MIN_PT - 0.05) continue;
+          if (pictureTextPt(pic, bounds) < MIN_PT - 0.05) {
+            const tiles=require('./diagramTiles').diagramTiles(pic,VISUAL_ONLY);
+            const keepLead=shared();
+            p.pictures=p.pictures.filter(x=>x!==pic);
+            if(!keepLead){p.pictures=[{...pic,...tiles[0]}];p.visualLayout='visual-tiles';}
+            let at=k+1;
+            for(let ti=keepLead?0:1;ti<tiles.length;ti++) {
+              const q=this.page(ORIGIN.prose,section.title);paragraphs(q,8,[],false);this.pages.pop();
+              q.appendix=Boolean(section.appendix);q.pictures=[{...pic,...tiles[ti]}];q.visualLayout='visual-tiles';
+              this.pages.splice(at++,0,q);sectionEnd++;
+            }
+            continue;
+          }
+          if(!shared()) {pic.bounds=bounds;continue;}
           p.pictures = p.pictures.filter((x) => x !== pic);
           const q = this.page(ORIGIN.prose, section.title);
           paragraphs(q, 8, [], false);
@@ -2201,6 +2644,20 @@ class Builder {
         sectionEnd--;
         k--;
       }
+      if(this.s03Profile && section.title==='11. LLM 초안 검토' && section.blocks.some(b=>b.kind==='table')){
+        for(const p of this.pages.slice(firstIdx,sectionEnd)){
+          p.documentTablePt=8;
+          for(const gf of all(p.doc,P,'graphicFrame')){
+            const fitted=this.documentTableFont(gf,8);
+            p.tableBottom=Number(child(child(gf,P,'xfrm'),A,'off').getAttribute('y'))/EMU+fitted.heightPt/72;
+          }
+          for(const sp of all(p.doc,P,'sp')){
+            const id=child(child(sp,P,'nvSpPr'),P,'cNvPr')?.getAttribute('id');
+            if(['2','5','6','7','8'].includes(id))continue;
+            for(const rp of all(sp,A,'rPr'))rp.setAttribute('sz','1000');
+          }
+        }
+      }
       if (section.notes && section.notes.length && sectionEnd > firstIdx) this.pages[firstIdx].notes = section.notes;
       if (section.appendix) for (let k = firstIdx; k < sectionEnd; k++) this.pages[k].appendix = true;
       for (let k = firstIdx; k < sectionEnd; k++) {
@@ -2212,10 +2669,15 @@ class Builder {
         // The second title line: a sub-topic's group ("05. 연관"), else the diagram marker's name.
         const second = [english, section.group || section.diagram || ""].filter((s) => s !== "").join(" · ");
         p.heading = main + (second === "" ? "" : "\n" + second);
+        if(section.scopeKey)scopedGroups.get(section.scopeKey).push(p);
       }
       if (footnote) for (const page of this.pages.slice(firstIdx)) this.footnote(page, footnote);
       this.hasFootnote = false;
     }
+    for(const pages of scopedGroups.values()) pages.forEach((p,i)=>{
+      const lines=p.heading.split("\n");lines[0]=lines[0].replace(/ \(\d+\/\d+\)$/,'')+` (${i+1}/${pages.length})`;p.heading=lines.join("\n");
+    });
+    if(this.s03Profile)this.tableWidthReview=require('./tableColumnMetrics').optimizeSessionTables(this.pages.filter(p=>p.session===this.session));
   }
 
   // Writes every composed page as one .pptx. `title` is the document title — a bundle passes the
@@ -2244,38 +2706,54 @@ class Builder {
       // parenthetical span); built with runParen() directly rather than setText(), since the
       // secondary (English gloss) line needs its own base size before the paren rule applies.
       if (text(shape(p.doc, 2)) !== p.heading) {
+        // 제목 상자는 제목 구분선과 같은 띠다(TITLE_BOX). 세션명이 구분선 아래로 내려갔으므로
+        // 오른쪽 끝까지 넓혀도 겹치지 않는다.
+        setShapeBounds(shape(p.doc, 2), TITLE_BOX);
         const titleBody = body(shape(p.doc, 2));
         for (const par of kids(titleBody, A, "p")) titleBody.removeChild(par);
         const lines = p.heading.split("\n");
-        // The template title placeholder is about 496pt wide. Leave its insets and a bold-glyph
-        // margin intact; fit long document titles without wrapping over the appendix subtitle.
-        const titleUnits = Array.from(lines[0]).reduce((n, ch) => n + (/\s/.test(ch) ? 0.33 : ch.codePointAt(0) >= 0x1100 ? 1.05 : 0.6), 0);
-        const titlePt = p.answerColumns ? Math.min(24, Math.max(16, Math.floor(470 / titleUnits))) : 24;
+        const titlePt = TITLE_PT;
         for (let li = 0; li < lines.length; li++) {
           const par = el(p.doc, A, "p");
           titleBody.appendChild(par);
           // An answer's "(안)" is set at 18pt beside the 24pt title (production-guide.md "실습 슬라이드").
           const draft = li === 0 && /^(.*) (\(안\))((?: \(\d+\/\d+\))?)$/.exec(lines[li]);
           if (draft) {
-            runParen(par, draft[1] + " ", 24, true);
+            runParen(par, draft[1] + " ", titlePt, true);
             run(par, draft[2], 18, true);
-            if (draft[3]) runParen(par, draft[3], 24, true);
+            if (draft[3]) runParen(par, draft[3], titlePt, true);
           } else runParen(par, lines[li], li === 0 ? titlePt : 11, true);
+          if(li===0)for(const rp of all(par,A,'rPr')){rp.setAttribute('sz','2000');rp.setAttribute('b','1');}
         }
       }
-      // Shape 5 (top-right, idx=11) is the session name -- production-guide.md ("Session 명")
-      // requires the same value on every slide, never the slide's own topic title. Shapes 6/7
-      // stay blank (no source/copyright string).
-      // An appendix slide (after the summary, "## 별첨. …") reads "별첨: <세션명>".
+      // 세션명은 기존 Shape 5(idx=11)로 복귀한다. Shape 6과 하단 Shape 7은 비워 둔다.
+      // 요약 뒤 별첨 장은 "별첨: <세션명>"이다.
       const pageSession = p.session || this.session;
       const label = p.appendix ? appendixSessionName(pageSession) : pageSession;
       const plain = p.isToc || p.isCover || p.isCourseGoal;
-      setText(shape(p.doc, 5), plain ? "" : label);
-      if (!plain) {
-        const pt = sessionNamePt(label);
-        if (pt !== SESSION_PT) for (const rpr of all(shape(p.doc, 5), A, "rPr")) rpr.setAttribute("sz", String(Math.round(pt * 100)));
-      }
       setText(shape(p.doc, 6), "");
+      const nameShape = shape(p.doc, SESSION_NAME_ID);
+      const pt = sessionNamePt(label);
+      const nameW = Math.min(SESSION_NAME_BOX.w, Math.max(1, (widthOf(label, pt) + 8) / 72));
+      const nameBox = { ...SESSION_NAME_BOX, x: SESSION_NAME_BOX.x + SESSION_NAME_BOX.w - nameW, w: nameW };
+      setShapeBounds(nameShape, nameBox);
+      setText(nameShape, plain ? "" : label);
+      if (!plain) {
+        setRunSize(nameShape, pt);
+        let titleBox = { ...TITLE_BOX, y: 0, h: 53.7 / 72, w: nameBox.x - TITLE_BOX.x - 0.12 };
+        if(widthOf(p.heading.split("\n")[0],TITLE_PT)>titleBox.w*72-14.4) {
+          // Long names and titles get separate rows inside the existing header band. Neither
+          // title size nor content is reduced, and Shape 5 remains above the divider at right.
+          setRunSize(nameShape,9);
+          setShapeBounds(nameShape,{...SESSION_NAME_BOX,y:0,h:14/72});
+          titleBox={...TITLE_BOX,y:14/72,h:39.7/72};
+        }
+        setShapeBounds(shape(p.doc, 2), titleBox);
+        const titlePr = child(body(shape(p.doc, 2)), A, "bodyPr");
+        titlePr.setAttribute("tIns", "0");
+        titlePr.setAttribute("bIns", "0");
+        titlePr.setAttribute("anchor", "ctr");
+      }
       setText(shape(p.doc, 7), "");
       for (const sh of all(p.doc, P, "sp")) if (all(sh, P, "ph").some((ph) => ph.getAttribute("type") === "sldNum")) setText(sh, "- " + number + " -");
       const name = "ppt/slides/slide" + number + ".xml";
@@ -2291,10 +2769,11 @@ class Builder {
         const kindNumber = imageCounts[picture.kind];
         const relId = picture.kind + "Image" + kindNumber;
         const mediaName = picture.kind + "-" + kindNumber + ".png";
-        addPicture(p.doc, nextShapeId++, relId, picture.bounds, picture.kind + " Diagram " + kindNumber, picture.altText);
+        addPicture(p.doc, nextShapeId++, relId, picture.bounds, picture.kind + " Diagram " + kindNumber, picture.altText, picture.crop);
         sr.documentElement.appendChild(el(sr, REL, "Relationship", "Id", relId, "Type", R + "/image", "Target", "../media/" + mediaName));
         result.set("ppt/media/" + mediaName, picture.data);
       }
+      normalizeTypography(p.doc);
       result.set(name, xmlOut(p.doc));
       if (p.notes && p.notes.length) {
         const notesName = "notesSlide" + number + ".xml";
@@ -2319,6 +2798,11 @@ class Builder {
     result.set("ppt/_rels/presentation.xml.rels", xmlOut(rels));
     result.set("[Content_Types].xml", xmlOut(ct));
     updateDocProps(result, this.pages, title || this.session);
+    // Resolve template inheritance as well as generated runs: all text paragraphs and all script
+    // fonts obey the same contract, including tables, master styles and speaker notes.
+    for(const [name,data] of result) if(/^ppt\/.*\.xml$/.test(name)) {
+      const doc=parseXml(data);normalizeTypography(doc);result.set(name,xmlOut(doc));
+    }
     await writeZip(outputPath, result);
     // inspect.js checks shape 5/7 text against manifest.title/.source verbatim -- source is kept
     // as "" (not omitted) so that check still holds for the now-always-blank footer.
@@ -2328,7 +2812,7 @@ class Builder {
 
 async function render(sections, templatePath, outputPath, session, toc, course) {
   const b = new Builder(templatePath);
-  await b.init(session);
+  await b.init(session, course);
   return b.render(sections, outputPath, toc, course);
 }
 
@@ -2340,7 +2824,7 @@ async function bundle(items, templatePath, outputPath, title) {
   const b = new Builder(templatePath);
   // init()은 세션명과 템플릿 원형만 다시 잡고 이미 구성한 pages는 그대로 둔다.
   for (const it of items) {
-    await b.init(it.session);
+    await b.init(it.session, it.course);
     await b.compose(it.sections, it.toc, it.course);
   }
   return b.write(outputPath, title);

@@ -136,12 +136,12 @@ function spacing(p, before, after, leading) {
     pr = el(d, A, "pPr");
     p.insertBefore(pr, p.firstChild);
   }
-  const tags = leading == null ? ["spcBef", "spcAft"] : ["spcBef", "spcAft", "lnSpc"];
-  const vals = [before, after, leading == null ? 0 : leading];
+  const tags = ["spcBef", "spcAft", "lnSpc"];
+  const vals = [before, after];
   for (let i = 0; i < tags.length; i++) {
     for (const old of kids(pr, A, tags[i])) pr.removeChild(old);
     const s = el(d, A, tags[i]);
-    s.appendChild(el(d, A, "spcPts", "val", String(vals[i] * 100)));
+    s.appendChild(el(d, A, i === 2 ? "spcPct" : "spcPts", "val", i === 2 ? "100000" : String(vals[i] * 100)));
     pr.appendChild(s);
   }
   const ordered = children(pr).slice();

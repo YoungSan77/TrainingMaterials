@@ -65,6 +65,19 @@ async function pagesOf(source) {
   }
 }
 
+for (const heading of ['### 기대 결과', '**기대 결과**']) test(`표 앞 본문이 넘쳐도 마지막 소제목은 표와 함께 이동한다: ${heading}`, async () => {
+  const source = '--------------------\nSession 명: 01. 표 검증\n--------------------\n\n## 목차\n\n01. 표 앞의 긴 본문\n\n## 01. 표 앞의 긴 본문\n\n'
+    + Array.from({ length: 12 }, (_, i) => `- 설명 ${i}: 주문 식별자와 금액과 상태를 확인한다.`).join('\n')
+    + `\n\n${heading}\n\n| 항목 | 결과 |\n|---|---|\n| 주문 금액 | 2,000원 |\n| 배송 요청 | 1회 |`;
+  const pages = (await pagesOf(source)).filter(p => !p.isToc);
+  const tablePage = pages.find(p => p.items.some(it => it.kind === 'table'));
+  assert.ok(tablePage);
+  assert.ok(tablePage.items.some(it => (it.text || '').includes('기대 결과')));
+  for (const p of pages.filter(p => p !== tablePage)) {
+    assert.ok(!p.items.some(it => (it.text || '').includes('기대 결과')));
+  }
+});
+
 test("다음 표가 들어가지 않아도 그 사이의 글은 앞 표 아래를 먼저 채운다", async () => {
   const pages = (await pagesOf(md)).filter((p) => p.heading.startsWith("01. 두 표"));
   assert.ok(pages.length >= 2, "표 2개가 갈린다");

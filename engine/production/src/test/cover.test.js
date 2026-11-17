@@ -171,10 +171,12 @@ test("과정 목차는 과정의 세션을 모두 16pt로 담는다", async () =
 });
 
 test("표지·과정 목차·과정 목표에는 우측 상단 세션명을 쓰지 않는다", async () => {
+  // 세션명은 제목 구분선 아래의 shape 6이고, 구분선 위의 shape 5는 모든 장에서 비어 있다.
   const pages = await pagesOf(SESSION, info());
   assert.equal(text(shape(pages[0].doc, 5)), "");
   assert.equal(text(shape(pages[1].doc, 5)), "");
   assert.equal(text(shape(pages[2].doc, 5)), "");
   assert.equal(text(shape(pages[3].doc, 5)), "");
   assert.equal(text(shape(pages[4].doc, 5)), SESSION);
+  assert.deepEqual(pages.map((p) => text(shape(p.doc, 6))).filter((t) => t !== ""), []);
 });

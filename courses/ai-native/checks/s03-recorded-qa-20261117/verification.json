@@ -1,0 +1,532 @@
+{
+  "checkedAt": "2026-11-17T10:25:25.828Z",
+  "source": {
+    "path": "courses/ai-native/sessions/s03.md",
+    "sha256": "6b1f0ab2ec875ff1187f819c7f916601e34d74531f6a3f56fd7e2413b6a40a7a",
+    "modified": "2026-11-17T10:18:35.854Z"
+  },
+  "pptx": {
+    "path": "courses/ai-native/sessions/s03.pptx",
+    "sha256": "0f4c7f2ddafd44636ed23538b774f78a86cd4fa029b13d3433ba648a9acc0f90",
+    "modified": "2026-11-17T10:22:20.502Z"
+  },
+  "qa": {
+    "path": "courses/ai-native/sessions/s03.qa.json",
+    "sha256": "345570e2bebfc0f00a213f6890bc1d2288e29b55a2f3c6fc9e8aca154787cadb",
+    "modified": "2026-11-17T10:22:20.648Z"
+  },
+  "resolvedOriginalDefects": [
+    {
+      "oldWarning": 22,
+      "rule": "unboldedText",
+      "status": "RESOLVED",
+      "line": 26,
+      "text": "**요구사항 분석**은 시스템이 해야 할 일과 결과를 받아들일 기준을 **합의**하는 활동이다."
+    },
+    {
+      "oldWarning": 23,
+      "rule": "unboldedText",
+      "status": "RESOLVED",
+      "line": 52,
+      "text": "- **주문**은 언제 생성하는가? **주문 금액**은 언제 확정하는가?"
+    },
+    {
+      "oldWarning": 24,
+      "rule": "unboldedText",
+      "status": "RESOLVED",
+      "line": 54,
+      "text": "- 배송 시작은 배송 시스템에 **요청**하는 것인가, **실제 배송이 시작**되는 것인가?"
+    },
+    {
+      "oldWarning": 25,
+      "rule": "unboldedText",
+      "status": "RESOLVED",
+      "line": 58,
+      "text": "**펜 2개(각 1,000원)**를 주문하고 배송지를 **서울**로 지정한 사례다."
+    },
+    {
+      "oldWarning": 26,
+      "rule": "unboldedText",
+      "status": "RESOLVED",
+      "line": 73,
+      "text": "**주문 생성 시점**, **금액 확정 시점**, 결제 거절 뒤의 상태, 배송 요청 조건에 따라 **구현 결과**가 달라진다."
+    },
+    {
+      "oldWarning": 27,
+      "rule": "unboldedText",
+      "status": "RESOLVED",
+      "line": 123,
+      "text": "요구사항은 시스템이 준수해야 할 **역량과 조건**을 표현한다, \"Requirements are capabilities and conditions to which the system … must conform\", [Larman 2004]"
+    },
+    {
+      "oldWarning": 28,
+      "rule": "unboldedText",
+      "status": "RESOLVED",
+      "line": 134,
+      "text": "요구사항은 이해관계자가 **같은 뜻**으로 이해할 수 있고, 충족 여부를 **객관적으로 확인**할 수 있어야 한다. 한 문장에는 **독립적으로 판정할 수 있는 요구사항 하나**를 담는다."
+    },
+    {
+      "oldWarning": 29,
+      "rule": "unboldedText",
+      "status": "RESOLVED",
+      "line": 205,
+      "text": "‘주문한다’는 **고객 가치 단위**다. 결제 연동과 주문 기록은 **구현 기술 작업**이다."
+    },
+    {
+      "oldWarning": 30,
+      "rule": "unboldedText",
+      "status": "RESOLVED",
+      "line": 326,
+      "text": "- 같은 동시 요청 수와 외부 시스템 응답 조건에서 **API의 요청 수신부터 응답까지** 걸린 시간을 측정한다."
+    },
+    {
+      "oldWarning": 31,
+      "rule": "unboldedText",
+      "status": "RESOLVED",
+      "line": 344,
+      "text": "단일 스토리의 **작업 범위와 완료 조건**이 이미 명확하면 **별도 문서를 생략**할 수 있다."
+    },
+    {
+      "oldWarning": 32,
+      "rule": "unboldedText",
+      "status": "RESOLVED",
+      "line": 371,
+      "text": "기존 **요구사항과 검사**로 **변경 위험**을 통제할 수 있으면 그 자료를 활용한다."
+    },
+    {
+      "oldWarning": 33,
+      "rule": "unboldedText",
+      "status": "RESOLVED",
+      "line": 609,
+      "text": "**명세 주도 개발(SDD)**은 확정된 요구사항·업무 규칙·설계 제약·수용 기준을 **AI의 작업에 전달**하고, 결과를 **그 기준으로 검사**하는 접근 방식이다."
+    },
+    {
+      "oldWarning": 34,
+      "rule": "unboldedText",
+      "status": "RESOLVED",
+      "line": 632,
+      "text": "- 불일치가 생기면 **규칙 누락**, **전달 부족**, **구현 오류** 중 원인을 확인한다."
+    },
+    {
+      "oldWarning": 35,
+      "rule": "unboldedText",
+      "status": "RESOLVED",
+      "line": 633,
+      "text": "- 작은 변경은 **기존 요구사항과 테스트**를 **직접 참조**해도 된다."
+    },
+    {
+      "oldWarning": 36,
+      "rule": "unboldedText",
+      "status": "RESOLVED",
+      "line": 663,
+      "text": "주문 스토리 하나의 **요구사항과 수용 기준**을 AI와 함께 작성한다."
+    },
+    {
+      "oldWarning": 38,
+      "rule": "unboldedText",
+      "status": "RESOLVED",
+      "line": 671,
+      "text": "+ 초안의 **누락·충돌**을 묻고, **확인된 답만 반영**한다."
+    },
+    {
+      "oldWarning": 39,
+      "rule": "unboldedText",
+      "status": "RESOLVED",
+      "line": 672,
+      "text": "+ **품질 시험 조건**은 강사가 **후속 대화**에서 제공한다."
+    },
+    {
+      "oldWarning": 43,
+      "rule": "unboldedText",
+      "status": "RESOLVED",
+      "line": 707,
+      "text": "- **고객의 목적**에서 시스템의 **기능·업무 규칙·품질 조건**을 확인한다."
+    },
+    {
+      "oldWarning": 44,
+      "rule": "unboldedText",
+      "status": "RESOLVED",
+      "line": 708,
+      "text": "- **사용자 스토리**로 대화하고 **구체적인 사례**로 **수용 기준**을 합의한다."
+    },
+    {
+      "oldWarning": 45,
+      "rule": "unboldedText",
+      "status": "RESOLVED",
+      "line": 709,
+      "text": "- **승인·가격 변경·거절·재결제**를 확인하고, **모르는 정책**은 질문으로 남긴다."
+    },
+    {
+      "oldWarning": 51,
+      "rule": "missingModelUpdate",
+      "status": "RESOLVED",
+      "line": 718,
+      "text": "- 모델에서 보완된 것 — ‘주문한다’의 요구사항 정의서에 업무 규칙과 수용 기준을 기록하고, 주문·주문 항목·판매가·주문 금액의 뜻을 정리했다. 배송 요청 실패 정책은 미정으로 남겼다."
+    }
+  ],
+  "recordedBlocks": [
+    {
+      "id": "s03-prompt-initial",
+      "rule": "unboldedText",
+      "topic": "15. 실습 3 — 주문 요구사항 정의서",
+      "context": "프롬프트",
+      "record": "sessions/code/s03/exercise-conversation/production-2026-11-16/exercise/prompt-01.txt",
+      "status": "MATCH",
+      "blockIndex": 7,
+      "text": "두 입력을 읽고 주문 스토리 1개의 흐름·규칙·용어·품질·범위를 정리해라. 미정은 질문으로 남겨라.",
+      "recordSHA256": "febed99da61d0482e3039c8bdffcb695ff43839c8c1a09cd9873ccc68841c8db",
+      "blockSHA256": "8ca45118b86ab681cfd6c575ed215c7defcab3c1b97837e1f5fad4baade54a78",
+      "basis": "exact executed request",
+      "sourceLine": 676
+    },
+    {
+      "id": "s03-prompt-final",
+      "rule": "unboldedText",
+      "topic": "15. 실습 3 — 주문 요구사항 정의서",
+      "context": "프롬프트",
+      "record": "sessions/code/s03/exercise-conversation/production-2026-11-16/exercise/prompt-03.txt",
+      "status": "MATCH",
+      "blockIndex": 9,
+      "text": "합의한 내용으로 정의서를 작성해라. 정상 승인·가격 변경·거절·재결제를 한 표에 비교해라. 모델·설계·코드는 범위에서 제외해라.",
+      "recordSHA256": "ead6d2310b2459e1274870d3509813fb9e27bd1469d42c0a2a1e1f7c832d78a0",
+      "blockSHA256": "ead6d2310b2459e1274870d3509813fb9e27bd1469d42c0a2a1e1f7c832d78a0",
+      "basis": "exact executed request",
+      "sourceLine": 680
+    },
+    {
+      "id": "s03-demo-us01-intro",
+      "rule": "flatGroupItems",
+      "topic": "11. LLM 초안 검토",
+      "context": "US-01. 장바구니 상품 주문",
+      "record": "sessions/code/s03/exercise-conversation/production-2026-11-16/demo/codex-response-01.md",
+      "status": "MATCH",
+      "followingItems": [
+        "장바구니의 상품을 대상으로 주문 처리를 시작할 수 있다.",
+        "주문에는 주문 생성 시점의 판매가가 기록된다."
+      ],
+      "blockIndex": 25,
+      "text": "인수 조건:",
+      "recordSHA256": "6007b1b03686f0af4a8d3049155a013bdb826d1a1bb4d5d7f10b960587e10b34",
+      "blockSHA256": "b229f55cc2456a1e5bfc44441d81e0e0f347a0025a7be7d062eb523f7e3249d5",
+      "basis": "same heading, intro and first two list items; verbatim response section",
+      "sourceLine": 458
+    },
+    {
+      "id": "s03-demo-us02-intro",
+      "rule": "flatGroupItems",
+      "topic": "11. LLM 초안 검토",
+      "context": "US-02. 주문 금액 보존",
+      "record": "sessions/code/s03/exercise-conversation/production-2026-11-16/demo/codex-response-01.md",
+      "status": "MATCH",
+      "followingItems": [
+        "주문이 생성되면 주문 금액을 확정하여 보존한다.",
+        "주문 생성 후 상품 시스템의 판매가가 올라도 기존 주문 금액은 변경하지 않는다."
+      ],
+      "blockIndex": 31,
+      "text": "인수 조건:",
+      "recordSHA256": "6007b1b03686f0af4a8d3049155a013bdb826d1a1bb4d5d7f10b960587e10b34",
+      "blockSHA256": "b229f55cc2456a1e5bfc44441d81e0e0f347a0025a7be7d062eb523f7e3249d5",
+      "basis": "same heading, intro and first two list items; verbatim response section",
+      "sourceLine": 468
+    },
+    {
+      "id": "s03-demo-us03-intro",
+      "rule": "flatGroupItems",
+      "topic": "11. LLM 초안 검토",
+      "context": "US-03. 결제 승인 후 배송 요청",
+      "record": "sessions/code/s03/exercise-conversation/production-2026-11-16/demo/codex-response-01.md",
+      "status": "MATCH",
+      "followingItems": [
+        "결제 승인 결과를 받은 주문에 대해서만 배송 시스템에 배송을 요청한다.",
+        "결제 승인 전에는 배송을 요청하지 않는다."
+      ],
+      "blockIndex": 37,
+      "text": "인수 조건:",
+      "recordSHA256": "6007b1b03686f0af4a8d3049155a013bdb826d1a1bb4d5d7f10b960587e10b34",
+      "blockSHA256": "b229f55cc2456a1e5bfc44441d81e0e0f347a0025a7be7d062eb523f7e3249d5",
+      "basis": "same heading, intro and first two list items; verbatim response section",
+      "sourceLine": 478
+    },
+    {
+      "id": "s03-demo-us04-intro",
+      "rule": "flatGroupItems",
+      "topic": "11. LLM 초안 검토",
+      "context": "US-04. 결제 거절 후 재결제",
+      "record": "sessions/code/s03/exercise-conversation/production-2026-11-16/demo/codex-response-01.md",
+      "status": "MATCH",
+      "followingItems": [
+        "결제가 거절되면 주문을 삭제하거나 취소하지 않는다.",
+        "결제가 거절된 주문은 `결제대기` 상태로 남는다."
+      ],
+      "blockIndex": 43,
+      "text": "인수 조건:",
+      "recordSHA256": "6007b1b03686f0af4a8d3049155a013bdb826d1a1bb4d5d7f10b960587e10b34",
+      "blockSHA256": "b229f55cc2456a1e5bfc44441d81e0e0f347a0025a7be7d062eb523f7e3249d5",
+      "basis": "same heading, intro and first two list items; verbatim response section",
+      "sourceLine": 488
+    },
+    {
+      "id": "s03-answer-case-intro",
+      "rule": "flatGroupItems",
+      "topic": "주문한다-요구사항-정의서",
+      "context": "6. 대표 상황 비교",
+      "record": "sessions/code/s03/exercise-conversation/production-2026-11-16/exercise/codex-response-03.md",
+      "status": "MATCH",
+      "followingItems": [
+        "상품: 펜",
+        "수량: 2개"
+      ],
+      "blockIndex": 54,
+      "text": "공통 사례는 다음과 같다.",
+      "recordSHA256": "29483a53927b58c30a0fb2592899c49f08f725213bdb8a74ee003f33ca23d29a",
+      "blockSHA256": "4fab85afccf3f4cb0c3622316b7ff517339e1299a181d672b4bdeec84b43fc59",
+      "basis": "same heading, intro and first two list items; verbatim response section",
+      "sourceLine": 817
+    }
+  ],
+  "recordedBlockMatches": 7,
+  "originalResponseEventMatches": [
+    {
+      "kind": "demo",
+      "turn": "01",
+      "returncode": 0,
+      "responseSHA256": "6007b1b03686f0af4a8d3049155a013bdb826d1a1bb4d5d7f10b960587e10b34"
+    },
+    {
+      "kind": "exercise",
+      "turn": "01",
+      "returncode": 0,
+      "responseSHA256": "e34108e040bc70d5ad5051eb6a674ba33e356601600a52f5ee0b422ea164c29d"
+    },
+    {
+      "kind": "exercise",
+      "turn": "02",
+      "returncode": 0,
+      "responseSHA256": "775e7bb47ebdc192ab4681d91ce0d93565ca808a4250ee25ee6d27f121de116e"
+    },
+    {
+      "kind": "exercise",
+      "turn": "03",
+      "returncode": 0,
+      "responseSHA256": "29483a53927b58c30a0fb2592899c49f08f725213bdb8a74ee003f33ca23d29a"
+    }
+  ],
+  "recordedExcerptsPreserved": true,
+  "sourcePreservedDuringWork": true,
+  "authorControls": {
+    "unboldedText": "PASS: author sentence still warns",
+    "flatGroupItems": "PASS: author intro still warns",
+    "sourceModified": false
+  },
+  "slides": 30,
+  "changedPages": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    8,
+    13,
+    14,
+    15,
+    22,
+    24,
+    25
+  ],
+  "links": {
+    "US01AndAcceptance": 17,
+    "glossaryAndDistinction": 29,
+    "distinctionGapPt": 8
+  },
+  "cells": {
+    "body": 121,
+    "demo": 50,
+    "judgment": 18,
+    "appendix": 65
+  },
+  "totalCells": 254,
+  "tables": [
+    {
+      "page": 3,
+      "kind": "body",
+      "cells": 10,
+      "fontPt": 10,
+      "widthsPt": [
+        144.50393700787401,
+        303.003937007874
+      ]
+    },
+    {
+      "page": 6,
+      "kind": "body",
+      "cells": 8,
+      "fontPt": 10,
+      "widthsPt": [
+        62.253937007874015,
+        239.50393700787401
+      ]
+    },
+    {
+      "page": 7,
+      "kind": "body",
+      "cells": 15,
+      "fontPt": 10,
+      "widthsPt": [
+        72.25393700787401,
+        230.25393700787401,
+        173.50393700787401
+      ]
+    },
+    {
+      "page": 8,
+      "kind": "body",
+      "cells": 21,
+      "fontPt": 10,
+      "widthsPt": [
+        70.50393700787401,
+        52.253937007874015,
+        432.503937007874
+      ]
+    },
+    {
+      "page": 9,
+      "kind": "body",
+      "cells": 10,
+      "fontPt": 10,
+      "widthsPt": [
+        160.25393700787401,
+        280.003937007874
+      ]
+    },
+    {
+      "page": 12,
+      "kind": "body",
+      "cells": 8,
+      "fontPt": 10,
+      "widthsPt": [
+        28.503937007874015,
+        272.753937007874
+      ]
+    },
+    {
+      "page": 13,
+      "kind": "body",
+      "cells": 8,
+      "fontPt": 10,
+      "widthsPt": [
+        52.253937007874015,
+        317.253937007874
+      ]
+    },
+    {
+      "page": 14,
+      "kind": "body",
+      "cells": 9,
+      "fontPt": 10,
+      "widthsPt": [
+        82.25393700787401,
+        165.00393700787401,
+        248.50393700787401
+      ]
+    },
+    {
+      "page": 15,
+      "kind": "body",
+      "cells": 8,
+      "fontPt": 10,
+      "widthsPt": [
+        199.00393700787401,
+        124.50393700787401
+      ]
+    },
+    {
+      "page": 17,
+      "kind": "demo",
+      "cells": 10,
+      "fontPt": 8,
+      "widthsPt": [
+        68.9448031496063,
+        251.4551968503937
+      ]
+    },
+    {
+      "page": 17,
+      "kind": "demo",
+      "cells": 20,
+      "fontPt": 8,
+      "widthsPt": [
+        42.30417322834646,
+        278.09582677165355
+      ]
+    },
+    {
+      "page": 18,
+      "kind": "demo",
+      "cells": 20,
+      "fontPt": 8,
+      "widthsPt": [
+        34.293543307086615,
+        286.1064566929134
+      ]
+    },
+    {
+      "page": 20,
+      "kind": "judgment",
+      "cells": 18,
+      "fontPt": 8,
+      "widthsPt": [
+        295.1,
+        81.8,
+        277.1
+      ]
+    },
+    {
+      "page": 21,
+      "kind": "body",
+      "cells": 10,
+      "fontPt": 10,
+      "widthsPt": [
+        124.50393700787401,
+        291.253937007874
+      ]
+    },
+    {
+      "page": 23,
+      "kind": "body",
+      "cells": 14,
+      "fontPt": 10,
+      "widthsPt": [
+        166.25393700787401,
+        229.50393700787401
+      ]
+    },
+    {
+      "page": 28,
+      "kind": "appendix",
+      "cells": 35,
+      "fontPt": 8,
+      "widthsPt": [
+        73.56669291338582,
+        163.06669291338582,
+        96.56669291338582,
+        44.1,
+        86.56669291338582,
+        120.06669291338582,
+        70.06669291338582
+      ]
+    },
+    {
+      "page": 29,
+      "kind": "appendix",
+      "cells": 30,
+      "fontPt": 8,
+      "widthsPt": [
+        52.27031496062992,
+        83.48,
+        184.64968503937007
+      ]
+    }
+  ],
+  "errors": 0,
+  "warnings": 0
+}

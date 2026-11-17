@@ -19,7 +19,7 @@ async function builder() {
 test("a `###` heading never ends a slide; it moves down with the content it opens", async () => {
   const b = await builder();
   const blocks = [];
-  for (let i = 0; i < 12; i++) blocks.push(block("bullet", "항목 " + i + " 설명이다."));
+  for (let i = 0; i < 14; i++) blocks.push(block("bullet", "항목 " + i + " 설명이다."));
   blocks.push(block("heading", "다음 절"));
   blocks.push(block("bullet", "긴 항목 " + "설명이 계속 이어진다. ".repeat(6)));
   blocks.push(block("bullet", "이어지는 둘째 항목."));
@@ -31,7 +31,7 @@ test("a `###` heading never ends a slide; it moves down with the content it open
 
 test("a slide is filled before the next one starts; the last takes the remainder", async () => {
   const b = await builder();
-  const blocks = Array.from({ length: 16 }, (_, i) => block("bullet", "항목 " + i + " 설명이다."));
+  const blocks = Array.from({ length: 18 }, (_, i) => block("bullet", "항목 " + i + " 설명이다."));
   b.flush(blocks, "01. 문서");
   assert.equal(b.pages.length, 2);
   const [first, last] = b.pages;

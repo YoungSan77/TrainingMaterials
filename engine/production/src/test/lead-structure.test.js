@@ -26,16 +26,94 @@ async function deck(md) {
 const paras = (page) => kids(body(shape(page.doc, 8)), A, "p");
 const pText = (p) => all(p, A, "t").map((t) => t.textContent).join("");
 
-test("a ### sub-heading is bold and indented with no glyph; what follows keeps its level", async () => {
+test("a ### sub-heading is bold and flush with no glyph; what follows keeps its level", async () => {
   const [p] = await deck("## 01. 주제\n\n**리드** 문장이다.\n\n### 소제목\n\n- **항목** 하나\n");
   const ps = paras(p);
   const h = ps.find((x) => pText(x) === "소제목");
   const pr = child(h, A, "pPr");
   assert.ok(child(pr, A, "buNone"), "no glyph");
-  assert.notEqual(pr.getAttribute("marL"), "0", "indented");
+  // 그룹 대표명은 왼쪽 끝이다 — 소속 내용이 들여쓴 bullet이라 대표명이 들여써지면 묶음이 보이지
+  // 않는다(2026-11-15).
+  assert.equal(pr.getAttribute("marL"), "0", "flush left");
   assert.equal(all(h, A, "rPr")[0].getAttribute("b"), "1", "bold");
   const item = ps.find((x) => pText(x).startsWith("항목"));
   assert.equal(child(item, A, "pPr").getAttribute("lvl"), "2", "a top-level bullet stays at its own level");
+});
+
+// 본문 계층(2026-11-15): 그룹 대표명·독립 안내 문장·소속 설명을 원고의 구조로 가른다. 굵다는
+// 사실이나 문장부호만으로 정하지 않는다.
+const prOf = (p) => child(p, A, "pPr");
+const glyph = (p) => !child(prOf(p), A, "buNone");
+
+test("a bold-only line with content under it is a group head: flush, bold, no glyph; its members are bulleted", async () => {
+  const [p] = await deck("## 01. 주제\n\n**리드** 문장이다.\n\n**업무 담당자의 최초 요청**\n\n이 요청만으로는 **결정**이 보이지 않는다.\n");
+  const ps = paras(p);
+  const head = ps.find((x) => pText(x) === "업무 담당자의 최초 요청");
+  assert.equal(prOf(head).getAttribute("marL"), "381000", "대표명은 첫 하위 단계로 들여쓴다");
+  assert.equal(glyph(head), false, "글머리표 없음");
+  assert.equal(all(head, A, "rPr").every((r) => r.getAttribute("b") === "1"), true, "Bold");
+  const member = ps.find((x) => pText(x).startsWith("이 요청만으로는"));
+  assert.equal(glyph(member), true, "소속 설명은 글머리표를 받는다");
+  assert.notEqual(prOf(member).getAttribute("marL"), "0", "소속 설명은 들여쓴다");
+});
+
+test("a bold sentence with nothing under it is not a group head (stays a bulleted paragraph)", async () => {
+  const [p] = await deck("## 01. 주제\n\n**리드** 문장이다.\n\n설명 **문장**이 하나 있다.\n\n**이것은 단독 강조 문장이다**\n");
+  const last = paras(p).find((x) => pText(x) === "이것은 단독 강조 문장이다");
+  assert.equal(glyph(last), true, "소속이 없으면 보조 문단이다");
+});
+
+test("a bold line followed by a ### heading is not a group head", async () => {
+  const [p] = await deck("## 01. 주제\n\n**리드** 문장이다.\n\n**앞 묶음의 끝 강조**\n\n### 소제목\n\n- **항목** 하나\n");
+  const bold = paras(p).find((x) => pText(x) === "앞 묶음의 끝 강조");
+  assert.equal(glyph(bold), true, "`###`가 새 그룹을 열므로 대표명이 아니다");
+});
+
+test("a sentence announcing the list under it is flush with no glyph; the list keeps its bullets", async () => {
+  const [p] = await deck("## 01. 주제\n\n**리드** 문장이다.\n\n이 세션을 마치면 다음을 수행할 수 있다.\n\n- **첫** 목표\n- **둘째** 목표\n");
+  const ps = paras(p);
+  const lead = ps.find((x) => pText(x) === "이 세션을 마치면 다음을 수행할 수 있다.");
+  assert.equal(prOf(lead).getAttribute("marL"), "0", "들여쓰기 없음");
+  assert.equal(glyph(lead), false, "글머리표 없음");
+  const item = ps.find((x) => pText(x).startsWith("첫 목표"));
+  assert.equal(glyph(item), true, "뒤의 목표만 글머리표를 받는다");
+});
+
+test("a plain sentence followed by a list is not an announcing lead", async () => {
+  const [p] = await deck("## 01. 주제\n\n**리드** 문장이다.\n\n업무 담당자가 **확정한 규칙**을 적는다.\n\n- **첫** 규칙\n");
+  const plain = paras(p).find((x) => pText(x).startsWith("업무 담당자가"));
+  assert.equal(glyph(plain), true);
+});
+
+test("a topic that opens with a ### heading has no flush lead paragraph under it", async () => {
+  const [p] = await deck("## 01. 주제\n\n### 강의 사례 — 주문 기능\n\n이 세션에서는 **주문**을 사례로 쓴다.\n");
+  const ps = paras(p);
+  const head = ps.find((x) => pText(x).startsWith("강의 사례"));
+  assert.equal(prOf(head).getAttribute("marL"), "0");
+  assert.equal(glyph(head), false);
+  const body0 = ps.find((x) => pText(x).startsWith("이 세션에서는"));
+  assert.equal(glyph(body0), true, "소제목이 연 그룹에 속하므로 글머리표를 받는다");
+});
+
+test("a quoted request keeps its indent but loses the glyph", async () => {
+  const [p] = await deck("## 01. 주제\n\n**리드** 문장이다.\n\n> 주문할 상품을 결제하면 배송이 시작되게 해 주세요.\n");
+  const q = paras(p).find((x) => pText(x).startsWith("주문할 상품을"));
+  assert.equal(glyph(q), false, "받은 말에 글머리표를 붙이지 않는다");
+  assert.notEqual(prOf(q).getAttribute("marL"), "0", "들여쓰기는 유지한다");
+});
+
+test("a wrapping citation starts every line at the same place (no glyph, no hanging indent)", async () => {
+  const quote = '요구사항은 시스템이 준수해야 할 역량과 조건을 표현하며, 업무 담당자와 합의한 규칙이 그 조건을 이룬다. "Requirements are capabilities and conditions to which the system … must conform", [Larman 2004]';
+  const [p] = await deck(`## 01. 주제\n\n**리드** 문장이다.\n\n**인용문**\n\n${quote}\n`);
+  const cite = paras(p).find((x) => pText(x).startsWith("요구사항은"));
+  const pr = prOf(cite);
+  assert.equal(glyph(cite), false, "글머리표 없음");
+  assert.equal(pr.getAttribute("indent"), "0", "내어쓰기를 없애 둘째 줄과 첫 줄의 시작점이 같다");
+  assert.notEqual(pr.getAttribute("marL"), "0", "문단 전체는 한 단계 들여쓴다");
+  const sizes = all(cite, A, "rPr").map((r) => Number(r.getAttribute("sz")));
+  assert.ok(sizes.includes(1600) && sizes.includes(1000), String(sizes));
+  // 한 문단에 한글·영문·출처가 이 순서로 남는다.
+  assert.match(pText(cite), /표현하며.*\. Requirements are capabilities.*, \[Larman 2004\]$/);
 });
 
 test("a citation that opens the topic is its lead (flush, no glyph)", async () => {
@@ -263,8 +341,19 @@ test("continued long document titles fit the full title and page counter without
   const [p] = await deck(`## 01. ${title}\n\n**문서 형식 — 10pt**\n\n- **질문**을 유지한다.\n`);
   const sh = shape(p.doc, 2);
   assert.ok(all(sh, A, "t").some(t => t.textContent.includes("정기배송 최초 신청 접수 및 계약 성립 정책 질문 목록")));
-  const pt = Number(all(sh, A, "rPr")[0].getAttribute("sz"));
-  assert.ok(pt >= 1600 && pt <= 1800, String(pt));
+  // 제목 상자가 구분선 폭(648pt)으로 넓어져 이 제목은 기본 20pt로 한 줄에 들어간다(2026-11-15).
+  assert.equal(Number(all(sh, A, "rPr")[0].getAttribute("sz")), 2000);
+});
+
+test("every slide title is 20pt bold, long or short — no per-slide shrinking", async () => {
+  const long = "13. 명세 주도 개발은 기존 공학적 결정을 AI의 작업과 검증에 연결하고 확인한다";
+  for (const title of [long, "13. 짧은 제목"]) {
+    const [p] = await deck(`## ${title}\n\n**본문** 문장이다.\n`);
+    const sh = shape(p.doc, 2);
+    const drawn = all(sh, A, "t").map(t => t.textContent).join("").replace(/\s+/g, "");
+    assert.equal(drawn, title.replace(/\s+/g, ""), "원문을 줄이지 않는다");
+    assert.deepEqual([...new Set(all(sh, A, "rPr").map(r => Number(r.getAttribute("sz"))))], [2000], title);
+  }
 });
 
 test("verbatim response marker is invisible and does not add emphasis to raw answer", async () => {

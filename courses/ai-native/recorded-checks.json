@@ -1,0 +1,11 @@
+{
+  "entries": [
+    {"id":"s03-prompt-initial","session":"s03.md","rule":"unboldedText","source":{"topic":"15. 실습 3 — 주문 요구사항 정의서","context":"프롬프트","kind":"bullet","occurrence":0},"record":{"path":"sessions/code/s03/exercise-conversation/production-2026-11-16/exercise/prompt-01.txt","format":"first-line"}},
+    {"id":"s03-prompt-final","session":"s03.md","rule":"unboldedText","source":{"topic":"15. 실습 3 — 주문 요구사항 정의서","context":"프롬프트","kind":"bullet","occurrence":1},"record":{"path":"sessions/code/s03/exercise-conversation/production-2026-11-16/exercise/prompt-03.txt","format":"full"}},
+    {"id":"s03-demo-us01-intro","session":"s03.md","rule":"flatGroupItems","source":{"topic":"11. LLM 초안 검토","context":"US-01. 장바구니 상품 주문","kind":"text","text":"인수 조건:"},"record":{"path":"sessions/code/s03/exercise-conversation/production-2026-11-16/demo/codex-response-01.md","format":"markdown","context":"US-01. 장바구니 상품 주문"}},
+    {"id":"s03-demo-us02-intro","session":"s03.md","rule":"flatGroupItems","source":{"topic":"11. LLM 초안 검토","context":"US-02. 주문 금액 보존","kind":"text","text":"인수 조건:"},"record":{"path":"sessions/code/s03/exercise-conversation/production-2026-11-16/demo/codex-response-01.md","format":"markdown","context":"US-02. 주문 금액 보존"}},
+    {"id":"s03-demo-us03-intro","session":"s03.md","rule":"flatGroupItems","source":{"topic":"11. LLM 초안 검토","context":"US-03. 결제 승인 후 배송 요청","kind":"text","text":"인수 조건:"},"record":{"path":"sessions/code/s03/exercise-conversation/production-2026-11-16/demo/codex-response-01.md","format":"markdown","context":"US-03. 결제 승인 후 배송 요청"}},
+    {"id":"s03-demo-us04-intro","session":"s03.md","rule":"flatGroupItems","source":{"topic":"11. LLM 초안 검토","context":"US-04. 결제 거절 후 재결제","kind":"text","text":"인수 조건:"},"record":{"path":"sessions/code/s03/exercise-conversation/production-2026-11-16/demo/codex-response-01.md","format":"markdown","context":"US-04. 결제 거절 후 재결제"}},
+    {"id":"s03-answer-case-intro","session":"s03.md","rule":"flatGroupItems","source":{"topic":"주문한다-요구사항-정의서","context":"6. 대표 상황 비교","kind":"text","text":"공통 사례는 다음과 같다."},"record":{"path":"sessions/code/s03/exercise-conversation/production-2026-11-16/exercise/codex-response-03.md","format":"markdown","context":"6. 대표 상황 비교"}}
+  ]
+}

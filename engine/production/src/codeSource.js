@@ -152,7 +152,7 @@ function checkOrphanCode(inputPath) {
   }
   // `lib`는 테스트 실행용 의존성(.gitignore가 제외한다)이고 원고가 가리킬 대상이 아니다.
   return fs.readdirSync(codeDir)
-    .filter((name) => name !== "lib")
+    .filter((name) => name !== "lib" && name !== ".DS_Store")
     .filter((name) => !sources.includes("code/" + base + "/" + name))
     .map((name) => "원고가 가리키지 않는 예시 코드: code/" + base + "/" + name);
 }

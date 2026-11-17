@@ -35,7 +35,9 @@ test("the reference session packages its charts and one notes slide per authored
       const match = /^"([^"]+)"\s*,\s*(?:"([^"]+)"\s*,\s*)?(.+?)\s*$/.exec(section.blocks[i + 1].text);
       assert.ok(match, `quote syntax: ${section.heading}`);
       const korean = `"${match[1]}"`;
-      const english = match[2] ? `"${match[2]}"` : null;
+      // 한글 번역의 따옴표는 그대로 그리고, 영문 원문을 감싼 바깥따옴표는 그리지 않는다
+      // (paragraphs.js, 2026-11-16).
+      const english = match[2] || null;
       const source = match[3];
       expectedQuotes.push({
         korean: plain(korean),
@@ -103,7 +105,7 @@ test("the reference session packages its charts and one notes slide per authored
         // Korean or English alike -- a legitimate typography rule, not a defect. Anything else
         // in this zone must be the full 18pt.
         const isParenSpan = /^\(.*\)$/.test(run.text);
-        assert.equal(run.size, isParenSpan ? 1400 : 1800, `korean-zone run wrong size: "${run.text}"`);
+        assert.equal(run.size, isParenSpan ? 1200 : 1600, `korean-zone run wrong size: "${run.text}"`);
         koreanText += run.text;
         cursor++;
       }

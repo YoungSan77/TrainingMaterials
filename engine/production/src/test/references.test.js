@@ -47,6 +47,14 @@ test("wrong numbers, topic titles quoted as sessions and S0x names are errors", 
   assert.match(errors[3], /「03\. 유스케이스」/);
 });
 
+test('a named production-guide heading is not a bare session reference, but neighbouring S0x references still fail',()=>{
+ const root=course(),p=path.join(root,'sessions','s03.md');
+ const body='## 01. 세션 목표\n\n**강사 노트**\n\n- 제작 지침의 「S03 제작 기준」을 적용한다.\n';
+ fs.writeFileSync(p,body);assert.deepEqual(checkReferences(p,body).errors,[]);
+ assert.ok(checkReferences(p,body+'- 제작 지침의 「S03 제작 기준」을 읽고 S02를 본다.\n').errors.some(e=>/S0x/.test(e)));
+ assert.deepEqual(checkReferences(p,'## 01. 세션 목표\n\n**강사 노트**\n\n- `../production-standard.md`의 「S03 제작 기준」을 적용한다.\n').errors,[]);
+});
+
 test("a session quoted without the word 세션 is an error that shows the form to use", () => {
   const root = course();
   const p = path.join(root, "sessions", "s03.md");

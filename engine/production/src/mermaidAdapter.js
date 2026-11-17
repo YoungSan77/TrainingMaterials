@@ -74,6 +74,7 @@ function maxNodeLabelBox(svg) {
 // 하이라이트를 넣어, 같은 세션의 PlantUML 클래스 다이어그램(흰 상자)과 다르게 보였다. 뜻을
 // 나르는 색은 원고가 `style` 줄로 직접 지정하며(02의 2,400원·2,000원), 그 지정은 그대로 남는다.
 const MERMAID_CONFIG = {
+  fontFamily: '맑은 고딕',
   sequence: { mirrorActors: false, wrap: true, width: 170 },
   flowchart: { nodeSpacing: 22, rankSpacing: 30, padding: 6, subGraphTitleMargin: { top: 2, bottom: 2 } },
   themeVariables: {
@@ -127,7 +128,7 @@ async function renderMermaid({ source }) {
   if (!source || !String(source).trim()) throw new Error("Mermaid source가 비어 있다");
   fs.mkdirSync(CACHE_DIR, { recursive: true });
   const version = isClassDiagram(source) ? "v16-class-white" : "v19-white-bkg";
-  const hash = crypto.createHash("sha1").update(version + "\n" + source).digest("hex").slice(0, 16);
+  const hash = crypto.createHash("sha1").update(version + "\n" + JSON.stringify(MERMAID_CONFIG) + "\n" + source).digest("hex").slice(0, 16);
   const pngPath = path.join(CACHE_DIR, hash + ".png");
   const metricsPath = path.join(CACHE_DIR, hash + ".json");
   if (!fs.existsSync(pngPath) || !fs.existsSync(metricsPath)) {

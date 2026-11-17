@@ -161,7 +161,7 @@ function parse(input) {
       // "의미 표식과 블록 경계") and renders like code; only ```tree or box-drawing branches
       // (├─ └─) make a directory-tree visual.
       else if (/^tree$/i.test(info) || /[├└]─/.test(value)) { kind = "tree"; meta = null; }
-      else { kind = "code"; meta = null; }
+      else { kind = "code"; meta = /^gherkin$/i.test(info) ? { language: "gherkin" } : current.verbatimResponse && /^(?:text|plaintext)$/i.test(info) ? { language:"recordedInput" } : null; }
       push(block(kind, value, 0, [], meta));
       continue;
     }

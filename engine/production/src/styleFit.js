@@ -32,9 +32,10 @@ const ANSWER_COLUMNS = [{ x: 0.255, y: 1.05, w: 4.745, h: 6.04 }, { x: 5.0, y: 1
 // estimated at and still fit; the smaller answer sizes wrap less than estimated.
 const KOREAN_EM = 0.9, SPACE_EM = 0.25, LINE_EM = 1.25;
 const STYLE_SPACE = 3;
-const AUTHORED = [18, 16, 14];
+const AUTHORED = [16, 14, 12];
 
 function styleSize(style, b) {
+  if (b.kind === "heading" && style.heading) return style.heading;
   return b.kind === "bullet" ? style.levels[Math.min(b.depth || 0, 2)] : style.text;
 }
 
@@ -74,7 +75,7 @@ function restyle(sh, style) {
     const lvl = pr && pr.getAttribute("lvl") ? parseInt(pr.getAttribute("lvl"), 10) : 0;
     const depth = lvl ? Math.min(lvl - 2, 2) : -1;
     const from = depth < 0 ? 18 : AUTHORED[depth];
-    const L = depth < 0 ? style.text : style.levels[depth], E = style.expl(L), P = style.paren(L);
+    const L = depth < 0 ? (style.heading && all(p, A, "rPr").every(r => r.getAttribute("b") === "1") ? style.heading : style.text) : style.levels[depth], E = style.expl(L), P = style.paren(L);
     for (const rp of all(p, A, "rPr")) {
       const sz = parseInt(rp.getAttribute("sz") || "1800", 10) / 100;
       const to = style.uniform ? L : sz >= from ? L : sz >= from - 2 ? E : sz >= from - 4 ? P : Math.max(8, Math.min(P, E - 2));
@@ -88,7 +89,8 @@ function restyle(sh, style) {
       continue;
     }
     if (style.documentIndent && pr) {
-      const x = depth < 0 ? 0.2 : 0.45 + depth * 0.35;
+      const intro=style.introText && p.textContent===style.introText;
+      const x = depth < 0 || intro ? 0.2 : 0.45 + depth * 0.35;
       const bare = Boolean(child(pr, A, "buNone"));
       const prefix = /^(?:\d+\.)\s/.exec(p.textContent);
       if (prefix) {
@@ -98,7 +100,11 @@ function restyle(sh, style) {
         continue;
       }
       pr.setAttribute("marL", String(Math.round(x * EMU)));
-      pr.setAttribute("indent", String(depth < 0 || bare ? 0 : Math.round(-0.15 * EMU)));
+      pr.setAttribute("indent", String(depth < 0 || bare || intro ? 0 : Math.round(-0.15 * EMU)));
+      if(intro) {
+        for(const n of kids(pr,A,'buChar').concat(kids(pr,A,'buAutoNum'),kids(pr,A,'buFont')))pr.removeChild(n);
+        if(!child(pr,A,'buNone'))pr.appendChild(el(p.ownerDocument,A,'buNone'));
+      }
       continue;
     }
     if (style.aligned && pr) {

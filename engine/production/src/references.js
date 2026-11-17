@@ -214,7 +214,9 @@ function checkReferences(inputPath, text) {
       const full = heads && [...heads.keys()].find((k) => k.startsWith(m[1] + ". "));
       errors.push(where + "주제 참조 「" + m[1] + "」에 제목이 없다" + (full ? ". 「" + full + "」로 쓴다." : "."));
     }
-    if (/(^|[^A-Za-z0-9])S\d\d(?![0-9])/.test(line)) {
+    // A named production-guide heading is a guide reference, not a session reference.
+    const sessionText=line.replace(/(?:제작 지침의|`(?:\.\.\/)?production-standard\.md`의)\s*「S\d\d 제작 기준」/g,'제작 지침 항목');
+    if (/(^|[^A-Za-z0-9])S\d\d(?![0-9])/.test(sessionText)) {
       errors.push(where + "파일명식 세션 참조(S0x)를 쓰지 않는다. 정확한 세션명을 쓴다.");
     }
   });

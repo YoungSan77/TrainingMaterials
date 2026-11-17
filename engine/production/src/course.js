@@ -41,7 +41,8 @@ function courseInfo(inputPath) {
   SESSION.lastIndex = 0;
   let s;
   while ((s = SESSION.exec(text))) sessions.push({ number: s[1], name: s[1] + ". " + s[2].trim() });
-  return { name, sessions, goal: goalSlide(text) };
+  const productionProfile = path.basename(path.dirname(design)) === 'ai-native' ? 'ai-native-s03' : null;
+  return { name, sessions, goal: goalSlide(text), ...(productionProfile ? {productionProfile} : {}) };
 }
 
 module.exports = { courseInfo };

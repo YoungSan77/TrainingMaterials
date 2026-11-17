@@ -1,0 +1,43 @@
+{
+  "pdf": "out/review/s03/s03.pdf",
+  "pdfSHA256": "9cd9226d299afcd2c9699d705a88c56ac2fa0ba7df1654af428e0dfa916d5cc9",
+  "pptxSHA256": "0f4c7f2ddafd44636ed23538b774f78a86cd4fa029b13d3433ba648a9acc0f90",
+  "renderedPages": 30,
+  "renderedCellsChecked": 254,
+  "glossaryIdentifier": [
+    {
+      "page": 29,
+      "text": "PENDING_PAYMENT",
+      "lines": 1,
+      "columnWidthPt": 83.48,
+      "words": [
+        "PENDING_PAYMENT"
+      ]
+    }
+  ],
+  "columnAdjustmentNeeded": false,
+  "issues": [],
+  "status": "PASS",
+  "visuallyReviewedPages": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    8,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    22,
+    24,
+    25,
+    28,
+    29,
+    30
+  ],
+  "visualReview": "Reviewed all 12 source-change slides and 7 connection/adjacent slides. US-01 complete on 17; glossary distinction follows the table on 29; no new loss, overlap or clipping observed."
+}

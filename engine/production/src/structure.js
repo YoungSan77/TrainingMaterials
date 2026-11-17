@@ -54,10 +54,16 @@ function checkStructure(inputPath, session, sections, pages) {
 
 // A table cell that does not fit one line breaks the uniform 0.8cm rows (production-guide.md
 // "표의 행 높이와 열 너비"). Warning only.
-function wrappingCells(sections) {
+function wrappingCells(sections, pages = []) {
   const warnings = [];
   for (const section of sections) for (const block of section.blocks) {
     if (block.kind !== "table") continue;
+    // The course-specific 8pt contract allows wrapped cells with measured row heights.
+    // Only exempt rows actually emitted under that profile, not every table in the topic.
+    const fitted=pages.filter(p=>p.s03Profile && p.documentTablePt===8 && String(p.heading).split('\n')[0].replace(/ \(\d+\/\d+\)$/,'')===section.title)
+      .flatMap(p=>p.items.filter(i=>i.kind==='table').map(i=>i.rows))
+      .filter(rows=>JSON.stringify(rows[0])===JSON.stringify(block.rows[0]));
+    if(block.rows.every(row=>fitted.some(rows=>rows.some(r=>JSON.stringify(r)===JSON.stringify(row)))))continue;
     const widths = columnWidths(block.rows, block.rows[0].length);
     for (const row of block.rows) row.forEach((cell, i) => {
       const lines = String(cell).split("\v").reduce((n, line) => n + estimate(line, widths[i], 10), 0);
@@ -84,10 +90,11 @@ function numberedDiagramLabels(sections) {
 // Numbered steps (use-case flows, procedures), quoted requests (`>`, “…”) and short noun lists are
 // exempt.
 // Warning only.
-function unboldedText(sections) {
+function unboldedText(sections, verified = null) {
   const warnings = [];
   for (const section of sections.filter(s => !s.verbatimResponse)) section.blocks.forEach((block, i) => {
     if (!["text", "bullet"].includes(block.kind)) return;
+    if (verified?.unboldedText?.has(block)) return;
     if (block.meta && (block.meta.quote || block.meta.anchor)) return;
     // A footnote (the paragraph after "**주석**") is reference text, not a sentence to emphasize.
     const prev = section.blocks[i - 1];
@@ -95,6 +102,10 @@ function unboldedText(sections) {
     const text = String(block.text).trim();
     if (text.includes("**") || text.length < 25) return;
     if (/^(?:\d+\.|\(\d+\)|[“"「>])/.test(text)) return;
+    // Short noun-only artifact lists and input/output mappings are not prose claims.
+    // Trailing instructions deliberately do not match these closed forms.
+    if (/^실습 \d+ `[^`\n]+\.md`(?:,\s*실습 \d+ `[^`\n]+\.md`)*$/.test(text)
+      || /^`[^`\n]+\.md`\s*→\s*실습 \d+ 입력$/.test(text)) return;
     warnings.push(`굵게 표시한 핵심어가 없다: "${section.title}"의 "${text.slice(0, 30)}"`);
   });
   return warnings;
@@ -269,13 +280,14 @@ function missingModelUpdate(sections) {
 // a second group below it runs into the first. LLM 산출물은 머리말을 문단으로, 항목을 평평한 목록으로
 // 내놓으므로 기록을 옮길 때마다 이 모양이 들어온다(2026-11-05). Warning only.
 const LIST_INTRO = /(?:다음과 같다|아래와 같다|다음과 같이 [^.]*|다음 사항은 [^.]*|다음 항목은 [^.]*)\.$|[:：]$/;
-function flatGroupItems(sections) {
+function flatGroupItems(sections, verified = null) {
   const warnings = [];
   for (const section of sections) {
     const blocks = section.blocks || [];
     for (let i = 0; i < blocks.length - 1; i++) {
       const head = blocks[i];
       const next = blocks[i + 1];
+      if (verified?.flatGroupItems?.has(head)) continue;
       if (head.kind !== "text" || (head.depth || 0) !== 0) continue;
       if (next.kind !== "bullet" || (next.depth || 0) !== 0) continue;
       const text = String(head.text).replace(/\*\*/g, "").trim();

@@ -93,7 +93,7 @@ test("text after a stacked diagram's code moves to the next slide instead of spl
   const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="300" viewBox="0 0 900 300"><style>text{font-size:16px}</style>'
     + '<rect x="10" y="10" width="880" height="280" fill="#EBF1F8"/><text x="450" y="150">가로로 넓은 도식</text></svg>';
   const code = Array.from({ length: 16 }, (_, i) => "        값" + i + " = 계산한다(첫째, 둘째, 셋째);").join("\n");
-  const trail = Array.from({ length: 4 }, (_, i) => "뒤따르는 해설 " + i + "은 코드와 함께 두면 한 장을 넘기므로 다음 장으로 보낸다.");
+  const trail = Array.from({ length: 7 }, (_, i) => "뒤따르는 해설 " + i + "은 코드와 함께 두면 한 장을 넘기므로 다음 장으로 보낸다.");
   const sections = [{ heading: "01. 코드", title: "01. 코드", notes: [], blocks: [
     block("text", "도식과 코드."), block("svg", svg), block("code", code), ...trail.map((t) => block("bullet", t))] }];
   const output = path.join(os.tmpdir(), `tm-code-trail-${process.pid}-${Date.now()}.pptx`);
@@ -372,6 +372,7 @@ test("example code no manuscript points at is reported", () => {
   fs.mkdirSync(path.join(dir, "code", "s03", "order"));
   fs.mkdirSync(path.join(dir, "code", "s03", "옛시연"));
   fs.mkdirSync(path.join(dir, "code", "s03", "lib"));
+  fs.writeFileSync(path.join(dir,"code","s03",".DS_Store"),"Finder metadata");
   fs.writeFileSync(path.join(dir, "s03.md"), "## 01. 예\\n\\n**강사 노트**\\n\\n- 원본은 code/s03/order/다.\\n");
   const w = checkOrphanCode(path.join(dir, "s03.md"));
   assert.deepEqual(w, ["원고가 가리키지 않는 예시 코드: code/s03/옛시연"], "lib는 실행용 의존성이라 보지 않는다");

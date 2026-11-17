@@ -89,6 +89,7 @@ function altText(source) {
 
 async function renderSvg(source) {
   if (!source || !String(source).trim()) throw new Error("SVG source가 비어 있다");
+  source=String(source).replace(/(<svg\b[^>]*>)/i,'$1<style>text{font-family:"맑은 고딕" !important}</style>');
   if (!fs.existsSync(RSVG_CONVERT)) throw new Error("SVG 렌더용 rsvg-convert가 없다: " + RSVG_CONVERT);
   fs.mkdirSync(CACHE_DIR, { recursive: true });
   const hash = crypto.createHash("sha1").update("v1\n" + source).digest("hex").slice(0, 16);

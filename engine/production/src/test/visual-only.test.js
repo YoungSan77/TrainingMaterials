@@ -43,11 +43,25 @@ test("a diagram too small beside its text moves to a slide of its own at MIN_PT 
   assert.ok(ps.length >= 2, "the text keeps its own slide");
 });
 
-test("a diagram that cannot reach MIN_PT even alone stays beside its text (and is reported)", async () => {
+test("a diagram that cannot reach MIN_PT even alone uses overlapping original-image viewports", async () => {
   const huge = TALL_SVG.replace(/768/g, "3072").replace(/640/g, "2560");
   const ps = await pages(topic(huge));
   const withPic = ps.filter((p) => (p.pictures || []).length);
-  assert.equal(withPic.length, 1);
-  assert.notEqual(withPic[0].visualLayout, "visual-only");
-  assert.ok(pictureTextPt(withPic[0].pictures[0], withPic[0].pictures[0].bounds) < MIN_PT);
+  assert.ok(withPic.length>1);
+  for(const page of withPic){assert.equal(page.visualLayout,'visual-tiles');for(const pic of page.pictures){assert.ok(pic.crop);assert.ok(pictureTextPt(pic,pic.bounds)>=MIN_PT-0.05);}}
+  assert.ok(withPic.some(page=>page.pictures.some(pic=>pic.crop.l===0 && pic.crop.t===0)));
+  assert.ok(withPic.some(page=>page.pictures.some(pic=>pic.crop.r===0 && pic.crop.b===0)));
+});
+
+test("a wide diagram uses the full body band before separating from its governing message", async () => {
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="1456" height="160" viewBox="0 0 1456 160">'
+    + '<rect width="1456" height="160" fill="#fff" stroke="#000"/><text x="20" y="40" font-size="16">도식</text></svg>';
+  const ps = await pages('## 01. 도식\n\n첫 구간이다.\n\n**페이지 분할**\n\n### 작업 조건과 검증\n\n**확정한 조건**으로 작업하고 결과를 검사한다.\n\n**도식 — SVG — 작업 흐름**\n\n```svg\n' + svg + '\n```\n\n- 불일치 원인을 확인한다.\n- 기존 테스트를 참조한다.');
+  assert.equal(ps.length, 2, 'the explicit two segments stay on two slides');
+  assert.equal((ps[0].pictures || []).length, 0);
+  const p = ps[1];
+  assert.equal(p.pictures.length, 1);
+  assert.ok(p.items.some(it => (it.text || '').includes('확정한 조건')));
+  assert.ok(pictureTextPt(p.pictures[0], p.pictures[0].bounds) >= MIN_PT - 0.05);
+  assert.notEqual(p.visualLayout, 'visual-only');
 });

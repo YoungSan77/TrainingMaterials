@@ -77,7 +77,8 @@ function fitTarget(bounds, image, align) {
 
 // The text size (pt) a diagram reads at inside `bounds`.
 function pictureTextPt(image, bounds) {
-  return TARGET_PT * bounds.w / naturalSize(image, TARGET_PT).w;
+  const visible=image.crop?1-image.crop.l-image.crop.r:1;
+  return TARGET_PT * bounds.w / (naturalSize(image, TARGET_PT).w*visible);
 }
 
 // UML diagrams take the full slide width and all the height left under the text; other diagrams
@@ -85,6 +86,15 @@ function pictureTextPt(image, bounds) {
 function visualPanel(layout, top, availableH, images) {
   const uml = images.length > 0 && images.every(isUml);
   const panelH = uml ? availableH : Math.min(layout.panel.h, availableH);
+  // Try the full body width before moving a wide diagram away from its governing text.
+  // The narrow stacked bucket can force <7pt even though the same slide has enough room.
+  if (!uml && images.length === 1) {
+    const image = images[0];
+    const narrow = { ...layout.panel, y: top, h: panelH };
+    const wide = { ...narrow, ...UML_PANEL };
+    if (pictureTextPt(image, fitTarget(narrow, image)) < MIN_PT - 0.05
+      && pictureTextPt(image, fitTarget(wide, image)) >= MIN_PT - 0.05) return wide;
+  }
   return uml ? { ...layout.panel, ...UML_PANEL, y: top, h: panelH } : { ...layout.panel, y: top, h: panelH };
 }
 

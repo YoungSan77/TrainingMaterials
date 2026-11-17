@@ -31,6 +31,46 @@ test("only assignment topics are practices; review examples are not", () => {
   assert.ok(!isPractice("04. 의존성"));
 });
 
+// 실습 과제의 좌우 배치는 의미로 나눈다 — 왼쪽은 투입물·진행 방법, 오른쪽은 프롬프트부터다
+// (session-authoring-guide.md 「사례·가정·실습」, 2026-11-16).
+test("a long practice is one slide with all task groups left and its output right", async () => {
+  const md = "## 01. 실습 3 — 과제\n\n주문 스토리 하나의 요구사항을 AI와 함께 작성한다.\n\n"
+    + "**투입물**\n\n+ 실습 1 `주문한다-업무조건.md`, 실습 2 `활용-방식-판단.md`\n\n"
+    + "**진행 방법**\n\n+ 초안의 누락·충돌을 묻고, 확인된 답만 반영한다.\n+ 품질 시험 조건은 강사가 후속 대화에서 제공한다.\n\n"
+    + "**프롬프트**\n\n  + ① 두 입력을 읽고 주문 스토리 1개의 흐름·규칙·용어·품질·범위를 정리해라. 미정은 질문으로 남겨라.\n"
+    + "  + ⑤ 합의한 내용으로 정의서를 작성해라. 정상 승인·가격 변경·거절·재결제를 한 표에 비교해라. 모델·설계·코드는 범위에서 제외해라.\n\n"
+    + "**점검 항목**\n\n  1. 같은 주문인지, 금액·상태·배송 요청 횟수를 확인할 수 있는가?\n  2. 품질 시험의 측정 구간·환경·목표가 있는가?\n"
+    + "  3. 범위·제외·미정이 구분되는가?\n  4. 업무 규칙과 용어가 일치하는가?\n\n**결과물**\n\n  + `docs/주문한다-요구사항-정의서.md` → 실습 4 입력\n";
+  const { pages } = await pagesOf(md);
+  assert.equal(pages.length, 1, "실습 과제는 한 장이다");
+  assert.equal(pages[0].practiceColumns, 2, "좌우 두 단으로 그린다");
+  const { A, P, all, first, child, kids, body } = require("../xml");
+  const boxes = all(pages[0].doc, P, "sp")
+    .filter((sp) => !["2", "3", "5", "6", "7"].includes(first(sp, P, "cNvPr").getAttribute("id")))
+    .map((sp) => {
+      const xf = child(first(sp, P, "spPr"), A, "xfrm");
+      return { x: Number(child(xf, A, "off").getAttribute("x")), text: kids(body(sp), A, "p").map((p) => all(p, A, "t").map((t) => t.textContent).join("")).join("\n") };
+    }).sort((a, b) => a.x - b.x);
+  const left = boxes.find((b) => b.text.includes("투입물"));
+  const right = boxes.find((b) => b.text.includes("결과물"));
+  assert.ok(left && right && left.x < right.x, "왼쪽은 과제, 오른쪽은 결과물이다");
+  assert.ok(left.text.includes("진행 방법") && left.text.includes("프롬프트") && left.text.includes("점검 항목"));
+  assert.ok(left.text.includes("….."));
+  assert.ok(!right.text.includes("점검 항목") && right.text.includes("결과물"));
+  for(const sp of all(pages[0].doc,P,'sp')) {
+    const ps=kids(body(sp),A,'p');
+    if(!ps.some(p=>p.textContent.includes('투입물')||p.textContent.includes('결과물')))continue;
+    for(const p of ps) {
+      const pr=child(p,A,'pPr'),head=pr.getAttribute('marL')==='0';
+      assert.ok(all(p,A,'rPr').every(r=>r.getAttribute('sz')===(head?'1400':'1200')));
+      if(head){assert.ok(child(pr,A,'buNone'));assert.ok(all(p,A,'rPr').every(r=>r.getAttribute('b')==='1'));}
+    }
+  }
+  const promptParagraphs=all(pages[0].doc,A,'p').filter(p=>p.textContent.includes('두 입력을 읽고')||p.textContent.includes('합의한 내용으로'));
+  assert.equal(promptParagraphs.length,2);
+  assert.ok(promptParagraphs.every(p=>child(child(p,A,'pPr'),A,'buAutoNum')||child(child(p,A,'pPr'),A,'buChar')));
+});
+
 test("an overfull practice is set on one slide at a smaller size or in two columns", async () => {
   const { pages } = await pagesOf("## 01. 실습 — 과제\n\n실습의 **목표**를 한 문장으로 적는다.\n\n" + bullets(14) + "\n");
   assert.equal(pages.length, 1);
@@ -118,7 +158,7 @@ test("a practice slide sets explanations 2pt under their line and a + line under
   const sizes = sizesOf(pages[0]);
   assert.ok(sizes.has("1600") && sizes.has("1800") && !sizes.has("1050"), [...sizes].join());
   const aligned = Array.from(pages[0].doc.getElementsByTagName("a:pPr")).find((pr) => pr.getAttribute("lvl") === "3");
-  assert.equal(aligned.getAttribute("marL"), "723900");
+  assert.equal(aligned.getAttribute("marL"), "1077913");
   assert.equal(aligned.getAttribute("indent"), "0");
 });
 

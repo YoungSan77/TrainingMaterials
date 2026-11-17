@@ -84,13 +84,14 @@ test("the reference session composes its topics without visual or notes slides",
     assert.deepEqual(report.errors, []);
     // These figures belong to the frozen fixture (fixtures/reference-session.md), not to the live
     // course: editing the course never changes them.
-    // 45: continuation slides start with their own content (production-guide.md "이어지는 장"), and
-    // the 35-item TOC takes two pages at 16pt, 17 items per column ("목차 생성 및 검증").
-    assert.equal(m.pages.length, 45, "TOC 2 + 43 content slides (split and overflowing topics)");
+    // 46: continuation slides start with their own content (production-guide.md "이어지는 장"), and
+    // the 35-item TOC takes three pages -- 한 열 배치에서 한 장은 실제 줄 높이로 17항목이다
+    // (435.5pt ÷ (16pt × 1.2 + 6pt), "목차 생성 및 검증").
+    assert.equal(m.pages.length, 46, "TOC 3 + 43 content slides (split and overflowing topics)");
     assert.equal(m.unsupportedVisuals.length, 0);
     assert.equal(m.images, 17);
     assert.deepEqual(m.imageCounts, { mermaid: 9, plantuml: 7, chart: 1, svg: 0 });
-    assert.equal(m.pages.filter((p) => p.items.length === 0).length, 2, "only the two TOC slides have no body items");
+    assert.equal(m.pages.filter((p) => p.items.length === 0).length, 3, "only the three TOC slides have no body items");
   } finally {
     if (fs.existsSync(output)) fs.unlinkSync(output);
   }

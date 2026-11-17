@@ -99,10 +99,12 @@ test("슬라이드의 세션명은 그 장이 구성된 세션의 것이다", as
   const first = item(ONE), second = item(TWO, true);
   const n = (await pagesOf(first)).length;
   const m = await out("label", (file) => bundle([first, second], TEMPLATE_DIR, file, COURSE));
+  // 세션명은 제목 구분선 아래의 shape 6에 있다. 구분선 위의 shape 5는 어느 장에서도 비어 있다.
   const label = (p) => text(shape(p.doc, 5));
   assert.equal(label(m.pages[0]), "", "표지와 목차는 세션명을 쓰지 않는다");
   assert.equal(label(m.pages[3]), ONE);
   assert.equal(label(m.pages[n + 1]), TWO);
+  assert.deepEqual(m.pages.map((p) => text(shape(p.doc, 6))).filter((t) => t !== ""), []);
   const appendix = m.pages.filter((p) => p.appendix);
   assert.equal(appendix.length, 1);
   assert.equal(label(appendix[0]), "별첨: " + TWO);
