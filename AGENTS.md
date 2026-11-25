@@ -2,25 +2,19 @@
 
 ## Architecture
 
-Course Design → Session Authoring → Production
+Course Design → Curriculum / Session Architecture → Session DD → Deck Authoring → Production
 
-- **Course Design**: `courses/<course>/course-design.md`. 여러 과정(ooad, ddd, msa, devops 등)에 존재한다.
-- **Session Authoring**: Session Source Markdown. `courses/ooad/sessions/s01.md`~`s05.md`가 목표 품질의 기준 예시다(s01 개요, s02~s05 상세).
-- **Production**: `engine/production/`. Session Source Markdown을 실제 PowerPoint(.pptx)로 렌더링하는 Node.js 파이프라인이며, 자동 테스트(`engine/production/src/test/`)를 갖추고 있다.
+`guides/governance.md`가 단계별 정본·승인·변경 통제·협업 책임을 정한다. 상세 계약은 `guides/course-design-guide.md`, `guides/curriculum-dd-guide.md`, `guides/session-authoring-guide.md`(Deck Authoring), `guides/production-guide.md`를 따른다. 현재 Markdown 입력과 PPTX Renderer는 `engine/production/`에 있다.
 
-세 지침 파일이 각 단계의 상세 계약을 정의한다: `guides/course-design-guide.md`, `guides/session-authoring-guide.md`, `guides/production-guide.md`.
-
-협업에서 Human은 교육 내용·Course Design·최종 PPTX를 승인하고, ChatGPT는 Course Design과 Session Authoring의 의미·교수 설계를 주도하여 수정 원고를 제공한다. **Human은 승인한 원고를 저장소의 MD 파일에 직접 반영한다.** Codex는 실습의 독립 반복 실행·검증과 실제 결과 보존, Renderer 수정·회귀 검증을 맡는다. Codex는 별도 요청 없이 원고를 반영하거나 의미·교수 설계를 변경하지 않는다.
-
-새 ChatGPT 대화도 공통 지침과 저장소의 확정된 `course-design.md`·승인된 Session Source에서 재개한다. 확정된 용어·식별자·업무 규칙·상태·세션 경계나 콘텐츠 의미를 바꾸려면 Human 승인을 받는다. 사용자의 명시적 보완 지시는 해당 범위의 승인으로 본다. 자동 검사·제작 검증 결과와 Human 승인은 구분하며, 승인 전에는 해당 내용을 최종 확정·최종 완료로 보고하지 않는다.
+기존 과정 작업은 기록에 연결된 승인 기준선에서 재개한다. AI-native의 전환 검토 항목은 `courses/ai-native/checks/ai-native-transition.md`에 있다.
 
 `guides/agentic-repository-guide.md`는 **이 저장소 자체를 agentic 시스템으로 운영하는 계약**이다. 저장소의 구성 요소를 맥락·가드레일·하네스·추적으로 가르고, 금지를 환경으로 옮기는 기준과 센서를 더하는 규칙을 정한다. 교재의 내용은 정하지 않는다.
 
-그 위에서 `guides/sw-engineering-principles.md`가 모든 과정·세션이 따르는 **SW 공학의 기본 원칙**(결정과 검증, 이벤트 관점, 성숙도와 불확실성, 작게 끝까지, 북·스트리트 스마트, KISS·DRY·YAGNI, 적정 수준)을 정한다. 세 지침은 "어떻게"를, 원칙 문서는 "왜"를 정한다. 원칙의 설명·사례는 참조 자료 `references/sw-engineering-approach/`에 있으며 규칙이 아니다.
+모든 과정은 `guides/sw-engineering-principles.md`의 SW 공학 기본 원칙을 따른다. 설명·사례는 `references/sw-engineering-approach/`에 있다.
 
 ## Course Design Authority
 
-각 `courses/<course>/course-design.md`는 과정 전체의 의미 구조와 세션 경계를 정의한다. 필수 항목(교육시간, 대상·선수지식, 과정 목표, 과정의 맥락, 관통 사례와 **공통 전제**, 목차·세부 목차, 세션별 시간·목표, Anchor Message 등)은 `guides/course-design-guide.md`의 「필수 항목」이 정한다.
+과정의 목적·범위·공통 전제는 Course Design, 세션 간 경계와 시간은 Curriculum, 각 세션의 목표·Anchor Message와 교수 흐름은 DD를 확인한다.
 
 ## Session Authoring Baseline
 
@@ -32,10 +26,7 @@ Course Design → Session Authoring → Production
 - 예시 코드의 전체 원본은 `courses/<course>/sessions/code/sNN/`에 두고 컴파일·실행으로 확인한다. 슬라이드의 코드는 그 발췌다.
 - 기준 품질은 Production 검사의 **오류·경고 0개**를 포함한다.
 
-Session Authoring은 Course Design을 입력으로
-최종 Session Source를 직접 작성한다.
-
-불필요한 중간 artifact를 만들지 않는다.
+Deck의 필수 설계 입력과 산출물은 Governance의 단계 계약을 따른다.
 
 ## Production
 
@@ -62,7 +53,7 @@ renderer 한계 때문에 Session Source를 수정하지 않는다. 지원되지
 
 공통 규칙은 이 파일과 `guides/`에, 과정 고유의 정책·제작 기준은 해당 `courses/<course>/`에 두고 과정 설계에서 참조한다. 과거의 산출물은 비교하거나 복원할 기준이 아니다.
 
-- Session Authoring은 `course-design.md`에서 Session Source로 바로 간다. 과정별 커리큘럼 문서나 세션 상세 설계 문서 같은 중간 산출물을 두지 않는다.
+- Curriculum과 Session DD는 승인된 교육 설계의 정본이다. 별도 중복 정본을 만드는 기준은 Governance를 따른다.
 - 예전에 생성한 PPT, git history의 이전 원고·지침은 내용·시각의 기준이 아니다. 현재 지침과 다르면 지침을 따른다.
 - Production의 뼈대는 `engine/production/template/` 하나다. 외부 승인 템플릿이나 고정 페이지 레이아웃 설정을 두지 않는다.
 - `references/production/`은 사용자가 참고하려고 보관하는 폴더다(`approved.pptx` 원본). LLM은 이 폴더를 읽거나 비교·복사·복원의 근거로 쓰지 않고, 수정·삭제하지도 않는다. 이 금지는 글이 아니라 환경이 막는다 — `tools/protected-path-hook.js`가 그 경로에 닿는 도구 호출을 **읽기까지** 거절한다(hook 등록은 사용자가 `.claude/settings.json`에서 한다). 거절되면 다른 방법으로 돌아가지 않고, 필요한 것이 무엇인지 사용자에게 말한다.
@@ -71,8 +62,8 @@ renderer 한계 때문에 Session Source를 수정하지 않는다. 지원되지
 ## 변경 시 확인할 것
 
 - `engine/production/`을 수정하면 `node --test engine/production/src/test/*.test.js`로 전체 테스트를 통과시킨다. 테스트는 과정 원고가 아니라 고정 fixture를 쓰므로 원고 수정이 테스트를 깨뜨리지 않는다. 테스트 범위와 실패 시 대응은 `guides/production-guide.md`의 「Regression」을 따른다.
-- `guides/*.md` 중 하나의 내용(수동 목차 정책, 의미 표식 문법, typography 규칙 등)을 바꾸면, 그 계약을 실제로 구현하는 `engine/production/src/`의 코드와 테스트도 함께 갱신한다. 지침 문서 수정만으로 구현이 완료됐다고 간주하지 않는다.
-- 세 지침 파일과 `sw-engineering-principles.md`·`agentic-repository-guide.md`는 서로를 파일명으로 참조한다. 파일을 이동·rename하면 상호 참조도 함께 갱신한다.
+- 실행 계약이 바뀌면 지침에 요구사항과 현재 구현 상태를 구분해 기록한다. 구현이 작업 범위에 포함될 때 Renderer와 테스트를 함께 갱신한다.
+- 지침을 이동하거나 이름을 바꾸면 참조를 함께 갱신한다.
 - hook·권한·센서·기록을 더하거나 바꾸면 `guides/agentic-repository-guide.md`의 해당 표를 함께 갱신한다. 그 문서에 적히지 않은 계약은 다음 수정에서 근거 없이 사라진다.
 - 기본 원칙을 바꾸면 그 원칙을 적용하는 지침(과정 설계·세션 작성)의 해당 항목과 참조 자료도 함께 점검한다.
 
@@ -80,16 +71,14 @@ renderer 한계 때문에 Session Source를 수정하지 않는다. 지원되지
 
 같은 품질을 적은 반복으로 낸다. 다시 만들기·전체 재확인·원전 재탐색이 작업 비용의 대부분이었다.
 
+- **선행 실습 산출물을 읽는다** — 후속 세션의 실습 투입물은 `guides/agentic-repository-guide.md`의 「선행 실습 산출물 찾기」에 따라 저장소의 과정 기록에서 찾아 읽는다.
+- **실습 실행·검증 요청은** `guides/session-authoring-guide.md`의 「실습 검증과 Production 연결」을 따른다. 제작까지 요청받으면 해당 절의 코드 대조와 Production 검증도 수행한다.
 - **작업할 과정을 먼저 확정한다** — `courses/ACTIVE` 한 줄이 지금 작업하는 과정이다. 세션 번호만 있는 지시("S06 시작")는 그 파일과 그 과정의 `checks/` 진행 파일(`rewrite-pending.json`, 검토 기록)로 확정한 뒤에 시작한다. 기억이나 **다른 과정의 진행 기록으로 추정하지 않는다**. `courses/ACTIVE`는 사용자의 지시로만 바꾼다. 다른 과정의 파일을 쓰려 하면 `tools/active-course-hook.js`가 거절한다(읽기는 막지 않는다).
 - **보고에는 과정 경로를 쓴다** — 두 과정에 같은 파일명(`s04.pptx`)이 있어 번호만 쓰면 어느 과정인지 알 수 없다. 장수·검사 결과를 말할 때 `courses/<course>/sessions/sNN`을 함께 적는다.
-- **지침을 먼저 읽는다** — 세션 원고를 쓰거나 고치기 전에 `guides/session-authoring-guide.md`와 `guides/production-guide.md`를 읽는다. 기존 세션 원고를 눈으로 흉내 내는 것으로 대신하지 않는다. 원고의 형식(목차 그룹, 실습 topic의 구성, 별첨의 답, 요약의 heading, 목록 들여쓰기)과 인용 형식은 이 두 파일에만 있다.
+- **지침을 먼저 읽는다** — Governance에서 대상 변경의 소유 단계와 승인 입력을 확인하고 해당 단계 지침을 읽는다. Deck 작업에서는 승인 Curriculum·DD와 Deck Authoring·Production 지침을 대조한다.
 - **인용은 원문 확인부터** — 구성안을 보이기 전에 `node tools/verify-quote.js`로 영문 인용을 확인하고 출처 레이블을 확정한다. 웹 검색 요약이나 기억으로 인용·출처를 적지 않는다. 확인하지 않은 인용은 Production이 경고하며 완료 기준을 넘지 못한다.
-- **구성안 먼저** — 세션을 만들거나 크게 보완할 때는 인용문 → 구성안(topic·핵심 메시지·사례 값·visual 종류) 순서로 채팅에서 승인받은 뒤에 원고를 쓴다(`guides/session-authoring-guide.md`의 「검토 절차」).
-- **원고는 Human이 반영한다** — ChatGPT는 확정한 수정 내용을 MD 파일 하나로 제공하고 Human이 로컬 Session Source에 직접 반영한다. Codex는 별도로 요청받지 않은 원고 수정을 하지 않는다. 저장소에서 직접 저작·수정하는 다른 승인된 작업은 기존 운영 규칙을 따른다.
-- **승인은 내용에 대해서도 필요하다** — 구성안 승인은 집필 착수 승인이지 최종 콘텐츠 승인과 동일하지 않다. ChatGPT가 제공한 원고를 Human이 검토·승인한 뒤 직접 반영한다. 승인된 범위의 실행은 끝까지 진행하되 미승인 내용을 최종본으로 보고하지 않는다. SA 완료는 내용 검토와 자동 검사 오류·경고 0개를 충족한 시점이며, 최종 PPT의 시각·가독성을 확인하는 Production 제작 검증 완료와 구분한다(`guides/production-guide.md`의 「SA와 Production의 검증 경계」). 제작까지 승인된 작업은 시각 검토·수정까지 진행한다.
-- **묻지 않는다** — 승인·확인을 구하는 질문은 **구성안 한 번**뿐이다. 그 뒤로는 작업 끝에도 묻지 않는다 — 보고 끝에 "커밋할까요?", "이어서 할까요?", "이대로 괜찮습니까?"를 붙이지 않고 한 줄 보고로 끝낸다. 커밋은 사용자가 **"커밋"이라고 말할 때만** 하며, 말하지 않으면 커밋하지 않고 그 사실도 묻지 않는다. 다음에 할 일이 보이면 질문이 아니라 **한 줄 제안**으로 적는다(2026-10-24).
-- **보완 지시는 승인이다** — 구성안을 보인 뒤 사용자가 "이것도 넣어라"처럼 내용을 더하거나 고치라고 하면, 그것을 반영한 구성안을 **다시 승인받지 않고 그대로 작업을 시작한다**. 승인 요청은 세션 하나에 **한 번**이며, 같은 구성안을 고쳐 다시 묻지 않는다. 바뀐 내용이 과정 설계·용어·참고 자료에 미치는 영향은 보고에 적는다(2026-10-24).
-- **검토 의견은 그대로 받아들이지 않는다** — 완성한 원고에 대한 사용자의 검토 의견(수기 표시·채팅 지시)은 반영하기 전에 **먼저 검토해 동의 여부를 알린다**. 셋으로 가른다 — ① 동의해 그대로 반영하는 것, ② **동의하지 못하는 것**과 그 이유·대안, ③ 뜻이 분명하지 않아 **물어야 하는 것**. ①은 바로 반영하고, ②와 ③은 판정을 받은 뒤에 반영한다. **추정해서 반영하지 않는다** — 추정으로 고친 문장은 다음 검토에서 다시 고쳐야 한다. 의견이 과정 설계·지침의 이름이나 정의와 어긋나면 그 사실을 함께 적고, 고치기로 하면 **설계·지침·다른 원고까지 함께** 고친다. 이 확인은 위의 「묻지 않는다」의 예외다(2026-11-06).
+- **승인과 피드백** — Governance의 단계별 게이트와 변경 범위를 따른다. 명시적인 보완 지시는 그 범위 작업의 근거로 기록한다. 상위 기준과 충돌하거나 의미가 불분명하면 영향과 대안을 알리고 필요한 판정을 받는다. 이미 승인된 같은 범위의 확인을 반복하지 않는다.
+- **커밋** — 사용자가 명시적으로 요청할 때만 한다. 작업 종료 시 커밋 여부를 묻지 않는다.
 - **승인 창을 만들지 않는 명령** — 승인 창의 대부분은 질문이 아니라 **허용 목록에 걸리지 않는 Bash 명령**에서 나온다(`.claude/settings.json`). 다음을 지킨다(2026-10-24).
   - **파일을 고치는 일은 Edit·Write 도구로 한다.** `python3 - <<EOF`, `cat > 파일 <<EOF`, `sed -i`로 원고·지침·코드를 고치지 않는다 — 여러 줄 명령은 허용 목록이 알아보지 못해 실행마다 승인을 요구한다. 치환이 많아도 Edit를 여러 번 부르는 쪽이 승인 창이 없다.
   - **Bash는 허용 목록에 있는 명령 하나로 쓴다.** `&&`로 잇지 않고, `set -e`·`for`·변수 대입 같은 여러 줄 스크립트를 쓰지 않으며, `OUT=…` 같은 환경 변수 접두어와 `cd`를 붙이지 않는다.

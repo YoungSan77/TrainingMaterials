@@ -2,7 +2,7 @@
 
 기준일: 2026-10-20. 규칙의 원천은 `AGENTS.md`와 `guides/`다. **세션별 진행과 검사 상태는 [`courses/ai-native/checks/redesign-map.md`](courses/ai-native/checks/redesign-map.md)가 가진다** — 이 문서는 한 번 한 정리와 그 복구 방법만 적는다.
 
-## 지금 어디까지 왔나
+## 2026-10-20 당시 상태
 
 11개 과정 폴더 가운데 AI-native와 OOAD에 세션 원고가 있고 나머지 아홉은 과정 설계 단계다. 설계 파일의 존재를 교재 완성으로 보지 않는다.
 
