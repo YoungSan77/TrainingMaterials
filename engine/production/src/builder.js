@@ -10,7 +10,8 @@ const { plain, wide, estimate, widthOf, splitCode, codePoints } = require("./tex
 const { rich, run, runParen, richDeclarations } = require("./richText");
 const { paragraphs, BULLET_LEVELS, bulletCitation, citationParts, summaryParts, numberWidthEmu, displayQuote } = require("./paragraphs");
 const { normalizeTypography } = require("./typography");
-const { OMISSION, COLUMN_BODY_INDENT, prepareColumnBlocks, columnTextHeight, columnIndent } = require("./columnLayout");
+const { OMISSION, COLUMN_BODY_INDENT, prepareColumnBlocks, columnTextHeight, columnIndent, practiceGuideSize } = require("./columnLayout");
+const roles = require('./contentRoles');
 const { TEMPLATE_DIR, ORIGIN, readTemplate, slideParts } = require("./template");
 const { renderMermaid } = require("./mermaidAdapter");
 const { renderPlantUml } = require("./plantumlAdapter");
@@ -382,7 +383,10 @@ class Builder {
   async init(session, course) {
     need(session && session.trim() !== "", "세션명이 필요하다 (Markdown 상단 'Session 명:' 헤더).");
     this.session = session;
+    this.contentRole=roles.LECTURE;
     this.s03Profile = course?.productionProfile === 'ai-native-s03' && session.trim() === '03. 요구사항';
+    this.s04Profile = course?.productionProfile === 'ai-native-s03' && session.trim() === '04. 도메인 모델 — 정적 관점';
+    this.quoteTranslations = this.s03Profile || this.s04Profile;
     // The S03 production contract integrates explanatory text and tables.
     this.paragraphSpace = this.s03Profile ? 3 : 6;
     this.data = readTemplate(this.templatePath);
@@ -396,7 +400,7 @@ class Builder {
   page(index, heading) {
     // The slide carries the session it was composed for, so a bundle of several sessions labels
     // each slide with its own session name (production-guide.md 「묶음 덱」).
-    const p = { doc: this.roots[index].cloneNode(true), origin: this.origins[index], heading, items: [], session: this.session, s03Profile:this.s03Profile, paragraphSpace:this.paragraphSpace };
+    const p = { doc: this.roots[index].cloneNode(true), origin: this.origins[index], heading, items: [], session: this.session, s03Profile:this.s03Profile, s04Profile:this.s04Profile, quoteTranslations:this.quoteTranslations, paragraphSpace:this.paragraphSpace, contentRole:this.contentRole||roles.LECTURE, documentTablePt:roles.tablePt(this.contentRole) };
     this.pages.push(p);
     return p;
   }
@@ -422,7 +426,7 @@ class Builder {
       // One paragraph in two sizes: the 10pt original runs on from the 18pt Korean instead of
       // starting its own line, so the flow is measured once and rounded once -- rounding each run
       // up separately added as much as two phantom lines to every citation.
-      const korean = plain(this.s03Profile?displayQuote(parts[1]):parts[4] ? parts[1] : `"${parts[1]}"`);
+      const korean = plain(this.quoteTranslations?displayQuote(parts[1]):parts[4] ? parts[1] : `"${parts[1]}"`);
       // 영문 원문은 바깥따옴표 없이 그려진다(paragraphs.js) -- 폭도 그 모양으로 센다.
       const rest = plain(`, ${this.s03Profile?displayQuote(parts[2]):parts[2]}, ${parts[3]}`);
       const w = 620 - 12;
@@ -431,13 +435,35 @@ class Builder {
       return at18 * 22 + (total - at18) * 13 + 12;
     }
     const size = b.kind === "bullet" ? [16,14,12][Math.min(b.depth || 0,2)] : 18;
-    return proseLines(plain(text), 620, size) * (22 * size / 18) + 12;
+    return proseLines(plain(text), 620, size) * (22 * size / 18) + (b.meta?.reviewExample?6:12);
   }
 
   // The practice slide (production-guide.md "실습 슬라이드"): the reference style in one column,
   // then 16 and 14pt in one column, then 14pt in two. Returns the page (appended to this.pages) or
   // null when even two columns overflow.
   practicePage(blocks, heading) {
+    const layoutAt=blocks.findIndex(b=>/^\*\*실습 안내 — 좌우 2단/.test(b.text.trim()));
+    if(layoutAt>=0){
+      const leftAt=blocks.findIndex(b=>/^\*\*왼쪽 —/.test(b.text.trim()));
+      const rightAt=blocks.findIndex(b=>/^\*\*오른쪽 —/.test(b.text.trim()));
+      need(layoutAt===1&&leftAt===2&&rightAt>leftAt+1&&rightAt<blocks.length-1,
+        `실습의 좌우 구성 표식이 올바르지 않다: ${heading}`);
+      const purpose={...blocks[0],meta:{...blocks[0].meta,practicePurpose:true}};
+      const introH=columnTextHeight([purpose],FULL_TEXT.w*72,3,{practiceGuide:true})/72;
+      const top=FULL_TEXT.y+introH+.1;
+      const columns=[prepareColumnBlocks(blocks.slice(leftAt,rightAt)),prepareColumnBlocks(blocks.slice(rightAt))];
+      for(const block of columns[1])if(/^\*\*[①-⑤]/.test(block.text))block.meta={...block.meta,noGlyph:true};
+      const available=FULL_TEXT.w-.3;
+      for(const fraction of [.42,.40,.44,.38,.46,.50]){
+        const w=available*fraction;
+        const boxes=[{x:FULL_TEXT.x,w},{x:FULL_TEXT.x+w+.3,w:available-w}]
+          .map(box=>({...box,y:top,h:this.contentBottomY()-top,space:3,practiceGuide:true}));
+        if(columns.some((col,i)=>this.columnHeightPt(col,boxes[i])>boxes[i].h*72))continue;
+        const page=this.fixedColumnPage(columns,heading,boxes,{block:purpose,box:{...FULL_TEXT,h:introH}});
+        page.practiceColumns=2;page.practiceSize=12;page.layoutGate='practice-columns';return page;
+      }
+      throw Error(`실습 안내의 좌우 두 단을 한 장에 배치할 수 없다: ${heading}`);
+    }
     const resultAt=blocks.findIndex(b=>/^\*\*결과물\*\*$/.test(b.text.trim()));
     const promptAt=blocks.findIndex(b=>PRACTICE_SPLIT.test(b.text.trim()));
     if(resultAt>0 && promptAt>=0) {
@@ -448,8 +474,40 @@ class Builder {
       for(const b of body)if(/^(?:\d+\.|[①-⑤])\s/.test(b.text))b.meta={...(b.meta||{}),autoNumber:true};
       const top=FULL_TEXT.y+(purpose?(14*1.2+6+8)/72:0);
       const half=(FULL_TEXT.w-0.3)/2;
-      const boxes=[{x:FULL_TEXT.x,y:top,w:half,h:this.contentBottomY()-top},{x:FULL_TEXT.x+half+0.3,y:top,w:half,h:this.contentBottomY()-top}];
-      const p=this.fixedColumnPage([body,prepareColumnBlocks(blocks.slice(resultAt))],heading,boxes,purpose?{block:purpose,box:{...FULL_TEXT,h:(14*1.2+6)/72}}:null);
+      const base=[{x:FULL_TEXT.x,y:top,w:half,h:this.contentBottomY()-top},{x:FULL_TEXT.x+half+0.3,y:top,w:half,h:this.contentBottomY()-top}];
+      let boxes=base;
+      const columns=[body,prepareColumnBlocks(blocks.slice(resultAt))];
+      // Keep the largest current type, measuring widths before composing a single slide.
+      // 분할 탐색은 두 걸음이다. 먼저 왼쪽을 넓혀 보고(기존 순서를 그대로 둬 지금 맞는 실습의
+      // 배치를 바꾸지 않는다), 그것이 모두 실패하면 왼쪽을 좁혀 본다 — **오른쪽** 단이 넘칠
+      // 때는 왼쪽을 넓히는 쪽만으로는 맞출 수 없기 때문이다. 어느 분할로도 안 되면 자르거나
+      // 글자를 줄이지 않고, 가장 가까운 분할의 초과량을 보고한다(원고에서 줄일 양이 된다).
+      const split=percent=>{
+        const left=(FULL_TEXT.w-.3)*percent/100,right=FULL_TEXT.w-.3-left;
+        return [{...base[0],w:left},{...base[1],x:FULL_TEXT.x+left+.3,w:right}];
+      };
+      const overflowPt=cand=>Math.max(...columns.map((col,i)=>this.columnHeightPt(col,cand[i])-cand[i].h*72));
+      if(overflowPt(base)>0){
+        let fitted=false;
+        for(let percent=51;percent<=75&&!fitted;percent++){
+          const candidate=split(percent);
+          if(overflowPt(candidate)<=0){boxes=candidate;fitted=true;}
+        }
+        for(let percent=49;percent>=25&&!fitted;percent--){
+          const candidate=split(percent);
+          if(overflowPt(candidate)<=0){boxes=candidate;fitted=true;}
+        }
+        if(!fitted){
+          let best={percent:50,over:overflowPt(base)};
+          for(let percent=25;percent<=75;percent++){
+            const over=overflowPt(split(percent));
+            if(over<best.over)best={percent,over};
+          }
+          need(false,`실습 좌우 2단이 한 장에 들어가지 않는다: ${heading}, 어느 분할로도 맞지 않는다`
+            +` (가장 가까운 분할 왼쪽 ${best.percent}%에서 ${best.over.toFixed(1)}pt 초과)`);
+        }
+      }
+      const p=this.fixedColumnPage(columns,heading,boxes,purpose?{block:purpose,box:{...FULL_TEXT,h:(14*1.2+6)/72}}:null);
       p.practiceSize=14;p.practiceColumns=2;return p;
     }
     const fitBox = (box) => ({ ...box, h: Math.min(box.h, this.contentBottomY() - box.y) });
@@ -608,24 +666,159 @@ class Builder {
     return page;
   }
 
-  // The same document columns, including native tables. Keep the source's explicit segments
-  // and heading/content relationships; S03 appendix cells alone use the 8pt exception.
+  // Recorded documents preserve source order across prose, native tables, code and visuals.
+  async recordedDocumentPages(blocks,heading,style) {
+    if(style.containedTables){
+      const previous=this.sectionStyle;this.sectionStyle=style;
+      const prepared=blocks.flatMap(b=>{
+        if(b.kind!=='code')return [b];
+        this.codes.push({source:b.text,parts:[b.text]});
+        return b.text.split('\n').map(text=>({kind:'text',text,depth:0,rows:[],meta:{columnCode:true,noGlyph:true,noHang:true}}));
+      });
+      try{return await this.columnVisualDocumentPages(prepared,heading,style,false);}
+      finally{this.sectionStyle=previous;}
+    }
+    const start=this.pages.length,previousStyle=this.sectionStyle;this.sectionStyle=style;
+    let pending=[],open=null;
+    const clean=blocks.filter(b=>!(b.kind==='text'&&/^\*\*문서 형식/.test(b.text)));
+    const flush=()=>{
+      if(open&&pending.length)this.stackPrefixBelow(open,pending);
+      if(pending.length){this.columnDocumentPages(pending,heading,style,false);pending=[];}
+      open=null;
+    };
+    try{
+      for(const b of clean){
+        if(b.kind==='pagebreak'){flush();continue;}
+        if(b.kind==='table'){
+          if(open&&this.appendTableBelow(open,b,pending,null,heading)){pending=[];open=this.pages.at(-1);continue;}
+          // Keep section headings and the following table together. Long preceding prose
+          // fills its own columns before the last heading is handed to the table planner.
+          if(this.textHeightPt(pending)>140){
+            let cut=pending.length;while(cut>0&&pending[cut-1].kind==='heading')cut--;
+            if(cut){this.columnDocumentPages(pending.slice(0,cut),heading,style,false);pending=pending.slice(cut);}
+          }
+          this.table(b,heading,pending,160);pending=[];open=this.pages.at(-1);continue;
+        }
+        if(b.kind==='code'){
+          if(open&&pending.length)this.stackPrefixBelow(open,pending);
+          if(open&&!pending.length&&this.appendCodeBelow(open,b,0))continue;
+          open=this.sourceCode(b,heading,pending);pending=[];continue;
+        }
+        if(['mermaid','plantuml','svg','chart'].includes(b.kind)){
+          const lead=[];while(pending.at(-1)?.kind==='heading')lead.unshift(pending.pop());
+          flush();await this.columnVisualDocumentPages([...lead,b],heading,style,false);continue;
+        }
+        pending.push(b);
+      }
+      flush();return this.pages.slice(start);
+    }finally{this.sectionStyle=previousStyle;}
+  }
+
+  async compactLegendPage(section, notation=false){
+    const vi=section.blocks.findIndex(b=>notation?b.kind==='plantuml':b.kind==='svg'),ti=section.blocks.findIndex(b=>b.kind==='table');
+    need(vi>=0&&ti>vi,'연관 범례의 도식/표 순서가 필요하다');
+    const marked=bs=>{let quote=false;return bs.flatMap(b=>{
+      if(b.text==='**인용문**'){quote=true;return [];}
+      if(b.kind==='text'&&/^\*\*(?:도식|표) —/.test(b.text))return [];
+      const out=quote?{...b,meta:{...b.meta,quote:true,authoredKind:b.kind}}:b;quote=false;return [out];
+    });};
+    const lead=marked(section.blocks.slice(0,vi)),tail=marked(section.blocks.slice(ti+1));
+    const visual=section.blocks[vi],table=section.blocks[ti],pic=notation
+      ?await renderPlantUml({kind:visual.meta?.uml,source:visual.text}):await renderSvg(visual.text);
+    const old=this.paragraphSpace;this.paragraphSpace=3;
+    try{
+      const page=this.page(ORIGIN.prose,section.title);page.paragraphSpace=3;page.notes=section.notes;
+      paragraphs(page,8,lead,false);
+      const leadH=this.textHeightPt(lead),tailH=this.textHeightPt(tail),captionH=notation?15:23.5,gap=4,top=1.05*72;
+      const id=this.cloneShape(page,11,ORIGIN.table),gf=shape(page.doc,id);
+      if(notation&&visual.meta?.uml==='sequence'){
+        const tableX=5.1,tableW=4.5,panelY=(top+leadH+8)/72;
+        const panelH=this.contentBottomY()-panelY-(tailH+8)/72;
+        const tableY=panelY+.24;
+        const count=table.rows[0].length;
+        this.fillTable(page,gf,table.rows,Array(count).fill(tableW*72/count),tableY*72);
+        this.documentTableFont(gf,10,true);
+        const widths=require('./tableColumnMetrics').contentWidths(gf,tableW*72).widths;
+        const transform=child(gf,P,'xfrm');
+        child(transform,A,'off').setAttribute('x',String(Math.round(tableX*EMU)));
+        child(transform,A,'ext').setAttribute('cx',String(Math.round(widths.reduce((a,b)=>a+b,0)*12700)));
+        all(gf,A,'gridCol').forEach((col,i)=>col.setAttribute('w',String(Math.round(widths[i]*12700))));
+        const tableH=this.documentTableFont(gf,10,true).heightPt;
+        need(tableH/72+.24<=panelH,`노테이션 표가 한 장에 들어가지 않는다: ${section.title}`);
+        const bounds=fitTarget({x:.4,y:panelY+.24,w:4.48,h:panelH-.24},pic);
+        need(pictureTextPt(pic,bounds)>=MIN_PT-.05,`노테이션 도식이 최소 글자 크기에 못 미친다: ${section.title}`);
+        const label=(value,x,w)=>{
+          const labelId=this.cloneShape(page,8);
+          paragraphs(page,labelId,[{kind:'text',text:value,meta:{caption:value}}],false);
+          setShapeBounds(shape(page.doc,labelId),{x,y:panelY,w,h:.24});
+        };
+        label(section.blocks[vi-1].text.replace(/^\*\*도식 — [^—]+ — |\*\*$/g,''),.4,4.48);
+        label('그림에서 직접 찾는 노테이션',tableX,tableW);
+        setShapeBounds(shape(page.doc,8),{...FULL_TEXT,h:leadH/72});
+        const tailId=this.cloneShape(page,8);
+        paragraphs(page,tailId,tail,false);
+        setShapeBounds(shape(page.doc,tailId),{...FULL_TEXT,y:panelY+panelH+.08,h:tailH/72});
+        page.pictures=[{...pic,source:visual.text,kind:visual.kind,uml:true,bounds}];
+        page.containedTables=true;page.layoutGate='notation';return page;
+      }
+      this.fillTable(page,gf,table.rows,columnWidths(table.rows,table.rows[0].length),0);
+      require('./tableColumnMetrics').naturalWidths([gf]);const tableH=this.documentTableFont(gf,10).heightPt;
+      const budget=this.contentBottomY()*72-top-leadH-tailH-tableH-captionH*2-gap*4;
+      const nat=naturalSize(pic,TARGET_PT),minHeight=nat.h*72*MIN_PT/TARGET_PT;
+      need(budget>=minHeight,`도식과 표기 설명이 최소 글자 크기로 한 장에 들어가지 않는다: ${section.title}`);
+      const visualH=Math.min(budget,nat.h*72),visualTop=top+leadH+gap+captionH;
+      setShapeBounds(shape(page.doc,8),{...FULL_TEXT,h:leadH/72});
+      const caption=(value,y)=>{const id=this.cloneShape(page,8);paragraphs(page,id,[{kind:'text',text:value,meta:{caption:value}}],false);setShapeBounds(shape(page.doc,id),{x:.4,y:y/72,w:9.2,h:captionH/72});};
+      const diagramTitle=notation?section.blocks[vi-1].text.replace(/^\*\*도식 — [^—]+ — |\*\*$/g,''):'주문과 주문 항목의 연관';
+      caption(diagramTitle,top+leadH+gap);
+      const bounds=fitTarget({x:.4,y:visualTop/72,w:9.2,h:visualH/72},pic);
+      if(notation)need(pictureTextPt(pic,bounds)>=MIN_PT-.05,`노테이션 도식이 최소 글자 크기에 못 미친다: ${section.title}`);
+      page.pictures=[{...pic,source:visual.text,kind:visual.kind,uml:notation,bounds}];
+      const tableCaptionY=visualTop+visualH+gap;caption(notation?'그림에서 직접 찾는 노테이션':'관계선과 양 끝의 다중성',tableCaptionY);
+      const tableY=tableCaptionY+captionH+gap;child(child(gf,P,'xfrm'),A,'off').setAttribute('y',String(Math.round(tableY*12700)));
+      const tailId=this.cloneShape(page,8);paragraphs(page,tailId,tail,false);setShapeBounds(shape(page.doc,tailId),{x:.4,y:(tableY+tableH+gap)/72,w:9.2,h:tailH/72});
+      page.visualLayout='compact-legend';page.tableBottom=(tableY+tableH)/72;
+      if(notation)page.layoutGate='notation';
+      return page;
+    }finally{this.paragraphSpace=old;}
+  }
+
   async columnVisualDocumentPages(blocks,heading,style,balanced) {
     const pages=[];let pending=[];
     const flush=()=>{if(pending.length){pages.push(...this.columnDocumentPages(pending,heading,style,balanced));pending=[];}};
     for(const b of blocks) {
       if(['mermaid','plantuml','svg','chart'].includes(b.kind)) {
+        const source=style.strictAnswerColumns&&b.kind==='mermaid'?this.answerDiagramExcerpt(b.text):b.text;
+        const rendered=await (b.kind==='mermaid'?renderMermaid({source,compactNotes:style.strictAnswerColumns,compactActors:style.strictAnswerColumns}):b.kind==='plantuml'?renderPlantUml({kind:b.meta?.uml,source:b.text}):b.kind==='svg'?renderSvg(b.text):renderChart(b.text));
+        const pic={...rendered,source:b.text,kind:b.kind,uml:Boolean(b.meta?.uml)};
+        if(style.strictAnswerColumns){
+          const target={x:0,y:0,w:4.45,h:this.contentBottomY()-1.55};
+          const columnBounds=fitTarget(target,pic);
+          if(pictureTextPt(pic,columnBounds)>=MIN_PT-.05){
+            pending.push({kind:'column-picture',text:'',pic,columnBounds:{...columnBounds,y:0}});
+            continue;
+          }
+          throw Error(`별첨 도식 ${source.split('\n')[0]}이 한 단에서 7pt로 표시되지 않는다: ${heading} (${pictureTextPt(pic,columnBounds).toFixed(2)}pt)`);
+        }
         const lead=[];while(pending.at(-1)?.kind==='heading')lead.unshift(pending.pop());
         flush();
-        const rendered=await (b.kind==='mermaid'?renderMermaid({source:b.text}):b.kind==='plantuml'?renderPlantUml({kind:b.meta?.uml,source:b.text}):b.kind==='svg'?renderSvg(b.text):renderChart(b.text));
-        const pic={...rendered,source:b.text,kind:b.kind,uml:Boolean(b.meta?.uml)};
         const leadPt=columnTextHeight(lead,FULL_TEXT.w*72,3,{document:style.text===10});
         const panel={...VISUAL_ONLY,y:VISUAL_ONLY.y+(leadPt?leadPt+8:0)/72,h:VISUAL_ONLY.h-(leadPt?leadPt+8:0)/72};
         const bounds=fitTarget(panel,pic);
         const tiles=pictureTextPt(pic,bounds)>=MIN_PT-0.05?[{bounds}]:require('./diagramTiles').diagramTiles(pic,panel);
         for(let ti=0;ti<tiles.length;ti++){const tile=tiles[ti],page=this.page(ORIGIN.prose,heading);paragraphs(page,8,ti===0?lead:[],false);if(ti===0&&lead.length){setShapeBounds(shape(page.doc,8),{...FULL_TEXT,h:leadPt/72});restyle(shape(page.doc,8),style);}page.pictures=[{...pic,...tile}];page.visualLayout=tile.crop?'visual-tiles':'visual-only';pages.push(page);}
-      } else if(b.kind==='table' && b.rows[0].length>4) {
-        flush();const start=this.pages.length;this.table(b,heading);
+      } else if(b.kind==='table' && !style.strictAnswerColumns && (style.mixedTables
+        ? this.needsFullWidthDocumentTable(b,style.tablePt??8)
+        : b.rows[0].length>4 && !style.containedTables)) {
+        const lead=[];
+        if(style.mixedTables){
+          while(pending.at(-1)?.kind==='heading')lead.unshift(pending.pop());
+          if(pending.length<=2 && pending.every(item=>item.kind==='text')){
+            lead.unshift(...pending);
+            pending=[];
+          }
+        }
+        flush();const start=this.pages.length;this.table(b,heading,lead);
         const added=this.pages.slice(start);
         if(style.text===10)for(const page of added){
           page.documentTablePt=style.tablePt??10;
@@ -641,13 +834,163 @@ class Builder {
     flush();return pages;
   }
 
+  answerDiagramExcerpt(source) {
+    if(/^\s*stateDiagram/.test(source)){
+      return source.replace(/^\s*note\s+(?:left|right) of [^\n]+\n[\s\S]*?^[ \t]*end note[^\n]*\n?/gm,'\n')
+        .replace(/^(\s*\[\*\]\s*-->[^:\n]+:\s*)([^\n]+)$/m,(_,prefix,label)=>{
+          const words=label.split(' ');
+          const middle=Math.ceil(words.length/2);
+          return words.length>3?prefix+words.slice(0,middle).join(' ')+'<br/>'+words.slice(middle).join(' '):prefix+label;
+        });
+    }
+    return source.replace(/^[ \t]*Note over [^\n]+\n?/gim,'');
+  }
+
+  async firstDraftReviewPage(section, answer) {
+    const split=section.blocks.findIndex(b=>b.text.trim()==='**문제 · 근거 · 수정 결과**');
+    const before=section.blocks.filter(b=>b.kind==='mermaid');
+    const after=answer?.blocks.filter(b=>b.kind==='mermaid')??[];
+    const kind=b=>b.text.trim().split(/\s+/)[0];
+    need(split>0&&before.length===2&&after.length===2&&before.every((b,i)=>kind(b)===kind(after[i])),
+      '실제 초안과 최종 응답에 같은 종류의 상태 기계·시퀀스가 필요하다.');
+    const draft=answer.recordedDraft;
+    need(draft?.length===before.length&&before.every((block,i)=>this.isDiagramExcerpt(block.text,draft[i].text)),
+      '비교 도식이 SHA-256을 확인한 실제 첫 응답의 발췌와 일치하지 않는다.');
+    const page=this.page(ORIGIN.prose,section.title);
+    paragraphs(page,8,[],false);
+    page.notes=section.notes;page.layoutGate='draft-diagrams';
+    const boxes=[{x:.4,w:4.45},{x:5.15,w:4.45}];
+    const notes=prepareColumnBlocks(section.blocks.slice(split));
+    const noteH=columnTextHeight(notes,FULL_TEXT.w*72,1,{document:true})/72;
+    const noteY=this.contentBottomY()-noteH-.02;
+    const addText=(blocks,box)=>{
+      const id=this.cloneShape(page,8);
+      setShapeBounds(shape(page.doc,id),box);
+      paragraphs(page,id,blocks,false);
+      for(const rp of all(shape(page.doc,id),A,'rPr'))rp.setAttribute('sz','1000');
+      for(const p of all(shape(page.doc,id),A,'p'))spacing(p,1,1,null);
+    };
+    const pictures=[];
+    for(const [row,title] of ['상태 기계','시퀀스'].entries()){
+      const y=row===0?.98:2.66;
+      const h=(row===0?2.66:noteY-.10)-y-.23;
+      for(const [col,b] of [before[row],after[row]].entries()){
+        const box=boxes[col];
+        let source=this.answerDiagramExcerpt(b.text).replace(/^(.*-->.*)\\n[^\n]*$/gm,'$1');
+        if(row===1)source=this.draftSequenceWindow(source);
+        // Mermaid draws parallel self-loops over one another. Keep both event
+        // labels on their shared loop so neither event disappears.
+        const loops=new Map();
+        source=source.split('\n').flatMap(line=>{
+          const match=line.match(/^(\s*(\w+)\s*-->\s*\2\s*:\s*)(.+)$/);
+          if(!match)return [line];
+          if(!loops.has(match[2]))loops.set(match[2],[]);
+          const labels=loops.get(match[2]);labels.push(match[3]);
+          return labels.length===1?[{prefix:match[1],labels}]:[];
+        }).map(line=>typeof line==='string'?line:line.prefix+(line.labels.length>1?'<br/>'+line.labels.join('<br/>'):line.labels[0])).join('\n');
+        if(row===1)source=source.replace(/^(\s*)actor\s+/gm,'$1participant ');
+        const pic={...await renderMermaid({source,compactActors:true,compactComparison:true}),source:b.text,kind:b.kind};
+        const label=`${col===0?'Before':'After'} — ${title}${row===1?' · 카드 승인 요청 이후':''}`;
+        addText([{kind:'heading',text:label}],{...box,y,h:.23});
+        const bounds=fitTarget({...box,y:y+.23,h},pic);
+        need(pictureTextPt(pic,bounds)>=MIN_PT-.05,`${title} ${col===0?'Before':'After'}가 7pt 하한에 못 미친다 (${pictureTextPt(pic,bounds).toFixed(2)}pt)`);
+        pictures.push({...pic,bounds});
+      }
+    }
+    page.pictures=pictures;
+    addText(notes,{...FULL_TEXT,y:noteY,h:noteH});
+  }
+
+  draftSequenceWindow(source) {
+    // Compare the external message window beginning with the approval request.
+    const lines=source.split('\n');
+    const start=lines.findIndex(line=>/^\s*Order->>Payment:/.test(line));
+    need(start>=0,'정상 승인 시퀀스에 카드 승인 요청이 없다.');
+    const external=line=>{
+      const message=/^\s*(\w+)[-<>]+(\w+):/.exec(line);
+      return message&&message[1]!==message[2];
+    };
+    return [...lines.slice(0,start).filter(line=>/^\s*(?:sequenceDiagram|actor |participant )/.test(line)),
+      ...lines.slice(start).filter(external)].join('\n');
+  }
+
+  isDiagramExcerpt(excerpt, original) {
+    const lines=text=>text.split('\n').map(line=>line.trim()).filter(Boolean);
+    const available=lines(original);
+    let at=0;
+    return lines(excerpt).every(line=>{
+      const match=available.indexOf(line,at);
+      if(match<0)return false;
+      at=match+1;
+      return true;
+    });
+  }
+
+  needsFullWidthDocumentTable(block, fontPt) {
+    const count=block.rows[0].length;
+    if(count>=4)return true;
+    const doc=this.roots[ORIGIN.table].cloneNode(true),frame=shape(doc,11);
+    this.fillTable({doc,items:[]},frame,block.rows,Array(count).fill(100),0);
+    this.documentTableFont(frame,fontPt,true);
+    const {natural}=require('./tableColumnMetrics').contentWidths(frame,Infinity);
+    return natural.reduce((sum,width)=>sum+width,0)>4.45*72;
+  }
+
   columnDocumentPages(blocks, heading, style, balanced = false) {
     const boxes = [{ x: 0.4, y: 1.05, w: 4.45, h: this.contentBottomY() - 1.05 },
       { x: 5.15, y: 1.05, w: 4.45, h: this.contentBottomY() - 1.05 }];
     if(balanced)for(const box of boxes)box.space=2;
-    else if(style.text===10)for(const box of boxes){box.document=true;box.answer=style.responseRole==='answer';box.space=2;box.tablePt=style.tablePt??10;}
+    else if(style.text===10)for(const box of boxes){box.document=true;box.answer=style.responseRole==='answer';box.space=2;box.tablePt=style.tablePt??10;box.containedTables=style.containedTables;}
+    if(style.strictAnswerColumns)for(const box of boxes)box.tableHorizontalMargin=38100;
     const segments = [[]];
-    const prepared=prepareColumnBlocks(blocks,{omitExcerpt:balanced});
+    let prepared=prepareColumnBlocks(blocks,{omitExcerpt:balanced});
+    if(style.strictAnswerColumns)prepared=prepared.flatMap((b,i)=>{
+      if(b.meta?.omission&&prepared[i-1]?.kind==='table')return [];
+      if(b.kind!=='table'||!prepared[i+1]?.meta?.omission)return [b];
+      const omission=b.rows[0].map((_,j)=>j===0?'.....':'');
+      const matches=(style.recordedTables??[]).filter(t=>b.rows.every((row,j)=>JSON.stringify(row)===JSON.stringify(t.rows[j])));
+      if(style.recordedTables)need(matches.length===1,`발췌 표의 원본이 없거나 모호하다: ${b.rows[0].join(' | ')}`);
+      return [{...b,rows:[...b.rows,omission],measurementRows:matches.length===1?matches[0].rows:b.rows}];
+    });
+    if(style.containedTables){
+      const split=[];
+      for(let i=0;i<prepared.length;i++){
+        const b=prepared[i];if(b.kind!=='table'){split.push(b);continue;}
+        const widths=this.columnWidthsFor(b,boxes[0]);
+        const table={...b,columnWidths:widths};
+        const heads=[];for(let j=split.length-1;j>=0&&split[j].kind==='heading';j--)heads.unshift(split[j]);
+        const budget=boxes[0].h*72-this.columnHeightPt(heads,boxes[0]);
+        let rows=[b.rows[0]];
+        const rowGroups=b.rows.slice(1).map(row=>[row]);
+        if(style.strictAnswerColumns&&rowGroups.length>1&&b.rows.at(-1)[0]==='.....'){
+          const omission=rowGroups.pop();
+          rowGroups.at(-1).push(...omission);
+        }
+        for(const group of rowGroups){
+          const candidate={...table,rows:[...rows,...group]};
+          if(rows.length>1&&this.columnHeightPt([candidate],boxes[0])>budget){split.push({...table,rows});rows=[b.rows[0]];}
+          rows.push(...group);
+          need(this.columnHeightPt([{...table,rows}],boxes[0])<=budget,`표의 한 행과 머리글이 한 열에 들어가지 않는다: ${heading}`);
+        }
+        split.push({...table,rows});
+        const trail=[];for(let j=i+1;j<prepared.length&&!['heading','table','pagebreak'].includes(prepared[j].kind);j++)trail.push(prepared[j]);
+        if(trail.length){
+          const last=split.at(-1),combined=this.columnHeightPt([last,...trail],boxes[0]);
+          // Reserve the explanatory paragraph with the final row, rather than stranding
+          // it on a new page after an otherwise full continuation table.
+          if(combined>boxes[0].h*72&&last.rows.length>2){
+            const lastDataIndex=style.strictAnswerColumns&&last.rows.at(-1)[0]==='.....'?last.rows.length-2:last.rows.length-1;
+            for(let cut=lastDataIndex;cut>1;cut--){
+              const tail={...table,rows:[b.rows[0],...last.rows.slice(cut)]};
+              if(this.columnHeightPt([tail,...trail],boxes[0])<=boxes[0].h*72){
+                split[split.length-1]={...last,rows:last.rows.slice(0,cut)};split.push(tail);break;
+              }
+            }
+          }
+        }
+      }
+      prepared=split;
+    }
     if(!balanced && style.responseRole!=='answer') {
       const intro=prepared.find(b=>b.kind!=='heading');
       if(intro?.kind==='bullet' && intro.meta?.noGlyph)intro.meta={...intro.meta,columnIntro:true};
@@ -687,11 +1030,18 @@ class Builder {
       for(const segment of groups) {
         for(let i=0;i<segment.length;i++) {
           const unit=[segment[i]];
-          while(unit[unit.length-1].kind==="heading" && i+1<segment.length)unit.push(segment[++i]);
-          if(this.s03Profile && ((style.responseRole==='demo' && unit.some(b=>/^US-01\./.test(b.text||'')))
-            || (style.responseRole==='answer' && /^9\. 미정 사항$/.test(unit[0].text||'')))){
-            // Preserve this recorded story's title, description and acceptance conditions.
-            // Move the complete group to the next column before splitting any of its parts.
+          const needsNext=b=>b.kind==="heading"||(style.strictAnswerColumns&&b.text?.trim()==='기대 결과:');
+          while(needsNext(unit.at(-1)) && i+1<segment.length)unit.push(segment[++i]);
+          if(style.strictAnswerColumns&&segment[i+1]?.meta?.omission)unit.push(segment[++i]);
+          // A table's immediate explanation travels with its last row chunk when it fits.
+          if(style.containedTables && !style.strictAnswerColumns && unit.at(-1).kind==='table'){
+            let end=i+1;while(end<segment.length&&!['heading','table'].includes(segment[end].kind))end++;
+            const whole=[...unit,...segment.slice(i+1,end)];
+            if(this.columnHeightPt(whole,boxes[col])<=boxes[col].h*72){unit.splice(0,unit.length,...whole);i=end-1;}
+          }
+          if(style.text===10 && !style.strictAnswerColumns && unit[0].kind==='heading'){
+            // Keep a recorded section and its associated prose/list together whenever the
+            // whole group fits an empty column. This applies to every course and section.
             let end=i+1;while(end<segment.length && segment[end].kind!=='heading')end++;
             const whole=[...unit,...segment.slice(i+1,end)];
             if(this.columnHeightPt(whole,boxes[col])<=boxes[col].h*72){unit.splice(0,unit.length,...whole);i=end-1;}
@@ -704,10 +1054,28 @@ class Builder {
       }
       finish();
     }
-    return plans.map(cols=>this.fixedColumnPage(cols,heading,boxes));
+    return plans.map(cols=>{
+      const page=this.fixedColumnPage(cols,heading,boxes);
+      if(style.strictAnswerColumns)page.strictAnswerColumns=true;
+      if(style.mixedTables&&cols.every(col=>col.length>0))page.layoutGate='answer-columns';
+      return page;
+    });
   }
 
   columnWidthsFor(block,box) {
+    if(block.columnWidths)return block.columnWidths;
+    if(box.containedTables){
+      this.containedWidths??=new WeakMap();const cached=this.containedWidths.get(block);if(cached)return cached;
+      const doc=this.roots[ORIGIN.table].cloneNode(true),page={doc,items:[]},gf=shape(doc,11);
+      const rows=block.rows.at(-1)[0]==='.....'?block.rows.slice(0,-1):block.rows;
+      const measurementRows=block.measurementRows??rows;
+      this.fillTable(page,gf,measurementRows,rows[0].map(()=>box.w*72/rows[0].length),0);
+      this.documentTableFont(gf,box.tablePt??8,false,this.columnTableMargin(block,box));
+      const measured=require('./tableColumnMetrics').contentWidths(gf,box.w*72,{softIdentifiers:Boolean(box.tableHorizontalMargin)});
+      this.containedWidthReports??=[];this.containedWidthReports.push({header:block.rows[0],rows:block.rows.length,...measured});
+      const result=measured.widths;
+      this.containedWidths.set(block,result);return result;
+    }
     const widths=columnWidths(block.rows,block.rows[0].length), sum=widths.reduce((a,b)=>a+b,0);
     const scaled=widths.map(w=>w*Math.min(1,box.w*72/sum));
     // A half-width table must still fit a complete identifier such as
@@ -722,22 +1090,20 @@ class Builder {
   }
 
   columnHeightPt(blocks,box) {
-    return blocks.reduce((h,b)=>h+(b.kind==="table" ? this.columnTableHeightPt(b,box)+8 : columnTextHeight([b],box.w*72,box.space??3,box)),0);
+    return blocks.reduce((h,b)=>h+(b.kind==="table" ? this.columnTableHeightPt(b,box)+8
+      :b.kind==='column-picture'?b.columnBounds.h*72+8:columnTextHeight([b],box.w*72,box.space??3,box)),0);
   }
 
   columnTableHeightPt(block,box) {
     const widths=this.columnWidthsFor(block,box);
-    // These recorded glossaries precede the two requested page connections.
-    // Generic 10pt/0.8cm estimates stranded the story/definition below the 8pt tables.
-    const glossaryHeader=box.answer?['용어','표기','정의']:['용어','정의'];
-    if(this.s03Profile && box.document && box.tablePt===8
-      && JSON.stringify(block.rows[0])===JSON.stringify(glossaryHeader)){
+    // All document tables share one measurement path for pagination and output.
+    if(box.document){
       this.columnTableHeights??=new WeakMap();
-      const key=widths.join(','),cached=this.columnTableHeights.get(block);
+      const key=[box.tablePt,Boolean(box.containedTables),...widths].join(','),cached=this.columnTableHeights.get(block);
       if(cached?.key===key)return cached.height;
       const doc=this.roots[ORIGIN.table].cloneNode(true),page={doc,items:[]},gf=shape(doc,11);
       this.fillTable(page,gf,block.rows,widths,0);
-      const height=this.documentTableFont(gf,8).heightPt;
+      const height=this.documentTableFont(gf,box.tablePt,Boolean(box.containedTables),this.columnTableMargin(block,box),box.tableHorizontalMargin&&block.rows.at(-1)[0]==='.....',Boolean(box.tableHorizontalMargin)).heightPt;
       this.columnTableHeights.set(block,{key,height});return height;
     }
     return block.rows.reduce((s,r)=>s+this.rowHeight(r,widths),0);
@@ -747,21 +1113,39 @@ class Builder {
     const heights=columns.map((bs,i)=>this.columnHeightPt(bs,boxes[i]));
     for(let i=0;i<columns.length;i++)need(heights[i]<=boxes[i].h*72,`좌우 고정 배치 초과: ${heading}, ${i===0?'왼쪽':'오른쪽'} ${heights[i].toFixed(1)}pt / ${(boxes[i].h*72).toFixed(1)}pt`);
     const page=this.page(ORIGIN.prose,heading);paragraphs(page,8,[],false);page.items.pop();page.freeBody=true;page.answerColumns=2;
+    const lockPracticeText=sh=>{
+      const bp=child(body(sh),A,'bodyPr');
+      for(const key of ['tIns','bIns'])bp.setAttribute(key,'0');
+      for(const key of ['lIns','rIns'])bp.setAttribute(key,'91440');
+      const fit=children(bp).find(node=>['normAutofit','spAutoFit','noAutofit'].includes(node.localName));
+      const none=el(page.doc,A,'noAutofit');
+      if(fit)bp.replaceChild(none,fit);else bp.appendChild(none);
+    };
+    const setPracticeLeading=(pr,block)=>{
+      const leading=child(pr,A,'lnSpc');
+      leading.replaceChild(el(page.doc,A,'spcPts','val',String(practiceGuideSize(block)*120)),leading.firstChild);
+    };
     if(boxes[0].document)page.documentTablePt=boxes[0].tablePt??10;
     if(purpose) {
       const id=8;page.freeBody=false;
       setShapeBounds(shape(page.doc,id),purpose.box);paragraphs(page,id,[purpose.block],false);
       for(const rp of all(shape(page.doc,id),A,'rPr'))rp.setAttribute('sz','1400');
-      spacing(child(body(shape(page.doc,id)),A,'p'),3,3,null);
+      const pr=spacing(child(body(shape(page.doc,id)),A,'p'),3,3,null);
+      if(boxes[0].practiceGuide){
+        lockPracticeText(shape(page.doc,id));
+        setPracticeLeading(pr,purpose.block);
+      }
     }
     const textBox=(bs,box,y)=>{
       const id=page.freeBody?8:this.cloneShape(page,8);page.freeBody=false;
       const sh=shape(page.doc,id),h=columnTextHeight(bs,box.w*72,box.space??3,box);
-      setShapeBounds(sh,{...box,y:y/72,h:h/72});paragraphs(page,id,bs,false);
+      setShapeBounds(sh,{...box,y:y/72,h:box.practiceGuide?box.h:h/72});paragraphs(page,id,bs,false);
       const bp=child(body(sh),A,"bodyPr");for(const k of ['tIns','bIns'])bp.setAttribute(k,'0');for(const k of ['lIns','rIns'])bp.setAttribute(k,'91440');
+      if(box.practiceGuide)lockPracticeText(sh);
       const ps=kids(body(sh),A,"p");
       ps.forEach((p,i)=>{
         const b=bs[i],head=b.kind==="heading",pr=spacing(p,box.space??3,box.space??3,null);
+        if(box.practiceGuide)setPracticeLeading(pr,b);
         pr.setAttribute('algn','l');pr.setAttribute('marL',String(columnIndent(b,box)));
         pr.setAttribute('indent',head||(b.meta&&b.meta.noGlyph)?'0':'-176213');
         for(const old of children(pr).filter(e=>/^bu/.test(e.localName)))pr.removeChild(old);
@@ -774,8 +1158,10 @@ class Builder {
           for(const t of all(p,A,'t')){const n=Math.min(remove,t.textContent.length);t.textContent=t.textContent.slice(n);remove-=n;if(!remove)break;}
           for(const old of children(pr).filter(e=>/^bu/.test(e.localName)))pr.removeChild(old);
           const n=prefix[1]||String(prefix[2].codePointAt(0)-0x2460+1);
-          pr.setAttribute('indent',String(-numberWidthEmu(prefix[0],12)));
+          const hang=this.s04Profile&&prefix[2]?Math.round(14.4*12700):numberWidthEmu(prefix[0],12);
+          pr.setAttribute('indent',String(-hang));
           pr.appendChild(el(page.doc,A,'buAutoNum','type',prefix[1]?'arabicPeriod':'circleNumDbPlain','startAt',n));
+          const tabs=el(page.doc,A,'tabLst');tabs.appendChild(el(page.doc,A,'tab','pos',pr.getAttribute('marL'),'algn','l'));pr.appendChild(tabs);
         }
       });
     };
@@ -783,22 +1169,49 @@ class Builder {
       const box=boxes[ci];let y=box.y*72,pending=[];
       const flush=()=>{if(pending.length){textBox(pending,box,y);y+=columnTextHeight(pending,box.w*72,box.space??3,box);pending=[];}};
       for(const b of bs) {
+        if(b.kind==='column-picture'){
+          flush();
+          (page.pictures??=[]).push({...b.pic,bounds:{...b.columnBounds,x:box.x+b.columnBounds.x,y:y/72+b.columnBounds.y}});
+          y+=b.columnBounds.h*72+8;
+          continue;
+        }
         if(b.kind!=="table"){pending.push(b);continue;}
         flush();const id=this.cloneShape(page,11,ORIGIN.table),gf=shape(page.doc,id),widths=this.columnWidthsFor(b,box);
         this.fillTable(page,gf,b.rows,widths,y);
-        const fitted=box.document?this.documentTableFont(gf,box.tablePt??10):null;
+        const omission=box.tableHorizontalMargin&&b.rows.at(-1)[0]==='.....';
+        const fitted=box.document?this.documentTableFont(gf,box.tablePt??10,Boolean(box.containedTables),this.columnTableMargin(b,box),omission,Boolean(box.tableHorizontalMargin)):null;
+        if(omission){
+          const row=all(gf,A,'tr').at(-1);
+          for(const cell of kids(row,A,'tc')){
+            const pr=child(cell,A,'tcPr'),old=child(pr,A,'lnB');
+            if(old)pr.removeChild(old);
+            const border=el(page.doc,A,'lnB','w','6350');
+            const fill=el(page.doc,A,'solidFill');
+            fill.appendChild(el(page.doc,A,'srgbClr','val','505050'));border.appendChild(fill);
+            const next=children(pr).find(node=>!['lnL','lnR','lnT'].includes(node.localName));
+            pr.insertBefore(border,next??null);
+          }
+        }
         child(child(gf,P,'xfrm'),A,'off').setAttribute('x',String(Math.round(box.x*EMU)));
-        y+=(fitted?fitted.heightPt:b.rows.reduce((h,r)=>h+this.rowHeight(r,widths),0))+8;
+        // Read the emitted row geometry, not a second estimate. The same height
+        // drives pagination above and the first following text/table object.
+        const actualHeight=Number(child(child(gf,P,'xfrm'),A,'ext').getAttribute('cy'))/12700;
+        if(fitted)need(Math.abs(actualHeight-this.columnTableHeightPt(b,box))<.01,'표 계측과 출력 높이가 다르다');
+        y+=actualHeight+8;
       }
       flush();
     });
     page.textCost=Math.max(...heights)/Math.max(...boxes.map(b=>b.h*72))*450;
-    page.columnHeights=heights;return page;
+    page.columnHeights=heights;page.containedTables=Boolean(boxes[0].containedTables);return page;
   }
 
-  documentTableFont(gf,pt) {
-    if(pt===8)for(const tcPr of all(gf,A,'tcPr')){
-      for(const k of ['marL','marR','marT','marB'])tcPr.setAttribute(k,'54000');
+  columnTableMargin(block,box) {
+    return box.tableHorizontalMargin&&block.rows[0].length>=7?25400:box.tableHorizontalMargin;
+  }
+
+  documentTableFont(gf,pt,hinted=false,horizontalMargin=54000,omission=false,softIdentifiers=false) {
+    for(const tcPr of all(gf,A,'tcPr')){
+      for(const k of ['marL','marR','marT','marB'])tcPr.setAttribute(k,String(k==='marL'||k==='marR'?horizontalMargin:54000));
     }
     for(const tag of ['rPr','defRPr','endParaRPr'])for(const rp of all(gf,A,tag)){
       rp.setAttribute('sz',String(pt*100));
@@ -808,7 +1221,18 @@ class Builder {
         face.setAttribute('typeface','맑은 고딕');
       }
     }
-    if(pt===8)return require('./tableRowMetrics').fitTableRows(gf);
+    const {fitTableRows,breakIdentifiers}=require('./tableRowMetrics');
+    if(softIdentifiers)for(const node of all(gf,A,'t'))node.textContent=breakIdentifiers(node.textContent);
+    const fitted=fitTableRows(gf,hinted);
+    if(pt!==8||omission){
+      const rows=all(gf,A,'tr');
+      if(pt!==8)for(const row of rows)row.setAttribute('h',String(Math.max(288000,Number(row.getAttribute('h')))));
+      // Reserve the rendered minimum of the blank cells in the omission row.
+      if(omission)rows.at(-1).setAttribute('h',String(Math.max(31*12700,Number(rows.at(-1).getAttribute('h')))));
+      const h=all(gf,A,'tr').reduce((s,r)=>s+Number(r.getAttribute('h')),0);
+      child(child(gf,P,'xfrm'),A,'ext').setAttribute('cy',String(h));fitted.heightPt=h/12700;
+    }
+    return fitted;
   }
 
   // Preserve all document blocks at the requested size, continuing left then right on each page.
@@ -1065,9 +1489,20 @@ class Builder {
     last.textBlocks = b.length;
   }
 
-  // Every table row is TABLE_ROW_PT (0.8cm) high (production-guide.md "표"); a cell that still
-  // wraps adds TABLE_LINE_PT per extra line, and the source should be adjusted so it does not.
+  // Recorded rows use the actual role's type and cell margins before pagination.
+  // Ordinary rows retain the legacy minimum; final font measurement validates their height.
   rowHeight(row, widths) {
+    if(roles.isRecorded(this.contentRole)){
+      this.measuredRows??=new Map();
+      const key=JSON.stringify([row,widths,8]);if(this.measuredRows.has(key))return this.measuredRows.get(key);
+      const proto=all(this.roots[ORIGIN.table],A,'tc')[0];
+      const height=Math.max(...row.map((value,i)=>{
+        const cell=proto.cloneNode(true);setText(cell,value);
+        for(const rp of all(cell,A,'rPr'))rp.setAttribute('sz','800');
+        const pr=child(cell,A,'tcPr');for(const side of ['marL','marR','marT','marB'])pr.setAttribute(side,'54000');
+        return require('./tableRowMetrics').cellHeight(cell,widths[i]).heightPt;
+      }));this.measuredRows.set(key,height);return height;
+    }
     return TABLE_ROW_PT + (this.rowLines(row, widths) - 1) * TABLE_LINE_PT;
   }
 
@@ -1215,7 +1650,7 @@ class Builder {
     tb.appendChild(p);
     const pr = spacing(p, 0, 0, null);
     pr.setAttribute("algn", algn);
-    run(p, value, 14, true);
+    run(p, value, roles.isRecorded(page.contentRole)?10:14, true);
   }
 
   // A 14pt bold title right above a diagram (production-guide.md "표·도식 제목").
@@ -1261,7 +1696,7 @@ class Builder {
       tb.appendChild(p);
       const pr = spacing(p, 0, 0, null);
       pr.setAttribute("algn", "r");
-      run(p, picture.caption, 14, true);
+      run(p, picture.caption, roles.isRecorded(page.contentRole)?10:14, true);
       return;
     }
     // 제목이 붙으면 도식은 제목 높이만큼 아래로 내려간다. 그만큼 아래가 모자라면 그림을 줄이기
@@ -1286,7 +1721,7 @@ class Builder {
     tb.appendChild(p);
     child(p, A, "pPr") || p.insertBefore(el(page.doc, A, "pPr"), p.firstChild);
     child(p, A, "pPr").setAttribute("algn", "ctr");
-    run(p, picture.caption, 14, true);
+    run(p, picture.caption, roles.isRecorded(page.contentRole)?10:14, true);
     picture.bounds = { x, y: y + H, w, h };
   }
 
@@ -1356,7 +1791,7 @@ class Builder {
         richDeclarations(par, line, size);
         for (const rp of all(par, A, "rPr")) {
           for (const old of kids(rp, A, "latin")) rp.removeChild(old);
-          const latin = el(page.doc, A, "latin", "typeface", "맑은 고딕");
+          const latin = el(page.doc, A, "latin", "typeface", "Consolas");
           const ea = child(rp, A, "ea");
           if (ea) rp.insertBefore(latin, ea); else rp.appendChild(latin);
         }
@@ -1405,7 +1840,8 @@ class Builder {
         y += (h + 8) / 72;
       }
       const top = y;
-      let codeX = X, codeW = W, pictureBottom = y;
+      const bodyOffset=this.s04Profile&&!png?(opts.listBodyOffset??BULLET_LEVELS[1].marL/EMU):0;
+      let codeX = X+bodyOffset, codeW = W-bodyOffset, pictureBottom = y;
       // The diagram beside/above code is drawn at a text size of TARGET_PT x step (10, 9, 8, 7pt;
       // production-guide.md "Visual layout 및 가독성"). Above the code it may use the full width;
       // beside the code its column is as wide as the diagram needs (at most 55% of the width).
@@ -1433,7 +1869,7 @@ class Builder {
           for (const step of png ? STEPS : [1]) {
             const at = png ? place(step) : null;
             const codeTop = at && stacked ? top + at.bounds.h + GAP : top;
-            const width = at && !stacked ? W - at.box.w - GAP : W;
+            const width = at && !stacked ? W - at.box.w - GAP : W-bodyOffset;
             const avail = (BOTTOM - codeTop) * 72 - (reserveTrail && opts.trailPt ? opts.trailPt + 8 : 0);
             const plan = planCode(remaining, width * 72, avail);
             if (plan) return { plan, at };
@@ -1467,6 +1903,22 @@ class Builder {
   }
 
   gherkin(block,heading,lead) {
+    const lines=block.text.split('\n'),parts=[];
+    const available=FULL_TEXT.w*72-14.4-BULLET_LEVELS[1].marL/12700;
+    let rest=lines.slice(),page;
+    while(rest.length){
+      const prefix=parts.length?[]:lead,leadH=prefix.length?this.textHeightPt(prefix)+8:0;
+      const room=(this.contentBottomY()-FULL_TEXT.y)*72-leadH;
+      let used=0,count=0;
+      for(const line of rest){const h=Math.max(1,Math.ceil(widthOf(line,12)/available))*12*1.2+6;if(used+h>room)break;used+=h;count++;}
+      need(count>0,`시연 입력 한 줄이 가용 높이를 넘는다: ${heading}`);
+      const part=rest.splice(0,count).join('\n');parts.push(part);
+      page=this.gherkinPage({...block,text:part},heading,prefix);
+    }
+    this.codes.push({source:block.text,parts});return page;
+  }
+
+  gherkinPage(block,heading,lead) {
     const p=this.page(ORIGIN.prose,heading),top=FULL_TEXT.y;
     const leadH=lead.length?this.textHeightPt(lead):0;
     paragraphs(p,8,lead,false);
@@ -1550,7 +2002,16 @@ class Builder {
       for (let ci = 0; ci < cols; ci++) {
         const cell = copy(page.doc, cells[Math.min(ci, cells.length - 1)]);
         setText(cell, group[ri][ci]);
-        for (const rp of all(cell, A, "rPr")) rp.setAttribute("sz", "1000");
+        for (const rp of all(cell, A, "rPr")) rp.setAttribute("sz", String(roles.tablePt(this.contentRole)*100));
+        // Empty cells use the paragraph end/default font in PowerPoint. Leaving
+        // that inherited at 18pt silently expands rows measured from 10pt runs.
+        for(const par of all(cell,A,'p')){
+          let pr=child(par,A,'pPr');if(!pr){pr=el(page.doc,A,'pPr');par.insertBefore(pr,par.firstChild);}
+          pr.setAttribute('latinLnBrk','0');
+          let end=child(par,A,'endParaRPr');if(!end){end=el(page.doc,A,'endParaRPr');par.appendChild(end);}
+          end.setAttribute('sz',String(roles.tablePt(this.contentRole)*100));
+        }
+        for(const rp of all(cell,A,'defRPr'))rp.setAttribute('sz',String(roles.tablePt(this.contentRole)*100));
         // 칸의 글은 **세로 가운데**에 둔다. 원형 슬라이드의 값에 기대지 않고 여기서 정하며, 위아래
         // 여백을 같게 맞춘다 — 위 여백만 있으면 가운데 맞춤이어도 글이 아래로 내려가 보인다
         // (production-guide.md 「표의 행 높이와 열 너비」).
@@ -1561,14 +2022,13 @@ class Builder {
           cell.appendChild(tcPr);
         }
         tcPr.setAttribute("anchor", "ctr");
-        if(this.s03Profile)for(const k of ['marL','marR','marT','marB'])tcPr.setAttribute(k,'54000');
-        else {tcPr.setAttribute("marT", String(CELL_MAR_V));tcPr.setAttribute("marB", String(CELL_MAR_V));}
+        for(const k of ['marL','marR','marT','marB'])tcPr.setAttribute(k,'54000');
         row.appendChild(cell);
       }
       tbl.appendChild(row);
     }
     const idAttr = first(gf, P, "cNvPr").getAttribute("id");
-    page.items.push({ id: parseInt(idAttr, 10), kind: "table", text: "", rows: group });
+    page.items.push({ id: parseInt(idAttr, 10), kind: "table", text: "", rows: group, role:page.contentRole, tablePt:roles.tablePt(this.contentRole), measuredRows:roles.isRecorded(this.contentRole) });
     const contentHeightPt = group.reduce((sum, row) => sum + this.rowHeight(row, widths), 0);
     // 틀의 높이도 실제 표 높이로 맞춘다. 원형의 305pt를 그대로 두면 cy를 믿는 뷰어가 남는 높이를
     // 행에 나눠 주어 표가 늘어나고 글이 제 행의 가운데에서 벗어난다(2026-10-31).
@@ -1686,7 +2146,8 @@ class Builder {
       this.fillTable(page, gf, groups[gi], widths, yPt);
       // 표 아래의 빈 띠에 코드가 쌓일 수 있게 코드 단을 본문 폭으로 열어 둔다. 이것이 없으면
       // 표 다음의 코드는 늘 새 장을 열어, 표만 있는 장과 코드만 있는 장이 둘 다 헐거워졌다.
-      page.codeArea = { x: 0.4, w: 9.2 };
+      const codeOffset=this.s04Profile?BULLET_LEVELS[1].marL/EMU:0;
+      page.codeArea = { x: 0.4+codeOffset, w: 9.2-codeOffset };
     }
   }
 
@@ -1705,7 +2166,7 @@ class Builder {
     tb.appendChild(p);
     const pr = spacing(p, 0, 0, null);
     pr.setAttribute("algn", "ctr");
-    run(p, caption, 14, true);
+    run(p, caption, roles.isRecorded(page.contentRole)?10:14, true);
     page.items.push({ id, kind: "caption", text: caption, rows: [] });
     return yPt + h + 6;
   }
@@ -1840,7 +2301,7 @@ class Builder {
   }
 
   // 과정 목차 — 과정의 세션 전체를 세션 목차와 같은 모양으로 보이는 둘째 장. 표지와 함께 과정의
-  // 첫 세션 덱에만 있고, 항목은 `course-design.md`의 세션 목록이다.
+  // 첫 세션 덱에만 있고, 항목은 과정의 승인 세션 목록이다.
   renderCourseToc(course) {
     const chunks = this.tocChunks(course.sessions.map((s) => ({ text: s.name })));
     const first = this.pages.length;
@@ -1884,7 +2345,7 @@ class Builder {
       this.validateToc(toc, sections);
       // 과정의 첫 세션 덱만 표지와 과정 목차로 시작한다 — 뒤 세션은 자기 목차가 첫 장이다.
       // 과정 밖의 덱(옆에 course-design.md가 없다)에는 둘 다 없다.
-      if (course && /^01\./.test(String(this.session))) {
+      if (course && String(this.session).startsWith((course.firstSession || "01") + ".")) {
         this.renderCover(course.name);
         if (course.sessions.length) this.renderCourseToc(course);
         if (course.goal) this.renderCourseGoal(course);
@@ -1905,19 +2366,42 @@ class Builder {
     });
 
     for (let section of sections) {
+      this.contentRole=roles.roleFor(section);
       // A table-of-contents group with no body of its own ("## 05. 연관" followed directly by its
       // sub-topics) makes no slide: its sub-topics carry it as their second title line.
       const next = sections[sections.indexOf(section) + 1];
       if (!section.group && section.blocks.length === 0 && next && next.group === section.title) continue;
       const firstIdx = this.pages.length;
       this.sectionFirst = firstIdx;
+      if(this.s04Profile&&section.title==='연관명과 다중성'){
+        const page=await this.compactLegendPage(section);if(section.group)page.heading+='\n'+section.group;continue;
+      }
+      if(section.blocks.some(b=>b.text?.trim()==='**표 — 그림에서 직접 찾는 노테이션**')){
+        const page=await this.compactLegendPage(section,true);
+        if(section.group)page.heading+='\n'+section.group;
+        continue;
+      }
+      if(section.blocks.some(b=>b.text.trim()==='**실제 초안 도식 — 좌우 비교**')){
+        await this.firstDraftReviewPage(section,sections.find(s=>s.appendix&&s.verbatimResponse));
+        continue;
+      }
+      if(isPractice(section.title)&&section.blocks.some(b=>/^\*\*실습 안내 — 좌우 2단/.test(b.text.trim()))){
+        const page=this.practicePage(section.blocks,section.title);
+        page.notes=section.notes;
+        continue;
+      }
       if ((section.scopedDocument || (section.appendix && section.verbatimResponse))
-        && (section.scopedDocument || this.s03Profile || !section.blocks.some(b=>['mermaid','plantuml','svg','chart'].includes(b.kind)))
-        && section.blocks.every(b=>["text","heading","bullet","table","pagebreak","mermaid","plantuml","svg","chart"].includes(b.kind))) {
-        const ten=section.scopedDocument||section.blocks.some(b=>b.kind==='text'&&b.text.trim()==='**문서 형식 — 10pt**');
-        const style={...ANSWER_STYLE,text:ten?10:12,heading:ten?10:14,levels:ten?[10,10,10]:[12,11,10],uniform:true,fit:1,leftFit:1,space:3,expl:L=>L,paren:L=>L,hang:true,responseRole:section.appendix?'answer':'demo',tablePt:this.s03Profile&&(section.appendix||/^11\. LLM 초안 검토$/.test(section.title))?8:10};
-        const mixed=section.blocks.some(b=>['mermaid','plantuml','svg','chart'].includes(b.kind)||(b.kind==='table'&&b.rows[0].length>4));
-        const pages=mixed?await this.columnVisualDocumentPages(section.blocks,section.title,style,!ten):this.columnDocumentPages(section.blocks,section.title,style,!ten);
+        && section.blocks.every(b=>["text","heading","bullet","table","pagebreak","mermaid","plantuml","svg","chart","code"].includes(b.kind))) {
+        const ten=roles.isRecorded(this.contentRole)||section.scopedDocument||section.blocks.some(b=>b.kind==='text'&&b.text.trim()==='**문서 형식 — 10pt**');
+        const style={...ANSWER_STYLE,text:ten?10:12,heading:ten?10:14,levels:ten?[10,10,10]:[12,11,10],uniform:true,fit:1,leftFit:1,space:3,expl:L=>L,paren:L=>L,hang:true,responseRole:section.appendix?'answer':'demo',tablePt:roles.tablePt(this.contentRole)};
+        style.mixedTables=Boolean(this.session.trim()==='05. 도메인 모델 — 동적 관점'&&section.appendix&&section.verbatimResponse);
+        style.strictAnswerColumns=style.mixedTables;
+        style.recordedTables=section.recordedTables;
+        style.containedTables=Boolean((this.s04Profile||style.mixedTables)&&section.appendix&&section.verbatimResponse);
+        const mixed=section.blocks.some(b=>['mermaid','plantuml','svg','chart'].includes(b.kind)||(b.kind==='table'&&(style.mixedTables||b.rows[0].length>4)));
+        const pages=!this.s03Profile && (mixed||section.blocks.some(b=>b.kind==='code'))
+          ?await this.recordedDocumentPages(section.blocks,section.title,style)
+          :mixed?await this.columnVisualDocumentPages(section.blocks,section.title,style,!ten):this.columnDocumentPages(section.blocks,section.title,style,!ten);
         pages.forEach((p,i)=>{p.appendix=Boolean(section.appendix);if(section.scopeKey)scopedGroups.get(section.scopeKey).push(p);if(pages.length>1)p.heading+=` (${i+1}/${pages.length})`+(section.group?'\n'+section.group:'');else if(section.group)p.heading+='\n'+section.group;});
         if(pages.length && section.notes.length)pages[0].notes=section.notes;
         continue;
@@ -2217,7 +2701,7 @@ class Builder {
           continue;
         }
         if (["text", "heading", "bullet"].includes(b.kind)) {
-          let block = quoteKind ? { ...b, meta: { ...(b.meta || {}), [quoteKind]: true } } : b;
+          let block = quoteKind ? { ...b, meta: { ...(b.meta || {}), [quoteKind]: true, authoredKind:b.kind } } : b;
           if(/^05\. 사용자 스토리/.test(section.title) && /^>\s/.test(block.text))
             block={...block,meta:{...(block.meta||{}),alignBody:true,storyPattern:true}};
           const caption = block.kind === "text" && TABLE_CAPTION.exec(block.text.trim());
@@ -2358,7 +2842,7 @@ class Builder {
         }
         need(b.kind === "code" || b.kind === "tree", "Unknown block");
         if (b.kind === "code") {
-          if(b.meta?.language==='gherkin' || (this.s03Profile && b.meta?.language==='recordedInput')) {
+          if(b.meta?.language==='gherkin' || b.meta?.language==='recordedInput') {
             open=this.gherkin(b,section.title,pending.slice());pending=[];governingSeen=true;continue;
           }
           const pair = deferredCode;
@@ -2396,7 +2880,9 @@ class Builder {
             governingSeen = true;
             continue;
           }
-          open = this.sourceCode(b, section.title, lead, { ...(pair ? { visual: pair.png } : {}), trailPt });
+          const nextList=trail.find(t=>t.kind==='bullet'),numberPrefix=nextList&&/^(?:\d+\.|\(\d+\))\s/.exec(nextList.text);
+          const listBodyOffset=this.s04Profile&&numberPrefix?(BULLET_LEVELS[1].marL+BULLET_LEVELS[1].indent+numberWidthEmu(numberPrefix[0],16))/EMU:undefined;
+          open = this.sourceCode(b, section.title, lead, { ...(pair ? { visual: pair.png } : {}), trailPt,listBodyOffset });
           if (pair) { if (multiVisual) visualTargets[pair.vi] = "placed"; else visualInline = true; }
           pending = [];
           governingSeen = true;
@@ -2644,7 +3130,7 @@ class Builder {
         sectionEnd--;
         k--;
       }
-      if(this.s03Profile && section.title==='11. LLM 초안 검토' && section.blocks.some(b=>b.kind==='table')){
+      if(roles.isRecorded(this.contentRole) && section.blocks.some(b=>b.kind==='table')){
         for(const p of this.pages.slice(firstIdx,sectionEnd)){
           p.documentTablePt=8;
           for(const gf of all(p.doc,P,'graphicFrame')){
@@ -2654,7 +3140,8 @@ class Builder {
           for(const sp of all(p.doc,P,'sp')){
             const id=child(child(sp,P,'nvSpPr'),P,'cNvPr')?.getAttribute('id');
             if(['2','5','6','7','8'].includes(id))continue;
-            for(const rp of all(sp,A,'rPr'))rp.setAttribute('sz','1000');
+            const quoteParagraphs=new Set((p.quoteChecks||[]).filter(q=>q.id===Number(id)).map(q=>q.index));
+            kids(body(sp),A,'p').forEach((par,i)=>{if(!quoteParagraphs.has(i))for(const rp of all(par,A,'rPr'))rp.setAttribute('sz','1000');});
           }
         }
       }
@@ -2677,7 +3164,7 @@ class Builder {
     for(const pages of scopedGroups.values()) pages.forEach((p,i)=>{
       const lines=p.heading.split("\n");lines[0]=lines[0].replace(/ \(\d+\/\d+\)$/,'')+` (${i+1}/${pages.length})`;p.heading=lines.join("\n");
     });
-    if(this.s03Profile)this.tableWidthReview=require('./tableColumnMetrics').optimizeSessionTables(this.pages.filter(p=>p.session===this.session));
+    this.tableWidthReview=require('./tableColumnMetrics').optimizeSessionTables(this.pages.filter(p=>p.session===this.session));
   }
 
   // Writes every composed page as one .pptx. `title` is the document title — a bundle passes the
@@ -2806,7 +3293,7 @@ class Builder {
     await writeZip(outputPath, result);
     // inspect.js checks shape 5/7 text against manifest.title/.source verbatim -- source is kept
     // as "" (not omitted) so that check still holds for the now-always-blank footer.
-    return { pages: this.pages, codes: this.codes, unsupportedVisuals: this.unsupportedVisuals, layoutWarnings: this.layoutWarnings, images: imageNumber, imageCounts, title: title || this.session, source: "" };
+    return { pages: this.pages, codes: this.codes, unsupportedVisuals: this.unsupportedVisuals, layoutWarnings: this.layoutWarnings, tableWidthReports:this.containedWidthReports||[], images: imageNumber, imageCounts, title: title || this.session, source: "" };
   }
 }
 
