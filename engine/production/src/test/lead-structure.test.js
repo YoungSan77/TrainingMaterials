@@ -111,9 +111,9 @@ test("a wrapping citation starts every line at the same place (no glyph, no hang
   assert.equal(pr.getAttribute("indent"), "0", "내어쓰기를 없애 둘째 줄과 첫 줄의 시작점이 같다");
   assert.notEqual(pr.getAttribute("marL"), "0", "문단 전체는 한 단계 들여쓴다");
   const sizes = all(cite, A, "rPr").map((r) => Number(r.getAttribute("sz")));
-  assert.ok(sizes.includes(1600) && sizes.includes(1000), String(sizes));
+  assert.ok(sizes.includes(1800) && sizes.includes(1000), String(sizes));
   // 한 문단에 한글·영문·출처가 이 순서로 남는다.
-  assert.match(pText(cite), /표현하며.*\. Requirements are capabilities.*, \[Larman 2004\]$/);
+  assert.match(pText(cite), /표현하며.*\. “Requirements are capabilities.*”, \[Larman 2004\]$/);
 });
 
 test("a citation that opens the topic is its lead (flush, no glyph)", async () => {
@@ -391,10 +391,10 @@ test("verbatim diagram answer uses answer prose sizes without changing the origi
   const runs = all(paragraph, A, "rPr");
   assert.ok(runs.length);
   for (const rp of runs) {
-    assert.equal(rp.getAttribute("sz"), "1400");
+    assert.equal(rp.getAttribute("sz"), "1000");
     assert.notEqual(rp.getAttribute("b"), "1");
   }
-  assert.ok(all(page.doc, A, "t").some(t => t.textContent === "원래 제목"));
+  assert.match(all(shape(page.doc,2), A, "t").map(t=>t.textContent).join(''), /^원래 제목(?: \(\d+\/\d+\))?/);
   assert.equal(all(page.doc, A, "t").some(t => /실제 LLM 응답|원래 제목 \(안\)/.test(t.textContent)), false);
 });
 

@@ -30,6 +30,22 @@ test("topic references resolve in the current session, or in the session named r
   assert.deepEqual(checkReferences(p, body), { errors: [], warnings: [] });
 });
 
+test("Curriculum supplies session names while sibling decks supply topic headings", () => {
+  const root = course();
+  const dir = path.join(root, "sessions");
+  const p = path.join(dir, "s03.md");
+  fs.writeFileSync(path.join(root, "curriculum.md"), [
+    "| 세션 | 제목 |", "|---|---|", "| S02 | 요구사항 — 승인 제목 |", "| S03 | 정적 모델 |", "| S05 | 동적 관점 |",
+  ].join("\n"));
+  const body = 'Session 명: 03. 정적 모델\n\n## 01. 개념\n\n"세션 02. 요구사항 — 승인 제목"의 「02. 유스케이스」와 "세션 05. 동적 관점"을 본다.';
+  assert.deepEqual(checkReferences(p, body), { errors: [], warnings: [] });
+  assert.match(checkReferences(p, body.replace("요구사항 — 승인 제목", "요구 분석과 유스케이스")).errors[0], /세션명 "02\. 요구사항 — 승인 제목"과 다르다/);
+  assert.match(checkReferences(p, body.replace("「02. 유스케이스」", "「02. 없는 주제」")).errors[0], /없는 주제.*없다/);
+  assert.match(checkReferences(p, body.replace("05. 동적 관점", "01. 개요")).warnings[0], /Curriculum에 없음/);
+  const sibling = path.join(dir, "s02.md");
+  assert.match(checkReferences(sibling, fs.readFileSync(sibling, "utf-8")).errors[0], /원고 세션명.*Curriculum/);
+});
+
 test("wrong numbers, topic titles quoted as sessions and S0x names are errors", () => {
   const root = course();
   const p = path.join(root, "sessions", "s03.md");

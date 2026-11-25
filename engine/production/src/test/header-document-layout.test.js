@@ -44,5 +44,5 @@ test("verbatim appendix keeps omissions and a native retry table in its two-colu
   assert.ok(ps[0].items.some(i=>(i.text||"").includes("…")));
   assert.equal(ps[0].items.filter(i=>i.kind==="table").length,1);
   const positions=all(ps[0].doc,A,"off").map(o=>Number(o.getAttribute("x")));
-  assert.ok(positions.includes(Math.round(5.15*914400)));
+  assert.ok(positions.includes(Math.round(.4*914400)), "a short response fills the left column first");
 }));

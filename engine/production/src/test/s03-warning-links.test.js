@@ -7,10 +7,10 @@ const block=(text,kind='text')=>({kind,text,depth:0,rows:[]});
 test('one-line warning keeps ordinary violations but recognises only emitted S03 measured 8pt table rows',()=>{
  const rows=[['항목','내용'],['조건','주문을 생성한 시점의 판매가와 수량으로 계산한 주문 금액을 이후 가격 변경과 관계없이 유지한다.'.repeat(5)]];
  const sections=[{title:'11. LLM 초안 검토',blocks:[{kind:'table',rows}]}];
- const page={heading:'11. LLM 초안 검토 (5/5)',s03Profile:true,documentTablePt:8,items:[{kind:'table',rows}]};
+ const page={heading:'11. LLM 초안 검토 (5/5)',s03Profile:true,documentTablePt:8,items:[{kind:'table',rows,measuredRows:true}]};
  assert.ok(wrappingCells(sections).length);
  assert.deepEqual(wrappingCells(sections,[page]),[]);
- for(const p of [{...page,s03Profile:false},{...page,documentTablePt:10},{...page,heading:'다른 주제'},{...page,items:[{kind:'table',rows:[rows[0]]}]}])assert.ok(wrappingCells(sections,[p]).length);
+ for(const p of [{...page,items:[{kind:'table',rows,measuredRows:false}]}, {...page,heading:'다른 주제'},{...page,items:[{kind:'table',rows:[rows[0]]}]}])assert.ok(wrappingCells(sections,[p]).length);
  assert.deepEqual(wrappingCells([{title:'짧은 정상 표',blocks:[{kind:'table',rows:[['항목','값'],['주문','확정']]}]}]),[]);
 });
 test('artifact noun lists and input-output mappings are exempt, while prose and unbolded definition citations remain violations',()=>{
@@ -40,5 +40,5 @@ test('S03 glossary planning uses its actual 8pt height and retains the following
  const [page]=b.columnDocumentPages([block('8. 용어','heading'),table,block(tail)],'별첨 응답',{text:10,responseRole:'answer',tablePt:8});
  const gf=all(page.doc,P,'graphicFrame')[0],sp=all(page.doc,P,'sp').find(s=>s.textContent.includes(tail));
  assert.ok(sp);assert.ok(Number(child(child(child(sp,P,'spPr'),A,'xfrm'),A,'off').getAttribute('y'))>Number(child(child(gf,P,'xfrm'),A,'off').getAttribute('y')));
- b.s03Profile=false;assert.equal(b.columnTableHeightPt(table,box),legacy);
+ b.s03Profile=false;assert.equal(b.columnTableHeightPt(table,box),measured);
 });

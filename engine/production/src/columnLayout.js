@@ -12,7 +12,7 @@ function prepareColumnBlocks(blocks, { omitExcerpt = false, questionGaps = false
     if(b.kind==="text" && /^\*\*(?:문서 형식(?: — 10pt)?|기록 그대로|실제 LLM 응답)\*\*$/.test(t))continue;
     if(omitExcerpt && /^⟨대표 실행 B 발췌/.test(t))continue;
     if(/^⟨중간 내용 생략⟩$|^[.…]+$/.test(t)) {out.push({...b,kind:"bullet",text:t==='.....'?t:OMISSION,depth:0,meta:{...(b.meta||{}),noGlyph:true,noHang:true,omission:true}});continue;}
-    if(b.kind==="table") {out.push(b);continue;}
+    if(b.kind==="table"||b.kind==="column-picture") {out.push(b);continue;}
     const head=b.kind==="heading" || (COLUMN_GROUP.test(t) && blocks[i+1] && blocks[i+1].kind!=="pagebreak");
     const quoted=/^>\s/.test(t);
     const numbered=b.kind==="bullet" && /^(?:\d+\.|[①-⑤])\s/.test(t);
@@ -30,6 +30,7 @@ function prepareColumnBlocks(blocks, { omitExcerpt = false, questionGaps = false
 }
 
 function columnIndent(b,style={}) {
+  if(b.meta?.columnCode)return style.document?(style.answer?COLUMN_BODY_INDENT:411480):COLUMN_BODY_INDENT;
   if(style.document){
     if(b.kind==='heading')return style.answer?0:182880;
     if(b.meta?.columnIntro)return 182880;
@@ -38,11 +39,20 @@ function columnIndent(b,style={}) {
   }
   return b.kind==='heading'?0:COLUMN_BODY_INDENT;
 }
+function practiceGuideSize(block) {
+  return block.kind==="heading"||block.meta?.practicePurpose?14:12;
+}
 function columnTextHeight(blocks, widthPt, space=3,style={}) {
   return blocks.reduce((sum,b)=> {
     const size=style.document?10:b.kind==="heading"?14:12;
     const available=widthPt-14.4-columnIndent(b,style)/12700;
     const t=plain(b.text).replace(/^>\s*/,"");
+    if(style.practiceGuide){
+      const {malgun,wrappedLines}=require('./tableRowMetrics');
+      const pt=practiceGuideSize(b);
+      const indent=b.meta?.practicePurpose?0:columnIndent(b,style)/12700;
+      return wrappedLines(t,widthPt-14.4-indent,malgun()[1],pt,true)*pt*1.2+space*2;
+    }
     // PowerPoint's rendered Malgun Gothic document text has 1em Korean glyphs
     // and .35em spaces. Using the compact answer estimate undercounts wrapped
     // document lines and lets the following native table cover its heading.
@@ -50,4 +60,4 @@ function columnTextHeight(blocks, widthPt, space=3,style={}) {
     return sum+Math.max(1,Math.ceil(width/available))*size*1.2+space*2;
   },0);
 }
-module.exports={OMISSION,COLUMN_BODY_INDENT,prepareColumnBlocks,columnTextHeight,columnIndent};
+module.exports={OMISSION,COLUMN_BODY_INDENT,prepareColumnBlocks,columnTextHeight,columnIndent,practiceGuideSize};

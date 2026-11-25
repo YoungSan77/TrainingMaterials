@@ -1,7 +1,7 @@
 "use strict";
 // production-guide.md 「표지와 과정 목차」: 과정의 첫 세션 덱만 표지(과정명)와 과정 목차(세션 전체)로
 // 시작하고, 그다음이 그 세션의 목차다. 뒤 세션은 자기 목차가 첫 장이다. 과정명과 세션 목록은
-// 원고 옆 ../course-design.md에서 읽으며, 과정 설계가 없으면 두 장 다 만들지 않는다.
+// 과정명·목표는 Course Design, 편성은 Curriculum 또는 기존 Course Design에서 읽는다.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("fs");
@@ -82,9 +82,10 @@ const DESIGN = [
   ...SESSIONS.map((s) => `### S${s.number} — ${s.name.slice(4)} (1시간)\n\n- **목표:** …\n`),
 ].join("\n");
 
-function course(design) {
+function course(design, curriculum) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "tm-cover-"));
   if (design != null) fs.writeFileSync(path.join(root, "course-design.md"), design);
+  if (curriculum != null) fs.writeFileSync(path.join(root, "curriculum.md"), curriculum);
   const dir = path.join(root, "sessions");
   fs.mkdirSync(dir);
   fs.writeFileSync(path.join(dir, "s01.md"), source(SESSION));
@@ -108,6 +109,37 @@ test("과정명과 세션 목록은 course-design.md에서 읽고 폴더 이름�
   const read = courseInfo(course(DESIGN));
   assert.equal(read.name, COURSE);
   assert.deepEqual(read.sessions.map((s) => s.name), SESSIONS.map((s) => s.name));
+});
+
+test("승인 편성의 제목과 행 순서로 과정 목차를 만들고 과정명·목표는 설계에서 읽는다", async () => {
+  const input = course(DESIGN, [
+    "# 별도 과정명",
+    "| 일 | 세션 | 제목 | 편성 |",
+    "|---|---|---|---:|",
+    "| 1 | S03 | 도메인 모델 — 정적 관점 | 90 |",
+    "| 1 | S01 | 사람의 일과 AI의 일 | 60 |",
+    "| | | **전체 합계** | **150** |",
+    "",
+    "| 세션 | 선행 입력 | 결과 |",
+    "|---|---|---|",
+    "| S03 | 입력 | 결과 |",
+  ].join("\n"));
+  const read = courseInfo(input);
+  assert.equal(read.name, COURSE);
+  assert.deepEqual(read.goal, { lead: GOAL_LEAD, goals: GOALS });
+  const pages = await pagesOf("03. 도메인 모델 — 정적 관점", read);
+  assert.ok(pages[0].isCover);
+  assert.equal(pages[1].heading, COURSE + " 목차");
+  const entries = [...pages[1].doc.getElementsByTagName("a:p")].filter((p) => /^\d\d\. /.test(p.textContent));
+  assert.deepEqual(entries.map((p) => p.textContent), ["03. 도메인 모델 — 정적 관점", SESSION]);
+  assert.ok(pages[2].isCourseGoal);
+  assert.ok(!(await pagesOf(SESSION, read)).some((p) => p.isCover));
+});
+
+test("편성표가 없거나 세션 ID가 중복되면 오래된 설계 목록으로 대체하지 않는다", () => {
+  assert.throws(() => courseInfo(course(DESIGN, "# Curriculum\n")), /편성표가 없다/);
+  const duplicate = "| 세션 | 제목 |\n|---|---|\n| S01 | 개요 |\n| S01 | 중복 |";
+  assert.throws(() => courseInfo(course(DESIGN, duplicate)), /ID 중복/);
 });
 
 test("과정 설계가 없으면 과정도 표지도 없다", async () => {

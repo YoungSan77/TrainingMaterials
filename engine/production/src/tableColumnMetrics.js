@@ -2,11 +2,38 @@
 const {A,P,all,child,kids}=require('./xml'),{cellHeight,cellWidth,fitTableRows}=require('./tableRowMetrics');
 const pt=n=>Number(n)/12700;
 function tableRows(gf){return kids(all(gf,A,'tbl')[0],A,'tr').map(r=>kids(r,A,'tc'));}
+// Compute once from the entire source table, before row pagination. Natural widths
+// include both real header/body font advances and the existing cell margins.
+function contentWidths(gf,availablePt,{softIdentifiers=false}={}){
+ const rows=tableRows(gf),n=rows[0].length;
+ const natural=Array.from({length:n},(_,i)=>Math.max(...rows.map(r=>cellWidth(r[i],false,true))));
+ const minimum=natural.map((w,i)=>Math.min(w,Math.max(
+  cellWidth(rows[0][i],'words',true,softIdentifiers),
+  ...rows.flatMap(r=>[cellWidth(r[i],true,true,softIdentifiers),cellWidth(r[i],'hangul',true)]),
+  ...rows.slice(1).map(r=>softIdentifiers?cellWidth(r[i],'shortLabel',true):0),
+  ...rows.filter(r=>/^(?:[+-]?\d[\d,]*(?:원|회)?|[^\s]{1,4})$/.test(all(r[i],A,'t').map(t=>t.textContent).join(''))).map(r=>cellWidth(r[i],false,true))
+ )));
+ const total=natural.reduce((s,w)=>s+w,0),floor=minimum.reduce((s,w)=>s+w,0);
+ if(total<=availablePt)return {widths:natural,natural,minimum,availablePt};
+ if(floor>availablePt)throw Error(`표의 머리글·짧은 값 최소 폭 ${floor.toFixed(1)}pt가 한 열 ${availablePt.toFixed(1)}pt를 넘는다`);
+ // Freeze only columns that would violate their floor. The remaining columns
+ // retain the ratio of their measured natural widths.
+ const widths=Array(n).fill(0);
+ let remaining=availablePt,active=natural.map((_,i)=>i);
+ while(active.length){
+  const scale=remaining/active.reduce((sum,i)=>sum+natural[i],0);
+  const constrained=active.filter(i=>natural[i]*scale<minimum[i]);
+  if(!constrained.length){for(const i of active)widths[i]=natural[i]*scale;break;}
+  for(const i of constrained){widths[i]=minimum[i];remaining-=widths[i];}
+  active=active.filter(i=>widths[i]===0);
+ }
+ return {widths,natural,minimum,availablePt};
+}
 function naturalWidths(frames){
  const rows=frames.flatMap(tableRows),grids=frames.map(g=>all(g,A,'gridCol'));
  for(const row of rows)for(const cell of row)for(const pr of all(cell,A,'tcPr'))for(const k of ['marL','marR','marT','marB'])pr.setAttribute(k,'54000');
  const widths=grids[0].map((_,i)=>Math.ceil(Math.max(...rows.map(r=>cellWidth(r[i])))*12700));
- const total=widths.reduce((s,w)=>s+w,0),available=651.97*12700;
+ const total=widths.reduce((s,w)=>s+w,0),available=Math.min(651.97*12700,...frames.map(g=>Number(child(child(g,P,'xfrm'),A,'ext').getAttribute('cx'))));
  const applied=total<=available?widths:widths.map(w=>Math.floor(w*available/total));
  for(const gf of frames){
   const b=bounds(gf,true),xf=child(gf,P,'xfrm'),sum=applied.reduce((s,w)=>s+w,0);
@@ -15,11 +42,13 @@ function naturalWidths(frames){
  }
  return {changed:true,afterPt:applied.map(pt),reason:'longest displayed line plus 54000EMU left/right margins'};
 }
-function optimizeWidths(frames,{compact=false}={}){
+function optimizeWidths(frames,{compact=false,columnFlow=false}={}){
  const grids=frames.map(g=>kids(all(g,A,'tblGrid')[0],A,'gridCol')),old=grids[0].map(c=>pt(c.getAttribute('w'))),total=old.reduce((a,b)=>a+b,0),rows=frames.flatMap(tableRows),n=old.length;
  const header=frames.flatMap(g=>tableRows(g).slice(0,1));
  const natural=old.map((_,i)=>Math.max(...rows.map(r=>cellWidth(r[i]))));
- const minimum=old.map((_,i)=>Math.max(16,...header.map(r=>cellWidth(r[i])),...rows.map(r=>cellWidth(r[i],true)))+.3);
+ const minimum=old.map((_,i)=>columnFlow
+  ?Math.max(33,...rows.map(r=>cellWidth(r[i],true)+.5))
+  :Math.max(16,...header.map(r=>cellWidth(r[i])),...rows.map(r=>cellWidth(r[i],true)))+.3);
  if(header.some(r=>all(r[0],A,'t').map(t=>t.textContent).join('')==='용어'))minimum[0]=Math.max(minimum[0],...rows.map(r=>cellWidth(r[0])).filter(w=>w<=old[0]+2).map(w=>w+.3));
  if(minimum.reduce((a,b)=>a+b,0)>total)return {changed:false,reason:'unbroken headers/tokens exceed total width'};
  const cache=new Map();
@@ -61,15 +90,19 @@ function bounds(node,frame=false){const xf=frame?child(node,P,'xfrm'):child(chil
 function optimizeSessionTables(pages){
  const groups=new Map(),reports=[],pageChanges=new Map();
  for(const page of pages)for(const gf of all(page.doc,P,'graphicFrame')){
+  // Column-contained tables were measured before row pagination with shared widths.
+  // Re-optimizing fragments here would invalidate both row boundaries and column flow.
+  if(page.containedTables)continue;
   if(!all(gf,A,'tbl').length)continue;
-  const rows=tableRows(gf),grid=all(gf,A,'gridCol'),key=rows[0].map(c=>all(c,A,'t').map(t=>t.textContent).join('')).join('|')+':'+grid.reduce((s,c)=>s+Number(c.getAttribute('w')),0);
+  const rows=tableRows(gf),grid=all(gf,A,'gridCol');
+  const key=[page.session,page.heading.split('\n')[0].replace(/ \(\d+\/\d+\)$/,''),page.contentRole,grid.length,grid.reduce((s,c)=>s+Number(c.getAttribute('w')),0)].join(':');
   if(!groups.has(key))groups.set(key,[]);groups.get(key).push({page,gf,before:bounds(gf,true)});
  }
  for(const group of groups.values()){
   const result=group[0].page.documentTablePt===8?optimizeWidths(group.map(v=>v.gf)):naturalWidths(group.map(v=>v.gf));reports.push({...result,heading:group[0].page.heading});if(!result.changed)continue;
   for(const item of group){
    const oldRows=all(item.gf,A,'tr').map(r=>Number(r.getAttribute('h'))),fit=fitTableRows(item.gf);
-   // Ordinary 10pt tables retain the general 0.8cm row minimum; S03 response
+   // Ordinary 10pt tables retain the general 0.8cm row minimum; recorded response
    // tables use exact 8pt text height plus their existing 0.15cm cell margins.
    if(item.page.documentTablePt!==8){
     for(const row of all(item.gf,A,'tr'))row.setAttribute('h',String(Math.max(288000,Number(row.getAttribute('h')))));
@@ -89,4 +122,4 @@ function optimizeSessionTables(pages){
  }
  return reports;
 }
-module.exports={optimizeWidths,optimizeSessionTables,naturalWidths};
+module.exports={optimizeWidths,optimizeSessionTables,naturalWidths,contentWidths};

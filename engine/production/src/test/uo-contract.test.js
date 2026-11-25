@@ -32,25 +32,25 @@ test('a no-glyph quotation starts at its same-level bullet glyph',async()=>{
  const ps=all(page.doc,A,'p'),quote=ps.find(p=>p.textContent.includes('한글 문형')),bullet=ps.find(p=>p.textContent.includes('같은 수준의 항목'));
  const a=child(quote,A,'pPr'),b=child(bullet,A,'pPr');assert.equal(Number(a.getAttribute('marL')),Number(b.getAttribute('marL'))+Number(b.getAttribute('indent')));assert.equal(a.getAttribute('indent'),'0');assert.ok(child(a,A,'buNone'));assert.ok(Number(b.getAttribute('indent'))<0);
 });
-test('four answer segments become two pages with one editable object per uninterrupted column',async()=>{
- const {m}=await fixture(),ps=m.pages.filter(p=>p.appendix);assert.equal(ps.length,2);
- for(const p of ps){const bodies=p.items.filter(i=>i.kind==='body'&&i.text);assert.equal(bodies.length,2);for(const it of bodies){const sh=shape(p.doc,it.id);assert.ok(kids(body(sh),A,'p').length>=2);}}
- assert.equal(ps[1].items.filter(i=>i.kind==='table').length,1);
- const printed=ps.flatMap(p=>p.items.map(i=>i.text||'')).join('\n');assert.ok(!printed.includes('대표 실행 B'));assert.equal((printed.match(/…\.\./g)||[]).length,2);
+test('recorded answer segments fill columns at the common size without losing source or omissions',async()=>{
+ const {m}=await fixture(),ps=m.pages.filter(p=>p.appendix);assert.equal(ps.length,1);
+ for(const p of ps){const bodies=p.items.filter(i=>i.kind==='body'&&i.text);assert.ok(bodies.length>=1);for(const it of bodies){const sh=shape(p.doc,it.id);assert.ok(kids(body(sh),A,'p').length>=2);}}
+ assert.equal(ps[0].items.filter(i=>i.kind==='table').length,1);
+ const printed=ps.flatMap(p=>p.items.map(i=>i.text||'')).join('\n');assert.ok(printed.includes('대표 실행 B'));assert.equal((printed.match(/…\.\./g)||[]).length,2);
 });
-test('two authored answer pages split at group headings while keeping the case table on the left',async()=>{
+test('recorded answer groups keep their table and original order at the common size',async()=>{
  const answer='## 별첨. 실습 답\n\n## 응답\n\n**실제 LLM 응답**\n\n### 스토리\n\n- 고객의 가치\n\n### 주문 생성\n\n- 배송지 확정\n\n### 금액\n\n- 생성 시 확정\n\n### 결제\n\n'+Array(8).fill('- 카드 승인과 거절의 처리 규칙을 확인한다.').join('\n')+'\n\n### 배송\n\n- 승인 뒤 요청\n\n**페이지 분할**\n\n### 재결제\n\n- 같은 주문\n\n**기대 결과**\n\n| 관찰 | 거절 | 승인 |\n|---|---|---|\n| 배송 | 0 | 1 |\n\n### 성능 시험\n\n'+Array(6).fill('- 같은 시험 환경에서 응답 시간을 측정한다.').join('\n')+'\n\n### 배송 실패\n\n- 정책은 미정\n';
  const p=parse('## 01. 사례\n\n본문\n\n'+answer),file=path.join(fs.mkdtempSync(path.join(os.tmpdir(),'tm-answer-pages-')),'out.pptx');
  const m=await render(p.sections,TEMPLATE_DIR,file,'03. 요구사항',[{kind:'bullet',text:'01. 사례',depth:0,rows:[]}],{productionProfile:'ai-native-s03'});
- const pages=m.pages.filter(p=>p.appendix);assert.equal(pages.length,2);
- assert.equal(pages[0].items.filter(i=>i.kind==='body'&&i.text).length,2);
- const table=pages[1].items.find(i=>i.kind==='table');assert.ok(table);
- assert.ok(all(pages[1].doc,A,'tbl').length===1);
+ const pages=m.pages.filter(p=>p.appendix);assert.equal(pages.length,1);
+ assert.ok(pages[0].items.filter(i=>i.kind==='body'&&i.text).length>=1);
+ const table=pages[0].items.find(i=>i.kind==='table');assert.ok(table);
+ assert.ok(all(pages[0].doc,A,'tbl').length===1);
  assert.deepEqual((await inspect(file,m)).errors,[]);
  for(const page of pages)for(const it of page.items.filter(i=>i.kind==='body'&&i.text)) {
   for(const p of kids(body(shape(page.doc,it.id)),A,'p')) {
    const pr=child(p,A,'pPr'),head=pr.getAttribute('marL')==='0';
-   assert.ok(all(p,A,'rPr').every(r=>r.getAttribute('sz')===(head?'1400':'1200')));
+   assert.ok(all(p,A,'rPr').every(r=>r.getAttribute('sz')==='1000'));
    if(head){assert.ok(child(pr,A,'buNone'));assert.ok(all(p,A,'rPr').every(r=>r.getAttribute('b')==='1'));}
   }
  }

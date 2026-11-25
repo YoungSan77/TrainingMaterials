@@ -17,7 +17,7 @@ function candidates(sections,selector){
  return found;
 }
 function verifiedRecordedChecks(inputPath,sections){
- const result={unboldedText:new WeakSet(),flatGroupItems:new WeakSet(),checks:[],warnings:[]};
+ const result={unboldedText:new WeakSet(),flatGroupItems:new WeakSet(),checks:[],warnings:[],excerpts:require('./responseExcerpts').verifyResponseExcerpts(inputPath,fs.existsSync(inputPath)?fs.readFileSync(inputPath,'utf8'):'')};
  const course=path.resolve(path.dirname(inputPath),'..'),config=path.join(course,'recorded-checks.json');
  if(!fs.existsSync(config))return result;
  const entries=JSON.parse(fs.readFileSync(config,'utf8')).entries||[];

@@ -1,6 +1,6 @@
 "use strict";
 // Port of LecturePpt.paragraphs(): rewrites a placeholder shape's paragraphs from a Block list.
-const { A, el, kids, body, shape, spacing } = require("./xml");
+const { A, el, kids, body, shape, spacing, all, child } = require("./xml");
 const { rich, richInline, run, runParen } = require("./richText");
 const { plain } = require("./text");
 
@@ -51,6 +51,10 @@ function numberWidthEmu(prefix, size) {
 
 function paragraphs(page, id, blocks, toc) {
   const b = body(shape(page.doc, id));
+  page.proseSpacingChecks=(page.proseSpacingChecks||[]).filter(c=>c.id!==id);
+  // The approved S04 review question ends only 0.86pt beyond the usual right
+  // inset in PowerPoint. Recover 1.5pt of inset, keeping its text, font and origin.
+  if(page.s04Profile&&String(page.heading).startsWith('10.')&&!toc&&blocks.some(v=>v.kind==='bullet'&&/^\d+\.\s/.test(v.text)))child(b,A,'bodyPr').setAttribute('rIns','72390');
   for (const p of kids(b, A, "p")) b.removeChild(p);
   // CT_TextBody requires at least one <a:p> -- a visual-only page (images, no prose) calls this
   // with an empty `blocks` to clear the placeholder's inherited text, and looping zero times over
@@ -63,7 +67,9 @@ function paragraphs(page, id, blocks, toc) {
     const p = el(page.doc, A, "p");
     b.appendChild(p);
     const requirementsHeading=page.s03Profile && /^03\. 요구와 요구사항/.test(page.heading) && block.kind==='heading' && block.text==='요구사항';
-    const pr = spacing(p, requirementsHeading?12:page.paragraphSpace??6, page.paragraphSpace??6, null);
+    const space=block.meta?.reviewExample?3:page.paragraphSpace??6;
+    const pr = spacing(p, requirementsHeading?12:space, space, null);
+    if(block.meta?.reviewExample)page.proseSpacingChecks.push({id,index:kids(b,A,'p').length-1,space:3});
     // parse.js reuses the "bullet" kind for authored ordered-list items ("1. ", "2. ", ...) too,
     // keeping the numeral as literal text -- and for "+ " indent-only lines (block.meta.noGlyph).
     // Both still want the placeholder's lvl-based indentation; they just shouldn't ALSO get its
@@ -72,7 +78,8 @@ function paragraphs(page, id, blocks, toc) {
     // "(1) ", "(2) ", ... is the same self-numbered case written with parens instead of a period.
     const selfNumbered = block.kind === "bullet" && /^(?:\d+\.|\(\d+\))\s/.test(block.text);
     const representative = Boolean(block.meta && block.meta.groupHead);
-    const noGlyph = selfNumbered || representative || (block.meta && block.meta.noGlyph);
+    const citation=Boolean(block.meta?.quote||block.meta?.anchor||block.kind==='bullet'&&bulletCitation(block.text));
+    const noGlyph = selfNumbered || representative || (block.meta && block.meta.noGlyph) || citation;
     if (block.kind === "bullet") {
       // Shifted one level deeper than the raw depth would suggest: the layout's own lvl=1 glyph
       // (BULLET_LEVELS[0], Wingdings ) renders as a filled square, which read as visually
@@ -96,7 +103,7 @@ function paragraphs(page, id, blocks, toc) {
         // 인용문처럼 글머리표도 번호도 없는 문단은 내어쓰기까지 없앤다 -- 글머리표를 숨긴 자리에
         // 남은 내어쓰기가 첫 줄만 왼쪽으로 끌어내, 줄바꿈된 둘째 줄과 시작점이 달랐다(2026-11-15).
         if (representative || (block.meta && block.meta.noHang) || (noGlyph && !selfNumbered)) {
-          const glyphAligned=block.meta && (block.meta.alignGlyph||block.meta.quote||block.meta.anchor) || /^>\s/.test(block.text);
+          const glyphAligned=citation || block.meta && (block.meta.alignGlyph||block.meta.quote||block.meta.anchor) || /^>\s/.test(block.text);
           const bodyAligned=block.meta && block.meta.alignBody || !glyphAligned;
           pr.setAttribute("marL", String(representative ? 381000 : bodyAligned ? level.marL : level.marL+level.indent));
           pr.setAttribute("indent", "0");
@@ -112,6 +119,10 @@ function paragraphs(page, id, blocks, toc) {
       pr.setAttribute("marL", "0");
       pr.setAttribute("indent", "0");
       pr.appendChild(el(page.doc, A, "buNone"));
+    }
+    if(block.meta?.columnCode){
+      run(p,block.text,10,false,true);expected.push(block.text);
+      page.codeParagraphChecks??=[];page.codeParagraphChecks.push({id,index:kids(b,A,'p').length-1,text:block.text});continue;
     }
     if (block.meta && block.meta.caption) {
       // A table title ("**표 — 제목**", production-guide.md "표·도식 제목"): 14pt bold, centered.
@@ -154,21 +165,25 @@ function paragraphs(page, id, blocks, toc) {
       // A bullet citation keeps its level's body size for the Korean part (production-guide.md
       // "인용문" -- bullet 인용); the 10pt English/source zone is the same either way.
       // markedPartsA[4] marks the summary form, whose Korean is not a quotation and keeps no quotes.
-      const quoteBoth=page.s03Profile;
-      const korean = quoteBoth ? displayQuote(markedPartsA[1]) : markedPartsA[4] ? markedPartsA[1] : `"${markedPartsA[1]}"`;
+      const quoteBoth=page.quoteTranslations || page.s03Profile;
+      const korean = quoteBoth ? displayQuote(markedPartsA[1]) : markedPartsA[4] ? markedPartsA[1] : displayQuote(markedPartsA[1]);
       // 마침표형 요약 인용은 한글이 제 종결 부호로 끝나므로 쉼표를 덧붙이지 않는다(summaryParts).
       const sep = markedPartsA[5] || ", ";
-      const quoteSize = block.kind === "bullet" && !(block.meta && block.meta.anchor) ? [16,14,12][Math.min(block.depth,2)] : 18;
+      const independent=markedQuote && block.meta.authoredKind!=='bullet' && !page.s03Profile;
+      const quoteSize = !independent && block.kind === "bullet" && !(block.meta && block.meta.anchor) ? [16,14,12][Math.min(block.depth,2)] : 18;
       richInline(p, korean, quoteSize, false);
+      const koreanRuns=all(p,A,'r').length;
       run(p, sep, 10, false);
       if (markedPartsA[2]) {
         // 영문 원문을 감싼 바깥따옴표는 원고에서 영역을 가르는 표식이므로 화면에 그리지 않는다.
         // 원문 **안**의 따옴표(`\"`)와 문장부호는 그대로 남는다(2026-11-16).
-        run(p, plain(quoteBoth?displayQuote(markedPartsA[2]):markedPartsA[2]), 10, false);
+        run(p, plain(displayQuote(markedPartsA[2])), 10, false);
         run(p, ", ", 10, false);
       }
       run(p, plain(markedPartsA[3]), 10, false);
-      expected.push(plain(`${korean}${sep}` + (markedPartsA[2] ? `${quoteBoth?displayQuote(markedPartsA[2]):markedPartsA[2]}, ` : "") + markedPartsA[3]));
+      page.quoteChecks??=[];
+      page.quoteChecks.push({id,index:kids(b,A,'p').length-1,koreanRuns,koreanSize:quoteSize,sourceSize:10});
+      expected.push(plain(`${korean}${sep}` + (markedPartsA[2] ? `${displayQuote(markedPartsA[2])}, ` : "") + markedPartsA[3]));
     } else if (markedPartsB) {
       richInline(p, unescapeQuotes(markedPartsB.korean), 18, false);
       run(p, ", ", 10, false);

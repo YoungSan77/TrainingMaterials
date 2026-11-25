@@ -111,12 +111,20 @@ async function generateFile(inputPath, outputPath, templatePath) {
   const tmp = path.join(parent, "lecture-candidate-" + process.pid + "-" + Date.now() + ".pptx");
   try {
     need(session, "Markdown 상단에 'Session 명: <값>' 헤더가 필요하다.");
-    const m = await builder.render(sections, templatePath, tmp, session, toc, courseInfo(inputPath));
-    const inspected = await inspect(tmp, m);
     const source = fs.readFileSync(inputPath, "utf-8");
     const recorded = require('./recordedChecks').verifiedRecordedChecks(inputPath, sections);
+    for(const evidence of recorded.excerpts.evidence.filter(e=>e.status==='PASS')){
+      const section=sections.find(s=>s.title===evidence.topic&&s.appendix&&s.verbatimResponse);
+      if(!section)continue;
+      const {response,draft}=recorded.excerpts.records.get(evidence.topic);
+      if(evidence.omissions.length)section.recordedTables=parse(response).sections.flatMap(s=>s.blocks.filter(b=>b.kind==='table'));
+      if(draft)section.recordedDraft=parse(draft).sections.flatMap(s=>s.blocks.filter(b=>b.kind==='mermaid'));
+    }
+    const m = await builder.render(sections, templatePath, tmp, session, toc, courseInfo(inputPath));
+    const structureErrors = checkStructure(inputPath, session, sections, m.pages);
+    const inspected = await inspect(tmp, m);
     const refs = checkReferences(inputPath, source);
-    refs.errors.push(...checkStructure(inputPath, session, sections, m.pages));
+    refs.errors.push(...structureErrors);
     const code = checkCodeSources(inputPath, source);
     refs.errors.push(...code.errors);
     refs.warnings.push(...code.warnings);
@@ -135,7 +143,7 @@ async function generateFile(inputPath, outputPath, templatePath) {
     refs.warnings.push(...practiceShape(sections));
     refs.warnings.push(...missingPracticeAnswer(sections));
     refs.warnings.push(...missingModelUpdate(sections));
-    refs.warnings.push(...spelledNumbers(sections));
+    refs.warnings.push(...spelledNumbers(sections,recorded));
     refs.warnings.push(...checkOrphanCode(inputPath));
     refs.warnings.push(...(m.layoutWarnings || []));
     // Diagram text below MIN_PT (production-guide.md "Visual layout 및 가독성"): the diagram had to
@@ -151,7 +159,8 @@ async function generateFile(inputPath, outputPath, templatePath) {
     const qaPath = path.join(path.dirname(outputPath), filename.replace(/\.pptx$/i, "") + ".qa.json");
     if (errors.length) logAutomaticCheck(errors, warnings);
     need(report.errors.length === 0, report.errors.join("\n"));
-    publishPair(tmp, outputPath, qaPath, report.json());
+    const qa=JSON.parse(report.json());qa.response_excerpts=refs.responseExcerpts.evidence;qa.table_layout=inspected.tableLayout;qa.layout_gates=inspected.layoutGates;
+    publishPair(tmp, outputPath, qaPath, JSON.stringify(qa,null,2));
     console.log("생성: " + outputPath + " (" + report.slides + "장)");
     logAutomaticCheck(errors, warnings);
     for (const w of warnings) console.log("경고: " + w);
@@ -206,7 +215,8 @@ async function generateBundle(inputPaths, outputPath, templatePath) {
     const qaPath = path.join(path.dirname(outputPath), path.basename(outputPath).replace(/\.pptx$/i, "") + ".qa.json");
     if (inspected.errors.length) logAutomaticCheck(inspected.errors, warnings);
     need(inspected.errors.length === 0, inspected.errors.join("\n"));
-    publishPair(tmp, outputPath, qaPath, reportJson(inspected.errors, inspected.slides, inspected.blocks, warnings));
+    const qa=JSON.parse(reportJson(inspected.errors, inspected.slides, inspected.blocks, warnings));qa.table_layout=inspected.tableLayout;
+    publishPair(tmp, outputPath, qaPath, JSON.stringify(qa,null,2));
     console.log("생성: " + outputPath + " (" + inspected.slides + "장, 원고 " + inputPaths.length + "개)");
     logAutomaticCheck(inspected.errors, warnings);
     for (const w of warnings) console.log("경고: " + w);

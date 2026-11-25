@@ -15,7 +15,7 @@ const CODE_SPAN = /`([^`]*)`/g;
 // inline explanation, so it renders 2pt under the line's base size (see rich()).
 const DASH = "\u2014";
 
-function run(p, text, size, bold) {
+function run(p, text, size, bold, monospace = false) {
   if (text === "") return;
   const d = p.ownerDocument;
   const r = el(d, A, "r");
@@ -23,7 +23,7 @@ function run(p, text, size, bold) {
   const fill = el(d, A, "solidFill");
   fill.appendChild(el(d, A, "srgbClr", "val", "000000"));
   pr.appendChild(fill);
-  pr.appendChild(el(d, A, "latin", "typeface", "\ub9d1\uc740 \uace0\ub515"));
+  pr.appendChild(el(d, A, "latin", "typeface", monospace ? "Consolas" : "\ub9d1\uc740 \uace0\ub515"));
   pr.appendChild(el(d, A, "ea", "typeface", "\ub9d1\uc740 \uace0\ub515"));
   r.appendChild(pr);
   const t = el(d, A, "t");

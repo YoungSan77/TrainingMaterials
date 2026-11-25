@@ -44,7 +44,14 @@ function styleSource(source, box) {
   // Class diagrams use quoted strings for multiplicities, not flowchart node labels.
   // HTML-bold wrappers change both their displayed value and the layout's measured extent.
   // Mermaid already bolds class headings; keep cardinalities and member text verbatim.
-  if (/^\s*classDiagram\b/m.test(String(source))) return String(source);
+  if (/^\s*classDiagram\b/m.test(String(source))) return String(source).replace(/^([ \t]*note for .*?)$/gm,line=>line.replaceAll('\\n','<br/>'));
+  if (needsStateLoopLayout(source)) {
+    return String(source).replace(/^(\s*stateDiagram(?:-v2)?[^\n]*)\n/, "$1\n    direction LR\n");
+  }
+  if (hasStateLabelBreak(source)) {
+    return String(source).replace(/^(\s*state\s+")([^"\n]+)(".*)$/gm,
+      (_,start,label,end)=>start+label.replaceAll('\\n','<br/>')+end);
+  }
   return String(source).split("\n").map((line) => {
     const lineBox = /^\s*subgraph\b/.test(line) ? null : box;
     return line.replace(/"([^"]*)"/g, (whole, inner) => '"' + styleLabel(inner, lineBox) + '"');
@@ -88,6 +95,7 @@ const MERMAID_CONFIG = {
     labelBackground: "#ffffff",
     edgeLabelBackground: "#ffffff",
     noteBkgColor: "#ffffff",
+    noteTextColor: "#1e293b",
     primaryBorderColor: "#475569",
     nodeBorder: "#475569",
     noteBorderColor: "#475569",
@@ -98,6 +106,12 @@ const MERMAID_CONFIG = {
 };
 
 const isClassDiagram = (source) => /^\s*classDiagram\b/m.test(String(source));
+const hasStateLabelBreak = source=>/^\s*stateDiagram(?:-v2)?\b/.test(source)
+  && /^\s*state\s+"[^"\n]*\\n/m.test(source);
+const needsStateLoopLayout = (source) =>
+  /^\s*stateDiagram(?:-v2)?\b/.test(source)
+  && !/^\s*direction\s+\w+/m.test(source)
+  && /^\s*(\w+)\s*-->\s*\1\s*:/m.test(source);
 
 // 원고가 `style` 줄로 지정한 색(02의 2,400원·2,000원)은 그대로 남는다 — 테마 변수는 기본값만
 // 정하고, 원고의 지정이 그 위에 덮인다.
@@ -124,11 +138,34 @@ function svgMetrics(svg) {
   return { svgWidth: width, fontPx: base ? Number(base[1]) : 16 };
 }
 
-async function renderMermaid({ source }) {
+function wrapSequenceNotes(source) {
+  return source.replace(/^([ \t]*note\s+(?:over|left of|right of)\s+[^:\n]+:\s*)([^\n]+)$/gim,(_,prefix,note)=>{
+    const width=text=>Array.from(text).reduce((n,ch)=>n+(ch.codePointAt(0)>0x7f?1:.55),0);
+    const lines=note.split(/<br\s*\/?>/i).flatMap(line=>{
+      let current='';
+      const parts=[];
+      for(const word of line.split(/\s+/)){
+        const next=current?current+' '+word:word;
+        if(current&&width(next)>10.5){parts.push(current);current=word;}
+        else current=next;
+      }
+      return [...parts,current];
+    });
+    return prefix+lines.join('<br/>');
+  });
+}
+
+async function renderMermaid({ source, compactNotes=false, compactActors=false, compactComparison=false }) {
   if (!source || !String(source).trim()) throw new Error("Mermaid source가 비어 있다");
   fs.mkdirSync(CACHE_DIR, { recursive: true });
-  const version = isClassDiagram(source) ? "v16-class-white" : "v19-white-bkg";
-  const hash = crypto.createHash("sha1").update(version + "\n" + JSON.stringify(MERMAID_CONFIG) + "\n" + source).digest("hex").slice(0, 16);
+  const version = isClassDiagram(source) ? "v17-class-notes" : needsStateLoopLayout(source) ? "v20-state-loop-lr" : hasStateLabelBreak(source) ? "v21-state-label-break" : "v19-white-bkg";
+  const renderedSource=compactNotes&&/^\s*sequenceDiagram\b/.test(source)?wrapSequenceNotes(source):source;
+  const config=compactActors||compactComparison?{...mermaidConfig(),sequence:{...MERMAID_CONFIG.sequence,width:110,actorMargin:24}}:mermaidConfig();
+  if(compactComparison){
+    config.state={nodeSpacing:20,rankSpacing:18,padding:4};
+    Object.assign(config.sequence,{width:92,actorMargin:16,height:34,messageMargin:20,boxMargin:16,diagramMarginX:8});
+  }
+  const hash = crypto.createHash("sha1").update(version + "\n" + JSON.stringify(config) + "\n" + renderedSource).digest("hex").slice(0, 16);
   const pngPath = path.join(CACHE_DIR, hash + ".png");
   const metricsPath = path.join(CACHE_DIR, hash + ".json");
   if (!fs.existsSync(pngPath) || !fs.existsSync(metricsPath)) {
@@ -144,14 +181,14 @@ async function renderMermaid({ source }) {
       if (!fs.existsSync(MMDC)) throw new Error("Mermaid CLI가 설치되지 않았다: " + MMDC);
       if (!fs.existsSync(CHROME)) throw new Error("Mermaid 렌더용 Chrome이 없다: " + CHROME);
       fs.writeFileSync(puppeteerPath, JSON.stringify({ executablePath: CHROME, args: ["--no-sandbox"] }), "utf8");
-      fs.writeFileSync(configPath, JSON.stringify(mermaidConfig(source)), "utf8");
+      fs.writeFileSync(configPath, JSON.stringify(config), "utf8");
       // Pass 1 measures every node's label box; pass 2 renders with all nodes at the largest one.
-      fs.writeFileSync(sourcePath, styleSource(source), "utf8");
+      fs.writeFileSync(sourcePath, styleSource(renderedSource), "utf8");
       runMmdc(sourcePath, svgPath, puppeteerPath, [], configPath);
       const box = maxNodeLabelBox(fs.readFileSync(svgPath, "utf8"));
       // "neutral" theme avoids the default theme's colored node-fill boxes behind labels, so slide
       // text next to the diagram doesn't read as inconsistent "some labels have a background".
-      fs.writeFileSync(sourcePath, styleSource(source, box), "utf8");
+      fs.writeFileSync(sourcePath, styleSource(renderedSource, box), "utf8");
       // 같은 원본을 SVG로 한 번 더 그려 도식 자신의 너비와 글자 크기를 잰다(svgMetrics).
       runMmdc(sourcePath, svgPath, puppeteerPath, [], configPath);
       const metrics = svgMetrics(fs.readFileSync(svgPath, "utf8"));

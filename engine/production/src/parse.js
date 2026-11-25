@@ -29,6 +29,7 @@ function extractSession(lines) {
   return { session: m[1].trim(), rest: lines.slice(i + 3) };
 }
 
+const blockRanges=new WeakMap(),responseSections=new WeakSet();
 function parse(input) {
   const raw = linesOf(input.replace(/^﻿/, ""));
   const { session, rest } = extractSession(raw);
@@ -46,12 +47,14 @@ function parse(input) {
   let current = null;
   let inNotes = false;
   let i = 0;
+  const offset=raw.length-lines.length;let startLine=0;
   // TM parser extension (NOT present in lecture-ppt-java): every topic is a single logical unit
   // of text/list/table/visual/notes -- notes are collected separately (section.notes) so they
   // never leak into slide body content, but visual/text/code blocks all stay in one flat
   // section.blocks list. Splitting that list into slides is a builder/renderer concern (Phase 2+
   // of the Golden-core migration), not something decided at parse time.
   function push(b) {
+    blockRanges.set(b,{start:startLine,end:offset+i});
     (inNotes ? current.notes : current.blocks).push(b);
   }
   // Per guides/session-authoring-guide.md ("목차와 Topic 번호 규칙") and guides/production-guide.md
@@ -63,6 +66,7 @@ function parse(input) {
   let group = null;
   while (i < lines.length) {
     const line = lines[i++];
+    startLine=offset+i;
     if (line.trim() === "") continue;
     // Per session-authoring-guide.md ("의미 표식과 블록 경계"): notes run "until the next
     // horizontal rule or the next `## NN. 제목`" -- whichever comes first. A horizontal rule
@@ -110,8 +114,10 @@ function parse(input) {
     if (!inNotes && line.trim() === "**실제 LLM 응답**") {
       need(current.appendix, "실제 LLM 응답 표식은 별첨 topic에만 쓴다.");
       current.verbatimResponse = true;
+      responseSections.add(current);
       continue;
     }
+    if(!inNotes&&line.trim()==='**실제 LLM 응답 끝**')continue;
     // 시연 topic은 실제로 준 입력과 받은 결과를 본문에 그대로 싣는다. 저자가 쓴 글이 아니므로
     // 핵심어 강조 검사에서 뺀다 — 강조를 더하는 것 자체가 기록을 고치는 일이다(2026-10-31).
     if (!inNotes && line.trim() === "**기록 그대로**") {
@@ -232,7 +238,8 @@ function parse(input) {
     if (subs[0].side) g.side = true;
     sections.splice(k + 1, 1);
   }
+  require('./contentRoles').markReviewExamples(sections);
   return { session, toc: toc ? toc.blocks : null, sections };
 }
 
-module.exports = { parse, block };
+module.exports = { parse, block, sourceRangeOf:b=>blockRanges.get(b), hasResponseExcerpt:s=>responseSections.has(s) };

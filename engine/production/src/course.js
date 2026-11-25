@@ -1,19 +1,73 @@
 "use strict";
-// 과정 — 첫 세션 덱의 표지와 과정 목차에 쓰는 과정명과 세션 목록이다(production-guide.md 「표지와
-// 과정 목차」). 원고 옆의 `../course-design.md`가 원천이며, 원고는 둘 다 적지 않는다.
-//
-//   - **과정명:** AI-native SW 공학 (`ai-native`)
-//   ### S01 — 사람의 일과 AI의 일 (1시간 30분)
-//
-// 과정 설계가 없는 입력(테스트 fixture, 과정 밖의 참조 덱)은 과정이 없고 두 장도 만들지 않는다.
+// 과정명·목표는 Course Design, 세션 편성은 Curriculum에서 읽는다.
+// Curriculum이 없는 과정은 기존 Course Design 제목을 계속 사용한다.
 const fs = require("fs");
 const path = require("path");
 
 const NAME = /^-\s*\*\*과정명:\*\*\s*(.+?)\s*$/m;
-// 세션 목록은 references.js가 세션명을 확인할 때 쓰는 heading과 같은 것이다.
-const SESSION = /^### S(\d\d) — (.+?) \([^)]*\)\s*$/gm;
+const LEGACY_SESSION = /^### S(\d\d) — (.+?) \([^)]*\)\s*$/gm;
 // 과정 목표 슬라이드 — 표지 다음 장에 그대로 그릴 문단과 목록이다. 없으면 그 장을 만들지 않는다.
 const GOAL = /^### 과정 목표 슬라이드\s*$/m;
+
+function courseFile(inputPath, filename) {
+  return path.join(path.dirname(path.resolve(inputPath)), "..", filename);
+}
+
+function tableCells(line) {
+  const row = /^\s*\|(.*)\|\s*$/.exec(line);
+  return row && row[1].split(/(?<!\\)\|/).map((cell) => cell.trim().replace(/\\\|/g, "|"));
+}
+
+function readCurriculum(file) {
+  const lines = fs.readFileSync(file, "utf-8").split(/\r?\n/);
+  const headerIndex = lines.findIndex((line, i) => {
+    const cells = tableCells(line);
+    const separator = tableCells(lines[i + 1] || "");
+    return cells && cells.includes("세션") && cells.includes("제목")
+      && separator && separator.length === cells.length
+      && separator.every((cell) => /^:?-{3,}:?$/.test(cell));
+  });
+  if (headerIndex < 0) throw new Error(file + ": 세션·제목 열이 있는 편성표가 없다.");
+  const header = tableCells(lines[headerIndex]);
+  const idColumn = header.indexOf("세션");
+  const titleColumn = header.indexOf("제목");
+  const sessions = [];
+  const ids = new Set();
+  for (let i = headerIndex + 2; i < lines.length; i++) {
+    const cells = tableCells(lines[i]);
+    if (!cells) break;
+    const number = /^S(\d\d)$/.exec(cells[idColumn] || "")?.[1];
+    const title = cells[titleColumn];
+    if (cells.length === header.length && cells[idColumn] === "" && /합계(?:\*\*)?$/.test(title)) continue;
+    if (cells.length !== header.length || !number || !title || ids.has(number)) {
+      throw new Error(file + ":" + (i + 1) + ": 편성표의 세션 ID·제목 누락, 형식 오류 또는 ID 중복.");
+    }
+    ids.add(number);
+    sessions.push({ number, name: number + ". " + title });
+  }
+  if (!sessions.length) throw new Error(file + ": 편성표에 세션이 없다.");
+  return sessions;
+}
+
+function courseSessions(inputPath, designText) {
+  const file = courseFile(inputPath, "curriculum.md");
+  if (fs.existsSync(file)) return { sessions: readCurriculum(file), fromCurriculum: true };
+  const design = courseFile(inputPath, "course-design.md");
+  const legacyText = designText ?? (fs.existsSync(design) ? fs.readFileSync(design, "utf-8") : "");
+  const sessions = Array.from(legacyText.matchAll(LEGACY_SESSION), ([, number, title]) =>
+    ({ number, name: number + ". " + title.trim() }));
+  return { sessions, fromCurriculum: false, legacyText };
+}
+
+function hasNextSession(inputPath, number) {
+  const { sessions, fromCurriculum, legacyText } = courseSessions(inputPath);
+  if (fromCurriculum) {
+    const index = sessions.findIndex((session) => session.number === number);
+    return index >= 0 && index < sessions.length - 1;
+  }
+  const next = String(Number(number) + 1).padStart(2, "0");
+  return new RegExp("^### S" + next + " — ", "m").test(legacyText);
+}
 
 function goalSlide(text) {
   const m = GOAL.exec(text);
@@ -30,19 +84,20 @@ function goalSlide(text) {
 }
 
 function courseInfo(inputPath) {
-  const design = path.join(path.dirname(path.resolve(inputPath)), "..", "course-design.md");
+  const design = courseFile(inputPath, "course-design.md");
   if (!fs.existsSync(design)) return null;
   const text = fs.readFileSync(design, "utf-8");
   const m = NAME.exec(text);
   // The slug in backticks is the folder name, not part of the title: "AI-native SW 공학 (`ai-native`)".
   const name = m ? m[1].replace(/\s*\(`[^`]*`\)\s*$/, "").trim() : "";
   if (!name) return null;
-  const sessions = [];
-  SESSION.lastIndex = 0;
-  let s;
-  while ((s = SESSION.exec(text))) sessions.push({ number: s[1], name: s[1] + ". " + s[2].trim() });
+  const { sessions, fromCurriculum } = courseSessions(inputPath, text);
   const productionProfile = path.basename(path.dirname(design)) === 'ai-native' ? 'ai-native-s03' : null;
-  return { name, sessions, goal: goalSlide(text), ...(productionProfile ? {productionProfile} : {}) };
+  return {
+    name, sessions, goal: goalSlide(text),
+    ...(fromCurriculum ? { firstSession: sessions[0].number } : {}),
+    ...(productionProfile ? {productionProfile} : {}),
+  };
 }
 
-module.exports = { courseInfo };
+module.exports = { courseInfo, courseSessions, hasNextSession };

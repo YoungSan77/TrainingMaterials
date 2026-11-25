@@ -126,7 +126,7 @@ test("citation Korean zone shrinks parens; English-original+source zone stays fl
   const koreanParen = runs.find((r) => r.text === "(English aside)");
   assert.equal(koreanParen.sz, "1400", "18pt Korean zone - 4pt");
   // 영문 원문을 감싼 바깥따옴표는 원고의 영역 표식이므로 그리지 않는다(2026-11-16).
-  const englishRun = runs.find((r) => r.text === "영문 (paren) here");
+  const englishRun = runs.find((r) => r.text === "“영문 (paren) here”");
   assert.equal(englishRun.sz, "1000", "10pt exception zone stays flat, parens included");
 });
 
@@ -147,7 +147,7 @@ for (const [form, text, korean] of [
     assert.equal(runs.find((r) => r.text.includes("[Larman 2004]")).sz, "1000");
     // 출력된 한 문단에 원문의 문장부호·따옴표·출처가 그대로 남는다.
     const whole = runs.map((r) => r.text).join("");
-    assert.equal(whole, `${korean}${form === "마침표형" ? " " : ", "}The original sentence here., [Larman 2004]`);
+    assert.equal(whole, `${korean}${form === "마침표형" ? " " : ", "}“The original sentence here.”, [Larman 2004]`);
   });
 }
 
@@ -615,7 +615,7 @@ test("bullet citation: Korean at the bullet level's size, English original+sourc
   const p = child(body(shape(page.doc, 13)), A, "p");
   const runs = kids(p, A, "r").map((r) => ({ text: textOf(r), sz: child(r, A, "rPr").getAttribute("sz") }));
   assert.equal(runs[0].sz, "1400", "depth-1 bullet keeps its 14pt body size for the Korean part");
-  const english = runs.find((r) => r.text.startsWith("A module"));
+  const english = runs.find((r) => r.text.startsWith("“A module"));
   assert.equal(english.sz, "1000");
   assert.equal(runs.find((r) => r.text === "[Martin 2018]").sz, "1000");
 });
@@ -666,7 +666,7 @@ test("marked summary citation keeps Korean after commas at 18pt and only origina
   assert.ok(runs.slice(0, boundary).every((r) => r.sz === "1800"), "all Korean, including punctuation and bold spans, stays 18pt");
   assert.ok(runs.slice(boundary).every((r) => r.sz === "1000"));
   // 영문 원문의 바깥따옴표는 그리지 않는다 -- 원문 안의 쉼표·마침표는 그대로 남는다(2026-11-16).
-  assert.equal(runs.map((r) => r.text).join(""), korean.replace(/\*\*/g, "") + ", Iterative, with information selected each time., [Example 2026]");
+  assert.equal(runs.map((r) => r.text).join(""), korean.replace(/\*\*/g, "") + ", “Iterative, with information selected each time.”, [Example 2026]");
 });
 
 test("marked source-only citation splits at reference labels, preserving Korean commas", () => {

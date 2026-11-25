@@ -38,6 +38,22 @@ test("the course's last session needs no next session", () => {
   assert.deepEqual(checkStructure(p, "02. 요구 분석", sections, [page("01. 세션 목표"), page("02. 요약")]), []);
 });
 
+test("the next session follows Curriculum row order even when IDs are not consecutive", () => {
+  const { p, sections } = setup("02", ["a"], ["### 핵심", "- x"]);
+  fs.writeFileSync(path.join(path.dirname(p), "..", "curriculum.md"), [
+    "| 세션 | 제목 |",
+    "|---|---|",
+    "| S02 | 요구 분석 |",
+    "| S05 | 모델 |",
+    "| S01 | 개요 |",
+  ].join("\n"));
+  const pages = [page("01. 세션 목표"), page("02. 요약")];
+  for (const session of ["02. 요구 분석", "05. 모델"]) {
+    assert.deepEqual(checkStructure(p, session, sections, pages), ['요약에 "### 다음 세션"이 없다.']);
+  }
+  assert.deepEqual(checkStructure(p, "01. 개요", sections, pages), []);
+});
+
 test("a topic without an instructor note is reported", () => {
   const { missingNotes } = require("../structure");
   const sections = [{ title: "01. 가", notes: [{ text: "노트" }] }, { title: "02. 나", notes: [] }];

@@ -6,6 +6,31 @@ function fixture(description){
  return parseXml(`<p:graphicFrame xmlns:p="${P}" xmlns:a="${A}"><p:xfrm><a:off x="0" y="0"/><a:ext cx="3810000" cy="2000000"/></p:xfrm><a:graphic><a:graphicData><a:tbl><a:tblGrid>${[1,2,3].map(()=>'<a:gridCol w="1270000"/>').join('')}</a:tblGrid><a:tr h="1000000">${['번호','설명','금액'].map(t=>cell(t,true)).join('')}</a:tr><a:tr h="1000000">${cell('1')}${cell(description)}${cell('2,000원')}</a:tr></a:tbl></a:graphicData></a:graphic></p:graphicFrame>`).documentElement;
 }
 const widths=gf=>all(gf,A,'gridCol').map(c=>Number(c.getAttribute('w')));
+test('content widths measure every 8pt cell, retain natural width when it fits, and allocate overflow above measured minima',()=>{
+ const {contentWidths}=require('../tableColumnMetrics');
+ const short=fixture('짧은 설명'),full=contentWidths(short,600);
+ const rows=all(short,A,'tr').map(r=>all(r,A,'tc'));
+ assert.deepEqual(full.widths,[0,1,2].map(i=>Math.max(...rows.map(r=>cellWidth(r[i],false,true)))));
+ assert.ok(full.widths.reduce((s,w)=>s+w,0)<600);
+ const long=contentWidths(fixture('주문 생성 시점의 기존 단가와 수량을 유지하고 결제 승인과 거절 후 재결제의 모든 금액을 확인한다.'),200);
+ assert.ok(Math.abs(long.widths.reduce((s,w)=>s+w,0)-200)<1e-8);
+ assert.ok(long.widths[1]>long.widths[0]&&long.widths[1]>long.widths[2]);
+ long.widths.forEach((w,i)=>assert.ok(w>=long.minimum[i]));
+});
+test('10pt natural widths leave the PowerPoint hinting boundary outside a two-Hangul token',()=>{
+ const gf=fixture('정상');for(const rp of all(gf,A,'rPr'))rp.setAttribute('sz','1000');
+ naturalWidths([gf]);
+ const c=all(gf,A,'tc')[0],padding=108000/12700;
+ assert.ok(cellWidth(c)-padding>=20.5);
+});
+test('a minimum-bound column does not dilute the natural-width ratio between two prose columns',()=>{
+ const gf=fixture('배송 요청 이후의 주문 상태와 기록 시점에 확정한 항목 단가를 확인한다.');
+ all(gf,A,'t').at(-1).textContent='승인에 사용한 전체 주문 금액과 최초 판매가의 변동 시점을 따로 기록한다.';
+ const {widths,natural,minimum}=require('../tableColumnMetrics').contentWidths(gf,220);
+ assert.equal(widths[0],minimum[0]);
+ assert.ok(widths[1]>minimum[1]&&widths[2]>minimum[2]);
+ assert.ok(Math.abs(widths[1]/natural[1]-widths[2]/natural[2])<1e-8);
+});
 test('already fitting tables retain their exact widths',()=>{
  const gf=fixture('짧은 설명'),before=widths(gf);assert.equal(optimizeWidths([gf]).changed,false);assert.deepEqual(widths(gf),before);
 });

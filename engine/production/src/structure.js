@@ -1,28 +1,23 @@
 "use strict";
 // Session structure checks (session-authoring-guide.md, "세션 목표와 요약"):
 //   - "01. 세션 목표" fits one slide and lists at most 7 goals.
-//   - The last topic "요약" fits one slide and has a "다음 세션" group, unless the course design
-//     lists no later session (the course's last session).
+//   - The last topic "요약" fits one slide and has a "다음 세션" group when the course lists a successor.
 //   - A practice topic ("NN. 실습 — …", not its "검토 예시") and a text answer "NN. … (안)" each fit
 //     one slide ("사례·가정·실습").
 //   - The appendix ("## 별첨. 실습 답", the practice answers) comes after the summary and nothing
 //     numbered follows it.
-const fs = require("fs");
 const path = require("path");
 const { columnWidths, isPractice, isAnswer } = require("./builder");
+const { hasNextSession } = require("./course");
 const { estimate } = require("./text");
 
 const MAX_GOALS = 7;
 
-function hasNextSession(inputPath, session) {
-  const m = /^(\d\d)\./.exec(String(session || ""));
-  if (!m) return true;
-  const design = path.join(path.dirname(path.resolve(inputPath)), "..", "course-design.md");
-  // A deck outside a course (a reference deck such as references/sw-engineering-approach/) has no
-  // course design, so no next session to name.
-  if (!fs.existsSync(design)) return false;
-  const next = String(Number(m[1]) + 1).padStart(2, "0");
-  return new RegExp("^### S" + next + " — ", "m").test(fs.readFileSync(design, "utf-8"));
+function hasGuidedPracticeStages(section) {
+  const labels = section.blocks.map(block => String(block.text || "").trim());
+  return labels.some(label => /^\*\*프롬프트 ① — .+\*\*$/.test(label))
+    && labels.some(label => /^\*\*검토 및 중간 피드백 ② — .+\*\*$/.test(label))
+    && labels.some(label => /^\*\*프롬프트 ⑤ — .+\*\*$/.test(label));
 }
 
 function checkStructure(inputPath, session, sections, pages) {
@@ -36,18 +31,29 @@ function checkStructure(inputPath, session, sections, pages) {
     if (pageCount(goals.title) > 1) errors.push("세션 목표가 한 슬라이드를 넘는다.");
   }
   for (const s of sections) {
-    if (isPractice(s.title) && pageCount(s.title) > 1) errors.push(`실습 "${s.title}"이 한 슬라이드를 넘는다. 과제를 줄이거나 검토 기준을 강사 노트로 옮긴다.`);
+    const explicitPractice=s.blocks.some(b=>/^\*\*실습 안내 — 좌우 2단/.test(b.text.trim()));
+    const notation=s.blocks.some(b=>b.text.trim()==='**표 — 그림에서 직접 찾는 노테이션**');
+    const comparison=s.blocks.find(b=>['**표 — AI 위임 판단(왼쪽)과 초안 검토(오른쪽)**','**표 — 실제 초안(왼쪽)과 검토 결과(오른쪽)**'].includes(b.text.trim()));
+    if(explicitPractice||notation||comparison){
+      const matching=pages.filter(p=>String(p.heading||"").split("\n")[0].replace(/ \(\d+\/\d+\)$/,"")===s.title);
+      if(matching.length!==1)errors.push(`한 장 배치 기준 위반: ${s.title}`);
+      else if(comparison)matching[0].layoutGate=comparison.text.includes('실제 초안')?'draft-review':'comparison';
+    }
+    if (isPractice(s.title) && pageCount(s.title) > 1 && !hasGuidedPracticeStages(s)) errors.push(`실습 "${s.title}"이 한 슬라이드를 넘는다. 과제를 줄이거나 검토 기준을 강사 노트로 옮긴다.`);
     const textOnly = s.blocks.every((b) => ["text", "bullet", "heading"].includes(b.kind));
     if (isAnswer(s.title) && textOnly && pageCount(s.title) > 1) errors.push(`답 "${s.title}"이 한 슬라이드를 넘는다. 대표가 아닌 규칙을 "......"로 생략하거나 (안)을 나눈다.`);
   }
   const firstAppendix = sections.findIndex((s) => s.appendix);
+  if(sections.some(s=>s.blocks.some(b=>/^\*\*실습 안내 — 좌우 2단/.test(b.text.trim())))
+    && !pages.some(p=>p.appendix&&p.layoutGate==='answer-columns'))errors.push('별첨 실습 답에 실제 좌우 두 단 본문이 없다.');
   if (firstAppendix >= 0 && sections.slice(firstAppendix).some((s) => !s.appendix)) errors.push("별첨 뒤에 본문 topic이 있다. `## 별첨. …`은 요약 뒤 맨 끝에 둔다.");
   const body = firstAppendix >= 0 ? sections.slice(0, firstAppendix) : sections;
   const summary = body[body.length - 1];
   if (summary && /^\d\d\. 요약$/.test(summary.title)) {
     if (pageCount(summary.title) > 1) errors.push("요약이 한 슬라이드를 넘는다. 핵심과 다음 세션을 한 장으로 압축한다.");
     const hasNext = summary.blocks.some((b) => b.kind === "heading" && /^다음 세션/.test(b.text.trim()));
-    if (!hasNext && hasNextSession(inputPath, session)) errors.push("요약에 \"### 다음 세션\"이 없다.");
+    const number = /^(\d\d)\./.exec(String(session || ""))?.[1];
+    if (!hasNext && (!number || hasNextSession(inputPath, number))) errors.push("요약에 \"### 다음 세션\"이 없다.");
   }
   return errors;
 }
@@ -58,10 +64,10 @@ function wrappingCells(sections, pages = []) {
   const warnings = [];
   for (const section of sections) for (const block of section.blocks) {
     if (block.kind !== "table") continue;
-    // The course-specific 8pt contract allows wrapped cells with measured row heights.
-    // Only exempt rows actually emitted under that profile, not every table in the topic.
-    const fitted=pages.filter(p=>p.s03Profile && p.documentTablePt===8 && String(p.heading).split('\n')[0].replace(/ \(\d+\/\d+\)$/,'')===section.title)
-      .flatMap(p=>p.items.filter(i=>i.kind==='table').map(i=>i.rows))
+    // The recorded-content role allows wrapped cells with measured row heights.
+    // Only exempt the emitted measured rows, never every table in the topic.
+    const fitted=pages.filter(p=>String(p.heading).split('\n')[0].replace(/ \(\d+\/\d+\)$/,'')===section.title)
+      .flatMap(p=>p.items.filter(i=>i.kind==='table'&&i.measuredRows).map(i=>i.rows))
       .filter(rows=>JSON.stringify(rows[0])===JSON.stringify(block.rows[0]));
     if(block.rows.every(row=>fitted.some(rows=>rows.some(r=>JSON.stringify(r)===JSON.stringify(row)))))continue;
     const widths = columnWidths(block.rows, block.rows[0].length);
@@ -92,7 +98,8 @@ function numberedDiagramLabels(sections) {
 // Warning only.
 function unboldedText(sections, verified = null) {
   const warnings = [];
-  for (const section of sections.filter(s => !s.verbatimResponse)) section.blocks.forEach((block, i) => {
+  for (const section of sections) section.blocks.forEach((block, i) => {
+    if(recordedAuthoringBlock(section,block,verified))return;
     if (!["text", "bullet"].includes(block.kind)) return;
     if (verified?.unboldedText?.has(block)) return;
     if (block.meta && (block.meta.quote || block.meta.anchor)) return;
@@ -174,6 +181,7 @@ function numberedBullets(sections) {
     // A "+ " line (practice prompt) has no glyph: its ①·② steps are allowed.
     if (block.kind !== "bullet" || (block.meta && block.meta.noGlyph)) continue;
     const text = String(block.text).trim().replace(/^\*\*/, "");
+    if(section.blocks.some(b=>/^\*\*실습 안내 — 좌우 2단/.test(b.text.trim()))&&/^[①-⑤]/.test(text))continue;
     if (/^[\u2460-\u2473\u2776-\u277F]/.test(text)) warnings.push(`bullet과 번호가 겹친다 — 번호 목록(1.)으로 쓴다: "${section.title}"의 "${text.slice(0, 20)}"`);
   }
   return warnings;
@@ -213,8 +221,8 @@ function answersOutsideAppendix(sections) {
 const FIRST_PRACTICE = /^\d\d\. 실습 1 — /;
 const PRACTICE_PARTS = [
   { label: "투입물", re: /\*\*(?:투입물|서비스 개요)\*\*/, skipFirst: true },
-  { label: "프롬프트", re: /\*\*프롬프트(?: — 요청사항 포함)?\*\*/ },
-  { label: "점검 항목 또는 진행 방법", re: /\*\*(?:점검 항목|진행 방법)\*\*/ },
+  { label: "프롬프트", re: /\*\*프롬프트(?: — 요청사항 포함| ① — [^*]+)?\*\*/ },
+  { label: "점검 항목 또는 진행 방법", re: /\*\*(?:점검 항목(?: — [^*]+)?|진행 방법)\*\*/ },
   { label: "결과물", re: /\*\*결과물\*\*/ },
   { label: "결과물의 파일 이름", re: /\*\*결과물\*\*[\s\S]*?`[^`\s]+\.md`/ },
 ];
@@ -231,6 +239,7 @@ function practiceShape(sections) {
   const warnings = [];
   for (const s of sections) {
     if (!isPractice(s.title)) continue;
+    if(s.blocks.some(b=>/^\*\*실습 안내 — 좌우 2단/.test(b.text.trim())))continue;
     const text = (s.blocks || []).map((b) => b.text || "").join("\n");
     const first = FIRST_PRACTICE.test(s.title.trim());
     const missing = PRACTICE_PARTS.filter((p) => !(p.skipFirst && first) && !p.re.test(text)).map((p) => p.label);
@@ -243,12 +252,21 @@ function practiceShape(sections) {
 // '하나'를 뜻하는 관형어(한 번·한 줄)와 횟수의 '번'은 한글이므로 보지 않는다. 변환은
 // tools/normalize-numbers.js가 하고, 여기서는 남은 것을 경고한다.
 const SPELLED = /(?<![가-힣])(두|세|네|다섯|여섯|일곱|여덟|아홉|열한|열두)\s*(가지|개|곳|단계|세션|장|줄|명|행|열|원칙)(?:(?![가-힣])|(?=(?:은|는|이|가|을|를|의|에|와|과|도|만|로|으로|나|며|씩|뿐|까지|부터|라도|라)(?![가-힣])))/g;
-function spelledNumbers(sections) {
+function recordedAuthoringBlock(section,block,verified){
+ const parser=require('./parse');
+ if(!parser.hasResponseExcerpt(section))return Boolean(section.verbatimResponse);
+ if(!verified?.excerpts)return Boolean(section.verbatimResponse); // legacy non-production callers
+ const range=parser.sourceRangeOf(block);if(!range)return false;
+ for(let line=range.start;line<=range.end;line++)if(!verified.excerpts.verifiedLines.has(line))return false;
+ return true;
+}
+function spelledNumbers(sections,verified=null) {
   const warnings = [];
   // 기록(`**기록 그대로**`·`**실제 LLM 응답**`)은 저자가 쓴 글이 아니다. 표기를 고치는 것이 곧
   // 기록을 고치는 일이므로 수 표기 검사에서 뺀다(session-authoring-guide.md, 2026-10-31).
-  for (const s of sections.filter((x) => !x.verbatimResponse)) {
+  for (const s of sections) {
     for (const b of s.blocks || []) {
+      if(recordedAuthoringBlock(s,b,verified))continue;
       if (["code", "tree", "mermaid", "plantuml", "svg", "chart"].includes(b.kind)) continue;
       const texts = b.kind === "table" ? (b.rows || []).flat() : [b.text || ""];
       for (const t of texts) {

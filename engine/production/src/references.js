@@ -6,10 +6,10 @@
 //     unless it directly follows a session reference: "02. 요구 분석과 유스케이스"의 「44. …」
 //     (several topics may be chained: 「…」·「…」, 「…」과 「…」).
 //
-// Session names are known from sibling Session Sources in the same directory and from the
-// course's course-design.md ("### SNN — 세션명 (시간)"); topic headings from sibling sources.
+// Curriculum owns session names in migrated courses. Topic headings come from sibling sources.
 const fs = require("fs");
 const path = require("path");
+const { courseSessions } = require("./course");
 
 const HEADING = /^## (\d\d)\. (.+)$/;
 
@@ -37,25 +37,20 @@ function headingsOf(text) {
   return map;
 }
 
-// { "03": { name: "03. …", headings: Map|null } }
 function knownSessions(inputPath) {
   const dir = path.dirname(path.resolve(inputPath));
-  const sessions = {};
-  const design = path.join(dir, "..", "course-design.md");
-  if (fs.existsSync(design)) {
-    const re = /^### S(\d\d) — (.+?) \([^)]*\)\s*$/gm;
-    let m;
-    const text = fs.readFileSync(design, "utf-8");
-    while ((m = re.exec(text))) sessions[m[1]] = { name: m[1] + ". " + m[2], headings: null };
-  }
+  const { sessions: listedSessions, fromCurriculum } = courseSessions(inputPath);
+  const sessions = Object.fromEntries(listedSessions.map(({ number, name }) => [number, { name, headings: null }]));
   for (const f of fs.readdirSync(dir)) {
     if (!/\.md$/i.test(f)) continue;
     const text = fs.readFileSync(path.join(dir, f), "utf-8");
     const s = sessionOf(text);
     if (!s) continue;
-    sessions[s.number] = { name: s.name, headings: headingsOf(text) };
+    if (fromCurriculum && !sessions[s.number]) continue;
+    const name = fromCurriculum ? sessions[s.number].name : s.name;
+    sessions[s.number] = { name, headings: headingsOf(text) };
   }
-  return sessions;
+  return { sessions, fromCurriculum };
 }
 
 // A session is quoted with the word 세션 in front of its number: "세션 02. 요구 분석과 유스케이스".
@@ -157,10 +152,16 @@ function checkLabels(inputPath, text) {
 }
 
 function checkReferences(inputPath, text) {
-  const errors = [];
+  const excerpt=require('./responseExcerpts').verifyResponseExcerpts(inputPath,text);
+  const errors = [...excerpt.errors];
   const warnings = [];
   const own = sessionOf(text);
-  const sessions = knownSessions(inputPath);
+  const { sessions, fromCurriculum } = knownSessions(inputPath);
+  if (fromCurriculum && own) {
+    const approved = sessions[own.number];
+    if (!approved) errors.push(`원고 세션 "${own.name}"이 Curriculum에 없다.`);
+    else if (approved.name !== own.name) errors.push(`원고 세션명 "${own.name}"이 Curriculum의 "${approved.name}"과 다르다.`);
+  }
   // A review deck "sNN-add.md" holds only the added/changed topics of the full candidate
   // "sNN.md" next to it; its own-session references resolve against that full candidate.
   const review = /^(s\d\d)-add\.md$/i.exec(path.basename(inputPath));
@@ -171,14 +172,14 @@ function checkReferences(inputPath, text) {
   lines.forEach((line, i) => {
     if (/^## 목차\s*$/.test(line)) { inToc = true; return; }
     if (HEADING.test(line)) inToc = false;
-    if (inToc || /^Session 명:/.test(line)) return;
+    if (inToc || /^Session 명:/.test(line)||excerpt.verifiedLines.has(i+1)) return;
     const where = "원고 " + (i + 1) + "행: ";
     let m;
     SESSION_REF.lastIndex = 0;
     while ((m = SESSION_REF.exec(line))) {
       const s = sessions[m[2]];
       const ref = m[2] + ". " + m[3];
-      if (!s) warnings.push(where + "세션 참조 \"" + ref + "\"를 확인할 수 없다(과정 설계에 없음).");
+      if (!s) warnings.push(where + "세션 참조 \"" + ref + "\"를 확인할 수 없다(" + (fromCurriculum ? "Curriculum" : "과정 설계") + "에 없음).");
       else if (s.name !== ref) errors.push(where + "세션 참조 \"" + ref + "\"가 세션명 \"" + s.name + "\"과 다르다. 주제 참조라면 「」를 쓴다.");
       else if (!m[1]) errors.push(where + "세션 참조에 \"세션\"이 없다 — \"세션 " + s.name + "\"처럼 쓴다.");
     }
@@ -223,7 +224,7 @@ function checkReferences(inputPath, text) {
   const labels = checkLabels(inputPath, text);
   errors.push(...labels.errors);
   warnings.push(...labels.warnings);
-  return { errors, warnings };
+  const result={errors,warnings};Object.defineProperty(result,'responseExcerpts',{value:excerpt});return result;
 }
 
 module.exports = { checkReferences, checkLabels };
