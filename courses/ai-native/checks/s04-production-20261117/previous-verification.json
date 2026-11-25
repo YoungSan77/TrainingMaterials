@@ -1,0 +1,225 @@
+{
+  "records": [
+    {
+      "turn": 1,
+      "files": {
+        "prompt": {
+          "path": "courses/ai-native/sessions/code/s04/exercise-conversation/order/prompt-01.txt",
+          "sha256": "0068ec3aca5639dd65d03718c6a3ce2ec6cb3ec3c8d2dda329fdea6c5e1178de"
+        },
+        "input": {
+          "path": "courses/ai-native/sessions/code/s04/exercise-conversation/order/codex-input-01.txt",
+          "sha256": "4cc87c56b99744cab8733cdc2e68f5b906e702e777ecfa8a122edceb94019af0"
+        },
+        "response": {
+          "path": "courses/ai-native/sessions/code/s04/exercise-conversation/order/codex-response-01.md",
+          "sha256": "f7619e6390ef98276522974cc83d6700712271157b65fcf5c9065230ab089517"
+        },
+        "metadata": {
+          "path": "courses/ai-native/sessions/code/s04/exercise-conversation/order/codex-metadata-01.json",
+          "sha256": "ad052aabc0957f7c3f8743df325cc478b145600aba55f5c56fd6afdbb9230835"
+        }
+      },
+      "promptInInput": true,
+      "metadata": {
+        "tool": "codex",
+        "started": "2026-10-23T08:36:57.595638+09:00",
+        "finished": "2026-10-23T08:37:36.589670+09:00",
+        "command": [
+          "codex",
+          "exec",
+          "--ignore-user-config",
+          "--ephemeral",
+          "--sandbox",
+          "read-only",
+          "--skip-git-repo-check",
+          "--config",
+          "project_doc_max_bytes=0",
+          "--json",
+          "--output-last-message",
+          "/Users/YoungSan/dev/TrainingMaterials/courses/ai-native/sessions/code/s04/exercise-conversation/order/codex-response-01.md",
+          "-"
+        ],
+        "returncode": 0
+      }
+    },
+    {
+      "turn": 2,
+      "files": {
+        "prompt": {
+          "path": "courses/ai-native/sessions/code/s04/exercise-conversation/order/prompt-02.txt",
+          "sha256": "f378f5b8494628bb11ad9c6321264021c1fd89ff089099f1c7c0ff1f1d180324"
+        },
+        "input": {
+          "path": "courses/ai-native/sessions/code/s04/exercise-conversation/order/codex-input-02.txt",
+          "sha256": "76b1531a7caa547bbccec57a6372dcbc7750c502fa4fd4576fafdc81b4e07601"
+        },
+        "response": {
+          "path": "courses/ai-native/sessions/code/s04/exercise-conversation/order/codex-response-02.md",
+          "sha256": "c6ac79cb541b049509f054b8021a563f27a872ff754b9a1ea798e247f731b11b"
+        },
+        "metadata": {
+          "path": "courses/ai-native/sessions/code/s04/exercise-conversation/order/codex-metadata-02.json",
+          "sha256": "2879736fbc0be35049072344d6523c943560a8acf78e3319908637a6c3e13408"
+        }
+      },
+      "promptInInput": true,
+      "metadata": {
+        "tool": "codex",
+        "started": "2026-10-23T08:38:44.785823+09:00",
+        "finished": "2026-10-23T08:39:29.761831+09:00",
+        "command": [
+          "codex",
+          "exec",
+          "--ignore-user-config",
+          "--ephemeral",
+          "--sandbox",
+          "read-only",
+          "--skip-git-repo-check",
+          "--config",
+          "project_doc_max_bytes=0",
+          "--json",
+          "--output-last-message",
+          "/Users/YoungSan/dev/TrainingMaterials/courses/ai-native/sessions/code/s04/exercise-conversation/order/codex-response-02.md",
+          "-"
+        ],
+        "returncode": 0
+      }
+    },
+    {
+      "turn": 3,
+      "files": {
+        "prompt": {
+          "path": "courses/ai-native/sessions/code/s04/exercise-conversation/order/prompt-03.txt",
+          "sha256": "cf44c5e3e1f5fa721d2edaeaa0276a263d94b02df1fb1dc29b0785a12d59fe18"
+        },
+        "input": {
+          "path": "courses/ai-native/sessions/code/s04/exercise-conversation/order/codex-input-03.txt",
+          "sha256": "9e6b60b550fbe8375b30bb94c89df0d4fa29f7c4a3bec362febc827a322a6e96"
+        },
+        "response": {
+          "path": "courses/ai-native/sessions/code/s04/exercise-conversation/order/codex-response-03.md",
+          "sha256": "6c6f1a636b96d378552dda6e3a177a4a320b8439ac373d55b59fbf714bc11d40"
+        },
+        "metadata": {
+          "path": "courses/ai-native/sessions/code/s04/exercise-conversation/order/codex-metadata-03.json",
+          "sha256": "02c89a8fc5173df1ede1f9e62fb77a40d48c72f6cd990197a843a94430d1dd38"
+        }
+      },
+      "promptInInput": true,
+      "metadata": {
+        "tool": "codex",
+        "started": "2026-10-23T08:42:06.890485+09:00",
+        "finished": "2026-10-23T08:42:36.596870+09:00",
+        "command": [
+          "codex",
+          "exec",
+          "--ignore-user-config",
+          "--ephemeral",
+          "--sandbox",
+          "read-only",
+          "--skip-git-repo-check",
+          "--config",
+          "project_doc_max_bytes=0",
+          "--json",
+          "--output-last-message",
+          "/Users/YoungSan/dev/TrainingMaterials/courses/ai-native/sessions/code/s04/exercise-conversation/order/codex-response-03.md",
+          "-"
+        ],
+        "returncode": 0
+      }
+    },
+    {
+      "turn": 4,
+      "files": {
+        "prompt": {
+          "path": "courses/ai-native/sessions/code/s04/exercise-conversation/order/prompt-04.txt",
+          "sha256": "57c652a230f2e241cd2d0b745054cba2286d35c9b62b872b9afad4544b5e75ea"
+        },
+        "input": {
+          "path": "courses/ai-native/sessions/code/s04/exercise-conversation/order/codex-input-04.txt",
+          "sha256": "227a6c02031cd69e776418313397ba5ac9585e57cc20c0ba81fafd4877c35996"
+        },
+        "response": {
+          "path": "courses/ai-native/sessions/code/s04/exercise-conversation/order/codex-response-04.md",
+          "sha256": "6a138a6c17eb802fb5155547c58857849eea426dd59816cdca54179c5244c4e1"
+        },
+        "metadata": {
+          "path": "courses/ai-native/sessions/code/s04/exercise-conversation/order/codex-metadata-04.json",
+          "sha256": "541ae5310cc06864229c9d8721c827e65e787764fd391534efc487337cd45859"
+        }
+      },
+      "promptInInput": true,
+      "metadata": {
+        "tool": "codex",
+        "started": "2026-10-23T08:43:02.689025+09:00",
+        "finished": "2026-10-23T08:43:22.584971+09:00",
+        "command": [
+          "codex",
+          "exec",
+          "--ignore-user-config",
+          "--ephemeral",
+          "--sandbox",
+          "read-only",
+          "--skip-git-repo-check",
+          "--config",
+          "project_doc_max_bytes=0",
+          "--json",
+          "--output-last-message",
+          "/Users/YoungSan/dev/TrainingMaterials/courses/ai-native/sessions/code/s04/exercise-conversation/order/codex-response-04.md",
+          "-"
+        ],
+        "returncode": 0
+      }
+    },
+    {
+      "turn": 5,
+      "files": {
+        "prompt": {
+          "path": "courses/ai-native/sessions/code/s04/exercise-conversation/order/prompt-05.txt",
+          "sha256": "afd22752912b5b093dfdb29ece58fdca9267d060cb63255537f661ce8b77b884"
+        },
+        "input": {
+          "path": "courses/ai-native/sessions/code/s04/exercise-conversation/order/codex-input-05.txt",
+          "sha256": "0699d2adf676f2baffe3642b15523dd0f2a3d56da66b658984057885f0bce742"
+        },
+        "response": {
+          "path": "courses/ai-native/sessions/code/s04/exercise-conversation/order/codex-response-05.md",
+          "sha256": "bbadb01c56303858af1b7e30d402d1d794d2d96deb22cf9f5de4fab821b5df88"
+        },
+        "metadata": {
+          "path": "courses/ai-native/sessions/code/s04/exercise-conversation/order/codex-metadata-05.json",
+          "sha256": "54587d0fc6cb3aa61def6d6b44cbfa482c57b180715cfb0db8245335296b9b53"
+        }
+      },
+      "promptInInput": true,
+      "metadata": {
+        "tool": "codex",
+        "started": "2026-10-23T08:44:45.185343+09:00",
+        "finished": "2026-10-23T08:44:59.355201+09:00",
+        "command": [
+          "codex",
+          "exec",
+          "--ignore-user-config",
+          "--ephemeral",
+          "--sandbox",
+          "read-only",
+          "--skip-git-repo-check",
+          "--config",
+          "project_doc_max_bytes=0",
+          "--json",
+          "--output-last-message",
+          "/Users/YoungSan/dev/TrainingMaterials/courses/ai-native/sessions/code/s04/exercise-conversation/order/codex-response-05.md",
+          "-"
+        ],
+        "returncode": 0
+      }
+    }
+  ],
+  "inputEqualsApproved": false,
+  "finalEqualsResponse": true,
+  "firstExcerptSequenceIssues": [],
+  "correctedOmission": "Added ..... after the first two relationship bullets; original omitted third Product relationship is not rewritten. Original source snapshot retained.",
+  "currentPromptEqualsPrevious": false,
+  "reuseDecision": "NOT REUSED: approved S03 input and current prompt differ. Preserved as prior execution."
+}

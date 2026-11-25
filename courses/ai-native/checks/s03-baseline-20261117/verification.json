@@ -1,0 +1,519 @@
+{
+  "checkedAt": "2026-11-17T09:35:35.390Z",
+  "input": {
+    "path": "courses/ai-native/sessions/s03.md",
+    "sha256": "8d9a46da8d897a10301460464d081527518105e346953187185823fae24464e9",
+    "bytes": 44325,
+    "modified": "2026-11-17T05:01:20.217Z"
+  },
+  "output": {
+    "path": "courses/ai-native/sessions/s03.pptx",
+    "sha256": "bd3eaca70355d8721428ec0332369fd82856438407bdde08f970ab88f5e4f97b",
+    "bytes": 317235,
+    "modified": "2026-11-17T09:16:30.676Z"
+  },
+  "qa": {
+    "path": "courses/ai-native/sessions/s03.qa.json",
+    "sha256": "770a0841a2b542354b88ff1275ac5048e405f74111843cc3cf857d1640ae1221",
+    "bytes": 7660,
+    "modified": "2026-11-17T09:16:30.810Z"
+  },
+  "renderer": {
+    "node": "v25.1.0",
+    "package": "0.1.0"
+  },
+  "schedule": [
+    {
+      "session": "01",
+      "lecture": 35,
+      "practice": 15,
+      "concepts": 8
+    },
+    {
+      "session": "02",
+      "lecture": 40,
+      "practice": 10,
+      "concepts": 10
+    },
+    {
+      "session": "03",
+      "lecture": 55,
+      "practice": 20,
+      "concepts": 14
+    },
+    {
+      "session": "04",
+      "lecture": 55,
+      "practice": 20,
+      "concepts": 14
+    },
+    {
+      "session": "05",
+      "lecture": 35,
+      "practice": 15,
+      "concepts": 9
+    },
+    {
+      "session": "06",
+      "lecture": 35,
+      "practice": 15,
+      "concepts": 9
+    },
+    {
+      "session": "07",
+      "lecture": 55,
+      "practice": 20,
+      "concepts": 10
+    },
+    {
+      "session": "08",
+      "lecture": 35,
+      "practice": 15,
+      "concepts": 9
+    },
+    {
+      "session": "09",
+      "lecture": 30,
+      "practice": 20,
+      "concepts": 10
+    },
+    {
+      "session": "10",
+      "lecture": 55,
+      "practice": 20,
+      "concepts": 14
+    },
+    {
+      "session": "11",
+      "lecture": 35,
+      "practice": 15,
+      "concepts": 10
+    },
+    {
+      "session": "12",
+      "lecture": 25,
+      "practice": 25,
+      "concepts": 5
+    }
+  ],
+  "details": [
+    8,
+    10,
+    14,
+    14,
+    9,
+    9,
+    10,
+    9,
+    10,
+    14,
+    10,
+    5
+  ],
+  "totalConcepts": 122,
+  "execution": {
+    "inputsAndAttachmentsMatch": true,
+    "responsesMatchEvents": true,
+    "excerptsMatch": true,
+    "newExecutions": 0,
+    "runs": [
+      {
+        "kind": "demo",
+        "turn": "01",
+        "sha256": "6007b1b03686f0af4a8d3049155a013bdb826d1a1bb4d5d7f10b960587e10b34",
+        "returncode": 0
+      },
+      {
+        "kind": "exercise",
+        "turn": "01",
+        "sha256": "e34108e040bc70d5ad5051eb6a674ba33e356601600a52f5ee0b422ea164c29d",
+        "returncode": 0
+      },
+      {
+        "kind": "exercise",
+        "turn": "02",
+        "sha256": "775e7bb47ebdc192ab4681d91ce0d93565ca808a4250ee25ee6d27f121de116e",
+        "returncode": 0
+      },
+      {
+        "kind": "exercise",
+        "turn": "03",
+        "sha256": "29483a53927b58c30a0fb2592899c49f08f725213bdb8a74ee003f33ca23d29a",
+        "returncode": 0
+      }
+    ]
+  },
+  "slides": 30,
+  "cells": {
+    "body": 121,
+    "demo": 50,
+    "judgment": 18,
+    "appendix": 65
+  },
+  "totalCells": 254,
+  "allFourMarginsEMU": 54000,
+  "tables": [
+    {
+      "page": 3,
+      "kind": "body",
+      "cells": 10,
+      "widthsEMU": [
+        1835200,
+        3848150
+      ],
+      "fontPt": 10
+    },
+    {
+      "page": 6,
+      "kind": "body",
+      "cells": 8,
+      "widthsEMU": [
+        790625,
+        3041700
+      ],
+      "fontPt": 10
+    },
+    {
+      "page": 7,
+      "kind": "body",
+      "cells": 15,
+      "widthsEMU": [
+        917625,
+        2924225,
+        2203500
+      ],
+      "fontPt": 10
+    },
+    {
+      "page": 8,
+      "kind": "body",
+      "cells": 21,
+      "widthsEMU": [
+        895400,
+        663625,
+        5492800
+      ],
+      "fontPt": 10
+    },
+    {
+      "page": 9,
+      "kind": "body",
+      "cells": 10,
+      "widthsEMU": [
+        2035225,
+        3556050
+      ],
+      "fontPt": 10
+    },
+    {
+      "page": 12,
+      "kind": "body",
+      "cells": 8,
+      "widthsEMU": [
+        362000,
+        3463975
+      ],
+      "fontPt": 10
+    },
+    {
+      "page": 13,
+      "kind": "body",
+      "cells": 8,
+      "widthsEMU": [
+        663625,
+        4029125
+      ],
+      "fontPt": 10
+    },
+    {
+      "page": 14,
+      "kind": "body",
+      "cells": 9,
+      "widthsEMU": [
+        1044625,
+        2095550,
+        3156000
+      ],
+      "fontPt": 10
+    },
+    {
+      "page": 15,
+      "kind": "body",
+      "cells": 8,
+      "widthsEMU": [
+        2527350,
+        1581200
+      ],
+      "fontPt": 10
+    },
+    {
+      "page": 17,
+      "kind": "demo",
+      "cells": 10,
+      "widthsEMU": [
+        875599,
+        3193481
+      ],
+      "fontPt": 8
+    },
+    {
+      "page": 17,
+      "kind": "demo",
+      "cells": 20,
+      "widthsEMU": [
+        537263,
+        3531817
+      ],
+      "fontPt": 8
+    },
+    {
+      "page": 18,
+      "kind": "demo",
+      "cells": 20,
+      "widthsEMU": [
+        435528,
+        3633552
+      ],
+      "fontPt": 8
+    },
+    {
+      "page": 20,
+      "kind": "judgment",
+      "cells": 18,
+      "widthsEMU": [
+        3747770,
+        1038860,
+        3519170
+      ],
+      "fontPt": 8
+    },
+    {
+      "page": 21,
+      "kind": "body",
+      "cells": 10,
+      "widthsEMU": [
+        1581200,
+        3698925
+      ],
+      "fontPt": 10
+    },
+    {
+      "page": 23,
+      "kind": "body",
+      "cells": 14,
+      "widthsEMU": [
+        2111425,
+        2914700
+      ],
+      "fontPt": 10
+    },
+    {
+      "page": 28,
+      "kind": "appendix",
+      "cells": 35,
+      "widthsEMU": [
+        934297,
+        2070947,
+        1226397,
+        560070,
+        1099397,
+        1524847,
+        889847
+      ],
+      "fontPt": 8
+    },
+    {
+      "page": 29,
+      "kind": "appendix",
+      "cells": 30,
+      "widthsEMU": [
+        663833,
+        1060196,
+        2345051
+      ],
+      "fontPt": 8
+    }
+  ],
+  "naturalWidths": [
+    {
+      "pages": [
+        3
+      ],
+      "measuredEMU": [
+        1835200,
+        3848150
+      ],
+      "appliedEMU": [
+        1835200,
+        3848150
+      ],
+      "constrained": false
+    },
+    {
+      "pages": [
+        6
+      ],
+      "measuredEMU": [
+        790625,
+        3041700
+      ],
+      "appliedEMU": [
+        790625,
+        3041700
+      ],
+      "constrained": false
+    },
+    {
+      "pages": [
+        7
+      ],
+      "measuredEMU": [
+        917625,
+        2924225,
+        2203500
+      ],
+      "appliedEMU": [
+        917625,
+        2924225,
+        2203500
+      ],
+      "constrained": false
+    },
+    {
+      "pages": [
+        8
+      ],
+      "measuredEMU": [
+        895400,
+        663625,
+        5492800
+      ],
+      "appliedEMU": [
+        895400,
+        663625,
+        5492800
+      ],
+      "constrained": false
+    },
+    {
+      "pages": [
+        9
+      ],
+      "measuredEMU": [
+        2035225,
+        3556050
+      ],
+      "appliedEMU": [
+        2035225,
+        3556050
+      ],
+      "constrained": false
+    },
+    {
+      "pages": [
+        12
+      ],
+      "measuredEMU": [
+        362000,
+        3463975
+      ],
+      "appliedEMU": [
+        362000,
+        3463975
+      ],
+      "constrained": false
+    },
+    {
+      "pages": [
+        13
+      ],
+      "measuredEMU": [
+        663625,
+        4029125
+      ],
+      "appliedEMU": [
+        663625,
+        4029125
+      ],
+      "constrained": false
+    },
+    {
+      "pages": [
+        14
+      ],
+      "measuredEMU": [
+        1044625,
+        2095550,
+        3156000
+      ],
+      "appliedEMU": [
+        1044625,
+        2095550,
+        3156000
+      ],
+      "constrained": false
+    },
+    {
+      "pages": [
+        15
+      ],
+      "measuredEMU": [
+        2527350,
+        1581200
+      ],
+      "appliedEMU": [
+        2527350,
+        1581200
+      ],
+      "constrained": false
+    },
+    {
+      "pages": [
+        21
+      ],
+      "measuredEMU": [
+        1581200,
+        3698925
+      ],
+      "appliedEMU": [
+        1581200,
+        3698925
+      ],
+      "constrained": false
+    },
+    {
+      "pages": [
+        23
+      ],
+      "measuredEMU": [
+        2111425,
+        2914700
+      ],
+      "appliedEMU": [
+        2111425,
+        2914700
+      ],
+      "constrained": false
+    }
+  ],
+  "automatic": {
+    "status": "PASS",
+    "errors": [],
+    "warnings": 51,
+    "categories": {
+      "표 셀이 한 줄을 넘는다": 21,
+      "굵게 표시한 핵심어가 없다": 24,
+      "묶음의 머리말과 항목이 같은 단에 있다 — 머리말을 \"- \"로, 항목을 두 칸 들여쓴다": 5,
+      "요약의 강사 노트에 \"모델에서 보완된 것 — …\" 줄이 없다.": 1
+    }
+  },
+  "reference": {
+    "path": "references/inputs/s03-op.pptx",
+    "sha256": "667697842a039badb65cbeffc41806ab38fe2fa93c1cd95f54aab85ab1a96e24",
+    "bytes": 171484,
+    "modified": "2026-11-16T01:36:47.727Z",
+    "slides": 13,
+    "role": "layout reference only; explicit current contract takes priority",
+    "missingReference": "s03_or.pptx"
+  }
+}

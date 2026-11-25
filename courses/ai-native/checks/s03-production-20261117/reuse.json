@@ -1,0 +1,54 @@
+{
+  "demoPrompt": true,
+  "firstRequest": true,
+  "finalRequest": true,
+  "attachments": [
+    {
+      "path": "courses/ai-native/sessions/code/s01/exercise-conversation/order/주문한다-업무조건.md",
+      "match": true
+    },
+    {
+      "path": "courses/ai-native/sessions/code/s02/exercise-conversation/order/활용-방식-판단.md",
+      "match": true
+    }
+  ],
+  "events": [
+    {
+      "kind": "demo",
+      "turn": "01",
+      "returncode": 0,
+      "started": "2026-11-16T18:20:33.011802+09:00",
+      "finished": "2026-11-16T18:21:27.276785+09:00",
+      "responseMatchesEvent": true
+    },
+    {
+      "kind": "exercise",
+      "turn": "01",
+      "returncode": 0,
+      "started": "2026-11-16T18:20:37.252960+09:00",
+      "finished": "2026-11-16T18:21:33.852396+09:00",
+      "responseMatchesEvent": true
+    },
+    {
+      "kind": "exercise",
+      "turn": "02",
+      "returncode": 0,
+      "started": "2026-11-16T18:25:37.112585+09:00",
+      "finished": "2026-11-16T18:27:09.067956+09:00",
+      "responseMatchesEvent": true
+    },
+    {
+      "kind": "exercise",
+      "turn": "03",
+      "returncode": 0,
+      "started": "2026-11-16T18:27:39.616262+09:00",
+      "finished": "2026-11-16T18:28:30.646057+09:00",
+      "responseMatchesEvent": true
+    }
+  ],
+  "hashes": {
+    "demo": "6007b1b03686f0af4a8d3049155a013bdb826d1a1bb4d5d7f10b960587e10b34",
+    "exercise": "29483a53927b58c30a0fb2592899c49f08f725213bdb8a74ee003f33ca23d29a",
+    "sourceBefore": "9092f1805ad2e351550a9a33823c014906a9519135e60b1e2a0fdd2cd7c02f8c"
+  }
+}

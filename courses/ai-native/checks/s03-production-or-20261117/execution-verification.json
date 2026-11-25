@@ -1,0 +1,34 @@
+{
+  "sourceSHA256": "526e4c77e1cc8e1f586d61f9872d9f6ce81b4e22e0d86c21395fd13f93d1e9aa",
+  "inputAndAttachmentsMatch": true,
+  "sourcePreserved": true,
+  "rawResponsesMatchEvents": true,
+  "existingExcerptsPreserved": true,
+  "newExecutions": 0,
+  "events": [
+    {
+      "kind": "demo",
+      "turn": "01",
+      "sha256": "6007b1b03686f0af4a8d3049155a013bdb826d1a1bb4d5d7f10b960587e10b34",
+      "returncode": 0
+    },
+    {
+      "kind": "exercise",
+      "turn": "01",
+      "sha256": "e34108e040bc70d5ad5051eb6a674ba33e356601600a52f5ee0b422ea164c29d",
+      "returncode": 0
+    },
+    {
+      "kind": "exercise",
+      "turn": "02",
+      "sha256": "775e7bb47ebdc192ab4681d91ce0d93565ca808a4250ee25ee6d27f121de116e",
+      "returncode": 0
+    },
+    {
+      "kind": "exercise",
+      "turn": "03",
+      "sha256": "29483a53927b58c30a0fb2592899c49f08f725213bdb8a74ee003f33ca23d29a",
+      "returncode": 0
+    }
+  ]
+}

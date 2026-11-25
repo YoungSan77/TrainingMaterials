@@ -1,0 +1,40 @@
+[
+  {
+    "input": "courses/ai-native/sessions/s03.md",
+    "inputSHA256": "6b1f0ab2ec875ff1187f819c7f916601e34d74531f6a3f56fd7e2413b6a40a7a",
+    "file": "/Users/YoungSan/dev/TrainingMaterials/out/s04-layout-20261119/s03-after.pptx",
+    "pptxSHA256": "40989a652fd208870759d203dea072a3e1d24fa08c0dc06afb874c07ddeac536",
+    "baseline": "/Users/YoungSan/dev/TrainingMaterials/out/s04-layout-20261119/s03-approved.pptx",
+    "baselineSHA256": "0f4c7f2ddafd44636ed23538b774f78a86cd4fa029b13d3433ba648a9acc0f90",
+    "slides": 30,
+    "baselineSlides": 30,
+    "errors": [],
+    "textChangedSlides": [
+      "ppt/slides/slide18.xml",
+      "ppt/slides/slide19.xml",
+      "ppt/slides/slide26.xml",
+      "ppt/slides/slide27.xml"
+    ],
+    "previousRendererControl": "out/s04-final-validation-20261118/ai-native-s03-regression.pptx",
+    "newTextChangedSlides": [],
+    "tables": 17,
+    "newStyleChangedSlides": []
+  },
+  {
+    "input": "courses/ooad/sessions/s02.md",
+    "inputSHA256": "48c7025a075be9c68d45d48bf48326b068266415ceba5dc401c748d43efe9846",
+    "file": "/Users/YoungSan/dev/TrainingMaterials/out/s04-layout-20261119/ooad-s02-after.pptx",
+    "pptxSHA256": "5d653063cdecc74e04d9864f456e728c3f7feba04201cc12b2efe2f4b610f5d4",
+    "baseline": "out/s04-final-validation-20261118/ooad-s02-regression.pptx",
+    "baselineSHA256": "c13e0373340487509f26721e69ac4624b7d99dca20673883763ad23050b42de5",
+    "slides": 93,
+    "baselineSlides": 93,
+    "errors": [],
+    "textChangedSlides": [],
+    "previousRendererControl": "out/s04-final-validation-20261118/ooad-s02-regression.pptx",
+    "newTextChangedSlides": [],
+    "tables": 45,
+    "quotes": 25,
+    "newStyleChangedSlides": []
+  }
+]

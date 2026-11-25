@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "responses": [
+    {
+      "session": "s03.md",
+      "topic": "주문한다-요구사항-정의서",
+      "record": {
+        "path": "sessions/code/s03/exercise-conversation/production-2026-11-16/exercise/codex-response-03.md",
+        "sha256": "29483a53927b58c30a0fb2592899c49f08f725213bdb8a74ee003f33ca23d29a"
+      }
+    },
+    {
+      "session": "s04.md",
+      "topic": "주문 기능 정적 모델 정의서 — 최종안",
+      "record": {
+        "path": "sessions/code/s04/exercise-conversation/production-2026-11-17/codex-response-02.md",
+        "sha256": "ce2ac55e9ffe61701ab8f90ccf6c1c651b94053214c96768948a55bf8bd6fc0c"
+      }
+    },
+    {
+      "session": "s05.md",
+      "topic": "주문한다 — 동적 모델",
+      "draft": {
+        "path": "sessions/code/s05/exercise-conversation/production-2026-11-24-layout/codex-response-01.md",
+        "sha256": "2c52eaac0dec333012b5b7c11c386ac7365c41cf309d7dfe8422c5d084b573bc"
+      },
+      "record": {
+        "path": "sessions/code/s05/exercise-conversation/production-2026-11-24-layout/codex-response-05.md",
+        "sha256": "f602c958d8193faf349806d5b2a595001447ba09f7342131ef375173be9184a2"
+      }
+    }
+  ]
+}

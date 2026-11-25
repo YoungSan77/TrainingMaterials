@@ -1,0 +1,23 @@
+{
+  "input": "courses/ooad/sessions/s02.md",
+  "output": "out/ai-native-baseline-20261117/ooad-s02.pptx",
+  "sourcePreserved": true,
+  "slides": 93,
+  "cells": 715,
+  "tableFontPt": 10,
+  "report": {
+    "status": "PASS",
+    "slides": 93,
+    "checked_blocks": 205,
+    "visual_status": "NOT_VERIFIED",
+    "errors": [],
+    "warnings": [
+      "실습 \"66. 실습 — 유스케이스\"에 결과물의 파일 이름이(가) 없다.",
+      "요약의 강사 노트에 \"모델에서 보완된 것 — …\" 줄이 없다.",
+      "\"11. 요구공학의 주요 활동\"의 \"다섯 가지\"은 숫자로 쓴다(예: 다섯가지 → 숫자+가지).",
+      "\"13. 누가 요구를 아는가?\"의 \"네 가지\"은 숫자로 쓴다(예: 네가지 → 숫자+가지).",
+      "\"25. 유스케이스 후보 식별\"의 \"세 가지\"은 숫자로 쓴다(예: 세가지 → 숫자+가지).",
+      "\"49. 유저 스토리\"의 \"세 가지\"은 숫자로 쓴다(예: 세가지 → 숫자+가지)."
+    ]
+  }
+}

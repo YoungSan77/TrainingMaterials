@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "pptx": "/Users/YoungSan/dev/TrainingMaterials/out/s04-layout-20261119/s03-after.pptx",
+  "pptx_sha256": "40989a652fd208870759d203dea072a3e1d24fa08c0dc06afb874c07ddeac536",
+  "pdf": "/Users/YoungSan/dev/TrainingMaterials/out/review/s03-after/s03-after.pdf",
+  "pdf_sha256": "96422403427f6efe0a8056797739ec2ef64619210ed60969868f90a5fa2c1b98",
+  "pages": 30,
+  "tables": 17,
+  "cells": 254,
+  "issues": []
+}

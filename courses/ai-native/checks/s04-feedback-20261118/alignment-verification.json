@@ -1,0 +1,17 @@
+{
+  "prompts": [
+    {
+      "marker": "①",
+      "firstLineX": 64.4,
+      "continuedLineX": 64.4
+    },
+    {
+      "marker": "②",
+      "firstLineX": 64.4,
+      "continuedLineX": 64.4
+    }
+  ],
+  "topic10ExampleFirstGlyphX": 81.6,
+  "topic10NumberedBodyFirstGlyphX": 82,
+  "originDifferenceFromGlyphBearingPt": 0.4000000000000057
+}

@@ -1,0 +1,2144 @@
+[
+  {
+    "page": 17,
+    "x": 365760,
+    "y": 4262120,
+    "before": [
+      288000,
+      288000,
+      440400,
+      288000,
+      440400
+    ],
+    "widths": [
+      875599,
+      3193481
+    ],
+    "heightPt": 95.7228346456693,
+    "rows": [
+      {
+        "beforeEMU": 288000,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "시스템",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 67.88181102362205
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "역할",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 250.39220472440942
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 288000,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "상품 시스템",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 62.03496062992126
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "상품 정보와 판매가 제공",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 244.54535433070865
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "결제 시스템",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 62.03496062992126
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "카드 결제 요청을 처리하고 승인 또는 거절 결과 반환",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 244.54535433070865
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 288000,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "배송 시스템",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 62.03496062992126
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "결제 승인된 주문의 배송 요청 접수",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 244.54535433070865
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "주문 시스템",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 62.03496062992126
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "주문 금액과 상태를 관리하고 결제·배송 시스템을 연계",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 244.54535433070865
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "page": 17,
+    "x": 4709160,
+    "y": 1163320,
+    "before": [
+      288000,
+      440400,
+      440400,
+      440400,
+      288000,
+      440400,
+      440400,
+      440400,
+      440400,
+      440400
+    ],
+    "widths": [
+      537263,
+      3531817
+    ],
+    "heightPt": 212.72692913385828,
+    "rows": [
+      {
+        "beforeEMU": 288000,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "용어",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 41.241181102362205
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "정의",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 277.0328346456693
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "장바구니",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 35.394330708661414
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "고객이 구매하려는 상품을 임시로 담아 둔 목록",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 271.18598425196853
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 378272,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "주문",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 35.394330708661414
+              }
+            ]
+          },
+          {
+            "heightPt": 29.785187007874015,
+            "paragraphs": [
+              {
+                "text": "구매 대상 상품, 주문 시점의 판매가, 주문 금액 및 처리 상태를 보존하는 거래 단위",
+                "lines": 2,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 271.18598425196853
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "주문 금액",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 35.394330708661414
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "주문이 생성될 때 적용된 상품 판매가를 기준으로 확정한 금액",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 271.18598425196853
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 288000,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "판매가",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 35.394330708661414
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "상품 시스템에서 관리하는 상품의 현재 판매 가격",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 271.18598425196853
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 378272,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "결제대기",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 35.394330708661414
+              }
+            ]
+          },
+          {
+            "heightPt": 29.785187007874015,
+            "paragraphs": [
+              {
+                "text": "주문에 대한 결제가 아직 승인되지 않은 상태. 결제가 거절된 주문도 이 상태에 남는다.",
+                "lines": 2,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 271.18598425196853
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "결제 승인",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 35.394330708661414
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "결제 시스템이 결제 요청을 성공으로 확정한 결과",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 271.18598425196853
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "결제 거절",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 35.394330708661414
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "결제 시스템이 결제 요청을 승인하지 않은 결과",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 271.18598425196853
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "재결제",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 35.394330708661414
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "결제가 거절된 주문에 대해 다른 카드로 다시 결제를 요청하는 행위",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 271.18598425196853
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "배송 요청",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 35.394330708661414
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "결제가 승인된 주문의 배송을 시작하기 위해 배송 시스템에 보내는 요청",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 271.18598425196853
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "page": 18,
+    "x": 4709160,
+    "y": 1366520,
+    "before": [
+      288000,
+      440400,
+      440400,
+      440400,
+      440400,
+      440400,
+      440400,
+      440400,
+      440400,
+      592800
+    ],
+    "widths": [
+      435528,
+      3633552
+    ],
+    "heightPt": 202.08629921259842,
+    "rows": [
+      {
+        "beforeEMU": 288000,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "ID",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 33.23055118110236
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "업무 규칙",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 285.0434645669292
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "BR-01",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 27.383700787401576
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "주문 금액은 주문이 생성될 때의 판매가를 기준으로 확정한다.",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 279.1966141732284
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "BR-02",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 27.383700787401576
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "주문 생성 후 판매가가 인상되어도 해당 주문의 주문 금액은 변경하지 않는다.",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 279.1966141732284
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "BR-03",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 27.383700787401576
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "최초 결제와 재결제에는 해당 주문에 확정된 주문 금액을 사용한다.",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 279.1966141732284
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "BR-04",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 27.383700787401576
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "배송 요청은 결제 시스템의 승인 결과를 받은 뒤에만 수행한다.",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 279.1966141732284
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "BR-05",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 27.383700787401576
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "결제가 거절되면 해당 주문은 결제대기 상태를 유지한다.",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 279.1966141732284
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "BR-06",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 27.383700787401576
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "결제가 거절된 주문은 다른 카드를 이용해 다시 결제할 수 있다.",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 279.1966141732284
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "BR-07",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 27.383700787401576
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "결제가 거절되었거나 아직 승인되지 않은 주문에는 배송을 요청하지 않는다.",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 279.1966141732284
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "BR-08",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 27.383700787401576
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "결제 시도가 여러 번 발생하더라도 하나의 주문 금액은 변경하지 않는다.",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 279.1966141732284
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 592800,
+        "afterEMU": 378272,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "BR-09",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 27.383700787401576
+              }
+            ]
+          },
+          {
+            "heightPt": 29.785187007874015,
+            "paragraphs": [
+              {
+                "text": "결제 승인된 주문에 대한 배송 요청은 중복되지 않아야 한다. 중복 방지의 구체적인 구현 방식은 설계 단계에서 정한다.",
+                "lines": 2,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 279.1966141732284
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "page": 20,
+    "x": 412306,
+    "y": 1732280,
+    "before": [
+      288000,
+      440400,
+      440400,
+      440400,
+      440400,
+      592800
+    ],
+    "widths": [
+      3315970,
+      1673860,
+      3315970
+    ],
+    "heightPt": 168.07055118110236,
+    "rows": [
+      {
+        "beforeEMU": 288000,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "실제 응답에서 확인한 것",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 260.0370078740158
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "사람의 판단",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 130.73700787401575
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "정의서 반영",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 260.0370078740158
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 378272,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "BR-01~03·08은 주문 금액의 확정과 유지 조건을 제시한다.",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 254.19015748031498
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "채택",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 124.89015748031497
+              }
+            ]
+          },
+          {
+            "heightPt": 29.785187007874015,
+            "paragraphs": [
+              {
+                "text": "주문 생성 시 판매가로 금액을 확정한다. 최초 결제와 재결제에 같은 금액을 쓴다.",
+                "lines": 2,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 254.19015748031498
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 378272,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "BR-04~07은 배송 요청 조건과 카드 거절 후 처리를 제시한다.",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 254.19015748031498
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "채택",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 124.89015748031497
+              }
+            ]
+          },
+          {
+            "heightPt": 29.785187007874015,
+            "paragraphs": [
+              {
+                "text": "승인 후에만 배송을 요청한다. 거절된 주문은 결제대기로 유지하고 다른 카드로 재결제할 수 있게 한다.",
+                "lines": 2,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 254.19015748031498
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 378272,
+        "cells": [
+          {
+            "heightPt": 29.785187007874015,
+            "paragraphs": [
+              {
+                "text": "「9. 미정 질문」의 ‘주문 생성과 상태’는 생성 시점과 승인 뒤 상태를 묻는다.",
+                "lines": 2,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 254.19015748031498
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "확정",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 124.89015748031497
+              }
+            ]
+          },
+          {
+            "heightPt": 29.785187007874015,
+            "paragraphs": [
+              {
+                "text": "배송지 확정 시 주문을 생성하고, 카드 승인 뒤에는 결제완료로 기록한다.",
+                "lines": 2,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 254.19015748031498
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 378272,
+        "cells": [
+          {
+            "heightPt": 29.785187007874015,
+            "paragraphs": [
+              {
+                "text": "‘배송’ 질문은 배송 요청 실패 시 재시도와 주문 상태·운영 처리를 묻는다.",
+                "lines": 2,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 254.19015748031498
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "미정",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 124.89015748031497
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "실패 후 상태, 재시도, 고객 통지 등은 담당자에게 확인한다.",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 254.19015748031498
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 592800,
+        "afterEMU": 378272,
+        "cells": [
+          {
+            "heightPt": 29.785187007874015,
+            "paragraphs": [
+              {
+                "text": "초안은 취소·환불·배송지 변경 등을 제외한다. US-01~04로 기능을 나눈다.",
+                "lines": 2,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 254.19015748031498
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "범위 및 스토리 정리",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 124.89015748031497
+              }
+            ]
+          },
+          {
+            "heightPt": 29.785187007874015,
+            "paragraphs": [
+              {
+                "text": "취소·환불은 제외한다. 결제대기 주문의 배송지는 변경할 수 없다. 주문·결제·재결제는 ‘주문한다’ 스토리 하나에 담는다.",
+                "lines": 2,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 254.19015748031498
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "page": 28,
+    "x": 412306,
+    "y": 1515110,
+    "before": [
+      440400,
+      745200,
+      897600,
+      745200,
+      745200
+    ],
+    "widths": [
+      1226397,
+      1226397,
+      1226397,
+      947420,
+      1226397,
+      1226397,
+      1226397
+    ],
+    "heightPt": 191.48850393700786,
+    "rows": [
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "상황",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 95.50370078740157
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "전제 및 사건",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 95.50370078740157
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "동일 주문 여부",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 95.50370078740157
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "주문 금액",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 73.53700787401574
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "카드 승인 요청 금액",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 95.50370078740157
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "최종 상태",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 95.50370078740157
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "누적 배송 요청",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 95.50370078740157
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 745200,
+        "afterEMU": 513408,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "정상 승인",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          },
+          {
+            "heightPt": 40.425812007874015,
+            "paragraphs": [
+              {
+                "text": "펜 2개와 서울 배송지로 주문을 생성하고 카드 Y 승인",
+                "lines": 3,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "생성된 같은 주문",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "2,000원",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 67.69015748031495
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "2,000원",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "결제완료(PAID)",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "1회",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 897600,
+        "afterEMU": 648544,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "가격 변경 후 승인",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          },
+          {
+            "heightPt": 51.066437007874015,
+            "paragraphs": [
+              {
+                "text": "2,000원으로 주문을 생성한 뒤 현재 판매가가 1,200원으로 상승하고 카드 Y 승인",
+                "lines": 4,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          },
+          {
+            "heightPt": 29.785187007874015,
+            "paragraphs": [
+              {
+                "text": "가격 변경 전에 생성된 같은 주문",
+                "lines": 2,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "2,000원",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 67.69015748031495
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "2,000원",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "결제완료(PAID)",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "1회",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 745200,
+        "afterEMU": 513408,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "카드 거절",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          },
+          {
+            "heightPt": 40.425812007874015,
+            "paragraphs": [
+              {
+                "text": "2,000원의 결제대기 주문에 카드 X 승인 요청 후 거절",
+                "lines": 3,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "생성된 같은 주문",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "2,000원",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 67.69015748031495
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "2,000원",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          },
+          {
+            "heightPt": 29.785187007874015,
+            "paragraphs": [
+              {
+                "text": "결제대기(PENDING_PAYMENT)",
+                "lines": 2,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "0회",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 745200,
+        "afterEMU": 513408,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "거절 후 재결제",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          },
+          {
+            "heightPt": 40.425812007874015,
+            "paragraphs": [
+              {
+                "text": "같은 주문에서 카드 X 거절 후 카드 Y로 다시 요청하여 승인",
+                "lines": 3,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          },
+          {
+            "heightPt": 29.785187007874015,
+            "paragraphs": [
+              {
+                "text": "X 거절 전후와 Y 승인 후 모두 같은 주문 식별자",
+                "lines": 2,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "2,000원",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 67.69015748031495
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "X: 2,000원, Y: 2,000원",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "최종 결제완료(PAID)",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "전체 과정 총 1회",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 89.65685039370078
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "page": 29,
+    "x": 4709160,
+    "y": 1163320,
+    "before": [
+      288000,
+      440400,
+      592800,
+      440400,
+      592800,
+      440400,
+      440400,
+      440400,
+      440400,
+      440400
+    ],
+    "widths": [
+      600333,
+      1377696,
+      2091051
+    ],
+    "heightPt": 255.28944881889763,
+    "rows": [
+      {
+        "beforeEMU": 288000,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "용어",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 46.207322834645666
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "표기",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 107.41700787401575
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "정의",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 163.5866929133858
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "주문",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 40.360472440944875
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "Order",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 101.57015748031496
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "배송지 확정 시 생성되는 업무 기록",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 157.73984251968503
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 592800,
+        "afterEMU": 378272,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "주문 항목",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 40.360472440944875
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "OrderItem",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 101.57015748031496
+              }
+            ]
+          },
+          {
+            "heightPt": 29.785187007874015,
+            "paragraphs": [
+              {
+                "text": "주문에 포함된 상품, 수량 및 주문 생성 시점에 기록한 항목 단가",
+                "lines": 2,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 157.73984251968503
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "판매가",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 40.360472440944875
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "salePrice",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 101.57015748031496
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "상품 시스템이 제공하는 현재 판매 가격",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 157.73984251968503
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 592800,
+        "afterEMU": 378272,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "주문 금액",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 40.360472440944875
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "totalAmount",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 101.57015748031496
+              }
+            ]
+          },
+          {
+            "heightPt": 29.785187007874015,
+            "paragraphs": [
+              {
+                "text": "생성 시점의 항목 단가와 수량으로 계산한 주문 항목 금액의 합계",
+                "lines": 2,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 157.73984251968503
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 378272,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "결제대기",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 40.360472440944875
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "PENDING_PAYMENT",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 101.57015748031496
+              }
+            ]
+          },
+          {
+            "heightPt": 29.785187007874015,
+            "paragraphs": [
+              {
+                "text": "주문은 생성됐지만 카드 승인이 완료되지 않은 상태",
+                "lines": 2,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 157.73984251968503
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 243136,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "결제완료",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 40.360472440944875
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "PAID",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 101.57015748031496
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "카드 승인이 완료되어 주문이 성립한 상태",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 157.73984251968503
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 378272,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "승인 거절",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 40.360472440944875
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "—",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 101.57015748031496
+              }
+            ]
+          },
+          {
+            "heightPt": 29.785187007874015,
+            "paragraphs": [
+              {
+                "text": "카드 승인이 허용되지 않은 확정 결과이며 청구 완료가 아님",
+                "lines": 2,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 157.73984251968503
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 378272,
+        "cells": [
+          {
+            "heightPt": 29.785187007874015,
+            "paragraphs": [
+              {
+                "text": "응답 불확정",
+                "lines": 2,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 40.360472440944875
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "—",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 101.57015748031496
+              }
+            ]
+          },
+          {
+            "heightPt": 29.785187007874015,
+            "paragraphs": [
+              {
+                "text": "승인과 거절 중 어느 결과인지 확정할 수 없는 상황",
+                "lines": 2,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 157.73984251968503
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "beforeEMU": 440400,
+        "afterEMU": 378272,
+        "cells": [
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "배송 요청",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 40.360472440944875
+              }
+            ]
+          },
+          {
+            "heightPt": 19.144562007874015,
+            "paragraphs": [
+              {
+                "text": "—",
+                "lines": 1,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 101.57015748031496
+              }
+            ]
+          },
+          {
+            "heightPt": 29.785187007874015,
+            "paragraphs": [
+              {
+                "text": "카드 승인 완료 후 배송 시스템에 전달하는 요청",
+                "lines": 2,
+                "linePt": 10.640625,
+                "before": 0,
+                "after": 0,
+                "availablePt": 157.73984251968503
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

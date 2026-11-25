@@ -1,0 +1,159 @@
+{
+  "status": "PASS",
+  "pages": 37,
+  "pdf": "/Users/YoungSan/dev/TrainingMaterials/out/review/s04-close-20261119/s04-close-20261119.pdf",
+  "pdf_sha256": "42382141c6a1a697f4c6a587f91190d155e06811aa9954acea4a44bb08056c2a",
+  "all_cells": 421,
+  "issues": [],
+  "changed_slide_visually_reviewed": 23,
+  "identical_images_reusing_prior_visual_review": [
+    {
+      "slide": 1,
+      "sha256": "8eab74f53d2466d865adb64f1b91a8ddab824378ad9ca34d26e33e8d692b8a0f"
+    },
+    {
+      "slide": 2,
+      "sha256": "359e85fde9a8be131cdbaff33bcb29ac1de438044630329d862bc52cd44ddc2d"
+    },
+    {
+      "slide": 3,
+      "sha256": "b542043100598118ac6f86575a01255ba79ce8e96a7530b3404e9dc43a92d39c"
+    },
+    {
+      "slide": 4,
+      "sha256": "c0537ea5a6558297e87b6cec8aa92bf2ad753f51e77facbdb512369d0e48d60e"
+    },
+    {
+      "slide": 5,
+      "sha256": "ca990bddf03d6452412ad1890a85c4819b684834ec1c46f434a3757d958c7d25"
+    },
+    {
+      "slide": 6,
+      "sha256": "2504985bedd6f7028d4ca78e142e652111069f6d0e6115ba4aaa3aee0851a7de"
+    },
+    {
+      "slide": 7,
+      "sha256": "acbee1a1f02893feabe27e3c4a28e85e2848c015cb1d7e92ae59934b44d45d7b"
+    },
+    {
+      "slide": 8,
+      "sha256": "bbcf021410bc0d461928d81bfa35ac14fe59eb51ce2324d0fa14cdbac85d0d13"
+    },
+    {
+      "slide": 9,
+      "sha256": "ac6fd61c3e5220c84021cd2e1b4db6efa85054145bfb9dc545c5e337051f1e95"
+    },
+    {
+      "slide": 10,
+      "sha256": "2c7bc83ef75e8bde430312fe02d5758b73e870e1c778c3155dd5f9b5c97f5710"
+    },
+    {
+      "slide": 11,
+      "sha256": "a054db083c6d97fec134ccdb438ec02c2479c97ad8e40a0f60fd2c202d78534d"
+    },
+    {
+      "slide": 12,
+      "sha256": "7d5c213b4147786b33b11097142b598cc52553da6d25b6e43e669598cda75a9a"
+    },
+    {
+      "slide": 13,
+      "sha256": "28b4285bc23027513ed5118e51c0fa6dedb714d1fd309a75afe0c012db6c3a43"
+    },
+    {
+      "slide": 14,
+      "sha256": "e63c1c3562801d5c67a7b026adb7464f12f6efeb377835fd1af6b45b725da85f"
+    },
+    {
+      "slide": 15,
+      "sha256": "32cc5e38fb9e2a14581e3832cd73d957d92524beba935d36e0dc4f581680abd5"
+    },
+    {
+      "slide": 16,
+      "sha256": "0bca336846494f595fcf2f0644bb3b7824f451555fc1c233fec1e616ad083e9d"
+    },
+    {
+      "slide": 17,
+      "sha256": "862157f4323a5fc275e3f994e4d27c9fc9c3697745232996d60f5d253d47275c"
+    },
+    {
+      "slide": 18,
+      "sha256": "1c79fc9d3ec534a29b0c2646dc2f2112827042cc22983cc341537f1534e1e071"
+    },
+    {
+      "slide": 19,
+      "sha256": "d85d84cca21ece96733189f671a9ccd2a822fd29ba204aa0aac0befdaefe462b"
+    },
+    {
+      "slide": 20,
+      "sha256": "f532ece859f07e6fba0b6fe5ce7d2330b427002bf22571ec6b4f2da0b0930c82"
+    },
+    {
+      "slide": 21,
+      "sha256": "262d897cc8152c2d35372ded230cdd63577194d8dc29bc64c4af0f84f38db6b2"
+    },
+    {
+      "slide": 22,
+      "sha256": "d3b4b7bac152b25e7ea807062319cf9c36bac6e5ccec3d4be7bd0173b2833398"
+    },
+    {
+      "slide": 24,
+      "sha256": "a2c1fda57cd52b4c9c1701947bf352f61109aa56c6668a081340b6b2dd34db5a"
+    },
+    {
+      "slide": 25,
+      "sha256": "ef4239f658166b8c78752ee8a4dccf8a9aa2e8712bcf5f9ccda9bc86261b3b8f"
+    },
+    {
+      "slide": 26,
+      "sha256": "1417b03014657e647b499b0a96ac7e4a62607afb240a4e1c847be084328736fd"
+    },
+    {
+      "slide": 27,
+      "sha256": "85867ffe8582bb1aa46970e1d7290d8cba1ead3e0e8d680a5d5c698f0310fdb5"
+    },
+    {
+      "slide": 28,
+      "sha256": "cfaf501da977283d03bb3f3c955c5fee249b582f8dfb925cb958ebf7524b8389"
+    },
+    {
+      "slide": 29,
+      "sha256": "4ed16f2d25833ed5129661ff04a32bbf1eded3f53cf84d541b26ad48177471be"
+    },
+    {
+      "slide": 30,
+      "sha256": "9b0d29f9309a8f71ca72abb06f81afd33be453b945c7c6e76987a9f7cb6d4ddf"
+    },
+    {
+      "slide": 31,
+      "sha256": "e05e419c10875dd9277fbcaf9d5316916a4c8edf99f99b2b09b50e0af485f582"
+    },
+    {
+      "slide": 32,
+      "sha256": "32deb2a32e93364317504dba41b93e00e94d89411b6f3ad0b6739695c888ff02"
+    },
+    {
+      "slide": 33,
+      "sha256": "c25c729226b61d2844535b50b6b104ea6ec006da56c981b6df752261e4f6ff63"
+    },
+    {
+      "slide": 34,
+      "sha256": "82103c18ba5d3bc4ed760ff616fba0c661c9504ab647edce3999505d4fafc8df"
+    },
+    {
+      "slide": 35,
+      "sha256": "9d9d4e2dc01ca3ffa81e191155615a783d94e0ab76b55df4d611f810d6510740"
+    },
+    {
+      "slide": 36,
+      "sha256": "96a588024b9bf092a953e56bcd7e5a8852a20d20ec7c54fa7581ec8b251b6dbc"
+    },
+    {
+      "slide": 37,
+      "sha256": "bb735ec7f4603049bf059c53c60ce3cff9d001088593159531115ac260716ddc"
+    }
+  ],
+  "previous_full_visual_review": "courses/ai-native/checks/s04-recheck-20261119/README.md",
+  "model_paragraphs_3pt": 4,
+  "java_code_paragraphs_zero_gap": 23,
+  "appendix_cells_8pt": 260
+}

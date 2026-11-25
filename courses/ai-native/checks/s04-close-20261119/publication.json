@@ -1,0 +1,23 @@
+{
+  "source": "courses/ai-native/sessions/s04.md",
+  "changedLine": 725,
+  "oldLine": "| **개념과 식별** | 타입 `Order`, 값 타입 `OrderNumber` | 결제 거절 후 재결제에서도 주문 번호가 같은지 확인한다. |",
+  "newLine": "| **개념과 식별** | 값 타입 `ProductNumber`, `OrderItem.productNumber()` | 주문 항목에 기록된 상품 번호가 `PEN`인지 확인한다. |",
+  "sourceSHA256": "744678f3e70e0f089d83aa479e970ab081c87609750c45ab2fd700bb6a927872",
+  "target": "/Users/YoungSan/dev/TrainingMaterials/courses/ai-native/sessions/s04.pptx",
+  "targetQA": "/Users/YoungSan/dev/TrainingMaterials/courses/ai-native/sessions/s04.qa.json",
+  "sha256": "c16507695edd55039163038a0328a7f9069f0e06bdbccc06a609b1154dc4f68e",
+  "qaSHA256": "fa3204d919f7d7005ef453e1621597ca21c641fd75cbeb1a8511191037346539",
+  "slides": 37,
+  "automaticErrors": 0,
+  "sourceWarnings": 24,
+  "production": "PASS",
+  "published": true,
+  "rendererChanged": false,
+  "testCodeUnchanged": true,
+  "otherProtectedFilesUnchanged": 1228,
+  "generationRuns": 1,
+  "fullRenderRuns": 1,
+  "currentVisualReviewPages": 1,
+  "identicalPreviouslyReviewedPages": 36
+}

@@ -1,0 +1,18 @@
+{
+  "counts": {
+    "body": 121,
+    "demo": 50,
+    "judgment": 18,
+    "appendix": 65
+  },
+  "total": 254,
+  "allFourMargins": 54000,
+  "changedPages": [
+    17,
+    18,
+    20,
+    28,
+    29
+  ],
+  "allRenderedTextPresent": true
+}

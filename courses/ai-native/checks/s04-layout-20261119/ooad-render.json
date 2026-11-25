@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "pptx": "/Users/YoungSan/dev/TrainingMaterials/out/s04-layout-20261119/ooad-s02-after.pptx",
+  "pptx_sha256": "5d653063cdecc74e04d9864f456e728c3f7feba04201cc12b2efe2f4b610f5d4",
+  "pdf": "/Users/YoungSan/dev/TrainingMaterials/out/review/ooad-s02-after/ooad-s02-after.pdf",
+  "pdf_sha256": "e37adc86787687b14ffb128f56029eb91d6bcf4c15666e5febaa04242ae5e6ad",
+  "pages": 93,
+  "tables": 45,
+  "cells": 715,
+  "issues": []
+}

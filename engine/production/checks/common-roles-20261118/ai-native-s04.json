@@ -1,0 +1,1455 @@
+{
+  "input": "courses/ai-native/sessions/s04.md",
+  "file": "/Users/YoungSan/dev/TrainingMaterials/out/common-production-20261118/ai-native-s04.pptx",
+  "slides": 49,
+  "errors": [],
+  "pages": [
+    {
+      "slide": 1,
+      "heading": "04. 도메인 모델 목차",
+      "role": "lecture",
+      "tables": [],
+      "pictures": []
+    },
+    {
+      "slide": 2,
+      "heading": "01. 세션 목표",
+      "role": "lecture",
+      "tables": [],
+      "pictures": []
+    },
+    {
+      "slide": 3,
+      "heading": "02. 판매가와 주문 금액",
+      "role": "lecture",
+      "tables": [],
+      "pictures": [
+        {
+          "pt": 10
+        }
+      ]
+    },
+    {
+      "slide": 4,
+      "heading": "정적과 동적은 한 모델이다\n03. 도메인 모델의 목적",
+      "role": "lecture",
+      "tables": [],
+      "pictures": [],
+      "quoteChecks": [
+        {
+          "id": 8,
+          "index": 1,
+          "koreanRuns": 3,
+          "koreanSize": 18,
+          "sourceSize": 10
+        },
+        {
+          "id": 8,
+          "index": 5,
+          "koreanRuns": 3,
+          "koreanSize": 16,
+          "sourceSize": 10
+        }
+      ]
+    },
+    {
+      "slide": 5,
+      "heading": "분석은 설계를 정하지 않는다\n03. 도메인 모델의 목적",
+      "role": "lecture",
+      "tables": [
+        {
+          "id": 11,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "관점",
+              "답하는 질문",
+              "주문 금액의 결정"
+            ],
+            [
+              "요구",
+              "어떤 결과를 원하는가?",
+              "가격 변경 뒤에도 2,000원"
+            ],
+            [
+              "분석",
+              "그 결과는 무엇을 뜻하는가?",
+              "판매가와 단가를 가른다"
+            ],
+            [
+              "설계",
+              "누가 그 규칙을 지키는가?",
+              "항목 금액을 합산할 책임을 배치"
+            ],
+            [
+              "구현",
+              "어떻게 실행하는가?",
+              "Money와 반복문으로 계산"
+            ]
+          ],
+          "role": "lecture",
+          "tablePt": 10,
+          "measuredRows": false
+        }
+      ],
+      "pictures": [],
+      "quoteChecks": [
+        {
+          "id": 13,
+          "index": 1,
+          "koreanRuns": 3,
+          "koreanSize": 18,
+          "sourceSize": 10
+        },
+        {
+          "id": 15,
+          "index": 1,
+          "koreanRuns": 2,
+          "koreanSize": 16,
+          "sourceSize": 10
+        }
+      ]
+    },
+    {
+      "slide": 6,
+      "heading": "04. 이름이 갈리면 모델이 갈린다",
+      "role": "lecture",
+      "tables": [
+        {
+          "id": 11,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "용어",
+              "영문명",
+              "업무 의미"
+            ],
+            [
+              "주문",
+              "Order",
+              "배송지 지정으로 생긴 거래 기록"
+            ],
+            [
+              "주문 항목",
+              "OrderItem",
+              "주문에 담긴 상품·단가·수량"
+            ],
+            [
+              "상품",
+              "Product",
+              "상품 시스템이 관리하는 주문 대상"
+            ],
+            [
+              "판매가",
+              "salePrice",
+              "상품의 지금 값"
+            ],
+            [
+              "단가",
+              "unitPrice",
+              "주문이 생길 때 확정한 값"
+            ],
+            [
+              "주문 금액",
+              "totalAmount",
+              "주문에 속한 모든 항목의 단가 × 수량을 합한 금액"
+            ]
+          ],
+          "role": "lecture",
+          "tablePt": 10,
+          "measuredRows": false
+        }
+      ],
+      "pictures": [],
+      "quoteChecks": [
+        {
+          "id": 13,
+          "index": 1,
+          "koreanRuns": 3,
+          "koreanSize": 18,
+          "sourceSize": 10
+        }
+      ]
+    },
+    {
+      "slide": 7,
+      "heading": "개념은 요구 문장에서 찾는다\n05. 개념과 속성이 모델의 시작이다",
+      "role": "lecture",
+      "tables": [
+        {
+          "id": 11,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "요구의 단서",
+              "판단",
+              "모델에 남길 것"
+            ],
+            [
+              "배송지 지정 뒤 주문 생성",
+              "승인 전에도 주문이 있다",
+              "주문"
+            ],
+            [
+              "상품별 가격과 수량",
+              "주문마다 다른 거래 조건",
+              "주문 항목"
+            ],
+            [
+              "상품 시스템의 현재 판매가",
+              "거래 대상과 지금 값",
+              "상품"
+            ],
+            [
+              "본인의 주문만 조회",
+              "주체를 가리킬 개념이 없다",
+              "질문으로 남긴다"
+            ],
+            [
+              "승인 결과·배송 요청",
+              "사건과 외부 반응이다",
+              "동적 관점에서 다룬다"
+            ]
+          ],
+          "role": "lecture",
+          "tablePt": 10,
+          "measuredRows": false
+        }
+      ],
+      "pictures": [],
+      "quoteChecks": [
+        {
+          "id": 13,
+          "index": 1,
+          "koreanRuns": 3,
+          "koreanSize": 18,
+          "sourceSize": 10
+        }
+      ]
+    },
+    {
+      "slide": 8,
+      "heading": "속성은 알아야 할 값만 둔다\n05. 개념과 속성이 모델의 시작이다",
+      "role": "lecture",
+      "tables": [],
+      "pictures": [
+        {
+          "pt": 10
+        }
+      ],
+      "quoteChecks": [
+        {
+          "id": 8,
+          "index": 1,
+          "koreanRuns": 3,
+          "koreanSize": 18,
+          "sourceSize": 10
+        }
+      ]
+    },
+    {
+      "slide": 9,
+      "heading": "금액과 수량은 값 타입이다\n05. 개념과 속성이 모델의 시작이다",
+      "role": "lecture",
+      "tables": [],
+      "pictures": []
+    },
+    {
+      "slide": 10,
+      "heading": "관계 표기 읽기\n06. 관계와 다중성",
+      "role": "lecture",
+      "tables": [],
+      "pictures": [
+        {
+          "pt": 10
+        }
+      ]
+    },
+    {
+      "slide": 11,
+      "heading": "연관명과 다중성 (1/2)\n06. 관계와 다중성",
+      "role": "lecture",
+      "tables": [
+        {
+          "id": 11,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "적힌 것",
+              "무엇을 뜻하는가?"
+            ],
+            [
+              "채운 마름모",
+              "주문은 전체, 주문 항목은 그 주문에 속하는 부분이다"
+            ],
+            [
+              "선 위의 연관명 ‘포함’",
+              "주문과 주문 항목 사이의 관계를 읽는 말이다"
+            ],
+            [
+              "항목 쪽 1..*",
+              "주문 하나에는 항목이 한 개 이상 있다"
+            ],
+            [
+              "주문 쪽 1",
+              "항목 하나는 주문 한 건에만 속한다"
+            ]
+          ],
+          "role": "lecture",
+          "tablePt": 10,
+          "measuredRows": false
+        }
+      ],
+      "pictures": [
+        {
+          "pt": 10
+        }
+      ],
+      "quoteChecks": [
+        {
+          "id": 13,
+          "index": 1,
+          "koreanRuns": 3,
+          "koreanSize": 18,
+          "sourceSize": 10
+        }
+      ]
+    },
+    {
+      "slide": 12,
+      "heading": "연관명과 다중성 (2/2)\n06. 관계와 다중성",
+      "role": "lecture",
+      "tables": [],
+      "pictures": []
+    },
+    {
+      "slide": 13,
+      "heading": "주문 항목의 소속\n06. 관계와 다중성",
+      "role": "lecture",
+      "tables": [
+        {
+          "id": 11,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "관계",
+              "펜 주문에서 확인할 뜻"
+            ],
+            [
+              "주문과 주문 항목",
+              "서울로 받는 주문의 단가 1,000원·수량 2인 항목은 그 주문에 속한다."
+            ],
+            [
+              "주문 항목과 상품",
+              "같은 펜 상품이 이후 다른 주문 항목에 나타날 수 있다."
+            ]
+          ],
+          "role": "lecture",
+          "tablePt": 10,
+          "measuredRows": false
+        }
+      ],
+      "pictures": [],
+      "quoteChecks": [
+        {
+          "id": 13,
+          "index": 1,
+          "koreanRuns": 1,
+          "koreanSize": 18,
+          "sourceSize": 10
+        }
+      ]
+    },
+    {
+      "slide": 14,
+      "heading": "07. 무엇이 같은 주문인가?",
+      "role": "lecture",
+      "tables": [],
+      "pictures": [
+        {
+          "pt": 10
+        }
+      ]
+    },
+    {
+      "slide": 15,
+      "heading": "조건은 테스트의 기대값이 된다\n08. 언제나 참인 조건을 적는다",
+      "role": "lecture",
+      "tables": [],
+      "pictures": [
+        {
+          "pt": 10
+        }
+      ]
+    },
+    {
+      "slide": 16,
+      "heading": "파생 속성과 계산식\n08. 언제나 참인 조건을 적는다",
+      "role": "lecture",
+      "tables": [
+        {
+          "id": 34,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "값",
+              "모델에서 정의하는 의미"
+            ],
+            [
+              "단가와 수량",
+              "주문 항목에서 보존하는 값"
+            ],
+            [
+              "주문 금액",
+              "항목별 단가 × 수량의 합"
+            ]
+          ],
+          "role": "lecture",
+          "tablePt": 10,
+          "measuredRows": false
+        }
+      ],
+      "pictures": []
+    },
+    {
+      "slide": 17,
+      "heading": "09. 상세화가 규칙을 명시한다",
+      "role": "lecture",
+      "tables": [
+        {
+          "id": 11,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "개념",
+              "의미와 속성"
+            ],
+            [
+              "주문 Order",
+              "주문 번호 OrderNumber, 배송지 shippingAddress, 주문 상태 OrderStatus, 파생 주문 금액 totalAmount"
+            ],
+            [
+              "주문 항목 OrderItem",
+              "확정 단가 unitPrice, 수량 Quantity"
+            ],
+            [
+              "상품 Product",
+              "상품 번호 ProductNumber, 현재 판매가 salePrice"
+            ]
+          ],
+          "role": "lecture",
+          "tablePt": 10,
+          "measuredRows": false
+        }
+      ],
+      "pictures": [
+        {
+          "pt": 10
+        }
+      ]
+    },
+    {
+      "slide": 18,
+      "heading": "요구사항으로 모델 판정하기\n09. 상세화가 규칙을 명시한다",
+      "role": "lecture",
+      "tables": [
+        {
+          "id": 11,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "확인할 조건",
+              "근거와 판정"
+            ],
+            [
+              "합계 등식",
+              "모든 유효한 주문의 금액은 해당 주문 항목의 unitPrice × quantity를 더한 값이다."
+            ],
+            [
+              "생성 시점",
+              "항목에 그 시점의 salePrice를 unitPrice로 기록한다."
+            ],
+            [
+              "생성 이후",
+              "현재 판매가가 바뀌어도 기존 항목 단가와 주문 금액을 보존한다. 카드 승인 요청에도 그 주문 금액을 쓴다."
+            ]
+          ],
+          "role": "lecture",
+          "tablePt": 10,
+          "measuredRows": false
+        },
+        {
+          "id": 16,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "수용 사례",
+              "정적 모델로 확인할 값",
+              "행동 검사로 이어질 기대값"
+            ],
+            [
+              "정상 승인",
+              "펜 2개, 단가 1,000원, 주문 금액 2,000원",
+              "2,000원 승인 요청, 결제완료, 배송 요청 1회"
+            ],
+            [
+              "가격 변경 후 승인",
+              "현재 판매가 1,200원, 기존 단가 1,000원, 기존 금액 2,000원",
+              "2,000원 승인 요청, 결제완료, 배송 요청 1회"
+            ],
+            [
+              "카드 거절",
+              "같은 주문 번호와 금액 2,000원",
+              "2,000원 승인 요청 뒤 결제대기, 배송 요청 0회"
+            ],
+            [
+              "거절 후 재결제",
+              "최초 요청·거절·다른 카드 재결제에서 같은 주문 번호와 금액 2,000원",
+              "카드 X·Y 각각 2,000원 요청, Y 승인 뒤 결제완료, 전체 배송 요청 1회"
+            ]
+          ],
+          "role": "lecture",
+          "tablePt": 10,
+          "measuredRows": false
+        }
+      ],
+      "pictures": []
+    },
+    {
+      "slide": 19,
+      "heading": "모델에 남길 가정과 질문\n09. 상세화가 규칙을 명시한다",
+      "role": "lecture",
+      "tables": [],
+      "pictures": []
+    },
+    {
+      "slide": 20,
+      "heading": "이전 실행의 입력 (1/2)\n10. 초안은 사람이 읽어야 한다",
+      "role": "lecture",
+      "tables": [],
+      "pictures": []
+    },
+    {
+      "slide": 21,
+      "heading": "이전 실행의 입력 (2/2)\n10. 초안은 사람이 읽어야 한다",
+      "role": "lecture",
+      "tables": [],
+      "pictures": []
+    },
+    {
+      "slide": 22,
+      "heading": "이전 실행의 첫 응답\n10. 초안은 사람이 읽어야 한다",
+      "role": "recorded-response",
+      "tables": [],
+      "pictures": []
+    },
+    {
+      "slide": 23,
+      "heading": "문법은 맞고 뜻이 틀린다\n10. 초안은 사람이 읽어야 한다",
+      "role": "response-review",
+      "tables": [
+        {
+          "id": 11,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "초안이 쓴 말",
+              "무엇이 문제인가?",
+              "사람이 결정한 것"
+            ],
+            [
+              "속성명을 unitPrice로 쓸 것인가?",
+              "질문 — 요구 표현과 대조",
+              "현재 값과 확정 값을 가른다"
+            ],
+            [
+              "Quantity는 양의 정수만 허용하는가?",
+              "질문 — 입력에 근거 없음",
+              "1 이상 정수·0 이상 원 단위"
+            ],
+            [
+              "회원 주문만 허용하는가?",
+              "질문 — 요구에 근거 없음",
+              "미정으로 남긴다"
+            ],
+            [
+              "PENDING_PAYMENT 또는 PAID",
+              "현재 구현 범위의 두 값이다. 모델이 적용되는 범위를 함께 읽는다.",
+              "현재 주문 상태 값만 적고 미정 결과의 후속 상태를 추가하지 않는다."
+            ],
+            [
+              "shippingAddress가 확정된다",
+              "배송지 확정은 요구와 맞는다. 도식에서 값에 별도 관계선을 그릴 필요가 있는지 판단한다.",
+              "배송지를 주문의 값 속성으로 표현한다."
+            ]
+          ],
+          "role": "response-review",
+          "tablePt": 8,
+          "measuredRows": true
+        }
+      ],
+      "pictures": [],
+      "quoteChecks": [
+        {
+          "id": 13,
+          "index": 1,
+          "koreanRuns": 5,
+          "koreanSize": 18,
+          "sourceSize": 10
+        }
+      ]
+    },
+    {
+      "slide": 24,
+      "heading": "초안의 오류를 근거로 고치기\n10. 초안은 사람이 읽어야 한다",
+      "role": "lecture",
+      "tables": [
+        {
+          "id": 34,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "검토 대상",
+              "근거와 수정"
+            ],
+            [
+              "회원 개념",
+              "본인 주문 확인은 필요하지만 회원 정책은 미정이다. 회원 타입의 도입은 보류하고 본인 확인 질문을 남긴다."
+            ],
+            [
+              "주문 항목의 속성",
+              "주문 생성 시점 값을 재현하려면 항목에 확정 단가를 남긴다."
+            ],
+            [
+              "주문과 항목의 다중성",
+              "예제의 생성된 주문은 항목 한 개 이상이다. 항목 끝을 1..*로 고치고 각 항목의 소속 주문은 한 건으로 유지한다."
+            ],
+            [
+              "주문 금액의 조건",
+              "현재 판매가로 계산하면 2,400원이다. 항목의 확정 단가를 써 2,000원이 되도록 합계식을 고친다."
+            ]
+          ],
+          "role": "lecture",
+          "tablePt": 10,
+          "measuredRows": false
+        }
+      ],
+      "pictures": []
+    },
+    {
+      "slide": 25,
+      "heading": "11. AI에게 맡기기 전의 4가지 질문",
+      "role": "lecture",
+      "tables": [],
+      "pictures": [
+        {
+          "pt": 10
+        }
+      ]
+    },
+    {
+      "slide": 26,
+      "heading": "12. 정적 모델의 작성과 점검",
+      "role": "lecture",
+      "tables": [],
+      "pictures": [
+        {
+          "pt": 9.999999999999998
+        }
+      ]
+    },
+    {
+      "slide": 27,
+      "heading": "개념은 타입이 된다\n13. 모델이 코드와 검사로 간다",
+      "role": "lecture",
+      "tables": [
+        {
+          "id": 11,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "모델의 요소",
+              "코드",
+              "검사"
+            ],
+            [
+              "개념과 식별",
+              "타입 Order, 값 타입 OrderNumber",
+              "거절·재결제에서 같은 번호를 유지하는 검사는 행동 검사로 이어진다."
+            ],
+            [
+              "단가와 판매가",
+              "OrderItem.unitPrice, Product.salePrice",
+              "판매가 변경 뒤 기존 단가 1,000원을 확인한다."
+            ],
+            [
+              "값 조건",
+              "값 객체 Money, Quantity",
+              "음수 금액과 0 수량의 생성 거절을 각각 확인한다."
+            ],
+            [
+              "다중성 1..*",
+              "Order 생성 시 항목 수 확인",
+              "빈 목록으로 주문을 만들 수 없는지 확인한다."
+            ],
+            [
+              "합계 등식",
+              "totalAmount()",
+              "수량 곱과 복수 항목 합계가 모두 반영되는지 확인한다."
+            ]
+          ],
+          "role": "lecture",
+          "tablePt": 10,
+          "measuredRows": false
+        }
+      ],
+      "pictures": []
+    },
+    {
+      "slide": 28,
+      "heading": "가격 변경을 실행해 확인한다\n13. 모델이 코드와 검사로 간다",
+      "role": "lecture",
+      "tables": [
+        {
+          "id": 11,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "관찰",
+              "규칙대로의 결과",
+              "잘못 만든 구현의 결과"
+            ],
+            [
+              "생성 당시 단가",
+              "1,000원",
+              "1,200원 — 틀린 확정 값"
+            ],
+            [
+              "수량 2개의 주문 금액",
+              "2,000원",
+              "1,000원 — 수량 누락"
+            ],
+            [
+              "가격 변경 뒤 주문 금액",
+              "2,000원",
+              "2,400원 — 현재 판매가 사용"
+            ]
+          ],
+          "role": "lecture",
+          "tablePt": 10,
+          "measuredRows": false
+        }
+      ],
+      "pictures": []
+    },
+    {
+      "slide": 29,
+      "heading": "14. 잘못된 관행",
+      "role": "lecture",
+      "tables": [
+        {
+          "id": 11,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "관행",
+              "그래서 생기는 일"
+            ],
+            [
+              "용어집 없이 코드에서 속성명을 만든다",
+              "같은 것이 2가지 이름으로 불린다"
+            ],
+            [
+              "속성에 화면 문자열·저장 키를 넣는다",
+              "업무가 바뀌지 않았는데 모델이 바뀐다"
+            ],
+            [
+              "다중성을 전부 0..*로 둔다",
+              "이 예제에서 거절할 빈 주문을 허용한다"
+            ],
+            [
+              "종류마다 타입을 만든다",
+              "요구에 없는 개념이 쌓인다"
+            ],
+            [
+              "초안을 읽지 않고 받는다",
+              "문법만 맞는 모델이 다음 세션의 입력이 된다"
+            ]
+          ],
+          "role": "lecture",
+          "tablePt": 10,
+          "measuredRows": false
+        }
+      ],
+      "pictures": []
+    },
+    {
+      "slide": 30,
+      "heading": "15. 실습 4 — 정적 모델",
+      "role": "lecture",
+      "tables": [],
+      "pictures": [],
+      "columnHeights": [
+        390,
+        72
+      ]
+    },
+    {
+      "slide": 31,
+      "heading": "16. 요약",
+      "role": "lecture",
+      "tables": [],
+      "pictures": []
+    },
+    {
+      "slide": 32,
+      "heading": "주문 기능 정적 모델 정의서 — 최종안 (1/18)\n별첨. 실습 답",
+      "role": "recorded-response",
+      "tables": [],
+      "pictures": [],
+      "columnHeights": [
+        188,
+        0
+      ]
+    },
+    {
+      "slide": 33,
+      "heading": "주문 기능 정적 모델 정의서 — 최종안 (2/18)\n별첨. 실습 답",
+      "role": "recorded-response",
+      "tables": [],
+      "pictures": [],
+      "columnHeights": [
+        112,
+        0
+      ]
+    },
+    {
+      "slide": 34,
+      "heading": "주문 기능 정적 모델 정의서 — 최종안 (3/18)\n별첨. 실습 답",
+      "role": "recorded-response",
+      "tables": [
+        {
+          "id": 11,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "개념",
+              "표기",
+              "정의",
+              "근거 구분"
+            ],
+            [
+              "주문",
+              "Order",
+              "배송지가 확정될 때 생성되며 주문 항목, 주문 금액, 상태 및 주문 식별 정보를 갖는 업무 기록",
+              "확정 업무 규칙"
+            ],
+            [
+              "주문 항목",
+              "OrderItem",
+              "주문에 포함된 상품, 수량 및 주문 생성 시점에 기록한 단가를 나타내는 항목",
+              "확정 업무 규칙"
+            ],
+            [
+              "상품",
+              "Product",
+              "상품 시스템에서 식별되며 현재 판매가가 제공되는 주문 대상",
+              "확정 업무 규칙"
+            ]
+          ],
+          "role": "recorded-response",
+          "tablePt": 8,
+          "measuredRows": true
+        },
+        {
+          "id": 15,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "용어",
+              "표기",
+              "정의",
+              "근거 구분"
+            ],
+            [
+              "주문번호",
+              "OrderNumber",
+              "같은 주문을 구별하는 값의 타입",
+              "식별 필요성은 확정, 형식은 미정"
+            ],
+            [
+              "상품번호",
+              "ProductNumber",
+              "상품을 구별하는 값의 타입",
+              "상품 식별 필요성은 확정, 형식은 미정"
+            ],
+            [
+              "금액",
+              "Money",
+              "판매가, 기록 단가, 항목 금액 및 주문 금액을 표현하는 값의 타입",
+              "교육 예제 가정 포함"
+            ],
+            [
+              "수량",
+              "Quantity",
+              "주문 항목의 상품 개수를 표현하는 값의 타입",
+              "교육 예제 가정 포함"
+            ],
+            [
+              "주소",
+              "Address",
+              "주문에 확정된 배송지를 표현하는 값의 타입",
+              "상세 구성은 미정"
+            ],
+            [
+              "주문 상태",
+              "OrderStatus",
+              "주문의 현재 상태를 표현하는 값의 타입",
+              "확인된 값 외 전체 목록은 미정"
+            ],
+            [
+              "판매가",
+              "salePrice",
+              "상품 시스템이 제공하는 현재 판매 가격",
+              "확정 업무 규칙"
+            ],
+            [
+              "기록 단가",
+              "unitPrice",
+              "주문 생성 시점의 판매가를 주문 항목에 기록한 단가",
+              "확정 업무 규칙, 이번 교육 모델의 명칭"
+            ],
+            [
+              "항목 금액",
+              "lineAmount",
+              "주문 항목의 unitPrice × quantity로 계산되는 금액",
+              "확정 업무 규칙"
+            ],
+            [
+              "주문 금액",
+              "totalAmount",
+              "주문에 속한 모든 주문 항목 금액의 합계",
+              "확정 업무 규칙"
+            ],
+            [
+              "결제대기",
+              "PENDING_PAYMENT",
+              "주문은 생성됐지만 카드 승인이 완료되지 않은 것으로 확인된 상태 값",
+              "확정 업무 규칙"
+            ],
+            [
+              "결제완료",
+              "PAID",
+              "카드 승인이 완료되어 주문이 성립한 것으로 확인된 상태 값",
+              "확정 업무 규칙"
+            ]
+          ],
+          "role": "recorded-response",
+          "tablePt": 8,
+          "measuredRows": true
+        }
+      ],
+      "pictures": []
+    },
+    {
+      "slide": 35,
+      "heading": "주문 기능 정적 모델 정의서 — 최종안 (4/18)\n별첨. 실습 답",
+      "role": "recorded-response",
+      "tables": [],
+      "pictures": [],
+      "columnHeights": [
+        40,
+        0
+      ]
+    },
+    {
+      "slide": 36,
+      "heading": "주문 기능 정적 모델 정의서 — 최종안 (5/18)\n별첨. 실습 답",
+      "role": "recorded-response",
+      "tables": [
+        {
+          "id": 11,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "속성",
+              "타입",
+              "의미",
+              "제약",
+              "근거 구분"
+            ],
+            [
+              "orderNumber",
+              "OrderNumber",
+              "같은 주문을 식별하는 값",
+              "거절과 재결제를 거쳐도 같은 주문은 같은 값을 유지한다",
+              "확정 업무 규칙"
+            ],
+            [
+              "status",
+              "OrderStatus",
+              "주문의 현재 상태",
+              "생성 시 확인된 상태는 PENDING_PAYMENT, 승인 완료 시 PAID",
+              "확정 업무 규칙"
+            ],
+            [
+              "shippingAddress",
+              "Address",
+              "주문을 생성하기 전에 확정한 배송지",
+              "PENDING_PAYMENT인 같은 주문에서는 변경할 수 없다",
+              "확정 업무 규칙"
+            ],
+            [
+              "totalAmount",
+              "Money",
+              "모든 주문 항목 금액의 합계",
+              "생성 후 판매가가 변해도 기존 주문의 값은 변하지 않는다",
+              "확정 업무 규칙"
+            ]
+          ],
+          "role": "recorded-response",
+          "tablePt": 8,
+          "measuredRows": true
+        },
+        {
+          "id": 15,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "속성",
+              "타입",
+              "의미",
+              "제약",
+              "근거 구분"
+            ],
+            [
+              "quantity",
+              "Quantity",
+              "주문한 상품의 수량",
+              "교육 예제에서는 1 이상의 정수이며, PENDING_PAYMENT인 같은 주문에서는 변경할 수 없다",
+              "규칙·교육 예제 가정"
+            ],
+            [
+              "unitPrice",
+              "Money",
+              "주문 생성 시점에 기록한 상품 단가",
+              "생성 시점의 Product.salePrice를 기록하며 이후 판매가가 변해도 변하지 않는다",
+              "확정 업무 규칙"
+            ],
+            [
+              "lineAmount",
+              "Money",
+              "해당 주문 항목의 금액",
+              "unitPrice × quantity와 같다",
+              "확정 업무 규칙"
+            ]
+          ],
+          "role": "recorded-response",
+          "tablePt": 8,
+          "measuredRows": true
+        }
+      ],
+      "pictures": []
+    },
+    {
+      "slide": 37,
+      "heading": "주문 기능 정적 모델 정의서 — 최종안 (6/18)\n별첨. 실습 답",
+      "role": "recorded-response",
+      "tables": [
+        {
+          "id": 11,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "속성",
+              "타입",
+              "의미",
+              "제약",
+              "근거 구분"
+            ],
+            [
+              "productNumber",
+              "ProductNumber",
+              "상품을 식별하는 값",
+              "구체적인 형식은 정하지 않는다",
+              "식별 필요성은 확정, 형식은 미정"
+            ],
+            [
+              "salePrice",
+              "Money",
+              "상품 시스템이 제공하는 현재 판매가",
+              "변경될 수 있으며 기존 주문의 unitPrice와 totalAmount를 변경하지 않는다",
+              "확정 업무 규칙"
+            ]
+          ],
+          "role": "recorded-response",
+          "tablePt": 8,
+          "measuredRows": true
+        }
+      ],
+      "pictures": []
+    },
+    {
+      "slide": 38,
+      "heading": "주문 기능 정적 모델 정의서 — 최종안 (7/18)\n별첨. 실습 답",
+      "role": "recorded-response",
+      "tables": [
+        {
+          "id": 11,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "관계",
+              "Order 쪽 다중성",
+              "OrderItem 쪽 다중성",
+              "Product 쪽 다중성",
+              "의미",
+              "근거 구분"
+            ],
+            [
+              "주문—주문 항목",
+              "1",
+              "1..*",
+              "—",
+              "하나의 주문은 하나 이상의 주문 항목을 가지며, 각 주문 항목은 정확히 하나의 주문에 속한다",
+              "항목 수 하한은 교육 예제 가정"
+            ],
+            [
+              "주문 항목—상품",
+              "—",
+              "0..*",
+              "1",
+              "각 주문 항목은 정확히 하나의 상품을 나타내며, 하나의 상품은 0개 이상의 주문 항목에서 참조될 수 있다",
+              "확정 업무 관계"
+            ]
+          ],
+          "role": "recorded-response",
+          "tablePt": 8,
+          "measuredRows": true
+        }
+      ],
+      "pictures": []
+    },
+    {
+      "slide": 39,
+      "heading": "주문 기능 정적 모델 정의서 — 최종안 (8/18)\n별첨. 실습 답",
+      "role": "recorded-response",
+      "tables": [],
+      "pictures": []
+    },
+    {
+      "slide": 40,
+      "heading": "주문 기능 정적 모델 정의서 — 최종안 (9/18)\n별첨. 실습 답",
+      "role": "recorded-response",
+      "tables": [],
+      "pictures": []
+    },
+    {
+      "slide": 41,
+      "heading": "주문 기능 정적 모델 정의서 — 최종안 (10/18)\n별첨. 실습 답",
+      "role": "recorded-response",
+      "tables": [],
+      "pictures": []
+    },
+    {
+      "slide": 42,
+      "heading": "주문 기능 정적 모델 정의서 — 최종안 (11/18)\n별첨. 실습 답",
+      "role": "recorded-response",
+      "tables": [
+        {
+          "id": 11,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "사례",
+              "주요 사건",
+              "같은 주문 여부",
+              "주문 금액",
+              "카드 승인 요청 금액",
+              "최종 상태",
+              "누적 배송 요청"
+            ],
+            [
+              "정상 승인",
+              "펜 2개와 서울 배송지로 주문 생성 후 카드 Y 승인",
+              "생성된 같은 주문",
+              "2,000원",
+              "2,000원",
+              "PAID",
+              "1회"
+            ],
+            [
+              "가격 변경 후 승인",
+              "2,000원으로 주문 생성 후 현재 판매가가 1,200원으로 상승하고 카드 Y 승인",
+              "가격 변경 전에 생성된 같은 주문",
+              "2,000원",
+              "2,000원",
+              "PAID",
+              "1회"
+            ],
+            [
+              "카드 거절",
+              "카드 X 승인 요청 후 명시적으로 거절",
+              "생성된 같은 주문",
+              "2,000원",
+              "2,000원",
+              "PENDING_PAYMENT",
+              "0회"
+            ],
+            [
+              "거절 후 재결제",
+              "같은 주문에서 카드 X 거절 후 카드 Y 승인",
+              "X 거절 전후와 Y 승인 후 모두 같은 주문",
+              "2,000원",
+              "X: 2,000원, Y: 2,000원",
+              "최종 PAID",
+              "전체 과정 1회"
+            ]
+          ],
+          "role": "recorded-response",
+          "tablePt": 8,
+          "measuredRows": true
+        }
+      ],
+      "pictures": []
+    },
+    {
+      "slide": 43,
+      "heading": "주문 기능 정적 모델 정의서 — 최종안 (12/18)\n별첨. 실습 답",
+      "role": "recorded-response",
+      "tables": [
+        {
+          "id": 11,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "대상",
+              "값"
+            ],
+            [
+              "상품",
+              "펜"
+            ],
+            [
+              "Product.salePrice",
+              "1,000원"
+            ],
+            [
+              "OrderItem.quantity",
+              "2"
+            ],
+            [
+              "OrderItem.unitPrice",
+              "1,000원"
+            ],
+            [
+              "OrderItem.lineAmount",
+              "2,000원"
+            ],
+            [
+              "Order.totalAmount",
+              "2,000원"
+            ],
+            [
+              "Order.shippingAddress",
+              "서울"
+            ],
+            [
+              "Order.status",
+              "PENDING_PAYMENT"
+            ]
+          ],
+          "role": "recorded-response",
+          "tablePt": 8,
+          "measuredRows": true
+        }
+      ],
+      "pictures": []
+    },
+    {
+      "slide": 44,
+      "heading": "주문 기능 정적 모델 정의서 — 최종안 (13/18)\n별첨. 실습 답",
+      "role": "recorded-response",
+      "tables": [
+        {
+          "id": 34,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "값",
+              "가격 변경 전",
+              "가격 변경 후"
+            ],
+            [
+              "Product.salePrice",
+              "1,000원",
+              "1,200원"
+            ],
+            [
+              "OrderItem.unitPrice",
+              "1,000원",
+              "1,000원"
+            ],
+            [
+              "OrderItem.quantity",
+              "2",
+              "2"
+            ],
+            [
+              "OrderItem.lineAmount",
+              "2,000원",
+              "2,000원"
+            ],
+            [
+              "Order.totalAmount",
+              "2,000원",
+              "2,000원"
+            ],
+            [
+              "카드 Y 승인 요청 금액",
+              "—",
+              "2,000원"
+            ]
+          ],
+          "role": "recorded-response",
+          "tablePt": 8,
+          "measuredRows": true
+        }
+      ],
+      "pictures": []
+    },
+    {
+      "slide": 45,
+      "heading": "주문 기능 정적 모델 정의서 — 최종안 (14/18)\n별첨. 실습 답",
+      "role": "recorded-response",
+      "tables": [
+        {
+          "id": 33,
+          "kind": "table",
+          "text": "",
+          "rows": [
+            [
+              "순서",
+              "사건",
+              "설명용 orderNumber",
+              "요청 금액",
+              "주문 상태",
+              "누적 배송 요청"
+            ],
+            [
+              "1",
+              "주문 생성",
+              "ORD-예시-A",
+              "—",
+              "PENDING_PAYMENT",
+              "0회"
+            ],
+            [
+              "2",
+              "카드 X 승인 요청",
+              "ORD-예시-A",
+              "2,000원",
+              "PENDING_PAYMENT",
+              "0회"
+            ],
+            [
+              "3",
+              "카드 X 승인 거절",
+              "ORD-예시-A",
+              "2,000원",
+              "PENDING_PAYMENT",
+              "0회"
+            ],
+            [
+              "4",
+              "카드 Y 승인 요청",
+              "ORD-예시-A",
+              "2,000원",
+              "PENDING_PAYMENT",
+              "0회"
+            ],
+            [
+              "5",
+              "카드 Y 승인 완료",
+              "ORD-예시-A",
+              "2,000원",
+              "PAID",
+              "1회"
+            ]
+          ],
+          "role": "recorded-response",
+          "tablePt": 8,
+          "measuredRows": true
+        }
+      ],
+      "pictures": []
+    },
+    {
+      "slide": 46,
+      "heading": "주문 기능 정적 모델 정의서 — 최종안 (15/18)\n별첨. 실습 답",
+      "role": "recorded-response",
+      "tables": [],
+      "pictures": [],
+      "columnHeights": [
+        368,
+        416
+      ]
+    },
+    {
+      "slide": 47,
+      "heading": "주문 기능 정적 모델 정의서 — 최종안 (16/18)\n별첨. 실습 답",
+      "role": "recorded-response",
+      "tables": [],
+      "pictures": [],
+      "columnHeights": [
+        320,
+        0
+      ]
+    },
+    {
+      "slide": 48,
+      "heading": "주문 기능 정적 모델 정의서 — 최종안 (17/18)\n별첨. 실습 답",
+      "role": "recorded-response",
+      "tables": [],
+      "pictures": [
+        {
+          "pt": 9
+        }
+      ]
+    },
+    {
+      "slide": 49,
+      "heading": "주문 기능 정적 모델 정의서 — 최종안 (18/18)\n별첨. 실습 답",
+      "role": "recorded-response",
+      "tables": [],
+      "pictures": [],
+      "columnHeights": [
+        252,
+        0
+      ]
+    }
+  ]
+}

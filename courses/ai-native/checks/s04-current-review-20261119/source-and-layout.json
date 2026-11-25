@@ -1,0 +1,1551 @@
+{
+  "input": "courses/ai-native/sessions/s04.md",
+  "inputSHA256": "4bad044f07189f01fb7801c534ca7e8c95fd76ac155b95be800701c5630804e1",
+  "deck": "/Users/YoungSan/dev/TrainingMaterials/out/s04-current-review-20261119/s04-review.pptx",
+  "pptxSHA256": "813e3b88fa7067f457045ded82e773ca114e30feeabfbfef10b943e0c166544c",
+  "slides": 37,
+  "toc": [
+    "01. 세션 목표",
+    "02. 판매가와 주문 금액",
+    "03. 도메인 모델의 목적",
+    "04. 업무 용어와 용어집",
+    "05. 개념과 속성이 모델의 시작이다",
+    "06. 관계와 다중성",
+    "07. 무엇이 같은 주문인가?",
+    "08. 불변 조건과 파생 속성",
+    "09. 주문 모델의 속성과 관계",
+    "10. 요구사항으로 모델 검토하기",
+    "11. AI에게 맡기기 전의 4가지 질문",
+    "12. 정적 모델의 작성과 점검",
+    "13. 모델 규칙과 코드·테스트",
+    "14. 잘못된 관행",
+    "15. 실습 4 — 정적 모델",
+    "16. 요약"
+  ],
+  "headings": [
+    "01. 세션 목표",
+    "02. 판매가와 주문 금액",
+    "03. 도메인 모델의 목적",
+    "04. 업무 용어와 용어집",
+    "05. 개념과 속성이 모델의 시작이다",
+    "06. 관계와 다중성",
+    "07. 무엇이 같은 주문인가?",
+    "08. 불변 조건과 파생 속성",
+    "09. 주문 모델의 속성과 관계",
+    "10. 요구사항으로 모델 검토하기",
+    "11. AI에게 맡기기 전의 4가지 질문",
+    "12. 정적 모델의 작성과 점검",
+    "13. 모델 규칙과 코드·테스트",
+    "14. 잘못된 관행",
+    "15. 실습 4 — 정적 모델",
+    "16. 요약"
+  ],
+  "referenceErrors": [],
+  "javaExcerptErrors": [],
+  "prompts": [
+    "최종 정의서로 정적 모델 초안을 작성해라. 용어·개념과 속성·관계와 양 끝 다중성·불변 조건·클래스 다이어그램 원본을 담아라. 규칙·가정·미정을 구별하고 대표 주문의 가격 변경 전후를 보여라.",
+    "[근거와 발견한 문제]를 반영해 목록과 도식을 고쳐라. 대표 주문으로 확인하고 미정은 질문으로 남겨 최종 Markdown을 작성해라."
+  ],
+  "executionInputSHA256": "29483a53927b58c30a0fb2592899c49f08f725213bdb8a74ee003f33ca23d29a",
+  "executionResponseSHA256": "ce2ac55e9ffe61701ab8f90ccf6c1c651b94053214c96768948a55bf8bd6fc0c",
+  "responseProof": [
+    {
+      "topic": "주문 기능 정적 모델 정의서 — 최종안",
+      "excerptStart": 851,
+      "excerptEnd": 1232,
+      "status": "PASS",
+      "record": "sessions/code/s04/exercise-conversation/production-2026-11-17/codex-response-02.md",
+      "recordSHA256": "ce2ac55e9ffe61701ab8f90ccf6c1c651b94053214c96768948a55bf8bd6fc0c",
+      "matchedAtoms": 262,
+      "omissions": [
+        {
+          "kind": "omission",
+          "excerptLine": 945,
+          "recordStart": 93,
+          "recordEnd": 94
+        },
+        {
+          "kind": "omission",
+          "excerptLine": 992,
+          "recordStart": 140,
+          "recordEnd": 140
+        },
+        {
+          "kind": "omission",
+          "excerptLine": 1146,
+          "recordStart": 293,
+          "recordEnd": 295
+        },
+        {
+          "kind": "omission",
+          "excerptLine": 1153,
+          "recordStart": 301,
+          "recordEnd": 306
+        },
+        {
+          "kind": "omission",
+          "excerptLine": 1160,
+          "recordStart": 312,
+          "recordEnd": 314
+        },
+        {
+          "kind": "omission",
+          "excerptLine": 1167,
+          "recordStart": 320,
+          "recordEnd": 327
+        },
+        {
+          "kind": "omission",
+          "excerptLine": 1174,
+          "recordStart": 333,
+          "recordEnd": 334
+        },
+        {
+          "kind": "omission",
+          "excerptLine": 1181,
+          "recordStart": 340,
+          "recordEnd": 344
+        },
+        {
+          "kind": "omission",
+          "excerptLine": 1188,
+          "recordStart": 350,
+          "recordEnd": 350
+        }
+      ]
+    }
+  ],
+  "terminology": [
+    {
+      "topic": "01. 세션 목표",
+      "range": {
+        "start": 31,
+        "end": 31
+      },
+      "text": "**불변 조건**에 사례의 값을 대입해 테스트 기대값을 계산한다.",
+      "rows": []
+    },
+    {
+      "topic": "요구사항으로 모델 판정하기",
+      "range": {
+        "start": 544,
+        "end": 544
+      },
+      "text": "정적 모델에서는 주문 항목의 단가와 수량, 주문 한 건에 포함되는 항목 수, 주문 금액 계산식을 확인한다. 사례에서는 결제가 거절됐을 때 다시 결제할 수 있는지, 결제 승인 후에만 배송을 요청하는지 확인한다.",
+      "rows": []
+    },
+    {
+      "topic": "요구사항으로 모델 판정하기",
+      "range": {
+        "start": 553,
+        "end": 553
+      },
+      "text": "**표 — 결제와 배송 요청을 확인하는 사례**",
+      "rows": []
+    },
+    {
+      "topic": "요구사항으로 모델 판정하기",
+      "range": {
+        "start": 554,
+        "end": 559
+      },
+      "text": "",
+      "rows": [
+        [
+          "사례",
+          "정적 모델로 확인할 값",
+          "결제와 배송 요청의 기대 결과"
+        ],
+        [
+          "정상 승인",
+          "펜 2개, 단가 1,000원, 주문 금액 2,000원",
+          "2,000원 승인 요청, 결제완료, 배송 요청 1회"
+        ],
+        [
+          "가격 변경 후 승인",
+          "현재 판매가 1,200원, 기존 단가 1,000원, 기존 금액 2,000원",
+          "2,000원 승인 요청, 결제완료, 배송 요청 1회"
+        ],
+        [
+          "카드 거절",
+          "같은 주문 번호와 금액 2,000원",
+          "2,000원 승인 요청 뒤 결제대기, 배송 요청 0회"
+        ],
+        [
+          "거절 후 재결제",
+          "최초 요청·거절·다른 카드 재결제에서 같은 주문 번호와 금액 2,000원",
+          "카드 X·Y 각각 2,000원 요청, Y 승인 뒤 결제완료, 전체 배송 요청 1회"
+        ]
+      ]
+    },
+    {
+      "topic": "11. AI에게 맡기기 전의 4가지 질문",
+      "range": {
+        "start": 621,
+        "end": 621
+      },
+      "text": "LLM에 **정적 모델 작성**을 맡길 때 확정 요구사항과 사례를 함께 주고, 미정 사항은 질문으로 남기라고 요청한다.",
+      "rows": []
+    },
+    {
+      "topic": "11. AI에게 맡기기 전의 4가지 질문",
+      "range": {
+        "start": 625,
+        "end": 656
+      },
+      "text": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 960 382\" width=\"960\" height=\"382\" font-family=\"sans-serif\" aria-label=\"정적 모델 작성을 맡기기 전의 입력, 요청할 결과물, 검토할 내용과 판정 기준을 확인한다.\">\n  <g>\n    <rect x=\"4\" y=\"6\" width=\"952\" height=\"86\" rx=\"8\" fill=\"#eef2f7\" stroke=\"#64748b\" stroke-width=\"1.5\"/>\n    <text x=\"30\" y=\"58\" font-size=\"23\" font-weight=\"bold\" fill=\"#1e293b\">무엇을 주는가</text>\n    <line x1=\"250\" y1=\"18\" x2=\"250\" y2=\"80\" stroke=\"#94a3b8\"/>\n    <text x=\"276\" y=\"40\" font-size=\"19\" fill=\"#334155\">확정 요구사항과 사례</text>\n    <text x=\"276\" y=\"74\" font-size=\"19\" fill=\"#334155\">아직 정하지 않은 업무 정책</text>\n  </g>\n  <g>\n    <rect x=\"4\" y=\"100\" width=\"952\" height=\"86\" rx=\"8\" fill=\"#eef2f7\" stroke=\"#64748b\" stroke-width=\"1.5\"/>\n    <text x=\"30\" y=\"152\" font-size=\"23\" font-weight=\"bold\" fill=\"#1e293b\">무엇을 맡기는가</text>\n    <line x1=\"250\" y1=\"112\" x2=\"250\" y2=\"174\" stroke=\"#94a3b8\"/>\n    <text x=\"276\" y=\"134\" font-size=\"19\" fill=\"#334155\">용어집과 정적 모델 작성</text>\n    <text x=\"276\" y=\"168\" font-size=\"19\" fill=\"#334155\">단가·다중성·합계 규칙 정의</text>\n  </g>\n  <g>\n    <rect x=\"4\" y=\"194\" width=\"952\" height=\"86\" rx=\"8\" fill=\"#fdecec\" stroke=\"#c0392b\" stroke-width=\"1.5\"/>\n    <text x=\"30\" y=\"246\" font-size=\"23\" font-weight=\"bold\" fill=\"#8e2a1e\">어디를 확인하는가</text>\n    <line x1=\"250\" y1=\"206\" x2=\"250\" y2=\"268\" stroke=\"#d98b80\"/>\n    <text x=\"276\" y=\"228\" font-size=\"19\" fill=\"#3b1f1a\">단가를 기록하는 시점과 양 끝 다중성</text>\n    <text x=\"276\" y=\"262\" font-size=\"19\" fill=\"#3b1f1a\">미정인 회원 정책을 확정했는지 여부</text>\n  </g>\n  <g>\n    <rect x=\"4\" y=\"288\" width=\"952\" height=\"86\" rx=\"8\" fill=\"#e8f1e8\" stroke=\"#2f6b35\" stroke-width=\"1.5\"/>\n    <text x=\"30\" y=\"340\" font-size=\"23\" font-weight=\"bold\" fill=\"#245128\">무엇으로 판정하는가</text>\n    <line x1=\"250\" y1=\"300\" x2=\"250\" y2=\"362\" stroke=\"#8ab08e\"/>\n    <text x=\"276\" y=\"322\" font-size=\"19\" fill=\"#1f2e20\">펜 2개의 주문 금액이 2,000원인지 확인</text>\n    <text x=\"276\" y=\"356\" font-size=\"19\" fill=\"#1f2e20\">각 규칙의 근거를 요구사항과 대조</text>\n  </g>\n</svg>",
+      "rows": []
+    },
+    {
+      "topic": "12. 정적 모델의 작성과 점검",
+      "range": {
+        "start": 667,
+        "end": 667
+      },
+      "text": "`주문한다-정적모델.md`에 **용어·속성, 관계와 다중성, 계산 규칙**을 정의한다. **사례와 미정 질문**을 기록하고 클래스 다이어그램 원본을 같은 파일에 둔다.",
+      "rows": []
+    },
+    {
+      "topic": "12. 정적 모델의 작성과 점검",
+      "range": {
+        "start": 671,
+        "end": 704
+      },
+      "text": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 960 380\" width=\"960\" height=\"380\" font-family=\"sans-serif\" aria-label=\"주문한다 정적모델 문서 하나가 용어와 속성, 관계와 다중성, 계산 규칙과 사례, 미정 질문의 4개 절로 이루어진다.\">\n  <rect x=\"4\" y=\"6\" width=\"952\" height=\"44\" rx=\"8\" fill=\"#e2e8f0\" stroke=\"#475569\" stroke-width=\"1.5\"/>\n  <text x=\"30\" y=\"37\" font-size=\"23\" font-weight=\"bold\" fill=\"#1e293b\">주문한다-정적모델.md — 문서 하나</text>\n  <g>\n    <rect x=\"4\" y=\"58\" width=\"952\" height=\"72\" rx=\"8\" fill=\"#f8fafc\" stroke=\"#64748b\" stroke-width=\"1.5\"/>\n    <text x=\"30\" y=\"104\" font-size=\"23\" font-weight=\"bold\" fill=\"#1e293b\">1. 용어와 속성</text>\n    <line x1=\"270\" y1=\"68\" x2=\"270\" y2=\"120\" stroke=\"#cbd5e1\"/>\n    <text x=\"296\" y=\"86\" font-size=\"19\" fill=\"#334155\">판매가·단가·주문 금액의 뜻을 정의한다</text>\n    <text x=\"296\" y=\"116\" font-size=\"19\" fill=\"#8e2a1e\">용어집에 없는 속성명이 있는가?</text>\n  </g>\n  <g>\n    <rect x=\"4\" y=\"138\" width=\"952\" height=\"72\" rx=\"8\" fill=\"#e8eff8\" stroke=\"#2b5fa8\" stroke-width=\"2\"/>\n    <text x=\"30\" y=\"184\" font-size=\"23\" font-weight=\"bold\" fill=\"#1b3f70\">2. 관계와 다중성</text>\n    <line x1=\"270\" y1=\"148\" x2=\"270\" y2=\"200\" stroke=\"#9db8d8\"/>\n    <text x=\"296\" y=\"166\" font-size=\"19\" fill=\"#1b3f70\">클래스 다이어그램에 개념·관계·다중성을 표시한다</text>\n    <text x=\"296\" y=\"196\" font-size=\"19\" fill=\"#8e2a1e\">목록과 다이어그램의 다중성이 같은가?</text>\n  </g>\n  <g>\n    <rect x=\"4\" y=\"218\" width=\"952\" height=\"72\" rx=\"8\" fill=\"#f8fafc\" stroke=\"#64748b\" stroke-width=\"1.5\"/>\n    <text x=\"30\" y=\"264\" font-size=\"23\" font-weight=\"bold\" fill=\"#1e293b\">3. 계산 규칙과 사례</text>\n    <line x1=\"270\" y1=\"228\" x2=\"270\" y2=\"280\" stroke=\"#cbd5e1\"/>\n    <text x=\"296\" y=\"246\" font-size=\"19\" fill=\"#334155\">단가 1,000원인 펜 2개면 2,000원이다</text>\n    <text x=\"296\" y=\"276\" font-size=\"19\" fill=\"#8e2a1e\">판매가가 바뀌어도 주문 금액이 같은가?</text>\n  </g>\n  <g>\n    <rect x=\"4\" y=\"298\" width=\"952\" height=\"72\" rx=\"8\" fill=\"#f8fafc\" stroke=\"#64748b\" stroke-width=\"1.5\"/>\n    <text x=\"30\" y=\"344\" font-size=\"23\" font-weight=\"bold\" fill=\"#1e293b\">4. 미정 질문</text>\n    <line x1=\"270\" y1=\"308\" x2=\"270\" y2=\"360\" stroke=\"#cbd5e1\"/>\n    <text x=\"296\" y=\"326\" font-size=\"19\" fill=\"#334155\">회원 여부·번호 형식·수량 상한을 질문으로 기록한다</text>\n    <text x=\"296\" y=\"356\" font-size=\"19\" fill=\"#8e2a1e\">미정인 사항을 확정한 부분이 있는가?</text>\n  </g>\n</svg>",
+      "rows": []
+    },
+    {
+      "topic": "16. 요약",
+      "range": {
+        "start": 832,
+        "end": 832
+      },
+      "text": "**합계 규칙**에 사례의 값을 대입해 테스트 기대값을 계산한다.",
+      "rows": []
+    },
+    {
+      "topic": "주문 기능 정적 모델 정의서 — 최종안",
+      "range": {
+        "start": 1044,
+        "end": 1044
+      },
+      "text": "다음 네 사례의 수용 기준은 S03 최종 정의서 6~7절에서 가져온다. 결제 이력이나 배송 요청을 별도 정적 개념으로 추가하지 않고, 대표 사례의 기대 결과로 확인한다.",
+      "rows": []
+    },
+    {
+      "topic": "주문 기능 정적 모델 정의서 — 최종안",
+      "range": {
+        "start": 1046,
+        "end": 1051
+      },
+      "text": "",
+      "rows": [
+        [
+          "사례",
+          "주요 사건",
+          "같은 주문 여부",
+          "주문 금액",
+          "카드 승인 요청 금액",
+          "최종 상태",
+          "누적 배송 요청"
+        ],
+        [
+          "정상 승인",
+          "펜 2개와 서울 배송지로 주문 생성 후 카드 Y 승인",
+          "생성된 같은 주문",
+          "2,000원",
+          "2,000원",
+          "PAID",
+          "1회"
+        ],
+        [
+          "가격 변경 후 승인",
+          "2,000원으로 주문 생성 후 현재 판매가가 1,200원으로 상승하고 카드 Y 승인",
+          "가격 변경 전에 생성된 같은 주문",
+          "2,000원",
+          "2,000원",
+          "PAID",
+          "1회"
+        ],
+        [
+          "카드 거절",
+          "카드 X 승인 요청 후 명시적으로 거절",
+          "생성된 같은 주문",
+          "2,000원",
+          "2,000원",
+          "PENDING_PAYMENT",
+          "0회"
+        ],
+        [
+          "거절 후 재결제",
+          "같은 주문에서 카드 X 거절 후 카드 Y 승인",
+          "X 거절 전후와 Y 승인 후 모두 같은 주문",
+          "2,000원",
+          "X: 2,000원, Y: 2,000원",
+          "최종 PAID",
+          "전체 과정 1회"
+        ]
+      ]
+    },
+    {
+      "topic": "주문 기능 정적 모델 정의서 — 최종안",
+      "range": {
+        "start": 1053,
+        "end": 1053
+      },
+      "text": "정상 승인과 카드 X 거절 후 카드 Y 승인의 누적 배송 요청 1회는 위 수용 사례의 기대값이다. 이를 배송 실패와 재시도가 포함된 모든 상황에서 주문별 배송 요청이 최대 한 번이라는 전역 불변 조건으로 일반화하지 않는다.",
+      "rows": []
+    },
+    {
+      "topic": "주문 기능 정적 모델 정의서 — 최종안",
+      "range": {
+        "start": 1135,
+        "end": 1135
+      },
+      "text": "이 사례에서는 주문번호, 주문 항목의 `unitPrice`, `lineAmount` 및 주문의 `totalAmount`가 재결제 전후에 유지된다.",
+      "rows": []
+    },
+    {
+      "topic": "주문 기능 정적 모델 정의서 — 최종안",
+      "range": {
+        "start": 1230,
+        "end": 1230
+      },
+      "text": "정상 승인과 거절 후 재결제 사례의 배송 요청 1회는 수용 사례의 기대값이며, 실패와 재시도를 포함한 전역 최대 1회 제약이 아니다.",
+      "rows": []
+    }
+  ],
+  "reviewSpacing": {
+    "s04-before": [
+      {
+        "slide": 19,
+        "text": "주문을 받으려면 고객이 회원이어야 한다.",
+        "before": 6,
+        "after": 6
+      },
+      {
+        "slide": 19,
+        "text": "주문 한 건에는 주문 항목이 0개 이상 있다.",
+        "before": 6,
+        "after": 6
+      },
+      {
+        "slide": 19,
+        "text": "주문 항목에는 상품과 수량을 기록한다.",
+        "before": 6,
+        "after": 6
+      },
+      {
+        "slide": 19,
+        "text": "주문 금액은 상품의 현재 판매가 × 수량을 항목별로 더한 값이다.",
+        "before": 6,
+        "after": 6
+      }
+    ],
+    "s04-review": [
+      {
+        "slide": 19,
+        "text": "주문을 받으려면 고객이 회원이어야 한다.",
+        "before": 3,
+        "after": 3
+      },
+      {
+        "slide": 19,
+        "text": "주문 한 건에는 주문 항목이 0개 이상 있다.",
+        "before": 3,
+        "after": 3
+      },
+      {
+        "slide": 19,
+        "text": "주문 항목에는 상품과 수량을 기록한다.",
+        "before": 3,
+        "after": 3
+      },
+      {
+        "slide": 19,
+        "text": "주문 금액은 상품의 현재 판매가 × 수량을 항목별로 더한 값이다.",
+        "before": 3,
+        "after": 3
+      }
+    ]
+  },
+  "javaFormattingUnchanged": {
+    "s04-before": [
+      {
+        "text": "    public Money totalAmount() {",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas",
+          "Consolas",
+          "Consolas"
+        ],
+        "sizes": [
+          "1000",
+          "1000",
+          "1000"
+        ]
+      },
+      {
+        "text": "        Money total = Money.ZERO;",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "        for (OrderItem item : items) {",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "            total = total.plus(item.unitPrice().times(item.quantity()));",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "        }",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "        return total;",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "    }",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "        OrderItem item = OrderItem.confirm(pen, new Quantity(2));",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "// ... 주문 생성과 상품 번호·배송지·생성 상태 확인 생략",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "        pen.changeSalePrice(new Money(1200));",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "        equal(new Money(1200), pen.salePrice(), \"상품의 현재 판매가 변경\");",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "        equal(new Money(1000), item.unitPrice(), \"기존 항목의 확정 단가 유지\");",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "        equal(new Money(2000), order.totalAmount(), \"가격 변경 후 기존 주문 총액 유지\");",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "OrderItem.lineAmount = OrderItem.unitPrice × OrderItem.quantity",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "Order.totalAmount = Order.items.lineAmount의 합계",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "주문 생성 시:",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "OrderItem.unitPrice = OrderItem.product.salePrice",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "주문 생성 시:",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "Order.status = PENDING_PAYMENT",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "Product.salePrice 변경",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "≠ 기존 OrderItem.unitPrice 변경",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "≠ 기존 OrderItem.lineAmount 변경",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "≠ 기존 Order.totalAmount 변경",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "Money ∈ 정수, Money >= 0",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "Quantity ∈ 정수, Quantity >= 1",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "Order.items->size() >= 1",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "lineAmount",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "= unitPrice × quantity",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "= 1,000원 × 2",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "= 2,000원",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "totalAmount",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "= 모든 lineAmount의 합계",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "= 2,000원",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "Product.salePrice: 1,000원 → 1,200원",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "기존 주문의 lineAmount",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "= 기존 unitPrice 1,000원 × quantity 2",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "= 2,000원",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "기존 주문의 totalAmount",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "= 2,000원",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "카드 승인 요청 금액",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "= 기존 Order.totalAmount",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "= 2,000원",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "public record Money(long won) {",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas",
+          "Consolas",
+          "Consolas"
+        ],
+        "sizes": [
+          "1000",
+          "1000",
+          "1000"
+        ]
+      },
+      {
+        "text": "    public static final Money ZERO = new Money(0);",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "    public Money {",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "        if (won < 0) throw new IllegalArgumentException(\"금액은 0 이상\");",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "    }",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "// ... 금액을 더하는 plus 생략",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "    public Money times(Quantity quantity) {",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas",
+          "Consolas",
+          "Consolas"
+        ],
+        "sizes": [
+          "1000",
+          "1000",
+          "1000"
+        ]
+      },
+      {
+        "text": "        return new Money(Math.multiplyExact(won, quantity.value()));",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "    }",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "}",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      }
+    ],
+    "s04-review": [
+      {
+        "text": "    public Money totalAmount() {",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas",
+          "Consolas",
+          "Consolas"
+        ],
+        "sizes": [
+          "1000",
+          "1000",
+          "1000"
+        ]
+      },
+      {
+        "text": "        Money total = Money.ZERO;",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "        for (OrderItem item : items) {",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "            total = total.plus(item.unitPrice().times(item.quantity()));",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "        }",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "        return total;",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "    }",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "        OrderItem item = OrderItem.confirm(pen, new Quantity(2));",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "// ... 주문 생성과 상품 번호·배송지·생성 상태 확인 생략",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "        pen.changeSalePrice(new Money(1200));",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "        equal(new Money(1200), pen.salePrice(), \"상품의 현재 판매가 변경\");",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "        equal(new Money(1000), item.unitPrice(), \"기존 항목의 확정 단가 유지\");",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "        equal(new Money(2000), order.totalAmount(), \"가격 변경 후 기존 주문 총액 유지\");",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "OrderItem.lineAmount = OrderItem.unitPrice × OrderItem.quantity",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "Order.totalAmount = Order.items.lineAmount의 합계",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "주문 생성 시:",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "OrderItem.unitPrice = OrderItem.product.salePrice",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "주문 생성 시:",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "Order.status = PENDING_PAYMENT",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "Product.salePrice 변경",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "≠ 기존 OrderItem.unitPrice 변경",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "≠ 기존 OrderItem.lineAmount 변경",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "≠ 기존 Order.totalAmount 변경",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "Money ∈ 정수, Money >= 0",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "Quantity ∈ 정수, Quantity >= 1",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "Order.items->size() >= 1",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "lineAmount",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "= unitPrice × quantity",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "= 1,000원 × 2",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "= 2,000원",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "totalAmount",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "= 모든 lineAmount의 합계",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "= 2,000원",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "Product.salePrice: 1,000원 → 1,200원",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "기존 주문의 lineAmount",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "= 기존 unitPrice 1,000원 × quantity 2",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "= 2,000원",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "기존 주문의 totalAmount",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "= 2,000원",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "카드 승인 요청 금액",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "= 기존 Order.totalAmount",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "= 2,000원",
+        "before": 2,
+        "after": 2,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "public record Money(long won) {",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas",
+          "Consolas",
+          "Consolas"
+        ],
+        "sizes": [
+          "1000",
+          "1000",
+          "1000"
+        ]
+      },
+      {
+        "text": "    public static final Money ZERO = new Money(0);",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "    public Money {",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "        if (won < 0) throw new IllegalArgumentException(\"금액은 0 이상\");",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "    }",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "// ... 금액을 더하는 plus 생략",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "    public Money times(Quantity quantity) {",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas",
+          "Consolas",
+          "Consolas"
+        ],
+        "sizes": [
+          "1000",
+          "1000",
+          "1000"
+        ]
+      },
+      {
+        "text": "        return new Money(Math.multiplyExact(won, quantity.value()));",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "    }",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      },
+      {
+        "text": "}",
+        "before": 0,
+        "after": 0,
+        "fonts": [
+          "Consolas"
+        ],
+        "sizes": [
+          "1000"
+        ]
+      }
+    ]
+  },
+  "correctionMarks": [],
+  "tables": 24,
+  "cells": 421,
+  "appendixCells": 260,
+  "changedAppendixWidths": []
+}

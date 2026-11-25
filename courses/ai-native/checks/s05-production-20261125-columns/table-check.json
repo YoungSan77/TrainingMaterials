@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "pptx": "/Users/YoungSan/dev/TrainingMaterials/courses/ai-native/sessions/s05.pptx",
+  "pptx_sha256": "cb4aecc5aa059341a14d525f1d8132f20ac547dbb8d305c8f4d5195e9e851c13",
+  "pdf": "/Users/YoungSan/dev/TrainingMaterials/courses/ai-native/checks/s05-production-20261125-columns/s05.pdf",
+  "pdf_sha256": "3e88a7de1329d0b0d2837aab3277d3ce0dfba36a052836be4710065e2bc479d0",
+  "pages": 32,
+  "tables": 27,
+  "cells": 524,
+  "issues": []
+}

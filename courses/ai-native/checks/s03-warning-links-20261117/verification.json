@@ -1,0 +1,216 @@
+{
+  "checkedAt": "2026-11-17T10:03:33.569Z",
+  "source": {
+    "path": "courses/ai-native/sessions/s03.md",
+    "sha256": "8d9a46da8d897a10301460464d081527518105e346953187185823fae24464e9",
+    "modified": "2026-11-17T05:01:20.217Z"
+  },
+  "pptx": {
+    "path": "courses/ai-native/sessions/s03.pptx",
+    "sha256": "c1fd651856a4f629a37cdbc344fc392ae1cb5bc7051e3343c89253d4cfc87ee0",
+    "modified": "2026-11-17T10:00:08.263Z"
+  },
+  "qa": {
+    "path": "courses/ai-native/sessions/s03.qa.json",
+    "sha256": "7f05ae7925eecdc5d193ff519f276c312aa345d5c9268dd7db137e2aaf565d6f",
+    "modified": "2026-11-17T10:00:08.434Z"
+  },
+  "slides": 30,
+  "changedPages": [
+    17,
+    18,
+    29,
+    30
+  ],
+  "sourcePreserved": true,
+  "allParagraphTextSizesAndEmphasisPreserved": true,
+  "allTableCellsAndFormattingPreserved": true,
+  "recordedResponseReadingOrderPreserved": true,
+  "executionExcerptsAndPromptsPreserved": true,
+  "links": {
+    "before": {
+      "story": [
+        17
+      ],
+      "description": [
+        17
+      ],
+      "acceptance": [
+        18
+      ],
+      "glossary": [
+        29
+      ],
+      "tail": [
+        30
+      ]
+    },
+    "after": {
+      "story": [
+        17
+      ],
+      "description": [
+        17
+      ],
+      "acceptance": [
+        17
+      ],
+      "glossary": [
+        29
+      ],
+      "tail": [
+        29
+      ]
+    }
+  },
+  "layout": [
+    {
+      "page": 17,
+      "storyAndAcceptanceInSameEditableShape": true
+    },
+    {
+      "page": 29,
+      "tailBelowGlossary": true,
+      "gapPt": 8,
+      "sameColumn": true
+    }
+  ],
+  "cells": {
+    "body": 121,
+    "demo": 50,
+    "judgment": 18,
+    "appendix": 65
+  },
+  "totalCells": 254,
+  "tables": [
+    {
+      "page": 3,
+      "kind": "body",
+      "cells": 10,
+      "fontPt": 10,
+      "marginsEMU": 54000
+    },
+    {
+      "page": 6,
+      "kind": "body",
+      "cells": 8,
+      "fontPt": 10,
+      "marginsEMU": 54000
+    },
+    {
+      "page": 7,
+      "kind": "body",
+      "cells": 15,
+      "fontPt": 10,
+      "marginsEMU": 54000
+    },
+    {
+      "page": 8,
+      "kind": "body",
+      "cells": 21,
+      "fontPt": 10,
+      "marginsEMU": 54000
+    },
+    {
+      "page": 9,
+      "kind": "body",
+      "cells": 10,
+      "fontPt": 10,
+      "marginsEMU": 54000
+    },
+    {
+      "page": 12,
+      "kind": "body",
+      "cells": 8,
+      "fontPt": 10,
+      "marginsEMU": 54000
+    },
+    {
+      "page": 13,
+      "kind": "body",
+      "cells": 8,
+      "fontPt": 10,
+      "marginsEMU": 54000
+    },
+    {
+      "page": 14,
+      "kind": "body",
+      "cells": 9,
+      "fontPt": 10,
+      "marginsEMU": 54000
+    },
+    {
+      "page": 15,
+      "kind": "body",
+      "cells": 8,
+      "fontPt": 10,
+      "marginsEMU": 54000
+    },
+    {
+      "page": 17,
+      "kind": "demo",
+      "cells": 10,
+      "fontPt": 8,
+      "marginsEMU": 54000
+    },
+    {
+      "page": 17,
+      "kind": "demo",
+      "cells": 20,
+      "fontPt": 8,
+      "marginsEMU": 54000
+    },
+    {
+      "page": 18,
+      "kind": "demo",
+      "cells": 20,
+      "fontPt": 8,
+      "marginsEMU": 54000
+    },
+    {
+      "page": 20,
+      "kind": "judgment",
+      "cells": 18,
+      "fontPt": 8,
+      "marginsEMU": 54000
+    },
+    {
+      "page": 21,
+      "kind": "body",
+      "cells": 10,
+      "fontPt": 10,
+      "marginsEMU": 54000
+    },
+    {
+      "page": 23,
+      "kind": "body",
+      "cells": 14,
+      "fontPt": 10,
+      "marginsEMU": 54000
+    },
+    {
+      "page": 28,
+      "kind": "appendix",
+      "cells": 35,
+      "fontPt": 8,
+      "marginsEMU": 54000
+    },
+    {
+      "page": 29,
+      "kind": "appendix",
+      "cells": 30,
+      "fontPt": 8,
+      "marginsEMU": 54000
+    }
+  ],
+  "initialWarnings": 51,
+  "classifications": {
+    "실제 원고 결함": 21,
+    "검사 오탐": 23,
+    "실행 원문 보존과 충돌": 7,
+    "추가 확인 필요": 0
+  },
+  "removedFalsePositives": 23,
+  "finalWarnings": 28,
+  "errors": []
+}

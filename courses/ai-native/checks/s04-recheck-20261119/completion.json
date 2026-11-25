@@ -1,0 +1,17 @@
+{
+  "pptx": "/Users/YoungSan/dev/TrainingMaterials/out/s04-recheck-20261119/s04-recheck-20261119.pptx",
+  "qa": "/Users/YoungSan/dev/TrainingMaterials/out/s04-recheck-20261119/s04-recheck-20261119.qa.json",
+  "sha256": "813e3b88fa7067f457045ded82e773ca114e30feeabfbfef10b943e0c166544c",
+  "slides": 37,
+  "sourceErrors": 0,
+  "sourceWarnings": 24,
+  "production": "PASS",
+  "sourceReview": "NEEDS_AUTHOR_REVIEW",
+  "rendererChanged": false,
+  "protectedFilesUnchanged": 1231,
+  "officialPPTX_SHA256": "ce1114738e2de0420763c445e78fbe6415b69d0e18506eef72adb17ec9a1fc30",
+  "officialQA_SHA256": "56aaecaf2f232eba33f0775801b61560ebb453dd597367982769c015d193abc3",
+  "generationRuns": 1,
+  "fullRenderRuns": 1,
+  "visuallyReviewedPages": 37
+}

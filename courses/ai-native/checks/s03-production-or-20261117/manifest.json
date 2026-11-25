@@ -1,0 +1,38 @@
+{
+  "verifiedAt": "2026-11-17T02:44:24.716Z",
+  "node": "v25.1.0",
+  "platform": "darwin",
+  "rendererVersion": "0.1.0",
+  "files": [
+    {
+      "path": "courses/ai-native/sessions/s03.md",
+      "size": 44311,
+      "modifiedAt": "2026-11-17T02:33:52.598Z",
+      "sha256": "526e4c77e1cc8e1f586d61f9872d9f6ce81b4e22e0d86c21395fd13f93d1e9aa"
+    },
+    {
+      "path": "guides/session-authoring-guide.md",
+      "size": 110899,
+      "modifiedAt": "2026-11-17T02:33:26.159Z",
+      "sha256": "ad3086ffd316aaa64b93b6b5e03a68545ca6f35505880ba31c422ba286604786"
+    },
+    {
+      "path": "guides/production-guide.md",
+      "size": 84233,
+      "modifiedAt": "2026-11-17T02:33:05.630Z",
+      "sha256": "4ac5b3daba29965c2a8d8d222bc306deb3a68ac8ed686027e9aa6150a97a0fbf"
+    },
+    {
+      "path": "courses/ai-native/sessions/s03.pptx",
+      "size": 317306,
+      "modifiedAt": "2026-11-17T02:40:10.963Z",
+      "sha256": "3e3b22435b197893ce26747b4d7d2a7d6578e0f1c083047e786c7ede65315697"
+    },
+    {
+      "path": "courses/ai-native/sessions/s03.qa.json",
+      "size": 7660,
+      "modifiedAt": "2026-11-17T02:40:11.275Z",
+      "sha256": "770a0841a2b542354b88ff1275ac5048e405f74111843cc3cf857d1640ae1221"
+    }
+  ]
+}

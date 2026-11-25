@@ -1,0 +1,16 @@
+{
+  "protectedFiles": {
+    "courses/ai-native/sessions/s01.md": "5cce48b962c73d11ff11fb2c87293f1f183fb89402a06c7d5d10c3f8662aae34",
+    "courses/ai-native/sessions/s01.pptx": "2ad3efbfd3ea3f49f3d05a28c8c7af6e60dadc3b801af493a42b01b6d1243a8a",
+    "courses/ai-native/sessions/s02.md": "7f506fd18a308fdaa90b265f8e732eeb61369231c1f0ab2d30f5917fd7d2d8b9",
+    "courses/ai-native/sessions/s02.pptx": "ff639fcd021f57c6f395b66cc47652f041f0a2a39ae34f5e3a4eeb3fe756c064",
+    "courses/ai-native/sessions/s03.md": "6b1f0ab2ec875ff1187f819c7f916601e34d74531f6a3f56fd7e2413b6a40a7a",
+    "courses/ai-native/sessions/s03.pptx": "0f4c7f2ddafd44636ed23538b774f78a86cd4fa029b13d3433ba648a9acc0f90",
+    "courses/ai-native/sessions/s03.qa.json": "345570e2bebfc0f00a213f6890bc1d2288e29b55a2f3c6fc9e8aca154787cadb",
+    "guides/production-guide.md": "c6d97926fde8f0d256f02c38e71b478e84f54416979698f588fafed5e2ca150b",
+    "guides/session-authoring-guide.md": "c066da23646702603f66d274661b3c0a9561e8fa3ab5055c62cce02eadcbcd2b"
+  },
+  "sourceBefore": "7bda2b8ed7f3105568725ebec1463f128be975da929f8ed30dab80eea596563c",
+  "attachmentSHA256": "eed89b8f7847e4e4088dc351af2831257569a166ca10c070db336e2f82cb718b",
+  "feedbackSHA256": "355a1e62ced1bddf3b34033f58a0d9506558cacb9e67d17ac674d150dac35234"
+}

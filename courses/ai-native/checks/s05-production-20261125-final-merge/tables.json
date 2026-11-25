@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "pptx": "/Users/YoungSan/dev/TrainingMaterials/courses/ai-native/sessions/s05.pptx",
+  "pptx_sha256": "afe7261c50f97b8391c4761d83b5bbf724a2dc5ab9f7a5533c0057597a8debab",
+  "pdf": "/Users/YoungSan/dev/TrainingMaterials/courses/ai-native/checks/s05-production-20261125-final-merge/s05.pdf",
+  "pdf_sha256": "c163bf794dd6b71185d5478353e4adfce09524763826d7c1ea4968dcee3e92e4",
+  "pages": 24,
+  "tables": 23,
+  "cells": 371,
+  "issues": []
+}

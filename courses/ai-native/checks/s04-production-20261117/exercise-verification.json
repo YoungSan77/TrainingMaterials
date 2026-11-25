@@ -1,0 +1,62 @@
+{
+  "checks": {
+    "inputApprovedBytes": true,
+    "modelEqualsResponseBytes": true,
+    "appendixCompleteOrderWordsEmphasis": true,
+    "sourceMainBodyUnchangedExceptRecordedOmission": true,
+    "conceptsAndAttributes": true,
+    "bothEndsMultiplicity": true,
+    "amountAndRepresentativeOrder": true,
+    "fourAcceptanceCases": true,
+    "unresolvedFollowUpPolicies": true,
+    "diagramOriginal": true
+  },
+  "stages": [
+    {
+      "stage": "초안",
+      "budgetSeconds": 300,
+      "start": "2026-11-17T23:43:02.729469+09:00",
+      "end": "2026-11-17T23:44:40.806949+09:00",
+      "elapsedSeconds": 98.07748
+    },
+    {
+      "stage": "근거 대조와 후속 요청 작성",
+      "budgetSeconds": 540,
+      "start": "2026-11-17T23:44:40.806949+09:00",
+      "end": "2026-11-17T23:45:38.468812+09:00",
+      "elapsedSeconds": 57.661863
+    },
+    {
+      "stage": "수정 응답 생성",
+      "budgetSeconds": 420,
+      "start": "2026-11-17T23:45:38.468812+09:00",
+      "end": "2026-11-17T23:47:19.215371+09:00",
+      "elapsedSeconds": 100.746559
+    },
+    {
+      "stage": "최종 저장과 두 MD 인계 확인",
+      "budgetSeconds": 240,
+      "start": "2026-11-17T23:47:19.215371+09:00",
+      "end": "2026-11-17T23:49:55.240651+09:00",
+      "elapsedSeconds": 156.02528
+    }
+  ],
+  "totalSeconds": 412.511182,
+  "handoff": "PASS for the two-file input, not Human content approval",
+  "events": [
+    {
+      "turn": 1,
+      "returncode": 0,
+      "toolItems": []
+    },
+    {
+      "turn": 2,
+      "returncode": 0,
+      "toolItems": []
+    }
+  ],
+  "responseSHA256": "ce2ac55e9ffe61701ab8f90ccf6c1c651b94053214c96768948a55bf8bd6fc0c",
+  "savedAt": "2026-11-17T23:48:23.236159+09:00",
+  "handoffCheckedAt": "2026-11-17T23:49:55.240651+09:00",
+  "scope": "Timing includes intervening source import and production coordination before this check, excludes subsequent final render QA. No commit performed by user instruction."
+}

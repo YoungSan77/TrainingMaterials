@@ -1,0 +1,41 @@
+{
+  "pptx": "/Users/YoungSan/dev/TrainingMaterials/out/s04-current-review-20261119/s04-review.pptx",
+  "pptxSHA256": "813e3b88fa7067f457045ded82e773ca114e30feeabfbfef10b943e0c166544c",
+  "qa": "/Users/YoungSan/dev/TrainingMaterials/out/s04-current-review-20261119/s04-review.qa.json",
+  "pages": 37,
+  "errors": 0,
+  "warnings": 24,
+  "production": "PASS",
+  "preservedFiles": 1141,
+  "officialPPTX_SHA256": "ce1114738e2de0420763c445e78fbe6415b69d0e18506eef72adb17ec9a1fc30",
+  "officialQA_SHA256": "56aaecaf2f232eba33f0775801b61560ebb453dd597367982769c015d193abc3",
+  "guides": {
+    "guides/production-guide.md": "14f40cc50fd4ad7b7647ac6e6932e01b73f68da0b9b23a378ef77a52fe2305cb",
+    "guides/session-authoring-guide.md": "c28e7e8826ca8758b1e4999b9549bc708fb65cb024c311de2f89412e8f8e4b5e",
+    "guides/agentic-repository-guide.md": "56dea550cb54255da10ff4ff47a3cdc03920aaf61b98e7b3a4dd55939883b434"
+  },
+  "renderDir": "/Users/YoungSan/dev/TrainingMaterials/out/review/s04-current-20261119",
+  "regressionRendersReused": [
+    {
+      "file": "/Users/YoungSan/dev/TrainingMaterials/out/s04-current-review-20261119/s03-regression.pptx",
+      "sha256": "40989a652fd208870759d203dea072a3e1d24fa08c0dc06afb874c07ddeac536",
+      "render": "/Users/YoungSan/dev/TrainingMaterials/out/review/s03-after/s03-after.pdf",
+      "renderReusedBecauseIdenticalDeck": true
+    },
+    {
+      "file": "/Users/YoungSan/dev/TrainingMaterials/out/s04-current-review-20261119/ooad-s02-regression.pptx",
+      "sha256": "5d653063cdecc74e04d9864f456e728c3f7feba04201cc12b2efe2f4b610f5d4",
+      "render": "/Users/YoungSan/dev/TrainingMaterials/out/review/ooad-s02-after/ooad-s02-after.pdf",
+      "renderReusedBecauseIdenticalDeck": true
+    }
+  ],
+  "generationRuns": {
+    "s04Check": 1,
+    "s04Before": 1,
+    "s04Final": 1,
+    "s03": 1,
+    "ooad": 1
+  },
+  "newPDFExports": 1,
+  "visuallyReviewedPages": 37
+}

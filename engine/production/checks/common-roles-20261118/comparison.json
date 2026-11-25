@@ -1,0 +1,110 @@
+{
+  "at": "2026-11-18T05:08:08.370Z",
+  "comparisons": [
+    {
+      "name": "S03 approved",
+      "beforeSlides": 30,
+      "afterSlides": 30,
+      "textDifferences": [
+        18,
+        19,
+        26,
+        27
+      ],
+      "tableRowsEqual": true,
+      "afterTableCells": 254,
+      "afterMarginsValid": true
+    },
+    {
+      "name": "OOAD s02 before/after",
+      "beforeSlides": 93,
+      "afterSlides": 93,
+      "textDifferences": [],
+      "tableRowsEqual": true,
+      "afterTableCells": 715,
+      "afterMarginsValid": true
+    }
+  ],
+  "preservation": {
+    "changedCourseFiles": [],
+    "pass": true
+  },
+  "changedTrackedFiles": [
+    "courses/ai-native/production-standard.md",
+    "engine/production/src/builder.js",
+    "engine/production/src/inspect.js",
+    "engine/production/src/mermaidAdapter.js",
+    "engine/production/src/paragraphs.js",
+    "engine/production/src/structure.js",
+    "engine/production/src/tableColumnMetrics.js",
+    "engine/production/src/tableRowMetrics.js",
+    "engine/production/src/test/chart-notes.integration.test.js",
+    "engine/production/src/test/header-document-layout.test.js",
+    "engine/production/src/test/lead-structure.test.js",
+    "engine/production/src/test/s03-oq-contract.test.js",
+    "engine/production/src/test/s03-warning-links.test.js",
+    "engine/production/src/test/table-column-metrics.test.js",
+    "engine/production/src/test/typography-rules.test.js",
+    "engine/production/src/test/uo-contract.test.js",
+    "guides/agentic-repository-guide.md",
+    "guides/production-guide.md"
+  ],
+  "outputs": [
+    {
+      "file": "/Users/YoungSan/dev/TrainingMaterials/out/common-production-20261118/ai-native-s03.pptx",
+      "sha256": "dc0bbe0936fd42b8f3f5b29025510f23a84c06ee425f29aa1561ff91fc9f6cc5",
+      "qa": {
+        "status": "PASS",
+        "structuralErrors": [],
+        "sourceErrors": [],
+        "sourceWarnings": [],
+        "slides": 30,
+        "visual_status": "NOT_VERIFIED"
+      }
+    },
+    {
+      "file": "/Users/YoungSan/dev/TrainingMaterials/out/common-production-20261118/ai-native-s04.pptx",
+      "sha256": "fb72ef5d3202b6e689020ef40eb47611cdab4fabe31be5b9aa9b2394d237b80f",
+      "qa": {
+        "status": "FAIL",
+        "structuralErrors": [],
+        "sourceErrors": [
+          "원고 621행: 파일명식 세션 참조(S0x)를 쓰지 않는다. 정확한 세션명을 쓴다.",
+          "원고 792행: 주제 참조 「12. AI에게 맡기기 전의 4가지 질문」가 \"03. 요구사항\"에 없다.",
+          "원고 998행: 파일명식 세션 참조(S0x)를 쓰지 않는다. 정확한 세션명을 쓴다.",
+          "원고 1014행: 파일명식 세션 참조(S0x)를 쓰지 않는다. 정확한 세션명을 쓴다.",
+          "원고 1015행: 파일명식 세션 참조(S0x)를 쓰지 않는다. 정확한 세션명을 쓴다.",
+          "원고 1179행: 파일명식 세션 참조(S0x)를 쓰지 않는다. 정확한 세션명을 쓴다.",
+          "원고 1197행: 파일명식 세션 참조(S0x)를 쓰지 않는다. 정확한 세션명을 쓴다."
+        ],
+        "sourceWarnings": [],
+        "slides": 49,
+        "visual_status": "NOT_VERIFIED"
+      }
+    },
+    {
+      "file": "/Users/YoungSan/dev/TrainingMaterials/out/common-production-20261118/ooad-s02-before.pptx",
+      "sha256": "dc765b7ebfa6294b76bb4eedda6eff49d1a003a84209b1a6e1bf4544a362f402",
+      "qa": {
+        "status": "PASS",
+        "structuralErrors": [],
+        "sourceErrors": [],
+        "sourceWarnings": [],
+        "slides": 93,
+        "visual_status": "NOT_VERIFIED"
+      }
+    },
+    {
+      "file": "/Users/YoungSan/dev/TrainingMaterials/out/common-production-20261118/ooad-s02.pptx",
+      "sha256": "3497fd77583d23af8049c794f40d179d614ce86c49428bba5578e208bd1d4dda",
+      "qa": {
+        "status": "PASS",
+        "structuralErrors": [],
+        "sourceErrors": [],
+        "sourceWarnings": [],
+        "slides": 93,
+        "visual_status": "NOT_VERIFIED"
+      }
+    }
+  ]
+}

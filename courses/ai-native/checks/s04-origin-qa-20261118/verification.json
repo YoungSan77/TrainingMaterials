@@ -1,0 +1,75 @@
+{
+  "file": "/Users/YoungSan/dev/TrainingMaterials/out/s04-origin-qa-20261118/s04-review.pptx",
+  "pptxSHA256": "ce1114738e2de0420763c445e78fbe6415b69d0e18506eef72adb17ec9a1fc30",
+  "slides": 37,
+  "tableCells": 421,
+  "identicalToPreviouslyRenderedDeck": true,
+  "protectedSourceAndOfficialOutputsUnchanged": true,
+  "excerpt": {
+    "topic": "주문 기능 정적 모델 정의서 — 최종안",
+    "excerptStart": 863,
+    "excerptEnd": 1244,
+    "status": "PASS",
+    "record": "sessions/code/s04/exercise-conversation/production-2026-11-17/codex-response-02.md",
+    "recordSHA256": "ce2ac55e9ffe61701ab8f90ccf6c1c651b94053214c96768948a55bf8bd6fc0c",
+    "matchedAtoms": 262,
+    "omissions": [
+      {
+        "kind": "omission",
+        "excerptLine": 957,
+        "recordStart": 93,
+        "recordEnd": 94
+      },
+      {
+        "kind": "omission",
+        "excerptLine": 1004,
+        "recordStart": 140,
+        "recordEnd": 140
+      },
+      {
+        "kind": "omission",
+        "excerptLine": 1158,
+        "recordStart": 293,
+        "recordEnd": 295
+      },
+      {
+        "kind": "omission",
+        "excerptLine": 1165,
+        "recordStart": 301,
+        "recordEnd": 306
+      },
+      {
+        "kind": "omission",
+        "excerptLine": 1172,
+        "recordStart": 312,
+        "recordEnd": 314
+      },
+      {
+        "kind": "omission",
+        "excerptLine": 1179,
+        "recordStart": 320,
+        "recordEnd": 327
+      },
+      {
+        "kind": "omission",
+        "excerptLine": 1186,
+        "recordStart": 333,
+        "recordEnd": 334
+      },
+      {
+        "kind": "omission",
+        "excerptLine": 1193,
+        "recordStart": 340,
+        "recordEnd": 344
+      },
+      {
+        "kind": "omission",
+        "excerptLine": 1200,
+        "recordStart": 350,
+        "recordEnd": 350
+      }
+    ]
+  },
+  "warnings": 35,
+  "inputSHA256": "d55bd8d109478c7803a167db907fe52eb4efc524247287c854cb17cc08c37274"
+}

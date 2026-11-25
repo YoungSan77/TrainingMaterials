@@ -1,0 +1,30 @@
+{
+  "slides": 30,
+  "changedPages": [
+    28,
+    29
+  ],
+  "tables": [
+    {
+      "page": 28,
+      "cells": 35,
+      "effectivePt": 8,
+      "marT": 54000,
+      "marB": 54000,
+      "horizontalMarginsPreserved": true
+    },
+    {
+      "page": 29,
+      "cells": 30,
+      "effectivePt": 8,
+      "marT": 54000,
+      "marB": 54000,
+      "horizontalMarginsPreserved": true
+    }
+  ],
+  "otherSlideXMLPreserved": true,
+  "contentOrderAndJudgmentPreserved": true,
+  "errors": [],
+  "warnings": 61,
+  "referenceComparison": "s03(10).pptx not present in accessible repository"
+}
