@@ -251,6 +251,10 @@
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-06"
   },
+  "ai is an amplifier": {
+    "source": "references/inputs/2025_state_of_ai_assisted_software_development.pdf",
+    "date": "2026-11-26"
+  },
   "ai tools amplify existing expertise. the more skills and experience you have as a software engineer the faster and better the results you can get from working with llms and coding agents": {
     "source": "https://simonwillison.net/2025/Oct/7/vibe-engineering/",
     "date": "2026-10-17"
@@ -603,6 +607,10 @@
     "source": "https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/",
     "date": "2026-10-17"
   },
+  "difficult design decisions or design decisions which are likely to change": {
+    "source": "https://www.win.tue.nl/~wstomv/edu/2ip30/references/criteria_for_modularization.pdf",
+    "date": "2026-11-26"
+  },
   "do not model the states of a concept x as subclasses of x": {
     "source": "larman-2004",
     "date": "2026-10-02"
@@ -715,6 +723,10 @@
     "source": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
     "date": "2026-10-14"
   },
+  "finops is an operational framework and cultural practice which maximizes the business value of technology, enables timely data-driven decision making, and creates financial accountability through collaboration between engineering, finance, and business teams": {
+    "source": "https://www.finops.org/introduction/what-is-finops/",
+    "date": "2026-11-26"
+  },
   "following aristotle, i divide them into essence, the difficulties inherent in the nature of the software, and accidents, those difficulties which today attend its production but which are not inherent": {
     "source": "https://www.cs.unc.edu/techreports/86-020.pdf",
     "date": "2026-10-18"
@@ -818,6 +830,10 @@
   "i believe the hard part of building software to be the specification, design, and testing of this conceptual construct, not the labor of representing it": {
     "source": "https://www.cs.unc.edu/techreports/86-020.pdf",
     "date": "2026-10-07"
+  },
+  "i use the term \"complexity\" to refer to things that make it hard to understand and modify a system": {
+    "source": "https://raw.githubusercontent.com/johnousterhout/aposd-vs-clean-code/main/README.md",
+    "date": "2026-11-26"
   },
   "i wonder if spec-as-source, and even spec-anchoring, might end up with the downsides of both mdd and llms: inflexibility and non-determinism": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
@@ -1410,6 +1426,10 @@
   "the quality attributes have a strong influence on the architecture of a system": {
     "source": "larman-2004",
     "date": "2026-10-08"
+  },
+  "the reader of a requirement statement should be able to draw only one interpretation of it": {
+    "source": "https://www.processimpact.com/articles/qualreqs.pdf",
+    "date": "2026-11-26"
   },
   "the real-world performance of autonomous software engineers remains unclear": {
     "source": "hassan-2026-se30",
