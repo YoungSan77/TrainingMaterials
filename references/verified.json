@@ -68,8 +68,8 @@
     "date": "2026-10-13"
   },
   "a giant instruction file crowds out the task, the code, and the relevant docs": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-21"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "a globally peer-reviewed framework that identifies the most critical security risks facing autonomous and agentic ai systems": {
     "source": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
@@ -124,12 +124,12 @@
     "date": "2026-10-24"
   },
   "a robust framework generates detailed traces and logs, exposing the entire reasoning trajectory: the model's internal monologue, the tool it chose, the parameters it generated, and the result it observed": {
-    "source": "/Users/YoungSan/dev/TrainingMaterials/references/inputs/Google_IntroductionToAgents.pdf",
+    "source": "references/inputs/Google_IntroductionToAgents.pdf",
     "date": "2026-10-17"
   },
   "a software engineering team's primary job is no longer to write code, but to design environments, specify intent, and build feedback loops": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-06"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "a spec is a structured, behavior-oriented artifact - or a set of related artifacts - written in natural language that expresses software functionality and serves as guidance to ai coding agents": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html",
@@ -148,8 +148,8 @@
     "date": "2026-10-03"
   },
   "a story's behaviour is simply its acceptance criteria: if the system fulfils all the acceptance criteria, it's behaving correctly; if it doesn't, it isn't": {
-    "source": "references/inputs/north-2006-introducing-bdd.txt",
-    "date": "2026-10-07"
+    "source": "https://dannorth.net/blog/introducing-bdd/",
+    "date": "2026-11-26"
   },
   "a system of abstractions that describes selected aspects of a domain and can be used to solve problems related to that domain": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
@@ -220,8 +220,8 @@
     "date": "2026-10-07"
   },
   "agents are most effective in environments with strict boundaries and predictable structure": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-12"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "agents are stateful and errors compound. agents can run for long periods of time, maintaining state across many tool calls": {
     "source": "https://www.anthropic.com/engineering/multi-agent-research-system",
@@ -344,8 +344,8 @@
     "date": "2026-10-08"
   },
   "as code throughput increased, our bottleneck became human qa capacity": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-13"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "as the number of tokens in the context window increases, the model's ability to accurately recall information from that context decreases": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
@@ -495,17 +495,9 @@
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-07"
   },
-  "codex replicates patterns that already exist in the repository-even uneven or suboptimal ones. over time, this inevitably leads to drift": {
-    "source": "/Users/YoungSan/dev/TrainingMaterials/references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-17"
-  },
   "codex works on a fully isolated version of that app": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-13"
-  },
-  "codex works on a fully isolated version of that app-including its logs and metrics, which get torn down once that task is complete": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-13"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "cohesion … is a measure of how strongly related and focused the responsibilities of an element are": {
     "source": "larman-2004",
@@ -568,8 +560,8 @@
     "date": "2026-10-18"
   },
   "crowds out": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-21"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "crucial for the agents to gain \"ground truth\" from the environment at each step": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
@@ -656,12 +648,12 @@
     "date": "2026-10-07"
   },
   "enforce boundaries centrally, allow autonomy locally": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-13"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "escalate to a human only when judgment is required": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-13"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "even experienced architects working in familiar domains have great difficulty getting boundaries right at the beginning": {
     "source": "https://martinfowler.com/bliki/MonolithFirst.html",
@@ -744,12 +736,12 @@
     "date": "2026-10-23"
   },
   "from the agent's point of view, anything it can't access in-context while running effectively doesn't exist": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-12"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "from the agent's point of view, anything it can't access in-context while running effectively doesn't exist. knowledge that lives in google docs, chat threads, or people's heads are not accessible to the system": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-12"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "future proofing is arguably rarely perfect, since it is speculation; even if the predicted change occurs, some change in the speculated design is likely": {
     "source": "larman-2004",
@@ -760,20 +752,16 @@
     "date": "2026-10-24"
   },
   "give codex a map, not a 1,000-page instruction manual": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-21"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "given some initial context (the givens), when an event occurs, then ensure some outcomes": {
-    "source": "references/inputs/north-2006-introducing-bdd.txt",
-    "date": "2026-10-07"
+    "source": "https://dannorth.net/blog/introducing-bdd/",
+    "date": "2026-11-26"
   },
   "good context engineering means finding the smallest possible set of high-signal tokens that maximize the likelihood of some desired outcome": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-12"
-  },
-  "good stories are: i - independent n - negotiable v - valuable e - estimable s - small t - testable": {
-    "source": "references/inputs/wake-2003-invest.txt",
-    "date": "2026-10-07"
   },
   "grasp stands for general responsibility assignment software patterns": {
     "source": "larman-2004",
@@ -812,20 +800,20 @@
     "date": "2026-10-16"
   },
   "humans always remain in the loop, but work at a different layer of abstraction than we used to. we prioritize work, translate user feedback into acceptance criteria, and validate outcomes": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-06"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "humans are the bottleneck, not the ai": {
     "source": "hassan-2026-se30",
     "date": "2026-10-27"
   },
   "humans may review pull requests, but aren't required to": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-13"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "humans steer. agents execute": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-06"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "i believe the hard part of building software to be the specification, design, and testing of this conceptual construct, not the labor of representing it": {
     "source": "https://www.cs.unc.edu/techreports/86-020.pdf",
@@ -872,8 +860,8 @@
     "date": "2026-10-08"
   },
   "in a system where agent throughput far exceeds human attention, corrections are cheap, and waiting is expensive": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-13"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "in augmented coding you care about the code, its complexity, the tests, & their coverage": {
     "source": "https://newsletter.kentbeck.com/p/augmented-coding-beyond-the-vibes",
@@ -916,8 +904,8 @@
     "date": "2026-10-27"
   },
   "instead of treating agents.md as the encyclopedia, we treat it as the table of contents": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-12"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "isolate the expression of the domain model and the business logic, and eliminate any dependency on infrastructure, user interface, or even application logic that is not business logic": {
     "source": "https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf",
@@ -936,12 +924,12 @@
     "date": "2026-10-16"
   },
   "it rots instantly. a monolithic manual turns into a graveyard of stale rules": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-12"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "it rots instantly. a monolithic manual turns into a graveyard of stale rules. agents can't tell what's still true, humans stop maintaining it": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-12"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "it's also common to include stopping conditions (such as a maximum number of iterations) to maintain control": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
@@ -964,8 +952,8 @@
     "date": "2026-10-12"
   },
   "its strength is that it forces you to identify the value of delivering a story when you first define it": {
-    "source": "references/inputs/north-2006-introducing-bdd.txt",
-    "date": "2026-10-07"
+    "source": "https://dannorth.net/blog/introducing-bdd/",
+    "date": "2026-11-26"
   },
   "just in time": {
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
@@ -1016,8 +1004,8 @@
     "date": "2026-10-24"
   },
   "map": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-21"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "mcp provides a standardized way to connect llms with the context they need": {
     "source": "https://modelcontextprotocol.io/specification/2025-06-18",
@@ -1096,8 +1084,8 @@
     "date": "2026-10-14"
   },
   "our team used to spend every friday (20% of the week) cleaning up \"ai slop.\" unsurprisingly, that didn't scale": {
-    "source": "/Users/YoungSan/dev/TrainingMaterials/references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-17"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "our telemetry showed users approved roughly 93% of permission prompts": {
     "source": "https://www.anthropic.com/engineering/how-we-contain-claude",
@@ -1108,8 +1096,8 @@
     "date": "2026-10-08"
   },
   "plans are treated as first-class artifacts": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-13"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "poka-yoke your tools. change the arguments so that it is harder to make mistakes": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
@@ -1224,8 +1212,8 @@
     "date": "2026-10-08"
   },
   "so instead of treating agents.md as the encyclopedia, we treat it as the table of contents": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-12"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "solving 75.2% of all benchmark tasks": {
     "source": "hassan-2026-se30",
@@ -1508,12 +1496,12 @@
     "date": "2026-10-14"
   },
   "this automated evaluation, run against a golden dataset of prompts, provides a consistent measure of quality": {
-    "source": "/Users/YoungSan/dev/TrainingMaterials/references/inputs/Google_IntroductionToAgents.pdf",
+    "source": "references/inputs/Google_IntroductionToAgents.pdf",
     "date": "2026-10-17"
   },
   "this enables progressive disclosure: agents start with a small, stable entry point and are taught where to look next, rather than being overwhelmed up front": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-12"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "this is at the moment the easiest type of harness, as we have a lot of pre-existing tooling that we can use for this": {
     "source": "https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html",
@@ -1544,8 +1532,8 @@
     "date": "2026-10-03"
   },
   "too much guidance becomes non-guidance. when everything is \"important,\" nothing is. agents end up pattern-matching locally instead of navigating intentionally": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-12"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "tool definitions and specifications should be given just as much prompt engineering attention as your overall prompts": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
@@ -1632,32 +1620,32 @@
     "date": "2026-10-14"
   },
   "we decided to apply all of this behaviour- driven thinking to defining requirements": {
-    "source": "references/inputs/north-2006-introducing-bdd.txt",
-    "date": "2026-10-07"
+    "source": "https://dannorth.net/blog/introducing-bdd/",
+    "date": "2026-11-26"
   },
   "we made the app bootable per git worktree, so codex could launch and drive one instance per change": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-13"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "we prioritize work, translate user feedback into acceptance criteria, and validate outcomes": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-18"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "we recommend extensive testing in sandboxed environments, along with the appropriate guardrails": {
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-13"
   },
   "we regularly see single codex runs work on a single task for upwards of six hours (often while the humans are sleeping)": {
-    "source": "references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-17"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "we see sandboxing as a sensible default rather than an optional enhancement": {
     "source": "https://www.thoughtworks.com/radar/techniques/sandboxed-execution-for-coding-agents",
     "date": "2026-10-14"
   },
   "we started encoding what we call \"golden principles\" directly into the repository and built a recurring cleanup process": {
-    "source": "/Users/YoungSan/dev/TrainingMaterials/references/inputs/lopopolo-2026-harness-engineering.txt",
-    "date": "2026-10-17"
+    "source": "https://openai.com/index/harness-engineering/",
+    "date": "2026-11-26"
   },
   "we still don't know how to 100% reliably prevent this from happening": {
     "source": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
@@ -1666,10 +1654,6 @@
   "we thus say that se 3.0 is ai-native": {
     "source": "hassan-2026-se30",
     "date": "2026-10-27"
-  },
-  "we want to give the customer the essence of the whole cake, and the best way is to slice vertically through the layers": {
-    "source": "references/inputs/wake-2003-invest.txt",
-    "date": "2026-10-07"
   },
   "we're increasingly seeing organizations measure success using superficial indicators such as lines of code generated or the number of pull requests (prs)": {
     "source": "https://www.thoughtworks.com/radar/techniques/coding-throughput-as-a-measure-of-productivity",
@@ -1738,10 +1722,6 @@
   "write use cases in an essential style; keep the user interface out and focus on actor intent": {
     "source": "larman-2004",
     "date": "2026-10-02"
-  },
-  "writing a story card carries an implicit promise: \"i understand what i want well enough that i could write a test for it.\"": {
-    "source": "references/inputs/wake-2003-invest.txt",
-    "date": "2026-10-07"
   },
   "yagni only applies to capabilities built into the software to support a presumptive feature, it does not apply to effort to make the software easier to modify": {
     "source": "https://martinfowler.com/bliki/Yagni.html",

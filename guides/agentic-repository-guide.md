@@ -90,6 +90,7 @@ agentic 시스템은 모델 하나가 아니라 모델을 둘러싼 4가지로 �
 | `tools/session-check-hook.js` | 바뀐 세션 원고가 오류·경고 0인지 | **턴이 끝나기 전** — 아니면 턴을 막는다 |
 | `node --test engine/production/src/test/*.test.js` | renderer의 회귀(고정 fixture 기준). 실제 응답 정렬·다열 표·도식 viewport·7pt 하한, 과정 profile과 동일 세션명의 다른 과정 기본값 분리 | renderer·템플릿을 바꿀 때 |
 | `tools/verify-quote.js` + `references/verified.json` | 영문 인용이 원전에 실제로 있는지 | 인용을 쓰기 전 |
+| `tools/prune-source-cache.js` | 원전 추출 캐시에서 장부가 쓰지 않는 파일을 가린다. `--check` 조회는 장부에 기록하지 않고 캐시만 남기므로 조사용 원전이 쌓인다 | 캐시가 커졌을 때 |
 | `tools/slide-density.js`·`measure-time.js`·`read-leads.js`·`check-wording.js` | 장 수·분량·도식 수·시간·논지의 이어짐·용어 | 요청할 때 |
 
 - **센서가 판정을 끝내는 자리가 있어야 한다.** `session-check-hook.js`는 턴 종료를 막으므로, 사람이 보기 전에 검사가 돈다. "통과했다"는 말이 기억에서 나오지 않는다.
