@@ -6,7 +6,7 @@
 
 | 단계 | 승인 입력 | 정본과 소유권 | 단계 계약 |
 |---|---|---|---|
-| Course Design | 사용자 의도, 과정 맥락, 공통 원칙과 출처 | `courses/<course>/course-design.md`의 목적·역량·범위·핵심 주장·필수 성과와 실패 조건, 과정 공통 용어·사례 전제, 총시간과 운영 제약 | `guides/course-design-guide.md` |
+| Course Design | 사용자 의도, 과정 맥락, 공통 원칙과 출처 | `courses/<course>/course-design.md`의 목적·교육 목표·역량·범위·핵심 주장, 선택한 경우 학습 성과와 실패 조건, 과정 공통 용어·사례 전제, 총시간과 운영 제약 | `guides/course-design-guide.md` |
 | Curriculum / Session Architecture | 승인 Course Design | `courses/<course>/curriculum.md`의 세션 ID·이름·순서·시간·역할·선수 관계·연결, 과정 전체 중복·누락 검토 | `guides/curriculum-dd-guide.md` |
 | Session DD | 승인 Session Architecture, 해당 Course Design, 출처와 확정된 사례 입력 | `courses/<course>/sessions/sNN-detailed-design.md`의 세션 거버닝 메시지·판단 질문·핵심 주장·교수 순서·정의·근거·사례·실습 설계 | `guides/curriculum-dd-guide.md` |
 | Deck Authoring | 승인 DD, 통합 승인 Curriculum과 연결된 자료 | `courses/<course>/sessions/sNN.md`의 슬라이드 문구·표현·학습자 자료·강사 노트 | `guides/session-authoring-guide.md` |
