@@ -1,8 +1,0 @@
-{
-  "status": "PASS",
-  "slides": 31,
-  "checked_blocks": 68,
-  "visual_status": "NOT_VERIFIED",
-  "errors": [],
-  "warnings": ["슬라이드 28: \"27. 요약\" 본문이 한 장의 용량을 5% 넘겼다. 글을 줄인다."]
-}
