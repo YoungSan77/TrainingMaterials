@@ -13,7 +13,7 @@ SW 공학 교육과정의 설계·원고·PowerPoint를 관리한다.
 | 실습 근거 | `sessions/code/sNN/exercise-conversation/`의 실제 대화와 최종 MD |
 | 제작 기록 | `courses/<course>/checks/sNN-production-check.md` |
 
-단계별 책임·승인·변경은 [Governance](guides/governance.md), 시작 경로는 [AGENTS.md](AGENTS.md)가 정한다. 현재 OOAD의 `s01.md`~`s05.md`는 Deck 표현 수준의 예시다. AI-native에는 [전환 목록](courses/ai-native/checks/ai-native-transition.md)이 있다.
+단계별 책임·승인·변경은 [Governance](guides/governance.md), 시작 경로는 [AGENTS.md](AGENTS.md)가 정한다. 현재 OOAD의 `s01.md`~`s05.md`는 Deck 표현 수준의 예시다.
 
 저장소 루트에서 실행한다.
 
@@ -25,4 +25,4 @@ node --test engine/production/src/test/*.test.js
 
 실습은 대화로 검토·보완하고 최종 MD를 다음 실습에 첨부한다. 수강생에게 교재 renderer는 필요하지 않다. 교재 슬라이드는 최종 MD와 별도로 제작한다.
 
-세션별 진행과 검사 상태는 [redesign-map.md](courses/ai-native/checks/redesign-map.md), 저장소 정리와 복구 방법은 [2026-10-20 정리·복구 기록](REPOSITORY-STATUS.md)을 본다. AI-native 전체를 완료 상태로 간주하지 않는다.
+과정별 진행과 상태는 그 과정의 `checks/STATUS.md`가 가진다 — [AI-native](courses/ai-native/checks/STATUS.md), [OOAD](courses/ooad/checks/STATUS.md). 파일이 있다는 사실만으로 과정을 완료 상태로 간주하지 않는다.

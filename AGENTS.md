@@ -6,7 +6,7 @@ Course Design → Curriculum / Session Architecture → Session DD → Deck Auth
 
 `guides/governance.md`가 단계별 정본·승인·변경 통제·협업 책임을 정한다. 상세 계약은 `guides/course-design-guide.md`, `guides/curriculum-dd-guide.md`, `guides/session-authoring-guide.md`(Deck Authoring), `guides/production-guide.md`를 따른다. 현재 Markdown 입력과 PPTX Renderer는 `engine/production/`에 있다.
 
-기존 과정 작업은 기록에 연결된 승인 기준선에서 재개한다. AI-native의 전환 검토 항목은 `courses/ai-native/checks/ai-native-transition.md`에 있다.
+기존 과정 작업은 기록에 연결된 승인 기준선에서 재개한다. 과정의 현재 상태와 남은 자료의 성격은 그 과정의 `checks/STATUS.md`가 적는다.
 
 `guides/agentic-repository-guide.md`는 **이 저장소 자체를 agentic 시스템으로 운영하는 계약**이다. 저장소의 구성 요소를 맥락·가드레일·하네스·추적으로 가르고, 금지를 환경으로 옮기는 기준과 센서를 더하는 규칙을 정한다. 교재의 내용은 정하지 않는다.
 
