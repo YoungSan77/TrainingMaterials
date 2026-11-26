@@ -2,9 +2,9 @@
 
 ## Architecture
 
-Course Design → Curriculum / Session Architecture → Session DD → Deck Authoring → Production
+Course Design → Curriculum / Session Architecture → Session Authoring → Production
 
-`guides/governance.md`가 단계별 정본·승인·변경 통제·협업 책임을 정한다. 상세 계약은 `guides/course-design-guide.md`, `guides/curriculum-dd-guide.md`, `guides/session-authoring-guide.md`(Deck Authoring), `guides/production-guide.md`를 따른다. 현재 Markdown 입력과 PPTX Renderer는 `engine/production/`에 있다.
+`guides/governance.md`가 단계별 정본·승인·변경 통제·협업 책임을 정한다. 상세 계약은 `guides/course-design-guide.md`, `guides/curriculum-guide.md`(Curriculum / Session Architecture), `guides/session-authoring-guide.md`, `guides/production-guide.md`를 따른다. 현재 Markdown 입력과 PPTX Renderer는 `engine/production/`에 있다.
 
 기존 과정 작업은 기록에 연결된 승인 기준선에서 재개한다. 과정의 현재 상태와 남은 자료의 성격은 그 과정의 `checks/STATUS.md`가 적는다.
 
@@ -14,7 +14,7 @@ Course Design → Curriculum / Session Architecture → Session DD → Deck Auth
 
 ## Course Design Authority
 
-과정의 목적·범위·공통 전제는 Course Design, 세션 간 경계와 시간은 Curriculum, 각 세션의 목표·Anchor Message와 교수 흐름은 DD를 확인한다.
+과정의 목적·범위·공통 전제는 Course Design, 세션 간 경계·시간·목표·Anchor Message는 Curriculum, 세션의 교수 흐름과 교육 내용은 그 세션의 Session Source를 확인한다.
 
 ## Session Authoring Baseline
 
@@ -53,7 +53,7 @@ renderer 한계 때문에 Session Source를 수정하지 않는다. 지원되지
 
 공통 규칙은 이 파일과 `guides/`에, 과정 고유의 정책·제작 기준은 해당 `courses/<course>/`에 두고 과정 설계에서 참조한다. 과거의 산출물은 비교하거나 복원할 기준이 아니다.
 
-- Curriculum과 Session DD는 승인된 교육 설계의 정본이다. 별도 중복 정본을 만드는 기준은 Governance를 따른다.
+- Curriculum은 세션 편성의 정본이고 Session Source는 교육 내용의 정본이다. **세션의 상세 설계는 Session Authoring의 구성안 검토로 하고 별도 정본 문서로 만들지 않는다.** 별도 중복 정본의 기준은 Governance를 따른다.
 - 예전에 생성한 PPT, git history의 이전 원고·지침은 내용·시각의 기준이 아니다. 현재 지침과 다르면 지침을 따른다.
 - Production의 뼈대는 `engine/production/template/` 하나다. 외부 승인 템플릿이나 고정 페이지 레이아웃 설정을 두지 않는다.
 - `references/production/`은 사용자가 참고하려고 보관하는 폴더다(`approved.pptx` 원본). LLM은 이 폴더를 읽거나 비교·복사·복원의 근거로 쓰지 않고, 수정·삭제하지도 않는다. 이 금지는 글이 아니라 환경이 막는다 — `tools/protected-path-hook.js`가 그 경로에 닿는 도구 호출을 **읽기까지** 거절한다(hook 등록은 사용자가 `.claude/settings.json`에서 한다). 거절되면 다른 방법으로 돌아가지 않고, 필요한 것이 무엇인지 사용자에게 말한다.
@@ -75,9 +75,9 @@ renderer 한계 때문에 Session Source를 수정하지 않는다. 지원되지
 - **실습 실행·검증 요청은** `guides/session-authoring-guide.md`의 「실습 검증과 Production 연결」을 따른다. 제작까지 요청받으면 해당 절의 코드 대조와 Production 검증도 수행한다.
 - **작업할 과정을 먼저 확정한다** — `courses/ACTIVE` 한 줄이 지금 작업하는 과정이다. 세션 번호만 있는 지시("S06 시작")는 그 파일과 그 과정의 `checks/` 진행 파일(`rewrite-pending.json`, 검토 기록)로 확정한 뒤에 시작한다. 기억이나 **다른 과정의 진행 기록으로 추정하지 않는다**. `courses/ACTIVE`는 사용자의 지시로만 바꾼다. 다른 과정의 파일을 쓰려 하면 `tools/active-course-hook.js`가 거절한다(읽기는 막지 않는다).
 - **보고에는 과정 경로를 쓴다** — 두 과정에 같은 파일명(`s04.pptx`)이 있어 번호만 쓰면 어느 과정인지 알 수 없다. 장수·검사 결과를 말할 때 `courses/<course>/sessions/sNN`을 함께 적는다.
-- **지침을 먼저 읽는다** — Governance에서 대상 변경의 소유 단계와 승인 입력을 확인하고 해당 단계 지침을 읽는다. Deck 작업에서는 승인 Curriculum·DD와 Deck Authoring·Production 지침을 대조한다.
+- **지침을 먼저 읽는다** — Governance에서 대상 변경의 소유 단계와 승인 입력을 확인하고 해당 단계 지침을 읽는다. 세션 원고 작업에서는 승인 Curriculum·Course Design과 Session Authoring·Production 지침을 대조한다.
 - **인용은 원문 확인부터** — 구성안을 보이기 전에 `node tools/verify-quote.js`로 영문 인용을 확인하고 출처 레이블을 확정한다. 웹 검색 요약이나 기억으로 인용·출처를 적지 않는다. 확인하지 않은 인용은 Production이 경고하며 완료 기준을 넘지 못한다.
-- **승인과 피드백** — Governance의 단계별 게이트와 변경 범위를 따른다. 명시적인 보완 지시는 그 범위 작업의 근거로 기록한다. 상위 기준과 충돌하거나 의미가 불분명하면 영향과 대안을 알리고 필요한 판정을 받는다. 이미 승인된 같은 범위의 확인을 반복하지 않는다.
+- **승인과 피드백** — Governance의 단계별 게이트와 변경 범위를 따른다. 명시적인 보완 지시는 그 범위 작업의 근거로 기록한다. 상위 기준과 충돌하거나 의미가 불분명하면 영향과 대안을 알리고 필요한 판정을 받는다. **무엇을 묻고 무엇을 묻지 않는지는 Governance 「책임과 승인」의 두 목록을 따른다** — 설계·의미·범위의 확정과 변경, 최종 수용, 되돌리기 어려운 일과 상위 계약 충돌은 승인을 받고, 승인 범위 안의 작성·제작·검사·오류 수정·표현 개선과 기계적 후속은 묻지 않고 수행한 뒤 보고한다. 이미 승인된 같은 범위의 확인을 반복하지 않는다.
 - **커밋** — 사용자가 명시적으로 요청할 때만 한다. 작업 종료 시 커밋 여부를 묻지 않는다.
 - **승인 창을 만들지 않는 명령** — 승인 창의 대부분은 질문이 아니라 **허용 목록에 걸리지 않는 Bash 명령**에서 나온다(`.claude/settings.json`). 다음을 지킨다(2026-10-24).
   - **파일을 고치는 일은 Edit·Write 도구로 한다.** `python3 - <<EOF`, `cat > 파일 <<EOF`, `sed -i`로 원고·지침·코드를 고치지 않는다 — 여러 줄 명령은 허용 목록이 알아보지 못해 실행마다 승인을 요구한다. 치환이 많아도 Edit를 여러 번 부르는 쪽이 승인 창이 없다.

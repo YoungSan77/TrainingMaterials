@@ -527,6 +527,10 @@
     "source": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
     "date": "2026-10-21"
   },
+  "complexity, conformity, changeability, and invisibility": {
+    "source": "https://www.cs.unc.edu/techreports/86-020.pdf",
+    "date": "2026-11-26"
+  },
   "composition has a nicer property. the coupling is reduced by just having some smaller things you plug into something bigger": {
     "source": "https://www.artima.com/articles/design-principles-from-design-patterns",
     "date": "2026-10-08"

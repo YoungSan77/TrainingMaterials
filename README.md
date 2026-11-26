@@ -2,18 +2,18 @@
 
 SW 공학 교육과정의 설계·원고·PowerPoint를 관리한다.
 
-**Course Design → Curriculum / Session Architecture → Session DD → Deck Authoring → Production**
+**Course Design → Curriculum / Session Architecture → Session Authoring → Production**
 
 | 구분 | 원천과 산출물 |
 |---|---|
 | 과정 설계 | `courses/<course>/course-design.md` |
-| Curriculum과 Session DD | `courses/<course>/curriculum.md`, `courses/<course>/sessions/sNN-detailed-design.md` |
-| Deck 원고 | `courses/<course>/sessions/sNN.md` |
+| Curriculum / Session Architecture | `courses/<course>/curriculum.md` |
+| 세션 원고 | `courses/<course>/sessions/sNN.md` |
 | 제작 결과 | 원고 옆의 `sNN.pptx`, `sNN.qa.json` |
 | 실습 근거 | `sessions/code/sNN/exercise-conversation/`의 실제 대화와 최종 MD |
 | 제작 기록 | `courses/<course>/checks/sNN-production-check.md` |
 
-단계별 책임·승인·변경은 [Governance](guides/governance.md), 시작 경로는 [AGENTS.md](AGENTS.md)가 정한다. 현재 OOAD의 `s01.md`~`s05.md`는 Deck 표현 수준의 예시다.
+단계별 책임·승인·변경은 [Governance](guides/governance.md), 시작 경로는 [AGENTS.md](AGENTS.md)가 정한다. 세션의 상세 설계는 Session Authoring 안의 구성안 검토로 하고 별도 정본 문서를 두지 않는다. 현재 OOAD의 `s01.md`~`s05.md`는 원고 표현 수준의 예시다.
 
 저장소 루트에서 실행한다.
 

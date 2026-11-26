@@ -7,6 +7,6 @@
 - **Curriculum 부재** — 이 과정에는 `curriculum.md`가 없다. 새 절차는 Course Design 다음에 Curriculum / Session Architecture를 요구하므로 재설계에서 새로 만든다.
 - **제거한 것** — PPTX·QA(각 15), 실습 실행 증거(`sessions/code/**` 229), 과거 검토 기록(`checks/exercise-realignment.md`), 그리고 git 제외였던 시각 검토 출력(`out/`의 ooad 몫).
 - **복구** — 제거한 Git 추적 파일은 Git commit `79cba69`에서 꺼낸다. `out/`의 시각 검토 출력은 git 제외 대상이라 그 커밋에 **없다** — 직접 복구는 되지 않고, PPTX를 꺼내 `tools/review-pdf.sh`로 다시 만든다.
-- **재설계 절차** — Course Design → Curriculum / Session Architecture → Session DD → Deck Authoring → Production. 단계마다 Human 승인을 받는다(`guides/governance.md`).
+- **재설계 절차** — Course Design → Curriculum / Session Architecture → Session Authoring → Production. 단계마다 Human 승인을 받는다(`guides/governance.md`).
 
 기존 파일이 있다는 사실만으로 현재 설계의 승인이나 완료를 판단하지 않는다.
