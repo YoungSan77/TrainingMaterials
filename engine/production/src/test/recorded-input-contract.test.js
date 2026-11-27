@@ -3,8 +3,8 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const {parse}=require('../parse'),{render}=require('../builder'),{TEMPLATE_DIR}=require('../template'),{inspect}=require('../inspect');
 const {A,P,all,child,shape,body,kids}=require('../xml');
 const md='## 11. LLM 초안 검토\n\n입력\n\n**페이지 분할**\n\n**문서 형식 — 10pt**\n\n### 원문 첫 제목\n\n### 1. 목적\n\n시연 첫 문단.\n\n### 2. 범위\n\n목록을 소개하는 문장.\n\n- 원문 첫 항목\n- 원문 둘째 항목\n\n.....\n\n**페이지 분할**\n\n판단한다.\n\n## 별첨. 실습 답\n\n## 응답\n\n**실제 LLM 응답**\n\n**문서 형식 — 10pt**\n\n### 문서 제목\n\n### 1. 목적\n\n답의 첫 문단.\n\n- 첫째 조건\n- 둘째 조건\n\n.....\n\n| 상황 | 사건 | 동일 주문 | 금액 | 요청 금액 | 상태 | 배송 |\n|---|---|---|---|---|---|---|\n| 정상 | 승인 | 같음 | 2000 | 2000 | PAID | 1 |\n';
-async function fixture(){const p=parse(md.replace('입력','**기록 그대로**\n\n입력')),file=path.join(fs.mkdtempSync(path.join(os.tmpdir(),'tm-oq-')),'out.pptx');const m=await render(p.sections,TEMPLATE_DIR,file,'03. 요구사항',[{kind:'bullet',text:'11. LLM 초안 검토',rows:[],depth:0}],{productionProfile:'ai-native-s03'});return {m,file};}
-test('S03 recorded answers keep text at 10pt and appendix table cells alone at Malgun Gothic 8pt',async()=>{
+async function fixture(){const p=parse(md.replace('입력','**기록 그대로**\n\n입력')),file=path.join(fs.mkdtempSync(path.join(os.tmpdir(),'tm-oq-')),'out.pptx');const m=await render(p.sections,TEMPLATE_DIR,file,'99. 테스트',[{kind:'bullet',text:'11. LLM 초안 검토',rows:[],depth:0}]);return {m,file};}
+test('recorded answers keep text at 10pt and appendix table cells alone at Malgun Gothic 8pt',async()=>{
  const {m,file}=await fixture();assert.deepEqual((await inspect(file,m)).errors,[]);
  const ps=m.pages.filter(p=>p.appendix||p.items.some(i=>(i.text||'').includes('원문 첫 제목')));
  for(const page of ps)for(const item of page.items){if(!item.text&&item.kind!=='table')continue;for(const rp of all(shape(page.doc,item.id),A,'rPr'))assert.equal(rp.getAttribute('sz'),item.kind==='table'&&page.appendix?'800':'1000');}
@@ -17,10 +17,10 @@ test('S03 recorded answers keep text at 10pt and appendix table cells alone at M
   for(const k of ['marL','marR','marT','marB'])assert.equal(tcPr.getAttribute(k),'54000');
  }
 });
-test('the S03 exception covers half-width appendix and demo tables',async()=>{
+test('the recorded-document rule covers half-width appendix and demo tables',async()=>{
  const source=md.replace('시연 첫 문단.','시연 첫 문단.\n\n| 이름 | 값 |\n|---|---|\n| 시연 | 원문 |').replace('답의 첫 문단.','답의 첫 문단.\n\n| 이름 | 값 |\n|---|---|\n| 별첨 | 원문 |');
  const p=parse(source.replace('입력','**기록 그대로**\n\n입력')),file=path.join(fs.mkdtempSync(path.join(os.tmpdir(),'tm-oq-cells-')),'out.pptx');
- const m=await render(p.sections,TEMPLATE_DIR,file,'03. 요구사항',[{kind:'bullet',text:'11. LLM 초안 검토',rows:[],depth:0}],{productionProfile:'ai-native-s03'});
+ const m=await render(p.sections,TEMPLATE_DIR,file,'99. 테스트',[{kind:'bullet',text:'11. LLM 초안 검토',rows:[],depth:0}]);
  let demo=0,answer=0;
  for(const page of m.pages)for(const gf of all(page.doc,P,'graphicFrame')){
   const appendix=gf.textContent.includes('별첨')||gf.textContent.includes('동일 주문');
@@ -32,10 +32,10 @@ test('the S03 exception covers half-width appendix and demo tables',async()=>{
  }
  assert.equal(demo,1);assert.equal(answer,2);
 });
-test('S03 judgment tables use 8pt and 0.15cm vertical margins while their explanation stays 10pt',async()=>{
+test('judgment tables use 8pt and 0.15cm vertical margins while their explanation stays 10pt',async()=>{
  const source=md.replace('판단한다.','판단한다.\n\n| 관찰 | 판단 |\n|---|---|\n| 원문 근거 | 사람이 확정 |');
  const p=parse(source.replace('입력','**기록 그대로**\n\n입력')),file=path.join(fs.mkdtempSync(path.join(os.tmpdir(),'tm-oq-judgment-')),'out.pptx');
- const m=await render(p.sections,TEMPLATE_DIR,file,'03. 요구사항',[{kind:'bullet',text:'11. LLM 초안 검토',rows:[],depth:0}],{productionProfile:'ai-native-s03'});
+ const m=await render(p.sections,TEMPLATE_DIR,file,'99. 테스트',[{kind:'bullet',text:'11. LLM 초안 검토',rows:[],depth:0}]);
  assert.deepEqual((await inspect(file,m)).errors,[]);
  const page=m.pages.find(p=>all(p.doc,A,'t').some(t=>t.textContent.includes('원문 근거')));
  for(const gf of all(page.doc,P,'graphicFrame')){

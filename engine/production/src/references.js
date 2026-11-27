@@ -58,6 +58,8 @@ function knownSessions(inputPath) {
 const SESSION_REF = /"(세션 )?(\d\d)\. ([^"\n]+)"/g;
 const BARE_SESSION = /"(?:세션 )?(\d\d)\.\s*"/g;
 const TOPIC_REF = /「(\d\d)\. ([^」\n]+)」/g;
+// 문서의 항목 참조 — `foo.md`의 「…」, 제작 지침의 「…」. 세션의 topic 참조와 가른다.
+const DOC_ITEM = /(?:`[^`\n]*\.md`|제작 지침)\s*(?:의|에서|에)?\s*「[^」\n]+」/g;
 // A topic reference targets another session when it follows `"NN. 세션명"의` directly, possibly
 // after other topic references joined by ·, 쉼표, 과/와, 및, 또는 -- each of which may name a
 // sub-topic of its group: `"04. …"의 「06. 시퀀스 다이어그램」의 「주문 취소 시퀀스」·「08. …」`.
@@ -104,6 +106,9 @@ function appendixEntries(text) {
 function checkLabels(inputPath, text) {
   const errors = [];
   const warnings = [];
+  // 돌리지 못한 검사는 **경고가 아니라 미검사**다. 경고로 내면 고칠 수 없는 것이 완료 기준(경고
+  // 0개)을 막고, 아무 말도 하지 않으면 검사가 꺼진 것을 알 수 없다(2026-11-27).
+  const notes = [];
   const dir = path.dirname(path.resolve(inputPath));
   if (path.basename(inputPath) === APPENDIX) {
     const entries = appendixEntries(text);
@@ -112,19 +117,42 @@ function checkLabels(inputPath, text) {
       if (seen.has(e.label)) errors.push("원고 " + e.line + "행: 참고 자료 레이블 [" + e.label + "]이 중복된다.");
       seen.add(e.label);
     }
+    // 별첨은 **현행 세션**이 쓰는 레이블을 담는다. 승인 Curriculum의 세션명과 다른 세션명을 단
+    // 원고는 현행 세션 원고가 아니다 — 편성이 바뀌기 전의 원고가 폴더에 남아 있는 것이고, 그 원고
+    // 자체의 검사가 세션명 불일치를 오류로 보고한다. 그것이 쓰던 옛 레이블까지 별첨에 남겨 두면
+    // 지금 어느 세션도 쓰지 않는 자료가 목록에 쌓인다(2026-11-27).
+    const { sessions, fromCurriculum } = courseSessions(inputPath);
+    const approved = new Map(sessions.map((s) => [s.number, s.name]));
     const used = new Set();
+    const stale = [];
+    const written = new Set();
     for (const f of fs.readdirSync(dir)) {
       if (!/^s\d\d\.md$/i.test(f)) continue;
-      for (const u of labelsIn(fs.readFileSync(path.join(dir, f), "utf-8"))) used.add(u.label);
+      const body = fs.readFileSync(path.join(dir, f), "utf-8");
+      const own = /^Session 명:\s*(.+)$/m.exec(body)?.[1].trim();
+      const number = /^(\d\d)\./.exec(String(own || ""))?.[1];
+      if (fromCurriculum && number && approved.get(number) !== own) { stale.push(f); continue; }
+      if (number) written.add(number);
+      for (const u of labelsIn(body)) used.add(u.label);
     }
+    if (stale.length) notes.push(`승인 Curriculum의 세션명과 다른 원고는 레이블 대조에서 뺐다: ${stale.sort().join("·")}`);
     for (const u of used) if (!seen.has(u)) errors.push("세션이 쓰는 레이블 [" + u + "]이 별첨에 없다.");
     // 반대 방향 — 목록에만 있고 어느 세션도 쓰지 않는 레이블. 인용하지 않기로 한 자료는 항목 끝의
     // "(읽을거리)"가 그 사실을 밝히므로 넘긴다(session-authoring-guide.md 「별첨 — 참고 자료」).
-    for (const e of entries) {
-      if (used.has(e.label) || /\(읽을거리\)/.test(e.text)) continue;
-      warnings.push("원고 " + e.line + "행: 레이블 [" + e.label + "]을 어느 세션도 쓰지 않는다. 인용하지 않을 자료면 항목 끝에 (읽을거리)를 붙인다.");
+    //
+    // 이 방향은 **과정의 세션 원고가 다 있을 때만** 뜻이 있다. 목록은 과정 수준에서 선정하므로
+    // 아직 쓰지 않은 세션이 있으면 그 세션이 쓸 자료가 "아무도 쓰지 않는 것"으로 잡힌다 — 집필
+    // 중에는 그것이 정상이고, 경고로 내면 지울 수 없는 경고가 쌓인다(2026-11-27).
+    const missing = fromCurriculum ? sessions.filter((s) => !written.has(s.number)) : [];
+    if (missing.length) {
+      notes.push(`원고가 없는 세션(${missing.map((s) => s.number).join("·")})이 있어 "어느 세션도 쓰지 않는 레이블" 검사는 돌리지 않았다.`);
+    } else {
+      for (const e of entries) {
+        if (used.has(e.label) || /\(읽을거리\)/.test(e.text)) continue;
+        warnings.push("원고 " + e.line + "행: 레이블 [" + e.label + "]을 어느 세션도 쓰지 않는다. 인용하지 않을 자료면 항목 끝에 (읽을거리)를 붙인다.");
+      }
     }
-    return { errors, warnings };
+    return { errors, warnings, notes };
   }
   const appendix = path.join(dir, APPENDIX);
   const known = fs.existsSync(appendix) ? new Set(appendixEntries(fs.readFileSync(appendix, "utf-8")).map((e) => e.label)) : null;
@@ -169,10 +197,14 @@ function checkReferences(inputPath, text) {
   const ownHeadings = full && fs.existsSync(full) ? headingsOf(fs.readFileSync(full, "utf-8")) : headingsOf(text);
   const lines = stripCode(text);
   let inToc = false;
-  lines.forEach((line, i) => {
-    if (/^## 목차\s*$/.test(line)) { inToc = true; return; }
-    if (HEADING.test(line)) inToc = false;
-    if (inToc || /^Session 명:/.test(line)||excerpt.verifiedLines.has(i+1)) return;
+  lines.forEach((raw, i) => {
+    if (/^## 목차\s*$/.test(raw)) { inToc = true; return; }
+    if (HEADING.test(raw)) inToc = false;
+    if (inToc || /^Session 명:/.test(raw)||excerpt.verifiedLines.has(i+1)) return;
+    // `foo.md`의 「…」 — 백틱으로 감싼 문서 뒤의 겹낫표는 **그 문서의 항목**을 가리킨다. 세션의
+    // topic 참조가 아니므로 참조 해석에서 뺀다. 지침·과정 문서의 이름을 코드에 적지 않는다 —
+    // 규칙은 형태다. 경로 없이 "제작 지침의 「…」"이라고 쓴 꼴도 같다(2026-11-27).
+    const line = raw.replace(DOC_ITEM, "문서 항목");
     const where = "원고 " + (i + 1) + "행: ";
     let m;
     SESSION_REF.lastIndex = 0;
@@ -215,8 +247,9 @@ function checkReferences(inputPath, text) {
       const full = heads && [...heads.keys()].find((k) => k.startsWith(m[1] + ". "));
       errors.push(where + "주제 참조 「" + m[1] + "」에 제목이 없다" + (full ? ". 「" + full + "」로 쓴다." : "."));
     }
-    // A named production-guide heading is a guide reference, not a session reference.
-    const sessionText=line.replace(/(?:제작 지침의|`(?:\.\.\/)?production-standard\.md`의)\s*「S\d\d 제작 기준」/g,'제작 지침 항목');
+    // 인라인 코드(`…`)는 경로·파일·폴더 이름이므로 세션 참조가 아니다 — 배포 폴더 이름처럼 S01이
+    // 들어간 경로를 프로즈의 세션 참조로 오인하지 않는다(2026-11-26).
+    const sessionText=line.replace(/`[^`]*`/g,'`코드`');
     if (/(^|[^A-Za-z0-9])S\d\d(?![0-9])/.test(sessionText)) {
       errors.push(where + "파일명식 세션 참조(S0x)를 쓰지 않는다. 정확한 세션명을 쓴다.");
     }
@@ -224,7 +257,7 @@ function checkReferences(inputPath, text) {
   const labels = checkLabels(inputPath, text);
   errors.push(...labels.errors);
   warnings.push(...labels.warnings);
-  const result={errors,warnings};Object.defineProperty(result,'responseExcerpts',{value:excerpt});return result;
+  const result={errors,warnings,notes:labels.notes??[]};Object.defineProperty(result,'responseExcerpts',{value:excerpt});return result;
 }
 
 module.exports = { checkReferences, checkLabels };

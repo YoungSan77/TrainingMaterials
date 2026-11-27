@@ -54,21 +54,29 @@ function naturalSize(image, pt) {
   return { w, h: (w * image.height) / image.width };
 }
 
-// Images are sized so their text reads at TARGET_PT, never larger even when the panel has room to
-// spare (production-guide.md "Visual layout 및 가독성": one text size across all diagrams).
-// UML_MAX_PT is kept equal to TARGET_PT: UML diagrams no longer grow into free space.
-const UML_MAX_PT = TARGET_PT;
+// 2026-11-27 Human 결정: 도식은 **남는 공간만큼 키운다**. 10pt는 바닥이 아니라 기준이고, 패널에
+// 자리가 남으면 글자가 MAX_PT까지 커진다 — 가로로 길고 납작한 도식이 10pt에 묶여 슬라이드 아래를
+// 2인치 비워 두고도 작게 읽히던 문제를 고친 것이다(S01 7장의 시각 검토).
+// 상한을 두는 이유는 노드가 두셋뿐인 도식이 패널을 가득 채워 본문보다 커지지 않게 하려는 것이다.
+const MAX_PT = 14;
+// UML도 같은 정책을 쓴다 — 도식 종류마다 다른 크기 규칙을 두지 않는다.
+const UML_MAX_PT = MAX_PT;
 const isUml = (image) => image.kind === "plantuml" || Boolean(image.uml);
 
 function fitTarget(bounds, image, align) {
-  // Every diagram's text reads at TARGET_PT (10pt); a diagram is never enlarged. When it does not
-  // fit it steps down to 9, 8, 7pt -- the largest step that fits, never past the panel -- and
-  // below MIN_PT it is fitted exactly and reported (generate.js) for the source to be fixed.
+  // 도식의 글자는 TARGET_PT(10pt)를 기준으로 읽힌다. 패널에 자리가 남으면 **MAX_PT까지 키우고**,
+  // 모자라면 9·8·7pt로 한 단계씩 줄인다 — 들어가는 가장 큰 단계를 고르며 패널을 넘지 않는다.
+  // MIN_PT 아래로 내려가야 할 도식은 정확히 맞춰 넣고 generate.js가 보고한다(원고에서 고칠 일이다).
   const natural = naturalSize(image, TARGET_PT);
-  const maxScale = Math.min(1, bounds.w / natural.w, bounds.h / natural.h);
+  const room = Math.min(bounds.w / natural.w, bounds.h / natural.h);
+  const maxScale = Math.min(room, MAX_PT / TARGET_PT);
   let scale = 1;
-  while (scale > maxScale + 1e-9 && scale - 0.1 >= MIN_PT / TARGET_PT - 1e-9) scale = Math.round((scale - 0.1) * 10) / 10;
-  if (scale > maxScale + 1e-9) scale = maxScale;
+  if (maxScale > 1 + 1e-9) {
+    scale = maxScale;
+  } else {
+    while (scale > maxScale + 1e-9 && scale - 0.1 >= MIN_PT / TARGET_PT - 1e-9) scale = Math.round((scale - 0.1) * 10) / 10;
+    if (scale > maxScale + 1e-9) scale = maxScale;
+  }
   const fitted = center(bounds, natural.w * scale, natural.h * scale);
   // A diagram under body text sits one line below it ("align: top"); centering it in the leftover
   // band pushed it toward the footer and left a hole between the last line and the diagram.
@@ -85,15 +93,20 @@ function pictureTextPt(image, bounds) {
 // keep the policy's panel height.
 function visualPanel(layout, top, availableH, images) {
   const uml = images.length > 0 && images.every(isUml);
-  const panelH = uml ? availableH : Math.min(layout.panel.h, availableH);
+  // 띠는 **남은 높이를 다 가져간다**. 예전에는 UML만 그랬고 나머지는 버킷의 고정 높이(1.8in)에
+  // 묶여, 본문이 짧아 아래가 더 비어도 도식이 그만큼 작게 들어갔다(2026-11-27 Human 결정
+  // 「키워라」의 연장). 도식이 무한정 커지지는 않는다 — fitTarget이 MAX_PT에서 멈춘다.
+  const panelH = availableH;
   // Try the full body width before moving a wide diagram away from its governing text.
   // The narrow stacked bucket can force <7pt even though the same slide has enough room.
   if (!uml && images.length === 1) {
     const image = images[0];
     const narrow = { ...layout.panel, y: top, h: panelH };
     const wide = { ...narrow, ...UML_PANEL };
-    if (pictureTextPt(image, fitTarget(narrow, image)) < MIN_PT - 0.05
-      && pictureTextPt(image, fitTarget(wide, image)) >= MIN_PT - 0.05) return wide;
+    // 넓은 띠에서 더 크게 읽히면 넓은 띠를 쓴다. 예전에는 좁은 띠가 7pt 바닥 아래로 내려갈 때만
+    // 넓혔는데, 그 결과 8pt로 읽히는 도식이 좁은 띠에 묶여 슬라이드 아래를 비워 두었다
+    // (2026-11-27 Human 결정: 남는 공간만큼 키운다).
+    if (pictureTextPt(image, fitTarget(wide, image)) > pictureTextPt(image, fitTarget(narrow, image)) + 0.05) return wide;
   }
   return uml ? { ...layout.panel, ...UML_PANEL, y: top, h: panelH } : { ...layout.panel, y: top, h: panelH };
 }
@@ -120,5 +133,5 @@ module.exports = {
   EMU, FULL_TEXT, STACKED_TEXT, STACKED_PANEL, DEEP_STACKED_TEXT, DEEP_STACKED_PANEL,
   PAGE_NUM_Y, VISUAL_ONLY, TREE_TEXT, UML_PANEL,
   contain, center, naturalSize, fitTarget, pictureTextPt, visualPanel, visualPolicy, isUml,
-  TARGET_PT, MIN_PT, UML_MAX_PT,
+  TARGET_PT, MIN_PT, MAX_PT, UML_MAX_PT,
 };

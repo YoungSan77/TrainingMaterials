@@ -8,10 +8,13 @@ const { generateFile, generateBundle } = require("../generate");
 const { TEMPLATE_DIR } = require("../template");
 
 // Reuse the existing fixture's first topic; no diagrams or external course dependencies.
+// 세션 덱은 세션 목표와 요약을 갖춘다(structure.js의 checkDeckShape).
+const { SUMMARY_TOPIC } = require("./fixtures/summary-topic");
 const fixture = fs.readFileSync(path.join(__dirname, "fixtures/reference-session.md"), "utf8");
-const source = fixture.slice(0, fixture.indexOf("## 목차")) +
-  "## 목차\n\n01. 세션 목표\n\n" +
-  fixture.slice(fixture.indexOf("## 01. 세션 목표"), fixture.indexOf("## 02. SW 개발의 재작업"));
+const head = fixture.slice(0, fixture.indexOf("## 목차"));
+const goals = fixture.slice(fixture.indexOf("## 01. 세션 목표"), fixture.indexOf("## 02. SW 개발의 재작업"));
+const toc = (...items) => "## 목차\n\n" + items.join("\n") + "\n\n";
+const source = head + toc("01. 세션 목표", "02. 요약") + goals + SUMMARY_TOPIC("02");
 
 for (const bundle of [false, true]) {
   test(`${bundle ? "bundle" : "single"}: output pair publication`, async (t) => {
@@ -90,9 +93,10 @@ for (const bundle of [false, true]) {
       st.mock.restoreAll();
       assert.deepEqual(fs.readdirSync(dir), ["s01.md"]);
     });
-    fs.writeFileSync(input, source.replace("OOAD 개요", "변경된 개요")
-      .replace("## 목차\n\n01. 세션 목표", "## 목차\n\n01. 세션 목표\n02. 추가 확인")
-      + "\n## 02. 추가 확인\n\n**추가 내용**을 확인한다.\n");
+    // topic을 하나 더한 입력 — 요약은 본문 끝에 남아야 하므로 번호가 밀린다.
+    fs.writeFileSync(input, (head + toc("01. 세션 목표", "02. 추가 확인", "03. 요약") + goals
+      + "## 02. 추가 확인\n\n**추가 내용**을 확인한다.\n\n" + SUMMARY_TOPIC("03"))
+      .replace("OOAD 개요", "변경된 개요"));
     await run();
     assert.notDeepEqual(fs.readFileSync(output), oldDeck);
     assert.notDeepEqual(fs.readFileSync(qa), oldQa);

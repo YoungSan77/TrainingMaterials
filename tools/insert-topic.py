@@ -4,6 +4,7 @@ the reference follows that session's name ("NN. 세션명"의 「…」).
 
 Usage: python3 tools/insert-topic.py <sessions_dir> <sNN> <after_number> <new_topic.md>
   new_topic.md starts with '## XX. 제목' (XX is replaced) and ends without the '---' separator.
+  after_number 00 puts the new topic first and shifts every existing topic by one.
 Example: python3 tools/insert-topic.py courses/ooad/sessions s12 06 /tmp/topic.md"""
 import re, sys, pathlib
 
@@ -38,10 +39,15 @@ for old, new in sorted(mapping.items(), reverse=True):
     s = s.replace(f"## {old}\n", f"## {new}\n")
     s = re.sub(rf"^{re.escape(old)}$", new, s, flags=re.M)
 s = remap_refs(s, False)
-# insert TOC line and topic
-prev = [h for h in heads if int(h[0]) == after][0]
-prev_label = f"{prev[0]}. {prev[1]}"
-s = re.sub(rf"^{re.escape(prev_label)}$", prev_label + "\n" + new_label, s, count=1, flags=re.M)
+# insert TOC line and topic. after=0 puts the new topic first -- the TOC line goes above what was
+# the first item, and the topic body goes right before the first "## NN." heading.
+if after == 0:
+    first = f"{1+1:02d}. {heads[0][1]}" if heads else None
+    s = re.sub(rf"^{re.escape(first)}$", new_label + "\n" + first, s, count=1, flags=re.M)
+else:
+    prev = [h for h in heads if int(h[0]) == after][0]
+    prev_label = f"{prev[0]}. {prev[1]}"
+    s = re.sub(rf"^{re.escape(prev_label)}$", prev_label + "\n" + new_label, s, count=1, flags=re.M)
 nxt = "\n" + f"## {after+2:02d}. "
 new_topic = body.replace("## XX.", f"## {after+1:02d}.").rstrip()
 if nxt in s:

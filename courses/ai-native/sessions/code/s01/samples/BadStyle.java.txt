@@ -1,0 +1,11 @@
+package order;
+
+import java.util.*;
+
+public class badStyle {
+    public static int Sum( List<Integer> L ) {
+        int T=0;
+        for (int v : L) T += v;
+        return T;
+    }
+}

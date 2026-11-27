@@ -8,7 +8,7 @@ const builder = require("./builder");
 const { inspect, reportJson } = require("./inspect");
 const { checkReferences } = require("./references");
 const { courseInfo } = require("./course");
-const { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, slideTalk, countsMatchTable, numberedBullets, flatGroupItems, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape, missingPracticeAnswer, missingModelUpdate, spelledNumbers } = require("./structure");
+const { checkStructure, checkDeckShape, wrappingCells, numberedDiagramLabels, unboldedText, slideTalk, countsMatchTable, numberedBullets, flatGroupItems, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape, missingPracticeAnswer, missingModelUpdate, spelledNumbers } = require("./structure");
 const { checkCodeSources, checkEnumConsistency, checkOrphanCode } = require("./codeSource");
 
 function logAutomaticCheck(errors, warnings) {
@@ -116,12 +116,12 @@ async function generateFile(inputPath, outputPath, templatePath) {
     for(const evidence of recorded.excerpts.evidence.filter(e=>e.status==='PASS')){
       const section=sections.find(s=>s.title===evidence.topic&&s.appendix&&s.verbatimResponse);
       if(!section)continue;
-      const {response,draft}=recorded.excerpts.records.get(evidence.topic);
+      const {response}=recorded.excerpts.records.get(evidence.topic);
       if(evidence.omissions.length)section.recordedTables=parse(response).sections.flatMap(s=>s.blocks.filter(b=>b.kind==='table'));
-      if(draft)section.recordedDraft=parse(draft).sections.flatMap(s=>s.blocks.filter(b=>b.kind==='mermaid'));
     }
     const m = await builder.render(sections, templatePath, tmp, session, toc, courseInfo(inputPath));
-    const structureErrors = checkStructure(inputPath, session, sections, m.pages);
+    const structureErrors = checkDeckShape(inputPath, session, sections)
+      .concat(checkStructure(inputPath, session, sections, m.pages));
     const inspected = await inspect(tmp, m);
     const refs = checkReferences(inputPath, source);
     refs.errors.push(...structureErrors);
@@ -164,6 +164,9 @@ async function generateFile(inputPath, outputPath, templatePath) {
     console.log("생성: " + outputPath + " (" + report.slides + "장)");
     logAutomaticCheck(errors, warnings);
     for (const w of warnings) console.log("경고: " + w);
+    // 돌리지 못한 검사는 경고가 아니라 미검사로 적는다 — 완료 기준(경고 0개)을 막지 않으면서
+    // 어떤 검사가 꺼져 있었는지는 남는다.
+    for (const n of refs.notes ?? []) console.log("미검사: " + n);
     return { manifest: m, report };
   } finally {
     if (fs.existsSync(tmp)) fs.unlinkSync(tmp);

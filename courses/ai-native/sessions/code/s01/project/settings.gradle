@@ -1,0 +1,2 @@
+// S01 환경 검증용 최소 프로젝트. 이후 실습의 코드는 각자의 저장소에 만든다.
+rootProject.name = 'order-env-check'

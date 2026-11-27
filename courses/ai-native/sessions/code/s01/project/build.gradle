@@ -1,0 +1,66 @@
+// AI-native SW Engineering — S01 환경 검증용 최소 프로젝트
+//
+// 검증 진입점은 `./gradlew check` 하나다. 컴파일·Checkstyle·JUnit이 모두 이 태스크에
+// 매달려 있어, 수강생과 Claude Code가 검사를 나눠 실행하거나 따로 외울 필요가 없다.
+//
+// 버전은 과정의 공통 기술 전제에서 고정한 조합이다 — Java 21 LTS · Gradle Wrapper 9.9.2 ·
+// JUnit 6.1.3 · Checkstyle 14.4.0 (`courses/ai-native/course-design.md`).
+// Linter는 Checkstyle 하나다. 심층 정적 분석 도구를 더하지 않는다.
+// 애플리케이션 프레임워크는 쓰지 않는다 — 이 과정의 구현은 UI도 데이터베이스도 없다.
+
+plugins {
+    id 'java'
+    id 'checkstyle'
+}
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    // setup.sh가 등록한 JDK 21 경로에서 toolchain을 찾는다.
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+dependencies {
+    // JUnit 6은 통합 버전 체계를 쓰므로 BOM 하나로 버전을 맞춘다.
+    testImplementation platform('org.junit:junit-bom:6.1.3')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    // Gradle은 테스트 런처를 자동으로 붙이지 않는다. 명시한다.
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+checkstyle {
+    toolVersion = '14.4.0'
+    configFile = file('config/checkstyle/checkstyle.xml')
+    // 검사 실패를 무시하거나 경고로만 남기지 않는다.
+    ignoreFailures = false
+    maxWarnings = 0
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-Xlint:all'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'failed', 'skipped'
+    }
+}
+
+// check가 무엇을 묶고 있는지 수강생이 직접 확인할 수 있게 한다.
+tasks.register('showGate') {
+    group = 'verification'
+    description = 'check 태스크에 매달린 검사를 출력한다.'
+    def gate = tasks.named('check').get().taskDependencies.getDependencies(tasks.named('check').get())
+            *.name.sort()
+    doLast {
+        println '로컬 품질 게이트 — ./gradlew check 가 실행하는 검사'
+        gate.each { println "  - ${it}" }
+        println '이 과정은 CI 파이프라인을 만들지 않는다. 결과는 로컬 품질 게이트 PASS다.'
+    }
+}

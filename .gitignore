@@ -27,3 +27,7 @@ courses/*/sessions/code/**/lib/*.jar
 .venv/
 __pycache__/
 *.pyc
+
+# 세션 덱과 QA 결과는 Session Source에서 생성한다 — 추적하지 않는다
+courses/*/sessions/*.pptx
+courses/*/sessions/*.qa.json

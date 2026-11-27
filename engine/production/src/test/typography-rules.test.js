@@ -17,8 +17,8 @@ const os = require("os");
 const path = require("path");
 const { parseXml, A, P, all, shape, body, kids, child, paragraph } = require("../xml");
 const { rich, run, runParen } = require("../richText");
-const { paragraphs } = require("../paragraphs");
-const { render, naturalSize, fitTarget, visualPanel, tocSessionName, sessionNamePt, TARGET_PT, UML_MAX_PT } = require("../builder");
+const { paragraphs, BULLET_LEVELS } = require("../paragraphs");
+const { render, naturalSize, fitTarget, visualPanel, tocSessionName, sessionNamePt, TARGET_PT, MAX_PT, UML_MAX_PT } = require("../builder");
 const { styleSource: mermaidStyleSource } = require("../mermaidAdapter");
 const { styleSource: plantumlStyleSource, innerSource, assembled } = require("../plantumlAdapter");
 
@@ -303,13 +303,13 @@ test("16 long TOC titles fit one full-width page (the two-column split used to c
 
 // -- 5. diagram image sizing: target exactly 10pt, shrink-only on overflow -
 
-test("fitTarget renders at exactly TARGET_PT when the panel has room to spare", () => {
+test("fitTarget은 자리가 남으면 그 자리만큼 키운다 — 10pt는 바닥이 아니라 기준이다", () => {
   const image = { kind: "mermaid", width: 1568, height: 236 };
   const natural = naturalSize(image, TARGET_PT);
   const bounds = { x: 0, y: 0, w: natural.w * 1.5, h: natural.h * 1.5 };
   const b = fitTarget(bounds, image);
   const estimatedPt = (24 * b.w * 96) / image.width;
-  assert.ok(Math.abs(estimatedPt - TARGET_PT) < 1e-6, "must land on exactly 10pt, not stretch to fill the panel");
+  assert.ok(Math.abs(estimatedPt - TARGET_PT * 1.4) < 1e-6, "14pt 상한까지 커진다(자리는 1.5배지만 상한이 1.4배다)");
 });
 
 test("fitTarget shrinks in steps to 9, 8, 7pt -- the largest that fits, never past the panel", () => {
@@ -323,30 +323,40 @@ test("fitTarget shrinks in steps to 9, 8, 7pt -- the largest that fits, never pa
   assert.ok(Math.abs(b3.w - full.w * 0.5) < 1e-6, "below 7pt it is fitted exactly (and reported by generate.js)");
 });
 
-test("fitTarget never enlarges past the 10pt target even with a huge panel", () => {
+// 2026-11-27: 도식은 남는 공간만큼 키운다. 10pt는 기준이고 MAX_PT(14pt)가 상한이다 — 가로로 길고
+// 납작한 도식이 패널을 비워 둔 채 작게 읽히던 것을 고친 정책이다.
+test("fitTarget은 남는 공간만큼 키우되 MAX_PT를 넘지 않는다", () => {
   const image = { kind: "mermaid", width: 1568, height: 236 };
   const full = naturalSize(image, TARGET_PT);
   const hugeBounds = { x: 0, y: 0, w: full.w * 5, h: full.h * 5 };
   const b = fitTarget(hugeBounds, image);
-  assert.ok(Math.abs(b.w - full.w) < 1e-6);
+  assert.ok(Math.abs(b.w - full.w * MAX_PT / TARGET_PT) < 1e-6, "상한인 14pt까지만 커진다");
+  // 자리가 상한보다 좁으면 그 자리에 맞춘다 -- 패널을 넘지 않는다.
+  const narrow = fitTarget({ x: 0, y: 0, w: full.w * 1.2, h: full.h * 5 }, image);
+  assert.ok(Math.abs(narrow.w - full.w * 1.2) < 1e-6);
+  // 높이가 모자라면 높이가 한도다.
+  const flat = fitTarget({ x: 0, y: 0, w: full.w * 5, h: full.h * 1.1 }, image);
+  assert.ok(Math.abs(flat.h - full.h * 1.1) < 1e-6);
 });
 
-test("a PlantUML diagram is not enlarged either: every diagram reads at 10pt", () => {
+test("PlantUML도 같은 정책을 쓴다 — 도식 종류마다 다른 크기 규칙을 두지 않는다", () => {
   const image = { kind: "plantuml", width: 764, height: 327 };
   const full = naturalSize(image, TARGET_PT);
   const roomy = fitTarget({ x: 0, y: 0, w: full.w * 10, h: full.h * 10 }, image);
-  assert.ok(Math.abs(roomy.w - full.w) < 1e-6);
-  assert.equal(UML_MAX_PT, TARGET_PT);
+  assert.ok(Math.abs(roomy.w - full.w * MAX_PT / TARGET_PT) < 1e-6);
+  assert.equal(UML_MAX_PT, MAX_PT);
 });
 
-test("visualPanel gives an all-PlantUML topic the whole free band; every panel starts at the band top", () => {
+// 2026-11-27: 띠는 남은 높이를 다 가져간다. UML은 본문 폭(9in)까지 넓어지고, 일반 도식은 제 폭을
+// 지키되 높이는 같이 받는다 — 본문이 짧아 아래가 비면 그만큼 도식이 커진다.
+test("visualPanel은 남은 높이를 다 준다; UML은 본문 폭까지 넓히고 모든 띠는 본문 바로 아래에서 시작한다", () => {
   const layout = { panel: { x: 1.4, y: 4.25, w: 7.2, h: 1.8 } };
   const uml = visualPanel(layout, 2.0, 4.0, [{ kind: "plantuml" }]);
   assert.equal(uml.h, 4.0);
   assert.equal(uml.w, 9.0);
   assert.equal(uml.y, 2.0);
   const mermaid = visualPanel(layout, 2.0, 4.0, [{ kind: "mermaid" }]);
-  assert.equal(mermaid.h, 1.8);
+  assert.equal(mermaid.h, 4.0);
   assert.equal(mermaid.w, 7.2);
   // One line below the text, not centered in the leftover band (session-authoring-guide.md "8. Visual").
   assert.equal(mermaid.y, 2.0);
@@ -678,4 +688,59 @@ test("marked source-only citation splits at reference labels, preserving Korean 
   assert.equal(runs.slice(0, boundary).map((r) => r.text).join(""), "규칙을 확인하고, 사례를 검토한다");
   assert.ok(runs.slice(0, boundary).every((r) => r.sz === "1800"));
   assert.deepEqual(runs.slice(boundary), [{ text: ", ", sz: "1000" }, { text: "[Example 2026, 재인용], [Other 2025]", sz: "1000" }]);
+});
+
+// -- 받은 말과 코드의 시작 위치 (production-guide.md 「받은 말과 독립 사례 문장」·「코드 블록의
+// 시작 위치」): 둘 다 본문 bullet의 **글이 시작하는 자리**에서 시작한다. 원고가 공백으로 자리를
+// 맞추지 않게 하려는 규칙이므로, 특정 세션이 아니라 renderer가 지킨다(2026-11-26).
+
+async function renderMarkdown(md, name) {
+  const { parse } = require("../parse");
+  const { sections } = parse(md);
+  const out = path.join(os.tmpdir(), `tm-${name}-${process.pid}-${Date.now()}.pptx`);
+  try {
+    return (await render(sections, TEMPLATE, out, "테스트", [{ kind: "bullet", text: "01. 주제", rows: [], depth: 0, meta: null }])).pages;
+  } finally {
+    if (fs.existsSync(out)) fs.unlinkSync(out);
+  }
+}
+
+const bodyParagraphs = (page) => kids(body(shape(page.doc, 8)), A, "p");
+const lineOf = (p) => all(p, A, "t").map((t) => t.textContent).join("");
+
+test("받은 말은 본문 bullet의 글 시작 위치에서 한 단계 작은 크기로 굵게 그린다", async () => {
+  const md = '## 01. 주제\n\n**리드** 문장이다.\n\n"장바구니에 담은 상품을 결제하면 주문이 되고 배송이 시작되게 해 주세요."\n\n- 본문 **bullet**이다.\n';
+  const pages = await renderMarkdown(md, "spoken");
+  const page = pages.find((p) => !p.isToc);
+  const spoken = bodyParagraphs(page).find((p) => lineOf(p).startsWith("“장바구니") || lineOf(p).startsWith('"장바구니'));
+  const plainBullet = bodyParagraphs(page).find((p) => lineOf(p).startsWith("본문"));
+  assert.ok(spoken, "받은 말 문단이 있다");
+  const pr = child(spoken, A, "pPr");
+  assert.ok(child(pr, A, "buNone"), "글머리표를 붙이지 않는다");
+  assert.equal(pr.getAttribute("indent"), "0", "내어쓰기가 없어 둘째 줄도 같은 자리에서 시작한다");
+  assert.equal(pr.getAttribute("marL"), String(BULLET_LEVELS[1].marL), "본문 bullet의 글이 시작하는 자리다");
+  assert.equal(child(plainBullet, A, "pPr").getAttribute("marL"), pr.getAttribute("marL"), "본문 bullet과 같은 자리에서 시작한다");
+  const runs = all(spoken, A, "rPr");
+  assert.ok(runs.length > 0);
+  assert.ok(runs.every((r) => r.getAttribute("sz") === "1400"), "본문 16pt보다 한 단계 작은 14pt다");
+  assert.ok(runs.every((r) => r.getAttribute("b") === "1"), "문장 전체가 굵다");
+});
+
+test("코드 블록은 본문 bullet의 글 시작 위치에서 시작한다", async () => {
+  const md = '## 01. 주제\n\n**리드** 문장이다.\n\n```text\nPowerShell에서\npowershell -ExecutionPolicy Bypass -File .\\bootstrap.ps1\n```\n';
+  const pages = await renderMarkdown(md, "codeindent");
+  const page = pages.find((p) => p.items.some((i) => i.kind === "source"));
+  assert.ok(page, "코드를 담은 장이 있다");
+  const code = page.items.find((i) => i.kind === "source");
+  // 본문 상자는 x=0.4in에서 시작한다(builder.js의 코드 장 배치). 코드 상자는 거기서 본문 bullet의
+  // 글이 시작하는 자리만큼 들어가 있어야 한다 — 공백이 아니라 좌표로 맞춘다.
+  assert.ok(Math.abs(page.codeArea.x - (0.4 + BULLET_LEVELS[1].marL / 914400)) < 0.001,
+    "코드 상자가 본문 상자보다 bullet 글 시작 위치만큼 들어가 있다: " + page.codeArea.x);
+  const lines = kids(body(shape(page.doc, code.id)), A, "p");
+  assert.ok(lines.length >= 2);
+  for (const line of lines) {
+    const pr = child(line, A, "pPr");
+    assert.equal(pr.getAttribute("marL"), "0", "상자가 들여쓴 자리이므로 문단은 상자 왼쪽에서 시작한다");
+    assert.equal(pr.getAttribute("indent"), "0", "모든 줄이 같은 자리에서 시작한다");
+  }
 });

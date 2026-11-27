@@ -105,6 +105,9 @@ function parse(input) {
     // "**배치 — 좌우**": the author puts the topic's one diagram in the right half beside the text
     // (production-guide.md "Visual layout 및 가독성"). Slide layout metadata, not body content.
     if (/^\*\*배치\s*—\s*좌우\*\*$/.test(line.trim())) { need(current, "배치 표식 앞에 주제가 없다."); current.side = true; continue; }
+    // "**배치 — 도식과 표 한 장**": 도식 하나와 표 하나를 한 장에 넣는다(`compactLegendPage`).
+    // 제목은 도식·표 자신의 표식에서 읽는다 — 어느 과정의 어떤 표인지는 renderer가 모른다.
+    if (/^\*\*배치\s*—\s*도식과 표 한 장\*\*$/.test(line.trim())) { need(current, "배치 표식 앞에 주제가 없다."); current.compactLegend = true; continue; }
     need(current != null, "첫 주제 제목 앞의 본문은 허용하지 않는다.");
     // TM parser extension (NOT present in lecture-ppt-java): "**강사 노트**" switches the rest of
     // the current topic (until the next top-level heading) into section.notes instead of

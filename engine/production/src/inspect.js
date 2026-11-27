@@ -28,40 +28,13 @@ function reportJson(errors, slides, blocks, warnings) {
 
 function checkLayoutGate(doc, page) {
   const table = all(doc, A, "tbl");
-  if(page.layoutGate==="draft-diagrams"){
-    const pictures=all(doc,P,"pic");
-    const {bounds}=require('./tableLayoutChecks');
-    const boxes=pictures.map(bounds).filter(Boolean);
-    const left=boxes.filter(b=>b.x+b.w<=349.25).sort((a,b)=>a.y-b.y);
-    const right=boxes.filter(b=>b.x>=370.75).sort((a,b)=>a.y-b.y);
-    const shapes=all(doc,P,"sp").map(sp=>({box:bounds(sp),label:all(sp,A,"t").map(t=>t.textContent).join("")}));
-    const paired=left.length===2&&right.length===2
-      &&left.every((b,i)=>b.y<right[i].y+right[i].h&&right[i].y<b.y+b.h)
-      &&Math.max(left[0].y+left[0].h,right[0].y+right[0].h)<Math.min(left[1].y,right[1].y);
-    const labels=["상태 기계","시퀀스"].every(kind=>
-      shapes.some(s=>s.box?.x<349.25&&s.label.startsWith(`Before — ${kind}`))
-      &&shapes.some(s=>s.box?.x>=370.75&&s.label.startsWith(`After — ${kind}`)));
-    const reason=shapes.some(s=>s.label.includes("문제 · 근거 · 수정 결과")
-      &&s.box?.y>=Math.max(...boxes.map(b=>b.y+b.h)));
-    return pictures.length===4&&paired&&labels&&reason?null:"상태 기계와 시퀀스 각각의 Before/After 좌우 도식과 수정 근거가 필요하다.";
-  }
-  if(page.layoutGate==="draft-review"){
-    const rows=table.length===1?kids(table[0],A,"tr"):[];
-    const headers=rows.length?kids(rows[0],A,"tc").map(cell=>all(cell,A,"t").map(t=>t.textContent).join("")):[];
-    return rows.length>1&&rows.every(row=>kids(row,A,"tc").length===2)
-      &&/실제 첫 응답/.test(headers[0])&&/문제.*근거.*수정/.test(headers[1])
-      ?null:"첫 응답과 검토 결과가 한 표의 좌우에 대응하지 않는다.";
-  }
-  if(page.layoutGate==="comparison") {
-    const rows=table.length===1?kids(table[0],A,"tr"):[];
-    const headers=rows.length?kids(rows[0],A,"tc").map(cell=>all(cell,A,"t").map(t=>t.textContent).join("")):[];
-    return rows.length>1&&rows.every(row=>kids(row,A,"tc").length===4)
-      &&/위임/.test(headers[0])&&/기준/.test(headers[1])&&/오류/.test(headers[2])&&/수정/.test(headers[3])
-      ?null:"초안 검토에는 판단·기준·오류·수정의 단일 4열 비교표가 필요하다.";
-  }
+  // 2026-11-27에 배치 게이트 세 개(draft-diagrams·draft-review·comparison)를 지웠다. 그것들은
+  // 특정 교재의 표 제목·열 이름·라벨 문구("Before — 상태 기계", "판단·기준·오류·수정")를 renderer의
+  // 합격 조건으로 적어 둔 것이었고, 그 표식을 쓰는 원고는 하나도 없었다. 배치는 원고의 표식이
+  // 요청하고, 검사는 그 표식이 요청한 **구조**를 본다 — 교재의 문구는 보지 않는다.
   if(page.layoutGate==="notation") {
-    return all(doc,P,"pic").length===1&&table.length===1&&kids(table[0],A,"tr").length>=6
-      ?null:"노테이션 도식과 표기 설명이 같은 장에 없다.";
+    return all(doc,P,"pic").length===1&&table.length===1
+      ?null:"도식 하나와 표 하나가 같은 장에 있어야 한다.";
   }
   if(["practice-columns","answer-columns"].includes(page.layoutGate)){
     const bodyShapes=all(doc,P,"sp").filter(sp=>{
@@ -122,7 +95,7 @@ async function inspect(outputPath, m) {
     // 묶음 덱은 세션마다 우측 상단 세션명이 다르다 — 그 장이 구성된 세션(p.session)과 견준다.
     const label = p.session || m.title;
     // 사용자 배치 지시: 구분선 위 우측 Shape 5가 세션명이고 Shape 6은 비운다.
-    if (text(shape(doc, 5)) !== (p.isToc || p.isCover || p.isCourseGoal ? "" : p.appendix ? "별첨: " + label : label)) errors.push(prefix + "title mismatch");
+    if (text(shape(doc, 5)) !== (p.isToc || p.isCover ? "" : p.appendix ? "별첨: " + label : label)) errors.push(prefix + "title mismatch");
     if (text(shape(doc, 6)) !== "") errors.push(prefix + "session name in the unused box");
     if (text(shape(doc, 7)) !== m.source) errors.push(prefix + "source mismatch");
     for (const item of p.items) {

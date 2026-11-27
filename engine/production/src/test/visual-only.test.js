@@ -11,10 +11,13 @@ const { parse } = require("../parse");
 const { render, pictureTextPt, MIN_PT } = require("../builder");
 const { TEMPLATE_DIR } = require("../template");
 
-// An authored SVG whose text reads at 10pt when it is 8in x 6.7in -- too tall to share a slide
+// An authored SVG whose text reads at 10pt when it is 8in x 10.4in -- too tall to share a slide
 // with its text at MIN_PT, small enough to fit a slide of its own.
-const TALL_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="768" height="640" viewBox="0 0 768 640">'
-  + '<rect width="768" height="640" fill="#fff" stroke="#000"/><text x="20" y="40" font-size="10">도식</text></svg>';
+// 2026-11-27: 띠가 남은 높이를 다 가져가게 바뀌어 예전 높이(640)는 본문 옆에서도 8pt로 읽혔다.
+// 이 검사가 보는 것은 **그 문턱을 넘지 못하는 도식**이다. 실측으로 고른 높이다 — 800이면 본문
+// 옆에서 7pt로 남고, 1200이면 제 장에서도 MIN_PT에 못 미쳐 타일로 간다.
+const TALL_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="768" height="1000" viewBox="0 0 768 1000">'
+  + '<rect width="768" height="1000" fill="#fff" stroke="#000"/><text x="20" y="40" font-size="10">도식</text></svg>';
 
 function topic(svg) {
   const lines = Array.from({ length: 6 }, (_, i) => `- **${i + 1}번째** 설명 문장은 도식 앞의 본문을 한 줄씩 채운다.`);
@@ -44,7 +47,7 @@ test("a diagram too small beside its text moves to a slide of its own at MIN_PT 
 });
 
 test("a diagram that cannot reach MIN_PT even alone uses overlapping original-image viewports", async () => {
-  const huge = TALL_SVG.replace(/768/g, "3072").replace(/640/g, "2560");
+  const huge = TALL_SVG.replace(/768/g, "3072").replace(/1000/g, "2560");
   const ps = await pages(topic(huge));
   const withPic = ps.filter((p) => (p.pictures || []).length);
   assert.ok(withPic.length>1);

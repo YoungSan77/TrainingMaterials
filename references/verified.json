@@ -1691,6 +1691,10 @@
     "source": "https://www.anthropic.com/engineering/building-effective-agents",
     "date": "2026-10-07"
   },
+  "when developers are allowed to use ai tools, they take 19% longer to complete issues": {
+    "source": "https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/",
+    "date": "2026-11-27"
+  },
   "when developers use ai tools, they take 19% longer than without-ai makes them slower": {
     "source": "https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/",
     "date": "2026-10-17"

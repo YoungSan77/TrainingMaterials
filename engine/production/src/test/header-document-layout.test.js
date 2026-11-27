@@ -25,7 +25,7 @@ test("Shape 5 labels long normal, appendix and bundled pages without crossing th
 
 test("a segment-local explicit 10pt response keeps its size without restyling the author review",()=>output(async file=>{
   const p=parse('## 01. 응답 검토\n\n### 시연 입력\n\n입력 설명이다.\n\n**페이지 분할**\n\n### 실제 응답\n\n**문서 형식 — 10pt**\n\n**그룹**\n\n- 원문 조건이다.\n\n| 용어 | 정의 |\n|---|---|\n| 주문 | 업무 거래 |\n\n**페이지 분할**\n\n### 저자의 검토\n\n판단 근거를 확인한다.\n');
-  const m=await render(p.sections,TEMPLATE_DIR,file,"03. 요구사항",[block("01. 응답 검토")],{productionProfile:'ai-native-s03'});
+  const m=await render(p.sections,TEMPLATE_DIR,file,"99. 테스트",[block("01. 응답 검토")]);
   assert.deepEqual((await inspect(file,m)).errors,[]);
   const response=m.pages.find(p=>p.items.some(i=>(i.text||"").includes("원문 조건")));
   assert.equal(response.answerColumns,2);
@@ -37,7 +37,7 @@ test("a segment-local explicit 10pt response keeps its size without restyling th
 
 test("verbatim appendix keeps omissions and a native retry table in its two-column flow",()=>output(async file=>{
   const p=parse('## 01. 본문\n\n안내한다.\n\n## 별첨. 실습 답\n\n## 실제 응답\n\n**실제 LLM 응답**\n\n⟨발췌⟩\n\n### 전제\n\n- 조건 하나\n- 조건 둘\n\n…\n\n### 기대 결과\n\n| 항목 | 거절 | 승인 |\n|---|---|---|\n| 금액 | 2,000원 | 2,000원 |\n| 배송 요청 | 0회 | 1회 |\n');
-  const m=await render(p.sections,TEMPLATE_DIR,file,"03. 요구사항",[block("01. 본문")],{productionProfile:'ai-native-s03'});
+  const m=await render(p.sections,TEMPLATE_DIR,file,"99. 테스트",[block("01. 본문")]);
   assert.deepEqual((await inspect(file,m)).errors,[]);
   const ps=m.pages.filter(p=>p.appendix);
   assert.equal(ps.length,1);assert.equal(ps[0].answerColumns,2);

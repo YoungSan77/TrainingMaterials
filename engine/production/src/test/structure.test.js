@@ -5,7 +5,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { parse } = require("../parse");
-const { checkStructure } = require("../structure");
+const { checkStructure, checkDeckShape } = require("../structure");
 
 function setup(no, goals, summary) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "tm-structure-"));
@@ -237,4 +237,28 @@ test("기록 그대로 표식은 본문 topic에서도 강조 검사를 면제�
   const spelled = parse("## 01. 시연\n\n**기록 그대로**\n\n- 이 두 곳에 없는 내용은 정하지 않았습니다.\n").sections[0];
   assert.deepEqual(spelledNumbers([spelled]), []);
   assert.ok(spelledNumbers([{ ...spelled, verbatimResponse: false }]).length > 0);
+});
+
+// 게이트가 번호에 묶여 있으면 앞에 topic 하나를 끼워 넣는 것만으로 검사가 조용히 꺼진다.
+// 이름으로 찾고, 대상이 없으면 오류로 멈추는지 본다(2026-11-27).
+test("목표·요약 게이트는 번호가 아니라 이름으로 찾고, 없으면 오류다", () => {
+  const sections = (md) => parse(md).sections;
+  const ok = "## 01. 도입\n\n**도입**이다.\n\n## 02. 세션 목표\n\n- 목표\n\n## 03. 요약\n\n- **핵심**\n";
+  assert.deepEqual(checkDeckShape("/tmp/s01.md", "01. 개요", sections(ok)), [],
+    "번호가 밀려도 목표와 요약을 찾는다");
+
+  const noGoals = sections("## 01. 도입\n\n**도입**이다.\n\n## 02. 요약\n\n- **핵심**\n");
+  assert.match(checkDeckShape("/tmp/s01.md", "01. 개요", noGoals)[0], /「세션 목표」 topic이 없다/);
+
+  const noSummary = sections("## 01. 세션 목표\n\n- 목표\n\n## 02. 본문\n\n**본문**이다.\n");
+  assert.match(checkDeckShape("/tmp/s01.md", "01. 개요", noSummary)[0],
+    /마지막 topic이 「요약」이 아니다\(지금은 "02\. 본문"\)/);
+
+  // 요약은 별첨 **앞**이 끝이다 — 별첨이 뒤에 와도 요약을 찾는다.
+  const withAppendix = parse("## 01. 세션 목표\n\n- 목표\n\n## 02. 요약\n\n- **핵심**\n\n## 별첨. 실습 답\n\n**답**이다.\n").sections;
+  assert.deepEqual(checkDeckShape("/tmp/s01.md", "01. 개요", withAppendix), []);
+
+  // 참고 자료 덱과 검토용 발췌 덱은 세션 덱이 아니다.
+  assert.deepEqual(checkDeckShape("/tmp/references.md", "별첨. 참고 자료", sections("## 참고 자료\n\n**목록**\n")), []);
+  assert.deepEqual(checkDeckShape("/tmp/s01-add.md", "01. 개요", sections("## 01. 본문\n\n**본문**이다.\n")), []);
 });

@@ -7,7 +7,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { parse, block } = require("../parse");
-const { render, fitTarget, naturalSize, visualPanel, TARGET_PT, UML_MAX_PT } = require("../builder");
+const { render, fitTarget, naturalSize, visualPanel, TARGET_PT, MAX_PT, UML_MAX_PT } = require("../builder");
 const { checkCodeSources, runs } = require("../codeSource");
 
 const { TEMPLATE_DIR: TEMPLATE } = require("../template");
@@ -50,7 +50,7 @@ test("a code block that differs from the source is an error; a missing source fo
   assert.equal(r.warnings.length, 1);
 });
 
-test("```svg:uml marks an SVG UML diagram that takes the full band like PlantUML; neither grows past 10pt", () => {
+test("```svg:uml marks an SVG UML diagram that takes the full band like PlantUML; both grow to MAX_PT", () => {
   const { sections } = parse("## 01. 도식\n\n```svg:uml\n<svg/>\n```\n\n```svg\n<svg/>\n```\n");
   const [uml, plain] = sections[0].blocks.filter((b) => b.kind === "svg");
   assert.deepEqual(uml.meta, { uml: "svg" });
@@ -58,10 +58,12 @@ test("```svg:uml marks an SVG UML diagram that takes the full band like PlantUML
   const image = { kind: "svg", width: 900, height: 300, fontSize: 32 };
   const natural = naturalSize(image, TARGET_PT);
   const roomy = { x: 0, y: 0, w: natural.w * 3, h: natural.h * 3 };
-  assert.ok(Math.abs(fitTarget(roomy, { ...image, uml: true }).w - natural.w) < 1e-6, "no diagram grows past 10pt");
+  // 2026-11-27: 도식은 남는 공간만큼 MAX_PT(14pt)까지 커진다. 자리가 3배여도 상한은 1.4배다.
+  assert.ok(Math.abs(fitTarget(roomy, { ...image, uml: true }).w - natural.w * MAX_PT / TARGET_PT) < 1e-6, "상한까지만 커진다");
   const layout = { panel: { x: 1, y: 2, w: 8, h: 1.8 } };
   assert.equal(visualPanel(layout, 2, 4, [{ ...image, uml: true }]).h, 4);
-  assert.equal(visualPanel(layout, 2, 4, [image]).h, 1.8);
+  // 2026-11-27: 일반 도식의 띠도 남은 높이를 다 가져간다(예전에는 버킷의 1.8in에 묶였다).
+  assert.equal(visualPanel(layout, 2, 4, [image]).h, 4);
 });
 
 async function codePage(lines) {

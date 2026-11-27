@@ -1,0 +1,15 @@
+# Windows에서 체크아웃해도 .sh가 LF를 유지해야 Git Bash가 실행할 수 있다.
+# CRLF로 바뀌면 `./setup.sh`가 bad interpreter로 멈춘다.
+*.sh text eol=lf
+*.java text eol=lf
+*.gradle text eol=lf
+*.xml text eol=lf
+*.properties text eol=lf
+
+# PowerShell 스크립트는 Windows 줄바꿈으로 둔다.
+*.ps1 text eol=crlf
+
+# 배포 폴더에 넣는 바이너리는 변환하지 않는다.
+*.zip binary
+*.exe binary
+*.jar binary

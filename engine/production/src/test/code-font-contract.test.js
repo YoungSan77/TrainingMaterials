@@ -2,9 +2,9 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('fs'),os=require('os'),path=require('path');
 const {parse}=require('../parse'),{render}=require('../builder'),{inspect}=require('../inspect'),{TEMPLATE_DIR}=require('../template'),{A,all,child,parseXml,xmlOut}=require('../xml'),{readZip,writeZip}=require('../zip');
 async function fixture(){
- const source='## 01. 코드\n\n```java\npublic int amount() { return 2000; } // 주문 금액\n```\n\n## 별첨. 실습 답\n\n## 실제 응답\n\n**실제 LLM 응답**\n\n**문서 형식 — 10pt**\n\n### 계산\n\n```text\nlineAmount = unitPrice × quantity\n주문 금액 = 2,000원\n```\n';
+ const source='## 01. 코드\n\n```java\npublic int amount() { return 2000; } // 주문 금액\n```\n\n## 별첨. 실습 답\n\n## 실제 응답\n\n**실제 LLM 응답**\n\n**문서 형식 — 10pt**\n\n**문서 형식 — 단내 표**\n\n### 계산\n\n```text\nlineAmount = unitPrice × quantity\n주문 금액 = 2,000원\n```\n';
  const p=parse(source),file=path.join(fs.mkdtempSync(path.join(os.tmpdir(),'tm-font-contract-')),'out.pptx');
- const m=await render(p.sections,TEMPLATE_DIR,file,'04. 도메인 모델 — 정적 관점',[{kind:'bullet',text:'01. 코드',depth:0,rows:[]}],{productionProfile:'ai-native-s03'});return {m,file};
+ const m=await render(p.sections,TEMPLATE_DIR,file,'99. 테스트',[{kind:'bullet',text:'01. 코드',depth:0,rows:[]}]);return {m,file};
 }
 test('ordinary and recorded-document fenced code use Consolas Latin and Malgun Gothic Korean without changing source',async()=>{
  const {m,file}=await fixture();assert.deepEqual((await inspect(file,m)).errors,[]);

@@ -1,0 +1,16 @@
+# setup.sh가 만드는 것 — PC마다 다르므로 저장소에 두지 않는다.
+tools/
+env.sh
+
+# 강사가 채우는 사전 배포 폴더 — 설치 파일과 체크섬, 의존성 캐시가 들어간다.
+# 저장소에는 설치 파일을 두지 않는다(README.md의 「사전 배포 항목」).
+offline/
+
+# Gradle Wrapper는 setup.sh가 생성한다.
+project/gradlew
+project/gradlew.bat
+project/gradle/wrapper/gradle-wrapper.jar
+
+# 빌드 산출물
+project/build/
+project/.gradle/

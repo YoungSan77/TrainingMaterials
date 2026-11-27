@@ -28,7 +28,7 @@ const {
   EMU, FULL_TEXT, STACKED_TEXT, STACKED_PANEL, DEEP_STACKED_TEXT, DEEP_STACKED_PANEL,
   PAGE_NUM_Y, VISUAL_ONLY, TREE_TEXT, UML_PANEL,
   contain, center, naturalSize, fitTarget, pictureTextPt, visualPanel, visualPolicy, isUml,
-  TARGET_PT, MIN_PT, UML_MAX_PT,
+  TARGET_PT, MIN_PT, MAX_PT, UML_MAX_PT,
 } = require("./visualFit");
 
 const ARCH_TERMS = new Set(["domain", "application", "presentation", "adapter", "infrastructure", "port", "in", "out", "service", "dto", "controller", "gateway", "repository", "mapper"]);
@@ -308,6 +308,10 @@ function buildNotesSlide(notes, parseXml) {
 // topic의 둘째 text 줄부터는 bullet으로 바뀌는데, 받은 말에 글머리표가 붙으면 저자의 주장처럼
 // 읽힌다(session-authoring-guide.md 「고객의 말」, 2026-10-31).
 const SPOKEN_LINE = /^"[^"]+"$/;
+// 본문 bullet(depth 0)의 글이 시작하는 자리. 받은 말과 코드·실행 명령이 이 자리에서 시작한다
+// (production-guide.md 「받은 말과 독립 사례 문장」·「코드 블록의 시작 위치」).
+const EMU_PER_PT = 12700;
+const CODE_MARL = BULLET_LEVELS[1].marL;
 const TABLE_MAX_WIDTH = 654;
 // Template's own graphicFrame band (table prototype, shape id 11): x=33.48pt,
 // cx=651.97pt -- close enough to TABLE_MAX_WIDTH that centering a narrower table inside this
@@ -384,11 +388,11 @@ class Builder {
     need(session && session.trim() !== "", "세션명이 필요하다 (Markdown 상단 'Session 명:' 헤더).");
     this.session = session;
     this.contentRole=roles.LECTURE;
-    this.s03Profile = course?.productionProfile === 'ai-native-s03' && session.trim() === '03. 요구사항';
-    this.s04Profile = course?.productionProfile === 'ai-native-s03' && session.trim() === '04. 도메인 모델 — 정적 관점';
-    this.quoteTranslations = this.s03Profile || this.s04Profile;
-    // The S03 production contract integrates explanatory text and tables.
-    this.paragraphSpace = this.s03Profile ? 3 : 6;
+    // 조판은 **과정 이름이나 세션 이름으로 갈리지 않는다.** 원고가 표식으로 요청하고 renderer가
+    // 그것을 따른다. 2026-11-27까지는 특정 과정 폴더 이름과 세션명 세 개에 문단 간격·인용 표시·
+    // 들여쓰기가 묶여 있었고, 그 세션명들은 개편된 Curriculum에 더는 없어서 번호만 밀려도 다른
+    // 세션에 엉뚱하게 걸릴 상태였다. 과정 고유의 제작 기준이 필요하면 원고의 표식으로 요청한다.
+    this.paragraphSpace = 6;
     this.data = readTemplate(this.templatePath);
     this.origins = slideParts(this.data);
     need(this.origins.length === Object.keys(ORIGIN).length, "템플릿의 원형 슬라이드는 TOC/prose/tree/code/table 5장이어야 한다: " + this.templatePath);
@@ -400,7 +404,7 @@ class Builder {
   page(index, heading) {
     // The slide carries the session it was composed for, so a bundle of several sessions labels
     // each slide with its own session name (production-guide.md 「묶음 덱」).
-    const p = { doc: this.roots[index].cloneNode(true), origin: this.origins[index], heading, items: [], session: this.session, s03Profile:this.s03Profile, s04Profile:this.s04Profile, quoteTranslations:this.quoteTranslations, paragraphSpace:this.paragraphSpace, contentRole:this.contentRole||roles.LECTURE, documentTablePt:roles.tablePt(this.contentRole) };
+    const p = { doc: this.roots[index].cloneNode(true), origin: this.origins[index], heading, items: [], session: this.session, paragraphSpace:this.paragraphSpace, contentRole:this.contentRole||roles.LECTURE, documentTablePt:roles.tablePt(this.contentRole) };
     this.pages.push(p);
     return p;
   }
@@ -426,9 +430,9 @@ class Builder {
       // One paragraph in two sizes: the 10pt original runs on from the 18pt Korean instead of
       // starting its own line, so the flow is measured once and rounded once -- rounding each run
       // up separately added as much as two phantom lines to every citation.
-      const korean = plain(this.quoteTranslations?displayQuote(parts[1]):parts[4] ? parts[1] : `"${parts[1]}"`);
+      const korean = plain(parts[4] ? parts[1] : `"${parts[1]}"`);
       // 영문 원문은 바깥따옴표 없이 그려진다(paragraphs.js) -- 폭도 그 모양으로 센다.
-      const rest = plain(`, ${this.s03Profile?displayQuote(parts[2]):parts[2]}, ${parts[3]}`);
+      const rest = plain(`, ${displayQuote(parts[2])}, ${parts[3]}`);
       const w = 620 - 12;
       const total = Math.max(1, Math.ceil((widthOf(korean, 18) + widthOf(rest, 10)) / w));
       const at18 = Math.min(total, Math.max(1, Math.ceil(widthOf(korean, 18) / w)));
@@ -714,24 +718,31 @@ class Builder {
     }finally{this.sectionStyle=previousStyle;}
   }
 
-  async compactLegendPage(section, notation=false){
-    const vi=section.blocks.findIndex(b=>notation?b.kind==='plantuml':b.kind==='svg'),ti=section.blocks.findIndex(b=>b.kind==='table');
-    need(vi>=0&&ti>vi,'연관 범례의 도식/표 순서가 필요하다');
+  // 도식 하나와 표 하나를 한 장에 넣는 배치. 원고가 `**배치 — 도식과 표 한 장**`으로 요청하고,
+  // 도식 제목과 표 제목은 각자의 표식(`**도식 — … — 제목**`·`**표 — 제목**`)에서 읽는다 — 제목을
+  // renderer에 적지 않는다(2026-11-27에 교재 문구 두 개를 코드에서 지웠다).
+  async compactLegendPage(section){
+    const vi=section.blocks.findIndex(b=>b.kind==='plantuml'),ti=section.blocks.findIndex(b=>b.kind==='table');
+    need(vi>=0&&ti>vi,'도식과 표 한 장 배치는 도식 다음에 표가 와야 한다: '+section.title);
+    const marker=re=>{const b=section.blocks.find(b=>re.test(String(b.text||'').trim()));return b?String(b.text).trim():null;};
+    const tableTitle=marker(/^\*\*표 — .+\*\*$/);
+    need(tableTitle,'도식과 표 한 장 배치에는 `**표 — 제목**`이 필요하다: '+section.title);
+    const tableCaption=tableTitle.replace(/^\*\*표 — |\*\*$/g,'');
     const marked=bs=>{let quote=false;return bs.flatMap(b=>{
       if(b.text==='**인용문**'){quote=true;return [];}
       if(b.kind==='text'&&/^\*\*(?:도식|표) —/.test(b.text))return [];
       const out=quote?{...b,meta:{...b.meta,quote:true,authoredKind:b.kind}}:b;quote=false;return [out];
     });};
     const lead=marked(section.blocks.slice(0,vi)),tail=marked(section.blocks.slice(ti+1));
-    const visual=section.blocks[vi],table=section.blocks[ti],pic=notation
-      ?await renderPlantUml({kind:visual.meta?.uml,source:visual.text}):await renderSvg(visual.text);
+    const visual=section.blocks[vi],table=section.blocks[ti];
+    const pic=await renderPlantUml({kind:visual.meta?.uml,source:visual.text});
     const old=this.paragraphSpace;this.paragraphSpace=3;
     try{
       const page=this.page(ORIGIN.prose,section.title);page.paragraphSpace=3;page.notes=section.notes;
       paragraphs(page,8,lead,false);
-      const leadH=this.textHeightPt(lead),tailH=this.textHeightPt(tail),captionH=notation?15:23.5,gap=4,top=1.05*72;
+      const leadH=this.textHeightPt(lead),tailH=this.textHeightPt(tail),captionH=15,gap=4,top=1.05*72;
       const id=this.cloneShape(page,11,ORIGIN.table),gf=shape(page.doc,id);
-      if(notation&&visual.meta?.uml==='sequence'){
+      if(visual.meta?.uml==='sequence'){
         const tableX=5.1,tableW=4.5,panelY=(top+leadH+8)/72;
         const panelH=this.contentBottomY()-panelY-(tailH+8)/72;
         const tableY=panelY+.24;
@@ -753,7 +764,7 @@ class Builder {
           setShapeBounds(shape(page.doc,labelId),{x,y:panelY,w,h:.24});
         };
         label(section.blocks[vi-1].text.replace(/^\*\*도식 — [^—]+ — |\*\*$/g,''),.4,4.48);
-        label('그림에서 직접 찾는 노테이션',tableX,tableW);
+        label(tableCaption,tableX,tableW);
         setShapeBounds(shape(page.doc,8),{...FULL_TEXT,h:leadH/72});
         const tailId=this.cloneShape(page,8);
         paragraphs(page,tailId,tail,false);
@@ -769,16 +780,15 @@ class Builder {
       const visualH=Math.min(budget,nat.h*72),visualTop=top+leadH+gap+captionH;
       setShapeBounds(shape(page.doc,8),{...FULL_TEXT,h:leadH/72});
       const caption=(value,y)=>{const id=this.cloneShape(page,8);paragraphs(page,id,[{kind:'text',text:value,meta:{caption:value}}],false);setShapeBounds(shape(page.doc,id),{x:.4,y:y/72,w:9.2,h:captionH/72});};
-      const diagramTitle=notation?section.blocks[vi-1].text.replace(/^\*\*도식 — [^—]+ — |\*\*$/g,''):'주문과 주문 항목의 연관';
-      caption(diagramTitle,top+leadH+gap);
+      caption(section.blocks[vi-1].text.replace(/^\*\*도식 — [^—]+ — |\*\*$/g,''),top+leadH+gap);
       const bounds=fitTarget({x:.4,y:visualTop/72,w:9.2,h:visualH/72},pic);
-      if(notation)need(pictureTextPt(pic,bounds)>=MIN_PT-.05,`노테이션 도식이 최소 글자 크기에 못 미친다: ${section.title}`);
-      page.pictures=[{...pic,source:visual.text,kind:visual.kind,uml:notation,bounds}];
-      const tableCaptionY=visualTop+visualH+gap;caption(notation?'그림에서 직접 찾는 노테이션':'관계선과 양 끝의 다중성',tableCaptionY);
+      need(pictureTextPt(pic,bounds)>=MIN_PT-.05,`노테이션 도식이 최소 글자 크기에 못 미친다: ${section.title}`);
+      page.pictures=[{...pic,source:visual.text,kind:visual.kind,uml:true,bounds}];
+      const tableCaptionY=visualTop+visualH+gap;caption(tableCaption,tableCaptionY);
       const tableY=tableCaptionY+captionH+gap;child(child(gf,P,'xfrm'),A,'off').setAttribute('y',String(Math.round(tableY*12700)));
       const tailId=this.cloneShape(page,8);paragraphs(page,tailId,tail,false);setShapeBounds(shape(page.doc,tailId),{x:.4,y:(tableY+tableH+gap)/72,w:9.2,h:tailH/72});
       page.visualLayout='compact-legend';page.tableBottom=(tableY+tableH)/72;
-      if(notation)page.layoutGate='notation';
+      page.layoutGate='notation';
       return page;
     }finally{this.paragraphSpace=old;}
   }
@@ -846,85 +856,10 @@ class Builder {
     return source.replace(/^[ \t]*Note over [^\n]+\n?/gim,'');
   }
 
-  async firstDraftReviewPage(section, answer) {
-    const split=section.blocks.findIndex(b=>b.text.trim()==='**문제 · 근거 · 수정 결과**');
-    const before=section.blocks.filter(b=>b.kind==='mermaid');
-    const after=answer?.blocks.filter(b=>b.kind==='mermaid')??[];
-    const kind=b=>b.text.trim().split(/\s+/)[0];
-    need(split>0&&before.length===2&&after.length===2&&before.every((b,i)=>kind(b)===kind(after[i])),
-      '실제 초안과 최종 응답에 같은 종류의 상태 기계·시퀀스가 필요하다.');
-    const draft=answer.recordedDraft;
-    need(draft?.length===before.length&&before.every((block,i)=>this.isDiagramExcerpt(block.text,draft[i].text)),
-      '비교 도식이 SHA-256을 확인한 실제 첫 응답의 발췌와 일치하지 않는다.');
-    const page=this.page(ORIGIN.prose,section.title);
-    paragraphs(page,8,[],false);
-    page.notes=section.notes;page.layoutGate='draft-diagrams';
-    const boxes=[{x:.4,w:4.45},{x:5.15,w:4.45}];
-    const notes=prepareColumnBlocks(section.blocks.slice(split));
-    const noteH=columnTextHeight(notes,FULL_TEXT.w*72,1,{document:true})/72;
-    const noteY=this.contentBottomY()-noteH-.02;
-    const addText=(blocks,box)=>{
-      const id=this.cloneShape(page,8);
-      setShapeBounds(shape(page.doc,id),box);
-      paragraphs(page,id,blocks,false);
-      for(const rp of all(shape(page.doc,id),A,'rPr'))rp.setAttribute('sz','1000');
-      for(const p of all(shape(page.doc,id),A,'p'))spacing(p,1,1,null);
-    };
-    const pictures=[];
-    for(const [row,title] of ['상태 기계','시퀀스'].entries()){
-      const y=row===0?.98:2.66;
-      const h=(row===0?2.66:noteY-.10)-y-.23;
-      for(const [col,b] of [before[row],after[row]].entries()){
-        const box=boxes[col];
-        let source=this.answerDiagramExcerpt(b.text).replace(/^(.*-->.*)\\n[^\n]*$/gm,'$1');
-        if(row===1)source=this.draftSequenceWindow(source);
-        // Mermaid draws parallel self-loops over one another. Keep both event
-        // labels on their shared loop so neither event disappears.
-        const loops=new Map();
-        source=source.split('\n').flatMap(line=>{
-          const match=line.match(/^(\s*(\w+)\s*-->\s*\2\s*:\s*)(.+)$/);
-          if(!match)return [line];
-          if(!loops.has(match[2]))loops.set(match[2],[]);
-          const labels=loops.get(match[2]);labels.push(match[3]);
-          return labels.length===1?[{prefix:match[1],labels}]:[];
-        }).map(line=>typeof line==='string'?line:line.prefix+(line.labels.length>1?'<br/>'+line.labels.join('<br/>'):line.labels[0])).join('\n');
-        if(row===1)source=source.replace(/^(\s*)actor\s+/gm,'$1participant ');
-        const pic={...await renderMermaid({source,compactActors:true,compactComparison:true}),source:b.text,kind:b.kind};
-        const label=`${col===0?'Before':'After'} — ${title}${row===1?' · 카드 승인 요청 이후':''}`;
-        addText([{kind:'heading',text:label}],{...box,y,h:.23});
-        const bounds=fitTarget({...box,y:y+.23,h},pic);
-        need(pictureTextPt(pic,bounds)>=MIN_PT-.05,`${title} ${col===0?'Before':'After'}가 7pt 하한에 못 미친다 (${pictureTextPt(pic,bounds).toFixed(2)}pt)`);
-        pictures.push({...pic,bounds});
-      }
-    }
-    page.pictures=pictures;
-    addText(notes,{...FULL_TEXT,y:noteY,h:noteH});
-  }
-
-  draftSequenceWindow(source) {
-    // Compare the external message window beginning with the approval request.
-    const lines=source.split('\n');
-    const start=lines.findIndex(line=>/^\s*Order->>Payment:/.test(line));
-    need(start>=0,'정상 승인 시퀀스에 카드 승인 요청이 없다.');
-    const external=line=>{
-      const message=/^\s*(\w+)[-<>]+(\w+):/.exec(line);
-      return message&&message[1]!==message[2];
-    };
-    return [...lines.slice(0,start).filter(line=>/^\s*(?:sequenceDiagram|actor |participant )/.test(line)),
-      ...lines.slice(start).filter(external)].join('\n');
-  }
-
-  isDiagramExcerpt(excerpt, original) {
-    const lines=text=>text.split('\n').map(line=>line.trim()).filter(Boolean);
-    const available=lines(original);
-    let at=0;
-    return lines(excerpt).every(line=>{
-      const match=available.indexOf(line,at);
-      if(match<0)return false;
-      at=match+1;
-      return true;
-    });
-  }
+  // 2026-11-27에 `firstDraftReviewPage`·`draftSequenceWindow`·`isDiagramExcerpt`를 지웠다. 특정
+  // 교재의 도식 두 종류(`상태 기계`·`시퀀스`), 라벨 문구(`Before — …`), 메시지 이름(`Order->>Payment`)
+  // 까지 renderer에 적혀 있었고 그 배치를 요청하는 원고는 하나도 없었다. 좌우 비교가 다시 필요하면
+  // 원고의 표식으로 요청하고, 교재의 문구는 원고에 둔다.
 
   needsFullWidthDocumentTable(block, fontPt) {
     const count=block.rows[0].length;
@@ -1158,7 +1093,7 @@ class Builder {
           for(const t of all(p,A,'t')){const n=Math.min(remove,t.textContent.length);t.textContent=t.textContent.slice(n);remove-=n;if(!remove)break;}
           for(const old of children(pr).filter(e=>/^bu/.test(e.localName)))pr.removeChild(old);
           const n=prefix[1]||String(prefix[2].codePointAt(0)-0x2460+1);
-          const hang=this.s04Profile&&prefix[2]?Math.round(14.4*12700):numberWidthEmu(prefix[0],12);
+          const hang=numberWidthEmu(prefix[0],12);
           pr.setAttribute('indent',String(-hang));
           pr.appendChild(el(page.doc,A,'buAutoNum','type',prefix[1]?'arabicPeriod':'circleNumDbPlain','startAt',n));
           const tabs=el(page.doc,A,'tabLst');tabs.appendChild(el(page.doc,A,'tab','pos',pr.getAttribute('marL'),'algn','l'));pr.appendChild(tabs);
@@ -1840,7 +1775,10 @@ class Builder {
         y += (h + 8) / 72;
       }
       const top = y;
-      const bodyOffset=this.s04Profile&&!png?(opts.listBodyOffset??BULLET_LEVELS[1].marL/EMU):0;
+      // 코드와 실행 명령은 본문 bullet의 글이 시작하는 자리에서 시작한다 — 원고가 공백으로 자리를
+      // 맞추지 않게 하는 조판 규칙이다(production-guide.md 「코드 블록의 시작 위치」, 2026-11-26).
+      // 도식과 나란히 놓는 장은 폭이 모자라므로 들여쓰지 않는다.
+      const bodyOffset=png?0:(opts.listBodyOffset??BULLET_LEVELS[1].marL/EMU);
       let codeX = X+bodyOffset, codeW = W-bodyOffset, pictureBottom = y;
       // The diagram beside/above code is drawn at a text size of TARGET_PT x step (10, 9, 8, 7pt;
       // production-guide.md "Visual layout 및 가독성"). Above the code it may use the full width;
@@ -2146,8 +2084,7 @@ class Builder {
       this.fillTable(page, gf, groups[gi], widths, yPt);
       // 표 아래의 빈 띠에 코드가 쌓일 수 있게 코드 단을 본문 폭으로 열어 둔다. 이것이 없으면
       // 표 다음의 코드는 늘 새 장을 열어, 표만 있는 장과 코드만 있는 장이 둘 다 헐거워졌다.
-      const codeOffset=this.s04Profile?BULLET_LEVELS[1].marL/EMU:0;
-      page.codeArea = { x: 0.4+codeOffset, w: 9.2-codeOffset };
+      page.codeArea = { x: 0.4, w: 9.2 };
     }
   }
 
@@ -2286,20 +2223,6 @@ class Builder {
     return p;
   }
 
-  // 과정 목표 — 과정 목차 다음, 세션 목차 바로 앞 장이다. 덱은 넓은 것에서 좁은 것으로 같은
-  // 리듬을 두 번 탄다 — 과정의 목차와 목표, 그다음 세션의 목차와 목표(production-guide.md
-  // 「표지·과정 목차·과정 목표」). 내용은 `course-design.md`의 「과정 목표 슬라이드」이며
-  // renderer가 줄이거나 바꾸지 않는다. 과정의 첫 세션 덱에만 있다.
-  renderCourseGoal(course) {
-    const blocks = [];
-    if (course.goal.lead) blocks.push({ kind: "text", text: course.goal.lead, depth: 0 });
-    for (const g of course.goal.goals) blocks.push({ kind: "bullet", text: g, depth: 0 });
-    const from = this.pages.length;
-    this.flush(blocks, course.name + " 목표");
-    for (const p of this.pages.slice(from)) p.isCourseGoal = true;
-    return this.pages[from];
-  }
-
   // 과정 목차 — 과정의 세션 전체를 세션 목차와 같은 모양으로 보이는 둘째 장. 표지와 함께 과정의
   // 첫 세션 덱에만 있고, 항목은 과정의 승인 세션 목록이다.
   renderCourseToc(course) {
@@ -2348,7 +2271,6 @@ class Builder {
       if (course && String(this.session).startsWith((course.firstSession || "01") + ".")) {
         this.renderCover(course.name);
         if (course.sessions.length) this.renderCourseToc(course);
-        if (course.goal) this.renderCourseGoal(course);
       }
       this.renderToc(toc, this.session);
     }
@@ -2373,16 +2295,9 @@ class Builder {
       if (!section.group && section.blocks.length === 0 && next && next.group === section.title) continue;
       const firstIdx = this.pages.length;
       this.sectionFirst = firstIdx;
-      if(this.s04Profile&&section.title==='연관명과 다중성'){
-        const page=await this.compactLegendPage(section);if(section.group)page.heading+='\n'+section.group;continue;
-      }
-      if(section.blocks.some(b=>b.text?.trim()==='**표 — 그림에서 직접 찾는 노테이션**')){
-        const page=await this.compactLegendPage(section,true);
+      if(section.compactLegend){
+        const page=await this.compactLegendPage(section);
         if(section.group)page.heading+='\n'+section.group;
-        continue;
-      }
-      if(section.blocks.some(b=>b.text.trim()==='**실제 초안 도식 — 좌우 비교**')){
-        await this.firstDraftReviewPage(section,sections.find(s=>s.appendix&&s.verbatimResponse));
         continue;
       }
       if(isPractice(section.title)&&section.blocks.some(b=>/^\*\*실습 안내 — 좌우 2단/.test(b.text.trim()))){
@@ -2394,12 +2309,15 @@ class Builder {
         && section.blocks.every(b=>["text","heading","bullet","table","pagebreak","mermaid","plantuml","svg","chart","code"].includes(b.kind))) {
         const ten=roles.isRecorded(this.contentRole)||section.scopedDocument||section.blocks.some(b=>b.kind==='text'&&b.text.trim()==='**문서 형식 — 10pt**');
         const style={...ANSWER_STYLE,text:ten?10:12,heading:ten?10:14,levels:ten?[10,10,10]:[12,11,10],uniform:true,fit:1,leftFit:1,space:3,expl:L=>L,paren:L=>L,hang:true,responseRole:section.appendix?'answer':'demo',tablePt:roles.tablePt(this.contentRole)};
-        style.mixedTables=Boolean(this.session.trim()==='05. 도메인 모델 — 동적 관점'&&section.appendix&&section.verbatimResponse);
+        // 단내 표 배치는 **원고가 표식으로 요청한다**(`**문서 형식 — 단내 표**`). 세션 이름으로
+        // 켜던 것을 표식으로 바꾸었다 — 번호가 바뀌어도 원고가 요청한 배치는 그대로 간다.
+        const inColumnTables=section.blocks.some(b=>b.kind==='text'&&b.text.trim()==='**문서 형식 — 단내 표**');
+        style.mixedTables=Boolean(inColumnTables&&section.appendix&&section.verbatimResponse);
         style.strictAnswerColumns=style.mixedTables;
         style.recordedTables=section.recordedTables;
-        style.containedTables=Boolean((this.s04Profile||style.mixedTables)&&section.appendix&&section.verbatimResponse);
+        style.containedTables=style.mixedTables;
         const mixed=section.blocks.some(b=>['mermaid','plantuml','svg','chart'].includes(b.kind)||(b.kind==='table'&&(style.mixedTables||b.rows[0].length>4)));
-        const pages=!this.s03Profile && (mixed||section.blocks.some(b=>b.kind==='code'))
+        const pages=(mixed||section.blocks.some(b=>b.kind==='code'))
           ?await this.recordedDocumentPages(section.blocks,section.title,style)
           :mixed?await this.columnVisualDocumentPages(section.blocks,section.title,style,!ten):this.columnDocumentPages(section.blocks,section.title,style,!ten);
         pages.forEach((p,i)=>{p.appendix=Boolean(section.appendix);if(section.scopeKey)scopedGroups.get(section.scopeKey).push(p);if(pages.length>1)p.heading+=` (${i+1}/${pages.length})`+(section.group?'\n'+section.group:'');else if(section.group)p.heading+='\n'+section.group;});
@@ -2731,7 +2649,14 @@ class Builder {
               // 인용문과 인용된 요청: 한 단계 들여쓰고 글머리표와 내어쓰기를 없앤다 -- 줄바꿈된
               // 둘째 줄도 첫 줄과 같은 자리에서 시작한다(production-guide.md 「인용문」).
               block = { ...block, kind: "bullet", depth: Math.min(2, block.depth + headingDepthBoost), meta: { ...(block.meta || {}), noGlyph: true, noHang: true } };
-            } else if (!SPOKEN_LINE.test(block.text.trim())) {
+            } else if (SPOKEN_LINE.test(block.text.trim())) {
+              // 받은 말은 글머리표 없이 **본문 bullet의 글이 시작하는 자리**에서 시작하고, 본문보다
+              // 한 단계 작은 크기로 굵게 그린다(production-guide.md 「받은 말과 독립 사례 문장」).
+              // marL=0인 text 문단으로 두면 왼쪽 끝에서 18pt로 시작해 저자의 문장과 구별되지 않았다.
+              // 줄바꿈된 둘째 줄도 첫 줄과 같은 자리에서 시작한다 — 공백으로 맞추지 않는다(2026-11-26).
+              block = { ...block, kind: "bullet", depth: Math.min(2, block.depth + headingDepthBoost),
+                meta: { ...(block.meta || {}), spoken: true, noGlyph: true, noHang: true } };
+            } else {
               block = { ...block, kind: "bullet", depth: block.depth + headingDepthBoost };
             }
             contentSeen = true;
@@ -2880,9 +2805,7 @@ class Builder {
             governingSeen = true;
             continue;
           }
-          const nextList=trail.find(t=>t.kind==='bullet'),numberPrefix=nextList&&/^(?:\d+\.|\(\d+\))\s/.exec(nextList.text);
-          const listBodyOffset=this.s04Profile&&numberPrefix?(BULLET_LEVELS[1].marL+BULLET_LEVELS[1].indent+numberWidthEmu(numberPrefix[0],16))/EMU:undefined;
-          open = this.sourceCode(b, section.title, lead, { ...(pair ? { visual: pair.png } : {}), trailPt,listBodyOffset });
+          open = this.sourceCode(b, section.title, lead, { ...(pair ? { visual: pair.png } : {}), trailPt });
           if (pair) { if (multiVisual) visualTargets[pair.vi] = "placed"; else visualInline = true; }
           pending = [];
           governingSeen = true;
@@ -2904,7 +2827,11 @@ class Builder {
         const size = b.kind === "tree" && !paired
           ? [TREE_TEXT.w * 72, TREE_TEXT.h * 72]
           : geometry(shape(this.roots[index], id));
-        const pieces = splitCode(b.text, size[0], size[1]);
+        // 코드와 실행 명령은 본문 bullet의 글이 시작하는 자리에서 시작한다 — 원고가 공백으로
+        // 자리를 맞추지 않게 한다(production-guide.md 「코드 블록의 시작 위치」). 들여쓴 만큼
+        // 쓸 수 있는 너비가 줄므로 줄바꿈 계산에 같은 값을 뺀다. 트리 도식은 그림이라 들여쓰지 않는다.
+        const codeIndent = b.kind === "code" ? CODE_MARL : 0;
+        const pieces = splitCode(b.text, size[0] - codeIndent / EMU_PER_PT, size[1]);
         for (let j = 0; j < pieces.length; j++) {
           const p = this.page(index, section.title);
           if (index === ORIGIN.tree) {
@@ -2921,7 +2848,7 @@ class Builder {
           for (const par of kids(body(sh), A, "p")) {
             const line = paragraph(par);
             const pr = spacing(par, 6, 6, 11);
-            pr.setAttribute("marL", "0");
+            pr.setAttribute("marL", String(codeIndent));
             pr.setAttribute("indent", "0");
             pr.setAttribute("algn", "l");
             rich(par, line, 10, false, true, b.kind === "code" ? this.names : ARCH_TERMS);
@@ -3217,7 +3144,7 @@ class Builder {
       // 요약 뒤 별첨 장은 "별첨: <세션명>"이다.
       const pageSession = p.session || this.session;
       const label = p.appendix ? appendixSessionName(pageSession) : pageSession;
-      const plain = p.isToc || p.isCover || p.isCourseGoal;
+      const plain = p.isToc || p.isCover;
       setText(shape(p.doc, 6), "");
       const nameShape = shape(p.doc, SESSION_NAME_ID);
       const pt = sessionNamePt(label);
@@ -3317,4 +3244,4 @@ async function bundle(items, templatePath, outputPath, title) {
   return b.write(outputPath, title);
 }
 
-module.exports = { styledCost, PRACTICE_STYLE, ANSWER_STYLE, REFERENCE_STYLE, PRACTICE_BOX, ANSWER_COLUMNS, Builder, render, bundle, isPractice, isAnswer, geometry, naturalSize, pictureTextPt, fitTarget, visualPanel, columnWidths, tocSessionName, appendixSessionName, sessionNamePt, TARGET_PT, MIN_PT, UML_MAX_PT, PAGE_NUM_Y };
+module.exports = { styledCost, PRACTICE_STYLE, ANSWER_STYLE, REFERENCE_STYLE, PRACTICE_BOX, ANSWER_COLUMNS, Builder, render, bundle, isPractice, isAnswer, geometry, naturalSize, pictureTextPt, fitTarget, visualPanel, columnWidths, tocSessionName, appendixSessionName, sessionNamePt, TARGET_PT, MIN_PT, MAX_PT, UML_MAX_PT, PAGE_NUM_Y };

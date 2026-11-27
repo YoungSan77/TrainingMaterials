@@ -61,14 +61,13 @@ test("세션 원고 경로에서만 발화한다 — 다른 경로와 고장난 
   assert.equal(run(JSON.stringify({ tool_input: {} })), null);
 });
 
+// 실제 저장소의 원고로 확인한다 — 어느 원고가 있는지는 과정의 진행에 따라 바뀌므로 지금 있는
+// 것을 찾아 쓴다. 특정 파일 이름을 적어 두면 그 원고가 옮겨지는 날 검사가 깨진다(2026-11-27).
 test("이미 있는 원고를 고치는 중에는 침묵한다 — 같은 안내를 Edit마다 되풀이하지 않는다", () => {
-  for (const existing of [
-    "courses/ai-native/sessions/s01.md",
-    "courses/ai-native/sessions/s05.md",
-    "courses/ai-native/sessions/s12.md",
-  ]) {
-    assert.equal(edit(existing), null, existing);
-  }
+  const dir = "courses/ai-native/sessions";
+  const existing = fs.readdirSync(dir).filter((f) => /^s\d\d\.md$/.test(f)).map((f) => dir + "/" + f);
+  assert.ok(existing.length, "현행 세션 원고가 하나는 있어야 이 검사가 뜻이 있다");
+  for (const manuscript of existing) assert.equal(edit(manuscript), null, manuscript);
 });
 
 test("아직 없는 원고를 쓰기 시작할 때만 계약을 낸다", () => {

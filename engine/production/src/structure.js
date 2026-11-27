@@ -1,7 +1,8 @@
 "use strict";
 // Session structure checks (session-authoring-guide.md, "세션 목표와 요약"):
-//   - "01. 세션 목표" fits one slide and lists at most 7 goals.
-//   - The last topic "요약" fits one slide and has a "다음 세션" group when the course lists a successor.
+//   - "세션 목표" exists, fits one slide and lists at most 7 goals.
+//   - The last body topic is "요약", fits one slide and has a "다음 세션" group when the course lists
+//     a successor. Both are found by name, not by number, and a missing one is an error, not a pass.
 //   - A practice topic ("NN. 실습 — …", not its "검토 예시") and a text answer "NN. … (안)" each fit
 //     one slide ("사례·가정·실습").
 //   - The appendix ("## 별첨. 실습 답", the practice answers) comes after the summary and nothing
@@ -12,6 +13,11 @@ const { hasNextSession } = require("./course");
 const { estimate } = require("./text");
 
 const MAX_GOALS = 7;
+// 게이트는 대상을 **번호가 아니라 이름**으로 찾고, 대상이 없으면 **오류로 멈춘다**. 번호에 묶으면
+// 앞에 topic 하나를 끼워 넣는 것만으로 검사가 조용히 꺼진다 — 원고는 통과했다고 나오는데 검사는
+// 돌지 않은 상태가 된다. 이 저장소가 가장 경계하는 고장 방식이다(2026-11-27).
+const GOALS_TITLE = /^(?:\d\d\.\s*)?세션 목표$/;
+const SUMMARY_TITLE = /^(?:\d\d\.\s*)?요약$/;
 
 function hasGuidedPracticeStages(section) {
   const labels = section.blocks.map(block => String(block.text || "").trim());
@@ -24,20 +30,20 @@ function checkStructure(inputPath, session, sections, pages) {
   const errors = [];
   if (/^(s\d\d)-add\.md$/i.test(path.basename(inputPath))) return errors; // review decks hold only some topics
   const pageCount = (title) => pages.filter((p) => String(p.heading || "").split("\n")[0].replace(/ \(\d+\/\d+\)$/, "") === title).length;
-  const goals = sections.find((s) => /^01\. 세션 목표$/.test(s.title));
+  const goals = sections.find((s) => GOALS_TITLE.test(String(s.title).trim()));
   if (goals) {
     const count = goals.blocks.filter((b) => b.kind === "bullet" && b.depth === 0).length;
     if (count > MAX_GOALS) errors.push(`세션 목표가 ${count}개다. ${MAX_GOALS}개 이하로 압축한다.`);
     if (pageCount(goals.title) > 1) errors.push("세션 목표가 한 슬라이드를 넘는다.");
   }
   for (const s of sections) {
-    const explicitPractice=s.blocks.some(b=>/^\*\*실습 안내 — 좌우 2단/.test(b.text.trim()));
-    const notation=s.blocks.some(b=>b.text.trim()==='**표 — 그림에서 직접 찾는 노테이션**');
-    const comparison=s.blocks.find(b=>['**표 — AI 위임 판단(왼쪽)과 초안 검토(오른쪽)**','**표 — 실제 초안(왼쪽)과 검토 결과(오른쪽)**'].includes(b.text.trim()));
-    if(explicitPractice||notation||comparison){
+    // 한 장 배치를 요청한 topic은 정말 한 장이어야 한다. 요청은 **원고의 표식**으로 한다 —
+    // 2026-11-27에 특정 교재의 표 제목 두 개를 조건에서 지웠다(그 표식을 쓰는 원고는 없었다).
+    const oneSlide=s.compactLegend
+      || s.blocks.some(b=>/^\*\*실습 안내 — 좌우 2단/.test(b.text.trim()));
+    if(oneSlide){
       const matching=pages.filter(p=>String(p.heading||"").split("\n")[0].replace(/ \(\d+\/\d+\)$/,"")===s.title);
       if(matching.length!==1)errors.push(`한 장 배치 기준 위반: ${s.title}`);
-      else if(comparison)matching[0].layoutGate=comparison.text.includes('실제 초안')?'draft-review':'comparison';
     }
     if (isPractice(s.title) && pageCount(s.title) > 1 && !hasGuidedPracticeStages(s)) errors.push(`실습 "${s.title}"이 한 슬라이드를 넘는다. 과제를 줄이거나 검토 기준을 강사 노트로 옮긴다.`);
     const textOnly = s.blocks.every((b) => ["text", "bullet", "heading"].includes(b.kind));
@@ -49,11 +55,35 @@ function checkStructure(inputPath, session, sections, pages) {
   if (firstAppendix >= 0 && sections.slice(firstAppendix).some((s) => !s.appendix)) errors.push("별첨 뒤에 본문 topic이 있다. `## 별첨. …`은 요약 뒤 맨 끝에 둔다.");
   const body = firstAppendix >= 0 ? sections.slice(0, firstAppendix) : sections;
   const summary = body[body.length - 1];
-  if (summary && /^\d\d\. 요약$/.test(summary.title)) {
+  if (summary && SUMMARY_TITLE.test(String(summary.title).trim())) {
     if (pageCount(summary.title) > 1) errors.push("요약이 한 슬라이드를 넘는다. 핵심과 다음 세션을 한 장으로 압축한다.");
     const hasNext = summary.blocks.some((b) => b.kind === "heading" && /^다음 세션/.test(b.text.trim()));
     const number = /^(\d\d)\./.exec(String(session || ""))?.[1];
     if (!hasNext && (!number || hasNextSession(inputPath, number))) errors.push("요약에 \"### 다음 세션\"이 없다.");
+  }
+  return errors;
+}
+
+// 덱이 **갖춰야 하는 topic이 있는지** 본다 — 세션 목표와 요약. 위의 checkStructure는 그 topic을
+// 찾았을 때 내용을 보는 검사라, 대상이 없으면 아무 말 없이 통과한다. 앞에 topic 하나를 끼워 넣어
+// 번호가 밀리거나 요약을 빼면 검사가 조용히 꺼지는 것이 그래서다. 존재 확인을 따로 두어, 대상이
+// 없으면 **오류로 멈춘다**(2026-11-27).
+//
+// 세션 덱 전체를 받는 Production만 부른다. 검토용 발췌 덱(`sNN-add.md`)과 별첨 덱(`별첨. 참고 자료`)
+// 은 세션 덱이 아니므로 대상이 없는 것이 정상이다.
+function checkDeckShape(inputPath, session, sections) {
+  if (/^(s\d\d)-add\.md$/i.test(path.basename(inputPath))) return [];
+  if (/^별첨/.test(String(session || "").trim())) return [];
+  const errors = [];
+  if (!sections.some((s) => GOALS_TITLE.test(String(s.title).trim()))) {
+    errors.push("「세션 목표」 topic이 없다. 번호가 몇이든 본문에 둔다.");
+  }
+  const firstAppendix = sections.findIndex((s) => s.appendix);
+  const body = firstAppendix >= 0 ? sections.slice(0, firstAppendix) : sections;
+  const last = body[body.length - 1];
+  if (!last || !SUMMARY_TITLE.test(String(last.title).trim())) {
+    const now = last ? `(지금은 "${String(last.title).trim()}")` : "";
+    errors.push(`본문의 마지막 topic이 「요약」이 아니다${now}. 요약을 본문 끝, 별첨 앞에 둔다.`);
   }
   return errors;
 }
@@ -322,4 +352,4 @@ function missingNotes(sections) {
   return sections.filter((s) => (!s.blocks || s.blocks.length) && !(s.notes && s.notes.length)).map((s) => `강사 노트가 없다: "${s.title}"`);
 }
 
-module.exports = { checkStructure, wrappingCells, numberedDiagramLabels, unboldedText, slideTalk, countsMatchTable, numberedBullets, flatGroupItems, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape, missingPracticeAnswer, missingModelUpdate, spelledNumbers, MAX_GOALS };
+module.exports = { checkStructure, checkDeckShape, wrappingCells, numberedDiagramLabels, unboldedText, slideTalk, countsMatchTable, numberedBullets, flatGroupItems, unmarkedQuestionTitles, missingNotes, answersOutsideAppendix, practiceShape, missingPracticeAnswer, missingModelUpdate, spelledNumbers, MAX_GOALS };

@@ -25,7 +25,6 @@ test("explicit practice guide renders one slide with semantically assigned sides
   assert.equal(builder.pages.length, 1);
   assert.equal(checkLayoutGate(page.doc, page), null);
   assert.match(checkLayoutGate(page.doc, {layoutGate:"notation"}), /같은 장/);
-  assert.match(checkLayoutGate(page.doc, {layoutGate:"comparison"}), /4열 비교표/);
 });
 
 test("renumbering and editing earlier topics preserve a dense practice guide's geometry and type", async () => {
@@ -67,17 +66,17 @@ test("renumbering and editing earlier topics preserve a dense practice guide's g
   assert.equal(before[1].bounds.y,before[2].bounds.y);
 });
 
-test("notation and comparison gates reject a slide with the wrong physical objects", async () => {
+test("한 장 배치 게이트는 최종 문서의 실제 개체를 본다", async () => {
   const builder = new Builder(TEMPLATE_DIR);
-  await builder.init("05. 도메인 모델 — 동적 관점");
+  await builder.init("99. 테스트");
   const raw = [
     "## 표기", "표기와 의미를 읽는다.",
     "**도식 — PlantUML — 예시**",
     "```plantuml:state\n@startuml\nleft to right direction\n[*] --> Ready\nReady --> Ready : retry\nReady --> Paid : approve [ready] / store\n@enduml\n```",
-    "**표 — 그림에서 직접 찾는 노테이션**",
+    "**표 — 그림에서 찾는 표기**",
     "| 표기 | 뜻 |\n|---|---|\n| 원 | 초기점 |\n| 상자 | 상태 |\n| 화살표 | 전이 |\n| 고리 | 자기 전이 |\n| 조건 | 가드 |",
   ].join("\n\n");
-  const page = await builder.compactLegendPage(parse(raw).sections[0], true);
+  const page = await builder.compactLegendPage(parse(raw).sections[0]);
   assert.equal(page.pictures.length, 1);
   assert.equal(page.layoutGate, "notation");
   assert.match(checkLayoutGate(page.doc, page), /같은 장/);
@@ -119,10 +118,10 @@ test("mixed appendix measures narrow tables and reserves full width for four col
   assert.equal(builder.needsFullWidthDocumentTable({rows: [["항목", "설명"], ["규칙", "확정된 총액으로 요청한다 ".repeat(8)]]}, 8), true);
 });
 
-test("S05 appendix keeps short and four-column tables within the column grid", async () => {
+test("`**문서 형식 — 단내 표**`를 요청한 별첨은 짧은 표와 4열 표를 단 안에 둔다", async () => {
   const source = [
     "## 목차", "01. 첫 주제", "## 01. 첫 주제", "강의 본문.",
-    "## 별첨. 실습 답", "## 실행 응답", "**실제 LLM 응답**",
+    "## 별첨. 실습 답", "## 실행 응답", "**실제 LLM 응답**", "**문서 형식 — 단내 표**",
     "### 상태", "| 상태 | 뜻 |\n|---|---|\n| PAID | 카드 승인 결과를 받아 확정 금액을 기록하고 주문을 완료한다 |", ".....",
     "### 금액", "| 값 | 뜻 |\n|---|---|\n| 2,000원 | 확정 금액 |",
     "### 전이", "| 이전 | 사건 | 조건 | 이후 |\n|---|---|---|---|\n| 결제대기 | 승인 | 승인 완료 | 결제완료 |",
@@ -147,20 +146,6 @@ test("S05 appendix keeps short and four-column tables within the column grid", a
   assert.ok(all(row,A,"tc").every(cell=>child(child(cell,A,"tcPr"),A,"lnB")));
   const widths=all(tables[0],A,"gridCol").map(col=>Number(col.getAttribute("w")));
   assert.ok(widths[1]>widths[0],"the longer content gets a wider column");
-});
-
-test("draft review requires both paired diagram rows and the explanation below", () => {
-  const transform=(x,y,w,h)=>`<p:spPr><a:xfrm><a:off x="${x*12700}" y="${y*12700}"/><a:ext cx="${w*12700}" cy="${h*12700}"/></a:xfrm></p:spPr>`;
-  const pic=(x,y)=>`<p:pic>${transform(x,y,270,72)}</p:pic>`;
-  const label=(x,y,value)=>`<p:sp>${transform(x,y,260,14)}<a:t>${value}</a:t></p:sp>`;
-  const labels=[label(29,65,"Before — 상태 기계"),label(371,65,"After — 상태 기계"),
-    label(29,158,"Before — 시퀀스"),label(371,158,"After — 시퀀스"),label(29,400,"문제 · 근거 · 수정 결과")].join("");
-  const pictures=[pic(34,84),pic(390,84),pic(34,180),pic(390,180)];
-  const doc=(items)=>parseXml(`<root xmlns:a="${A}" xmlns:p="${P}">${labels}${items.join("")}</root>`);
-  const gate={layoutGate:"draft-diagrams"};
-  assert.equal(checkLayoutGate(doc(pictures),gate),null);
-  assert.match(checkLayoutGate(doc(pictures.slice(1)),gate),/Before\/After/);
-  assert.match(checkLayoutGate(doc([...pictures.slice(0,3),pic(390,275)]),gate),/Before\/After/);
 });
 
 test("recorded answer overflows from left to right in source order", async () => {
@@ -212,20 +197,6 @@ test("S05 table excerpts keep the source width of the values grid and readable e
   const measured=builder.containedWidthReports.find(report=>report.header.length===8);
   assert.ok(measured.minimum[6]<measured.natural[6]);
   for(const table of tables)assert.equal(all(table,A,"tr").length,4,"omitted source rows affect width only");
-});
-
-test("draft review selects the same external approval window and rejects invented lines", () => {
-  const builder=Builder.prototype;
-  const prefix="sequenceDiagram\n    actor Customer as 고객\n";
-  const approval="    Order->>Payment: 카드 승인 요청\n    Payment-->>Order: 카드 승인 완료\n";
-  const delivery="    Order->>Delivery: 배송 요청";
-  const extra="\n    Delivery-->>Order: 배송 요청 성공\n    Order-->>Customer: 주문 결과";
-  const draft=prefix+"    Customer->>Order: 주문 생성\n"+approval+delivery+extra;
-  const final=prefix+"    Customer->>Order: 카드 결제 요청\n"+approval+"    Order->>Order: PAID 반영\n"+delivery;
-  assert.equal(builder.draftSequenceWindow(draft),prefix+approval+delivery+extra);
-  assert.equal(builder.draftSequenceWindow(final),prefix+approval+delivery);
-  assert.equal(builder.isDiagramExcerpt(prefix+approval+delivery+extra,draft),true);
-  assert.equal(builder.isDiagramExcerpt(prefix+approval+delivery+extra.replace("성공","실패"),draft),false);
 });
 
 test("S05 answer 2.2, 6 and 9 allocate measured widths before validating row heights", async () => {

@@ -8,9 +8,15 @@ const { spawnSync } = require("child_process");
 const { reportJson } = require("../inspect");
 const { generateFile, generateBundle } = require("../generate");
 const { TEMPLATE_DIR } = require("../template");
+const { SUMMARY_TOPIC } = require("./fixtures/summary-topic");
 const fixture = fs.readFileSync(path.join(__dirname, "fixtures/reference-session.md"), "utf8");
-const source = fixture.slice(0, fixture.indexOf("## 목차")) + "## 목차\n\n01. 세션 목표\n\n" +
-  fixture.slice(fixture.indexOf("## 01. 세션 목표"), fixture.indexOf("## 02. SW 개발의 재작업"));
+// 세션 덱은 세션 목표와 요약을 갖춘다(structure.js의 checkDeckShape) — 고정 입력도 그 모양을 지킨다.
+const head = fixture.slice(0, fixture.indexOf("## 목차")) + "## 목차\n\n01. 세션 목표\n02. 요약\n\n";
+const goals = fixture.slice(fixture.indexOf("## 01. 세션 목표"), fixture.indexOf("## 02. SW 개발의 재작업"));
+const summary = SUMMARY_TOPIC("02");
+const source = head + goals + summary;
+// 경고를 하나 만드는 입력 — 목표 topic의 강사 노트만 뺀다(요약은 그대로 둔다).
+const noNote = head + goals.slice(0, goals.indexOf("**강사 노트**")) + summary;
 
 test("QA JSON retains error-only verdict, fields and unverified visuals", () => {
   for (const [errors, warnings, status] of [[[], [], "PASS"], [[], ["warning"], "PASS"], [["error"], [], "FAIL"]]) {
@@ -26,7 +32,7 @@ for (const bundle of [false, true]) {
     t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
     const input = path.join(dir, "s01.md"), output = path.join(dir, "out.pptx");
     for (const warnings of [false, true]) {
-      fs.writeFileSync(input, warnings ? source.slice(0, source.indexOf("**강사 노트**")) : source);
+      fs.writeFileSync(input, warnings ? noNote : source);
       const result = spawnSync(process.execPath, [path.join(__dirname, "../cli.js"),
         ...(bundle ? ["--bundle", output] : ["--output", output]), input], { encoding: "utf8" });
       assert.equal(result.status, 0, result.stderr);
@@ -57,7 +63,7 @@ for (const bundle of [false, true]) {
     assert.equal(lines.some((l) => l.startsWith("생성:")), false);
     t.mock.restoreAll();
     // CLI failure marker and nonzero status used by --check consumers stay intact.
-    fs.writeFileSync(input, source.replace("01. 세션 목표\n\n##", "99. 잘못된 목차\n\n##"));
+    fs.writeFileSync(input, source.replace("01. 세션 목표\n02. 요약", "99. 잘못된 목차\n02. 요약"));
     const failed = spawnSync(process.execPath, [path.join(__dirname, "../cli.js"), "--check", input], { encoding: "utf8" });
     assert.equal(failed.status, 1);
     assert.match(failed.stderr, /^생성 중단:/m);

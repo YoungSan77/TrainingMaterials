@@ -9,7 +9,7 @@ test('omission gaps apply to original question numbers, never section numbers',(
 });
 const code='Scenario: 같은 주문 재결제\n  Given 금액은 2,000원이다\n    And 첫 카드는 거절된다\n  When 다른 카드로 결제한다\n  Then 결제완료다\n    And 배송 요청은 총 1회다';
 const source='## 01. 사례\n\n### 기준\n\n> 한글 문형과 English original.\n\n- 같은 수준의 항목\n\n**인용문**\n\n한글 요약, "English with \\"internal\\" quotes.", [Author 2026]\n\n```gherkin\n'+code+'\n```\n\n## 별첨. 실습 답\n\n## 실제 응답\n\n**실제 LLM 응답**\n\n⟨대표 실행 B 발췌 — 설명⟩\n\n### 스토리\n\n> 주문하고 싶다.\n\n…\n\n**페이지 분할**\n\n### 결제 규칙\n\n- 승인 뒤 배송\n\n**페이지 분할**\n\n### 재결제\n\n- 같은 주문이다.\n\n**기대 결과**\n\n| 항목 | 거절 | 승인 |\n|---|---|---|\n| 배송 요청 | 0회 | 1회 |\n\n**페이지 분할**\n\n### 품질\n\n- 성능 기준을 확인한다.\n\n⟨중간 내용 생략⟩\n';
-async function fixture(){const p=parse(source),file=path.join(fs.mkdtempSync(path.join(os.tmpdir(),'tm-uo-')),'out.pptx');const m=await render(p.sections,TEMPLATE_DIR,file,'03. 요구사항',[{kind:'bullet',text:'01. 사례',depth:0,rows:[]}],{productionProfile:'ai-native-s03'});return {m,file};}
+async function fixture(){const p=parse(source),file=path.join(fs.mkdtempSync(path.join(os.tmpdir(),'tm-uo-')),'out.pptx');const m=await render(p.sections,TEMPLATE_DIR,file,'99. 테스트',[{kind:'bullet',text:'01. 사례',depth:0,rows:[]}]);return {m,file};}
 test('all visible text uses Malgun Gothic and every paragraph explicitly uses 100% leading',async()=>{
  const {m,file}=await fixture();assert.deepEqual((await inspect(file,m)).errors,[]);
  for(const page of m.pages)for(const p of all(page.doc,A,'p')){
@@ -41,7 +41,7 @@ test('recorded answer segments fill columns at the common size without losing so
 test('recorded answer groups keep their table and original order at the common size',async()=>{
  const answer='## 별첨. 실습 답\n\n## 응답\n\n**실제 LLM 응답**\n\n### 스토리\n\n- 고객의 가치\n\n### 주문 생성\n\n- 배송지 확정\n\n### 금액\n\n- 생성 시 확정\n\n### 결제\n\n'+Array(8).fill('- 카드 승인과 거절의 처리 규칙을 확인한다.').join('\n')+'\n\n### 배송\n\n- 승인 뒤 요청\n\n**페이지 분할**\n\n### 재결제\n\n- 같은 주문\n\n**기대 결과**\n\n| 관찰 | 거절 | 승인 |\n|---|---|---|\n| 배송 | 0 | 1 |\n\n### 성능 시험\n\n'+Array(6).fill('- 같은 시험 환경에서 응답 시간을 측정한다.').join('\n')+'\n\n### 배송 실패\n\n- 정책은 미정\n';
  const p=parse('## 01. 사례\n\n본문\n\n'+answer),file=path.join(fs.mkdtempSync(path.join(os.tmpdir(),'tm-answer-pages-')),'out.pptx');
- const m=await render(p.sections,TEMPLATE_DIR,file,'03. 요구사항',[{kind:'bullet',text:'01. 사례',depth:0,rows:[]}],{productionProfile:'ai-native-s03'});
+ const m=await render(p.sections,TEMPLATE_DIR,file,'99. 테스트',[{kind:'bullet',text:'01. 사례',depth:0,rows:[]}]);
  const pages=m.pages.filter(p=>p.appendix);assert.equal(pages.length,1);
  assert.ok(pages[0].items.filter(i=>i.kind==='body'&&i.text).length>=1);
  const table=pages[0].items.find(i=>i.kind==='table');assert.ok(table);
@@ -63,13 +63,14 @@ test('numbered events retain their original start values as native PowerPoint li
  assert.deepEqual(all(page.doc,A,'buAutoNum').map(n=>n.getAttribute('startAt')),['1','3']);
  assert.ok(all(page.doc,A,'p').filter(p=>p.textContent.includes('주문')).every(p=>Number(child(p,A,'pPr').getAttribute('indent'))<0));
 });
-test('S03 integrated text measures its actual 3pt paragraph spacing',async()=>{
- const {Builder}=require('../builder');const b=new Builder(TEMPLATE_DIR);await b.init('03. 요구사항',{productionProfile:'ai-native-s03'});
+// 본문의 문단 앞뒤 간격은 모든 세션에서 6pt이고, 글 높이 계산도 그 값을 쓴다. 2026-11-27까지는
+// 세션명이 `03. 요구사항`이면 3pt였다 — 세션명으로 조판을 가르지 않는다.
+test('본문의 문단 간격은 6pt이고 글 높이 계산이 그 값을 쓴다',async()=>{
+ const {Builder}=require('../builder');const b=new Builder(TEMPLATE_DIR);await b.init('03. 요구사항');
  const bs=[{kind:'text',text:'짧은 본문',rows:[],depth:0}];
  const page=b.page(1,'본문');paragraphsForTest(page,bs);
  const pr=child(all(page.doc,A,'p').find(p=>p.textContent==='짧은 본문'),A,'pPr');
- assert.equal(child(child(pr,A,'spcBef'),A,'spcPts').getAttribute('val'),'300');
- assert.equal(child(child(pr,A,'spcAft'),A,'spcPts').getAttribute('val'),'300');
- assert.ok(Math.abs(b.printedTextHeightPt(bs)-(18*1.2+6))<0.01);
+ for(const side of ['spcBef','spcAft'])assert.equal(child(child(pr,A,side),A,'spcPts').getAttribute('val'),'600');
+ assert.ok(Math.abs(b.printedTextHeightPt(bs)-(18*1.2+12))<0.01);
 });
 function paragraphsForTest(page,bs){require('../paragraphs').paragraphs(page,8,bs,false);}

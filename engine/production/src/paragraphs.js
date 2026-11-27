@@ -52,9 +52,6 @@ function numberWidthEmu(prefix, size) {
 function paragraphs(page, id, blocks, toc) {
   const b = body(shape(page.doc, id));
   page.proseSpacingChecks=(page.proseSpacingChecks||[]).filter(c=>c.id!==id);
-  // The approved S04 review question ends only 0.86pt beyond the usual right
-  // inset in PowerPoint. Recover 1.5pt of inset, keeping its text, font and origin.
-  if(page.s04Profile&&String(page.heading).startsWith('10.')&&!toc&&blocks.some(v=>v.kind==='bullet'&&/^\d+\.\s/.test(v.text)))child(b,A,'bodyPr').setAttribute('rIns','72390');
   for (const p of kids(b, A, "p")) b.removeChild(p);
   // CT_TextBody requires at least one <a:p> -- a visual-only page (images, no prose) calls this
   // with an empty `blocks` to clear the placeholder's inherited text, and looping zero times over
@@ -66,9 +63,8 @@ function paragraphs(page, id, blocks, toc) {
   for (const block of blocks) {
     const p = el(page.doc, A, "p");
     b.appendChild(p);
-    const requirementsHeading=page.s03Profile && /^03\. 요구와 요구사항/.test(page.heading) && block.kind==='heading' && block.text==='요구사항';
     const space=block.meta?.reviewExample?3:page.paragraphSpace??6;
-    const pr = spacing(p, requirementsHeading?12:space, space, null);
+    const pr = spacing(p, space, space, null);
     if(block.meta?.reviewExample)page.proseSpacingChecks.push({id,index:kids(b,A,'p').length-1,space:3});
     // parse.js reuses the "bullet" kind for authored ordered-list items ("1. ", "2. ", ...) too,
     // keeping the numeral as literal text -- and for "+ " indent-only lines (block.meta.noGlyph).
@@ -165,11 +161,10 @@ function paragraphs(page, id, blocks, toc) {
       // A bullet citation keeps its level's body size for the Korean part (production-guide.md
       // "인용문" -- bullet 인용); the 10pt English/source zone is the same either way.
       // markedPartsA[4] marks the summary form, whose Korean is not a quotation and keeps no quotes.
-      const quoteBoth=page.quoteTranslations || page.s03Profile;
-      const korean = quoteBoth ? displayQuote(markedPartsA[1]) : markedPartsA[4] ? markedPartsA[1] : displayQuote(markedPartsA[1]);
+      const korean = markedPartsA[4] ? markedPartsA[1] : displayQuote(markedPartsA[1]);
       // 마침표형 요약 인용은 한글이 제 종결 부호로 끝나므로 쉼표를 덧붙이지 않는다(summaryParts).
       const sep = markedPartsA[5] || ", ";
-      const independent=markedQuote && block.meta.authoredKind!=='bullet' && !page.s03Profile;
+      const independent=markedQuote && block.meta.authoredKind!=='bullet';
       const quoteSize = !independent && block.kind === "bullet" && !(block.meta && block.meta.anchor) ? [16,14,12][Math.min(block.depth,2)] : 18;
       richInline(p, korean, quoteSize, false);
       const koreanRuns=all(p,A,'r').length;
@@ -201,8 +196,14 @@ function paragraphs(page, id, blocks, toc) {
       expected.push(plain(anchor[1]));
     } else {
       const value = blockquote ? block.text.replace(/^>\s*/, "") : block.text;
-      const size = block.meta && block.meta.storyPattern ? 14 : toc || ["heading", "text"].includes(block.kind) ? 18 : [16, 14, 12][Math.min(block.depth, 2)];
-      rich(p, value, size, block.kind === "heading" || toc, false, new Set());
+      // 받은 말(`"…"` 한 줄)은 그 깊이의 본문보다 한 단계 작은 크기로 전체를 굵게 그린다 --
+      // 저자의 문장과 섞이지 않게 하는 보조 문장 규칙이다(production-guide.md 「받은 말과 독립
+      // 사례 문장」). 크기 사다리는 본문과 같은 [16,14,12]를 쓰고 한 칸만 내린다.
+      const spoken = Boolean(block.meta && block.meta.spoken);
+      const size = spoken ? [16, 14, 12][Math.min(block.depth + 1, 2)]
+        : block.meta && block.meta.storyPattern ? 14
+        : toc || ["heading", "text"].includes(block.kind) ? 18 : [16, 14, 12][Math.min(block.depth, 2)];
+      rich(p, value, size, spoken || block.kind === "heading" || toc, false, new Set());
       expected.push(plain(value));
     }
   }

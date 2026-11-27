@@ -15,7 +15,7 @@ agentic 시스템은 모델 하나가 아니라 모델을 둘러싼 4가지로 �
 
 | 요소 | 무엇을 정하는가 | 이 저장소의 실체 |
 |---|---|---|
-| **맥락** | 모델이 **읽는 것** | `AGENTS.md`, `governance.md`, `guides/`, 과정의 승인 설계·Curriculum·DD·Deck과 `checks/`, `references/sources`·`inputs` |
+| **맥락** | 모델이 **읽는 것** | `AGENTS.md`, `governance.md`, `guides/`, 과정의 승인 Course Design·Curriculum·Session Source와 `checks/`, `references/sources`·`inputs` |
 | **가드레일** | 환경이 **거절하는 것** | `tools/active-course-hook.js`, `.claude/settings.json`의 권한 허용 목록과 `sandbox.filesystem.denyWrite` |
 | **하네스** | 일이 **되게 만드는 조립** — 가이드와 센서 | 가이드: `AGENTS.md`·`guides/`·`tools/session-authoring-hook.js` / 센서: `engine/production/`·`tools/session-check-hook.js`·`tools/`의 측정 도구 |
 | **추적** | 무엇을 보고 무엇을 **했는가** | git 이력, `courses/<course>/checks/`의 검토 기록, `courses/<course>/checks/turn-log.md` |
@@ -33,7 +33,7 @@ agentic 시스템은 모델 하나가 아니라 모델을 둘러싼 4가지로 �
 
 1. 승인된 구성안의 투입물과 Curriculum의 인계 연결로 선행 실습 번호와 산출물명을 확인한다. 전환 전에는 승인 원고의 **투입물**과 선행 실습의 **결과물**을 대조한다. 둘이 어긋나면 원천을 추정하지 않고 차이를 보고한다.
 2. 같은 과정의 실습 실행 기록과 `checks/`의 검토·인계 기록에서 해당 산출물의 사용이 확정된 저장소 경로를 찾고 파일 전문을 읽는다. 현재 원고가 참조하는 실행과 인계 기록을 대조해 적용 범위를 확인한다. 과거 실행의 첨부 복사본도 그 실행의 근거이므로 해당 실행을 재현할 때 사용한다.
-3. AI-native 과정에서는 기존 `recorded-responses.json`과 실습 실행 기록을 먼저 확인한다. 등록된 실제 응답과 산출물의 관계를 기록에서 확인할 수 있으면 그 연결을 재사용한다. 경로가 확인됐으나 연결이 빠졌으면 기존 과정 기록에 그 연결만 보완한다. 등록된 실제 응답은 원고·topic과 응답 전문 경로의 연결 및 SHA-256 검증을 유지한다. 산출물이 응답의 복사본으로 기록돼 있으면 두 파일의 바이트 일치도 확인한다.
+3. 과정이 실제 LLM 응답을 등록해 두었으면(`recorded-responses.json`) 그 기록과 실습 실행 기록을 먼저 확인한다. 등록된 실제 응답과 산출물의 관계를 기록에서 확인할 수 있으면 그 연결을 재사용한다. 경로가 확인됐으나 연결이 빠졌으면 기존 과정 기록에 그 연결만 보완한다. 등록된 실제 응답은 원고·topic과 응답 전문 경로의 연결 및 SHA-256 검증을 유지한다. 산출물이 응답의 복사본으로 기록돼 있으면 두 파일의 바이트 일치도 확인한다.
 4. 투입물 지정이나 파일이 없거나 기록으로 후보를 하나로 확정할 수 없으면, 필요한 선행 실습과 산출물, 확인한 후보 경로, 확인할 사항을 보고한다. 파일명이나 수정 시각만으로 선택하지 않는다.
 
 ## 3. 가드레일 — 환경이 거절하는 것
@@ -82,11 +82,13 @@ agentic 시스템은 모델 하나가 아니라 모델을 둘러싼 4가지로 �
 
 | 센서 | 무엇을 재는가 | 어디서 도는가 |
 |---|---|---|
-| `engine/production/src/cli.js --check` | 참조·출처 레이블·목표와 요약의 구조·용량·표 칸·실습의 모양·숫자 표기·enum 연속성. 제작 지침의 「SNN 제작 기준」 항목명은 세션 참조와 구별하며, 같은 줄의 실제 SNN 세션 참조는 계속 검사한다. 예시 코드 잔여물 검사에서 `lib`·`.DS_Store` 제외 | 요청할 때 |
+| `engine/production/src/cli.js --check` | 참조·출처 레이블·**세션 목표와 요약 topic의 존재**(`structure.js`의 `checkDeckShape` — 번호가 아니라 이름으로 찾고 없으면 오류다. 번호에 묶인 게이트는 앞에 topic 하나를 끼워 넣으면 조용히 꺼졌다, 2026-11-27)·목표와 요약의 구조·용량·표 칸·실습의 모양·숫자 표기·enum 연속성. 제작 지침의 「SNN 제작 기준」 항목명은 세션 참조와 구별하며, 같은 줄의 실제 SNN 세션 참조는 계속 검사한다. 예시 코드 잔여물 검사에서 `lib`·`.DS_Store` 제외 | 요청할 때 |
 | `engine/production/src/responseExcerpts.js` | 등록 응답의 전문·해시·발췌 대조 | Production 참조 검사 때 |
 | `recordedChecks.js` | 등록 실행과 일치하는 블록에 지정 검사 예외만 적용. 미일치는 경고 | Production 저작 검사 때 |
 | `engine/production/src/tableLayoutChecks.js` | 최종 PPTX 표 문단의 명시적 영문 중간 줄바꿈 금지·실제 글꼴 식별자 최소 폭·표와 본문/계산 객체의 경계 침범을 검사하고 좌표·후속 간격을 QA에 남긴다. 실제 뷰어의 자동 행 확장은 별도 PDF/시각 검증으로 대조한다 | 덱 생성 후 다시 읽기 검사 때 |
 | `tools/check-rendered-tables.py` | 렌더 PDF 모든 표 셀의 원문·경계·영문 식별자의 줄별 위치를 PPTX와 대조한다. 식별자 분리·텍스트 혼입/누락·경계 위반은 오류이며 파일 해시와 셀 위치를 남긴다 | 최종 렌더 제작 검증 때 |
+| `tools/review-pdf.sh` | PowerPoint로 PPTX를 PDF로 내보내고 지정한 장을 PNG로 만든다. 내보낼 문서를 **이름으로 가리키므로** 다른 파일이 열려 있어도 상관없고 사람의 문서를 닫지 않는다. **같은 파일이 열려 있을 때만** 거절한다 — 열린 창의 내용은 렌더 전의 것일 수 있어 그대로 내보내면 옛 덱이 PDF로 나온다(2026-11-28) | 시각 검토 전 |
+| `tools/check-rendered.js` | 렌더 PDF와 PPTX의 좌표로 **고아 줄**(마지막 줄에 한두 글자만 남은 것)·**본문 띠 이탈**·**장마다 다른 세션명 자리**·**도식 아래 남는 여백**을 잰다. 사람이 눈으로 잡던 조판 결함을 기계로 옮긴 것이다(2026-11-27). PDF가 없으면 그 항목은 미검증이며 PASS가 아니다 | 렌더 뒤, 시각 검토 **앞** |
 | Production `contentRoles.js`·`inspect.js`·`generate.js` | 원고 표식과 구조로 강의·실제 응답·판단표·일반 문서 역할을 판정하고 manifest 대비 텍스트·표 내용, 역할별 셀 크기·모든 셀 사방 여백·열과 행의 합 및 frame 크기·계측 행의 텍스트 높이·인용 역할별 크기와 무글머리표를 검사한다. 입력·Gherkin 서식과 continuation 검사도 유지한다. 한 줄 경고는 실측 계약과 같은 topic·표의 모든 생성 행 대응을 확인한 경우만 제외한다. 자연 열 너비 타당성·렌더 겹침·가독성은 별도 제작 검증이다 | 덱 생성·다시 읽기 검사 때 |
 | `tools/session-check-hook.js` | 바뀐 세션 원고가 오류·경고 0인지 | **턴이 끝나기 전** — 아니면 턴을 막는다 |
 | `node --test engine/production/src/test/*.test.js` | renderer의 회귀(고정 fixture 기준). 실제 응답 정렬·다열 표·도식 viewport·7pt 하한, 과정 profile과 동일 세션명의 다른 과정 기본값 분리 | renderer·템플릿을 바꿀 때 |

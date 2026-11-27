@@ -1,0 +1,14 @@
+package order;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.List;
+import org.junit.jupiter.api.Test;
+
+class FailingTest {
+
+    @Test
+    void expectsTheWrongAmount() {
+        assertEquals(1L, ItemAmountCalculator.sum(List.of(new OrderLine(1000L, 2))));
+    }
+}
