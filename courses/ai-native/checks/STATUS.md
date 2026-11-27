@@ -9,7 +9,7 @@
 | **Curriculum / Session Architecture의 편성** | **승인**(2026-11-26) · 기준선 커밋 `d9ec94f` |
 | **공통 업무 시나리오와 필수 공통 전제** | **확정**(2026-11-26) · `course-design.md` 「7. 공통 업무 시나리오와 필수 공통 전제」 |
 | **지정 출처 — 기준 원전과 참고 자료** | **확정**(2026-11-26) · `course-design.md` 「12. 기준 원전과 참고 자료」와 `sessions/references.md` |
-| Session Authoring | **S01 원고 작성 완료**(2026-11-26, Human 수락 대기). S02부터 미착수 |
+| Session Authoring | **S01 원고 22장 완료**(2026-11-28, Human 수락 대기 · 커밋 `8f9395d`). 자동 검사 오류·경고 0, 시각 검토 완료. S02부터 미착수 |
 | 세션 원고를 통합한 최종 Curriculum 승인 | **대기** |
 
 **이번 승인의 범위** — Course Design의 **교육 방향**과 Curriculum / Session Architecture의 **편성**에 대한 승인이다. `guides/governance.md`의 승인 순서에서 이것은 **Course Design 승인 → Session Architecture 승인**까지이며, **세션별 구성안·원고 순차 승인과 전체 Curriculum의 통합 승인은 별개의 후속 단계**다. 문서가 승인됐다는 사실이 세션 원고나 교재의 승인을 뜻하지 않는다.
